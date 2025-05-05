@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS course_instances (
     professor_id INTEGER REFERENCES professors(id) ON DELETE CASCADE NOT NULL,
     course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE NOT NULL,
     course_year INTEGER NOT NULL,
-    UNIQUE (course_id, course_year)
+    canale VARCHAR(10),
+    UNIQUE (course_id, course_year, canale)
 );
 
 CREATE TABLE IF NOT EXISTS vetrina (

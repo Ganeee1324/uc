@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS vetrina_subscriptions CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS course_instances CASCADE;
 DROP TABLE IF EXISTS courses CASCADE;
-DROP TABLE IF EXISTS professors CASCADE;
 DROP TABLE IF EXISTS faculty CASCADE;
 DROP TABLE IF EXISTS vetrina CASCADE;
 
@@ -19,29 +18,26 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS professors (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS faculty (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS courses (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    faculty_id INTEGER REFERENCES faculty(id) ON DELETE CASCADE NOT NULL
+    course_name VARCHAR(255) NOT NULL,
+    course_code VARCHAR(10) PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS course_instances (
     id SERIAL PRIMARY KEY,
-    professor_id INTEGER REFERENCES professors(id) ON DELETE CASCADE NOT NULL,
-    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE NOT NULL,
-    course_year INTEGER NOT NULL,
+    professors VARCHAR(40)[],
+    course_code VARCHAR(10) REFERENCES courses(course_code) ON DELETE CASCADE NOT NULL,
+    faculty_name VARCHAR(255) REFERENCES faculty(name) ON DELETE CASCADE NOT NULL,
+    course_year INTEGER,
+    date_year INTEGER,
+    language VARCHAR(15),
+    course_semester VARCHAR(40),
     canale VARCHAR(10),
-    UNIQUE (course_id, course_year, canale)
+    UNIQUE (course_code, faculty_name, canale, language)
 );
 
 CREATE TABLE IF NOT EXISTS vetrina (

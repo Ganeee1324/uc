@@ -35,16 +35,11 @@ page_source = driver.page_source
 soup = BeautifulSoup(page_source, "html.parser")
 
 # Find all course links
-course_links = []
-for a_tag in soup.find_all("a", href=True):
-    if "cattedreonline/corso" in a_tag["href"]:
-        course_links.append(a_tag["href"])
+with open("course_links.csv", "w") as f:
+    f.write("link,faculty\n")
+    for a_tag in soup.find_all("a", href=True):
+        if "cattedreonline/corso" in a_tag["href"]:
+            faculty = a_tag.find("p", class_="degree").text.strip()
+            f.write(a_tag["href"] + ',"' + faculty.replace('"', "'") + '"' + "\n")
 
-print(f"Found {len(course_links)} course links:")
-# save to file
-with open("course_links.txt", "w") as f:
-    for link in course_links:
-        f.write(link + "\n")
-
-# Close the browser
 driver.quit()

@@ -8,7 +8,7 @@ load_dotenv()
 
 client = anthropic.Anthropic()
 
-with open("test.pdf", "rb") as pdf_file:
+with open("data/test.pdf", "rb") as pdf_file:
     pdf_base64 = base64.standard_b64encode(pdf_file.read()).decode("utf-8")
 
 response = client.messages.count_tokens(

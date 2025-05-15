@@ -1,5 +1,5 @@
 ## Database Schema
-![Database Schema](schema.png)
+![Database Schema](data/schema.png)
 
 ## Setup
 

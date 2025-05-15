@@ -33,7 +33,7 @@ def create_tables(debug: bool = False) -> None:
 
 
 def fill_courses(debug: bool = False) -> None:
-    df = pd.read_csv("courses.csv", encoding="latin1")
+    df = pd.read_csv("data/courses.csv", encoding="latin1")
     with connect() as conn:
         with conn.cursor() as cursor:
             for _, row in df.iterrows():

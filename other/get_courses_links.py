@@ -35,7 +35,7 @@ page_source = driver.page_source
 soup = BeautifulSoup(page_source, "html.parser")
 
 # Find all course links
-with open("course_links.csv", "w") as f:
+with open("data/course_links.csv", "w") as f:
     f.write("link,faculty\n")
     for a_tag in soup.find_all("a", href=True):
         if "cattedreonline/corso" in a_tag["href"]:

@@ -29,7 +29,7 @@ def get_course_data():
 
     # Read course links from file
     try:
-        df = pd.read_csv("course_links.csv")
+        df = pd.read_csv("data/course_links.csv")
         course_links = list(zip(df["link"], df["faculty"]))
     except FileNotFoundError:
         print("Error: course_links.txt file not found.")
@@ -66,7 +66,7 @@ def get_course_data():
 
             # print("--------------------------------")
 
-            with open("courses.csv", "a") as file:
+            with open("data/courses.csv", "a") as file:
                 file.write(
                     ",".join(
                         [
@@ -92,6 +92,6 @@ def get_course_data():
 
 
 if __name__ == "__main__":
-    with open("courses.csv", "w") as file:
+    with open("data/courses.csv", "w") as file:
         file.write("course_link,canale,date_year,year,language,course_id,course_name,semester,professors,faculty\n")
     get_course_data()

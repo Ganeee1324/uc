@@ -47,6 +47,11 @@ class DatabaseTestCase(unittest.TestCase):
 
     def tearDown(self):
         """Clean up after tests"""
+        # Close the database connection
+        if hasattr(self, 'conn') and self.conn is not None:
+            self.conn.close()
+        
+        # Reset the database for the next test
         database.create_tables()
         database.fill_courses()
 

@@ -24,6 +24,11 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
 
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return jsonify({"error": "internal_server_error", "message": str(e)}), 500
+
+
 @app.errorhandler(UniqueViolation)
 def unique_violation_error(e):
     diag = e.diag

@@ -328,10 +328,7 @@ def verify_user(email: str, password: str) -> User:
         with conn.cursor() as cursor:
             cursor.execute("SELECT id, username, email, password, created_at, last_login FROM users WHERE email = %s", (email,))
             user_data = cursor.fetchone()
-            if not user_data:
-                raise UnauthorizedError("Invalid email or password")
-
-            if password != user_data[3]:
+            if not user_data or password != user_data[3]:
                 raise UnauthorizedError("Invalid email or password")
 
             return User(id=user_data[0], username=user_data[1], email=user_data[2], created_at=user_data[4], last_login=user_data[5])
@@ -374,6 +371,8 @@ def update_username(user: User, new_username: str) -> User:
                 (new_username, user.id),
             )
             user_data = cursor.fetchone()
+            if not user_data:
+                raise Exception("User not found")
             conn.commit()
 
             return User(*user_data)
@@ -403,6 +402,8 @@ def update_email(user: User, new_email: str) -> User:
                 (new_email, user.id),
             )
             user_data = cursor.fetchone()
+            if not user_data:
+                raise Exception("User not found")
             conn.commit()
 
             return User(*user_data)

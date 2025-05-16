@@ -172,6 +172,8 @@ class File:
             "id": self.id,
             "filename": self.filename,
             "created_at": self.created_at,
+            "vetrina_id": self.vetrina_id,
+            "sha256": self.sha256,
             "fact_mark": self.fact_mark,
             "fact_mark_updated_at": self.fact_mark_updated_at,
             "size": self.size,

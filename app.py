@@ -196,7 +196,7 @@ def get_files_for_vetrina(vetrina_id):
 @jwt_required()
 def get_file(file_id):
     file = database.get_file(file_id)
-    return jsonify({"file": file.to_dict()}), 200
+    return jsonify(file.to_dict()), 200
 
 
 # ---------------------------------------------

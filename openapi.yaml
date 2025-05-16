@@ -312,6 +312,192 @@ paths:
                   "Engineering": [["ENG303", "Technical Writing"]]
                   "Mathematics": [["MATH201", "Linear Algebra"]]
 
+  /vetrine/{vetrina_id}/files:
+    post:
+      tags:
+        - Vetrine
+      summary: Upload a file to a vetrina
+      description: Upload a file to a specific vetrina (only available to vetrina owner)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to upload the file to
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File uploaded
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+        "403":
+          description: User is not the owner of the vetrina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [forbidden]
+                  msg:
+                    type: string
+        "500":
+          description: File already exists or save failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [file_already_exists, save_failed]
+                  msg:
+                    type: string
+
+    get:
+      tags:
+        - Vetrine
+      summary: Get files for a vetrina
+      description: Retrieve all files associated with a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to get files from
+      responses:
+        "200":
+          description: Files retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/File"
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+
+  /files/{file_id}:
+    get:
+      tags:
+        - Vetrine
+      summary: Get file details
+      description: Retrieve details for a specific file by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to retrieve
+      responses:
+        "200":
+          description: File details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+
+    delete:
+      tags:
+        - Vetrine
+      summary: Delete a file
+      description: Delete a specific file (only available to vetrina owner)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to delete
+      responses:
+        "200":
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File deleted
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+
 components:
   schemas:
     Vetrina:
@@ -405,6 +591,39 @@ components:
           type: string
           format: date-time
           description: Timestamp when the user account was created
+
+    File:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the file
+        filename:
+          type: string
+          description: Name of the file
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the file was uploaded
+        size:
+          type: integer
+          description: Size of the file in bytes
+        vetrina_id:
+          type: integer
+          description: ID of the vetrina the file belongs to
+        sha256:
+          type: string
+          description: SHA256 hash of the file
+        download_count:
+          type: integer
+          description: Number of times the file has been downloaded
+        fact_mark:
+          type: integer
+          description: Factual accuracy mark for the file
+        fact_mark_updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the factual accuracy mark was last updated
 
   securitySchemes:
     BearerAuth:

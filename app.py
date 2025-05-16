@@ -4,9 +4,11 @@ from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 import os
 from psycopg.errors import UniqueViolation
-from db_errors import NotFoundException, UnauthorizedError
+import hashlib
+from db_errors import NotFoundException, UnauthorizedError, ForbiddenError
 
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import uuid
 
 load_dotenv()
 
@@ -24,6 +26,14 @@ app.config["JWT_VERIFY_SUB"] = False
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
 
+# file folder
+files_folder = os.getenv("FILES_FOLDER")
+if not files_folder:
+    files_folder = "files"
+    print("Warning: Using default files folder. This is not secure for production.")
+
+files_folder_path = os.path.join(os.path.dirname(__file__), files_folder)
+os.makedirs(files_folder_path, exist_ok=True)
 
 # ---------------------------------------------
 # Error handlers
@@ -35,6 +45,11 @@ def handle_exception(e):
     return jsonify({"error": "internal_server_error", "msg": str(e)}), 500
 
 
+@app.errorhandler(ForbiddenError)
+def forbidden_error(e):
+    return jsonify({"error": "forbidden", "msg": str(e)}), 403
+
+
 @app.errorhandler(NotFoundException)
 def not_found_error(e):
     return jsonify({"error": "not_found", "msg": str(e)}), 404
@@ -44,11 +59,11 @@ def not_found_error(e):
 def unique_violation_error(e):
     diag = e.diag
     if diag.constraint_name == "users_email_key":
-        return jsonify({"error": "email_already_exists", "msg": "Email already exists"}), 400
+        return jsonify({"error": "email_already_exists", "msg": "Email already exists"}), 409
     elif diag.constraint_name == "users_username_key":
-        return jsonify({"error": "username_already_exists", "msg": "Username already exists"}), 400
+        return jsonify({"error": "username_already_exists", "msg": "Username already exists"}), 409
     elif diag.constraint_name == "vetrina_subscriptions_pkey":
-        return jsonify({"error": "already_subscribed", "msg": "User already subscribed to this vetrina"}), 200
+        return jsonify({"error": "already_subscribed", "msg": "User already subscribed to this vetrina"}), 309
     else:
         return jsonify({"error": "unique_violation", "msg": f"Unique violation error on constraint {diag.constraint_name}"}), 500
 
@@ -59,7 +74,7 @@ def unauthorized_error(e):
 
 
 # ---------------------------------------------
-# Routes
+# User routes
 # ---------------------------------------------
 
 
@@ -88,6 +103,11 @@ def login():
     return jsonify({"access_token": access_token}), 200
 
 
+# ---------------------------------------------
+# Vetrina routes
+# ---------------------------------------------
+
+
 @app.route("/vetrine/<int:vetrina_id>", methods=["GET"])
 @jwt_required()
 def get_vetrina(vetrina_id):
@@ -112,7 +132,6 @@ def unsubscribe_from_vetrina(vetrina_id):
     return jsonify({"msg": "Unsubscribed from vetrina"}), 200
 
 
-# get vetrine for another user /vetrine?user_id=1
 @app.route("/vetrine", methods=["GET"])
 @jwt_required()
 def search_vetrine():
@@ -126,6 +145,63 @@ def search_vetrine():
     # Perform the search
     results = database.search_vetrine(search_params)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
+
+
+@app.route("/vetrine/<int:vetrina_id>/files", methods=["POST"])
+@jwt_required()
+def upload_file(vetrina_id):
+    requester_id = get_jwt_identity()
+    file = request.files["file"]
+    new_file_name = "-".join([str(uuid.uuid4()), str(requester_id), file.filename])
+    new_file_path = os.path.join(files_folder_path, new_file_name)
+    if os.path.exists(new_file_path):
+        return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
+    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, hashlib.sha256(file.read()).hexdigest())
+    try:
+        file.save(new_file_path)
+    except Exception as e:
+        try:
+            os.remove(new_file_path)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
+        try:
+            database.delete_file(requester_id, db_file.id)
+        except Exception as e:
+            print(f"Error deleting file from database: {e}")
+        return jsonify({"error": "save_failed", "msg": str(e)}), 500
+    file.close()
+    return jsonify({"msg": "File uploaded"}), 200
+
+
+@app.route("/files/<int:file_id>", methods=["DELETE"])
+@jwt_required()
+def delete_file(file_id):
+    user_id = get_jwt_identity()
+    db_file = database.delete_file(user_id, file_id)
+    try:
+        os.remove(os.path.join(files_folder_path, db_file.filename))
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+    return jsonify({"msg": "File deleted"}), 200
+
+
+@app.route("/vetrine/<int:vetrina_id>/files", methods=["GET"])
+@jwt_required()
+def get_files_for_vetrina(vetrina_id):
+    files = database.get_files_from_vetrina(vetrina_id)
+    return jsonify({"files": [file.to_dict() for file in files]}), 200
+
+
+@app.route("/files/<int:file_id>", methods=["GET"])
+@jwt_required()
+def get_file(file_id):
+    file = database.get_file(file_id)
+    return jsonify({"file": file.to_dict()}), 200
+
+
+# ---------------------------------------------
+# Courses routes
+# ---------------------------------------------
 
 
 # get faculties and courses

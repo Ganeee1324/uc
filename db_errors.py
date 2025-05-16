@@ -4,3 +4,7 @@ class UnauthorizedError(Exception):
 
 class NotFoundException(Exception):
     pass
+
+
+class ForbiddenError(Exception):
+    pass

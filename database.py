@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Tuple
 import psycopg
 import os
-from common import CourseInstance, User, Vetrina, VetrinaSubscription
-from db_errors import UnauthorizedError, NotFoundException
+from common import CourseInstance, File, User, Vetrina, VetrinaSubscription
+from db_errors import UnauthorizedError, NotFoundException, ForbiddenError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
@@ -639,3 +639,123 @@ def get_course_by_code(course_code: str, faculty_name: str, canale: str) -> Cour
 
 
 faculties_courses_cache = None
+
+# ---------------------------------------------
+# File management
+# ---------------------------------------------
+
+# CREATE TABLE IF NOT EXISTS files (
+#     id SERIAL PRIMARY KEY,
+#     filename VARCHAR(255) NOT NULL,
+#     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+#     fact_mark INTEGER NOT NULL DEFAULT 0,
+#     sha256 VARCHAR(64) NOT NULL,
+#     fact_mark_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+#     size INTEGER NOT NULL DEFAULT 0,
+#     download_count INTEGER NOT NULL DEFAULT 0,
+#     vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE,
+# );
+
+
+def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str) -> File:
+    """
+    Add a file to a vetrina.
+
+    Args:
+        requester_id: ID of the user making the request
+        vetrina_id: ID of the vetrina to add the file to
+        file_name: Name of the file
+        sha256: SHA256 hash of the file
+
+    Raises:
+        NotFoundException: If the vetrina doesn't exist
+        ForbiddenError: If the requester is not the owner of the vetrina
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            # Start transaction
+            conn.autocommit = False
+
+            # First check if the vetrina exists
+            cursor.execute("SELECT owner_id FROM vetrina WHERE id = %s", (vetrina_id,))
+            vetrina = cursor.fetchone()
+
+            if not vetrina:
+                conn.rollback()
+                raise NotFoundException("Vetrina not found")
+
+            # Then check if the requester is the owner
+            if vetrina[0] != requester_id:
+                conn.rollback()
+                raise ForbiddenError("Only the owner can add files to this vetrina")
+
+            # If all checks pass, insert the file
+            cursor.execute(
+                "INSERT INTO files (vetrina_id, filename, sha256) VALUES (%s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at",
+                (vetrina_id, file_name, sha256),
+            )
+            file_data = cursor.fetchone()
+
+            # Commit the transaction
+            conn.commit()
+
+            return File(*file_data)
+
+
+def get_files_from_vetrina(vetrina_id: int) -> List[File]:
+    """
+    Get all files from a vetrina.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at FROM files WHERE vetrina_id = %s",
+                (vetrina_id,),
+            )
+            return [File(*data) for data in cursor.fetchall()]
+
+
+def delete_file(requester_id: int, file_id: int) -> File:
+    """
+    Delete a file to which the requester has access.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM files 
+                WHERE id = %s 
+                AND vetrina_id IN (
+                    SELECT v.id 
+                    FROM vetrina v 
+                    WHERE v.owner_id = %s
+                )
+                RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at
+            """,
+                (file_id, requester_id),
+            )
+            file_data = cursor.fetchone()
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                raise NotFoundException("File not found")
+
+            return File(*file_data)
+
+
+def get_file(file_id: int) -> File:
+    """
+    Get a file.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at FROM files WHERE id = %s",
+                (file_id,),
+            )
+            file_data = cursor.fetchone()
+
+            if not file_data:
+                raise NotFoundException("File not found")
+
+            return File(*file_data)

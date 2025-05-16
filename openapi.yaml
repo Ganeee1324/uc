@@ -49,7 +49,7 @@ paths:
                   type: string
                   description: User's last name
       responses:
-        '200':
+        "200":
           description: User successfully registered
           content:
             application/json:
@@ -59,7 +59,7 @@ paths:
                   access_token:
                     type: string
                     description: JWT access token for authentication
-        '400':
+        "409":
           description: Email or username already exists
           content:
             application/json:
@@ -97,7 +97,7 @@ paths:
                   format: password
                   description: User's password
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
@@ -107,7 +107,7 @@ paths:
                   access_token:
                     type: string
                     description: JWT access token for authentication
-        '401':
+        "401":
           description: Authentication failed
           content:
             application/json:
@@ -136,13 +136,13 @@ paths:
           required: true
           description: ID of the vetrina to retrieve
       responses:
-        '200':
+        "200":
           description: Vetrina details retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Vetrina'
-        '404':
+                $ref: "#/components/schemas/Vetrina"
+        "404":
           description: Vetrina not found
           content:
             application/json:
@@ -171,7 +171,7 @@ paths:
           required: true
           description: ID of the vetrina to subscribe to
       responses:
-        '200':
+        "200":
           description: Successfully subscribed to vetrina
           content:
             application/json:
@@ -181,7 +181,7 @@ paths:
                   msg:
                     type: string
                     example: Subscribed to vetrina
-        '404':
+        "404":
           description: Vetrina not found
           content:
             application/json:
@@ -193,7 +193,19 @@ paths:
                     enum: [not_found]
                   msg:
                     type: string
-    
+        "309":
+          description: User already subscribed to this vetrina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [already_subscribed]
+                  msg:
+                    type: string
+
     delete:
       tags:
         - Vetrine
@@ -209,7 +221,7 @@ paths:
           required: true
           description: ID of the vetrina to unsubscribe from
       responses:
-        '200':
+        "200":
           description: Successfully unsubscribed from vetrina
           content:
             application/json:
@@ -219,7 +231,7 @@ paths:
                   msg:
                     type: string
                     example: Unsubscribed from vetrina
-        '404':
+        "404":
           description: Vetrina not found
           content:
             application/json:
@@ -266,7 +278,7 @@ paths:
             type: string
           description: Filter by faculty
       responses:
-        '200':
+        "200":
           description: Search results
           content:
             application/json:
@@ -276,7 +288,7 @@ paths:
                   vetrine:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Vetrina'
+                      $ref: "#/components/schemas/Vetrina"
                   count:
                     type: integer
                     description: Number of results returned
@@ -288,13 +300,17 @@ paths:
       summary: Get faculties and courses hierarchy
       description: Retrieve the hierarchy of faculties and their associated courses
       responses:
-        '200':
+        "200":
           description: Hierarchy data retrieved successfully
           content:
             application/json:
               schema:
                 type: object
                 description: Hierarchical structure of faculties and courses
+                example:
+                  "Computer Science": [["CS101", "Introduction to Computer Science"]]
+                  "Engineering": [["ENG303", "Technical Writing"]]
+                  "Mathematics": [["MATH201", "Linear Algebra"]]
 
 components:
   schemas:
@@ -395,4 +411,4 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token for authentication 
+      description: JWT token for authentication

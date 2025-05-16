@@ -324,6 +324,7 @@ def test_get_hierarchy():
         return False
     
     print(f"Found {len(data)} faculties")
+    print(f"Faculties: {data}")
     
     # Print sample data from the first faculty
     if len(data) > 0:
@@ -408,8 +409,8 @@ def test_already_subscribed_case(token, vetrina_id):
         headers=headers
     )
     
-    if duplicate_response.status_code != 200:
-        print(f"Error: Expected status code 200 for already subscribed case, got {duplicate_response.status_code}")
+    if duplicate_response.status_code != 309:
+        print(f"Error: Expected status code 309 for already subscribed case, got {duplicate_response.status_code}")
         return False
     
     response_data = duplicate_response.json()
@@ -425,6 +426,166 @@ def test_already_subscribed_case(token, vetrina_id):
     )
     
     return True
+
+def test_file_operations(token, vetrina_id):
+    """Test file upload, retrieval and deletion for a vetrina"""
+    print(f"\nTesting file operations for vetrina ID: {vetrina_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Create a test file
+    test_file_path = "test_upload_file.txt"
+    with open(test_file_path, "w") as f:
+        f.write("This is a test file for upload testing.")
+    
+    try:
+        # 1. Upload file
+        print("Testing file upload...")
+        with open(test_file_path, "rb") as f:
+            files = {"file": f}
+            response = requests.post(
+                f"{BASE_URL}/vetrine/{vetrina_id}/files",
+                headers=headers,
+                files=files
+            )
+        
+        if response.status_code != 200:
+            print(f"Error uploading file: {response.status_code} - {response.text}")
+            return False
+        
+        print("✓ File uploaded successfully")
+        
+        # 2. Get files for vetrina
+        print("Testing get files for vetrina...")
+        response = requests.get(
+            f"{BASE_URL}/vetrine/{vetrina_id}/files",
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            print(f"Error getting files: {response.status_code} - {response.text}")
+            return False
+        
+        files_data = response.json()
+        if not files_data["files"] or len(files_data["files"]) == 0:
+            print("Error: No files found after upload")
+            return False
+        
+        # Get the first file for testing
+        file_id = files_data["files"][0]["id"]
+        print(f"✓ Found {len(files_data['files'])} files, using file ID: {file_id}")
+        
+        # 3. Get specific file details
+        print("Testing get specific file details...")
+        response = requests.get(
+            f"{BASE_URL}/files/{file_id}",
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            print(f"Error getting file details: {response.status_code} - {response.text}")
+            return False
+        
+        file_details = response.json()["file"]
+        print(f"✓ Got file details: {file_details['filename']}")
+        
+        # 4. Delete file
+        print("Testing file deletion...")
+        response = requests.delete(
+            f"{BASE_URL}/files/{file_id}",
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            print(f"Error deleting file: {response.status_code} - {response.text}")
+            return False
+        
+        print("✓ File deleted successfully")
+        
+        # 5. Verify file is deleted
+        print("Verifying file deletion...")
+        response = requests.get(
+            f"{BASE_URL}/files/{file_id}",
+            headers=headers
+        )
+        
+        if response.status_code == 404:
+            print("✓ File deletion verified - file no longer exists")
+        else:
+            print(f"Warning: File still accessible after deletion: {response.status_code} - {response.text}")
+            return False
+        
+        return True
+    
+    finally:
+        # Clean up test file
+        if os.path.exists(test_file_path):
+            os.remove(test_file_path)
+            print(f"Cleaned up test file: {test_file_path}")
+
+def test_file_upload_without_auth():
+    """Test file upload without authentication"""
+    print("\nTesting file upload without authentication...")
+    
+    # Create a test file
+    test_file_path = "test_upload_file.txt"
+    with open(test_file_path, "w") as f:
+        f.write("This is a test file for upload testing.")
+    
+    try:
+        # Try to upload without auth token
+        with open(test_file_path, "rb") as f:
+            files = {"file": f}
+            response = requests.post(
+                f"{BASE_URL}/vetrine/1/files",  # Using arbitrary vetrina ID
+                files=files
+            )
+        
+        if response.status_code == 401:
+            print("✓ Correctly rejected unauthenticated file upload")
+            return True
+        else:
+            print(f"Error: Expected 401 status code, got {response.status_code} - {response.text}")
+            return False
+    
+    finally:
+        # Clean up test file
+        if os.path.exists(test_file_path):
+            os.remove(test_file_path)
+
+def test_file_operations_wrong_vetrina(token):
+    """Test file operations with a non-existent vetrina"""
+    print("\nTesting file operations with non-existent vetrina...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    non_existent_vetrina_id = 99999  # Assuming this ID doesn't exist
+    
+    # Create a test file
+    test_file_path = "test_upload_file.txt"
+    with open(test_file_path, "w") as f:
+        f.write("This is a test file for upload testing.")
+    
+    try:
+        # Try to upload to non-existent vetrina
+        with open(test_file_path, "rb") as f:
+            files = {"file": f}
+            response = requests.post(
+                f"{BASE_URL}/vetrine/{non_existent_vetrina_id}/files",
+                headers=headers,
+                files=files
+            )
+        
+        if response.status_code == 404:
+            print("✓ Correctly rejected upload to non-existent vetrina")
+            return True
+        else:
+            print(f"Warning: Expected 404 status code, got {response.status_code} - {response.text}")
+            return False
+    
+    finally:
+        # Clean up test file
+        if os.path.exists(test_file_path):
+            os.remove(test_file_path)
 
 def run_tests():
     """Run all tests"""
@@ -481,6 +642,15 @@ def run_tests():
         # Test subscribe and unsubscribe
         test_subscribe_to_vetrina(token, vetrine[0].id)
         test_unsubscribe_from_vetrina(token, vetrine[0].id)
+        
+        # Test file operations
+        test_file_operations(token, vetrine[0].id)
+    
+    # Test file upload without authentication
+    test_file_upload_without_auth()
+    
+    # Test file operations with non-existent vetrina
+    test_file_operations_wrong_vetrina(token)
     
     print("\nAll tests completed!")
 

@@ -11,7 +11,7 @@
    DB_PASSWORD=your_password
    ```
 3. Install dependencies
-4. Run `python database.py` to create the database tables
+4. Run `python setup_database.py` to create the database tables
 5. Run `python app.py` to start the Flask server
 
 ## Features

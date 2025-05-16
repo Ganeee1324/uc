@@ -486,7 +486,7 @@ def test_file_operations(token, vetrina_id):
             print(f"Error getting file details: {response.status_code} - {response.text}")
             return False
         
-        file_details = response.json()["file"]
+        file_details = response.json()
         print(f"✓ Got file details: {file_details['filename']}")
         
         # 4. Delete file

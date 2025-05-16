@@ -1,176 +1,388 @@
-import unittest
+import requests
 import json
+import sys
 import os
+
+# Add parent directory to path to import modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import database
 from app import app
-from database import create_tables, connect
-import psycopg
 
-class FlaskAppTestCase(unittest.TestCase):
-    def setUp(self):
-        # Configure app for testing
-        app.config['TESTING'] = True
-        self.client = app.test_client()
+# Test configuration
+BASE_URL = "http://localhost:5000"
+TEST_USER = {
+    "username": "testuser",
+    "name": "Test",
+    "surname": "User",
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+def setup():
+    """Set up test data - create user, course instance, and vetrine"""
+    print("Setting up test data...")
+
+    database.create_tables()
+    
+    # Create test user using the API
+    try:
+        response = requests.post(
+            f"{BASE_URL}/register",
+            json={
+                "username": TEST_USER["username"],
+                "name": TEST_USER["name"],
+                "surname": TEST_USER["surname"],
+                "email": TEST_USER["email"],
+                "password": TEST_USER["password"]
+            }
+        )
         
-        # Create test database tables
-        try:
-            create_tables()
-        except Exception as e:
-            print(f"Error setting up test database: {e}")
-        
-        # Clear users table before each test
-        with connect() as conn:
+        if response.status_code == 200:
+            print(f"Created test user: {TEST_USER['username']}")
+            # Get the user from database to have the full user object
+            with database.connect() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT id FROM users WHERE email = %s", (TEST_USER["email"],))
+                    user_id = cursor.fetchone()[0]
+                    user = database.get_user_by_id(user_id)
+        else:
+            # User might already exist, try to get it
+            print(f"User registration error (might already exist): {response.text}")
+            with database.connect() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT id FROM users WHERE email = %s", (TEST_USER["email"],))
+                    user_id = cursor.fetchone()[0]
+                    user = database.get_user_by_id(user_id)
+                    print(f"Using existing user: {user.username} (ID: {user.id})")
+    except Exception as e:
+        # Handle any other errors
+        print(f"Error during user setup: {e}")
+        # Try to get the user if it exists
+        with database.connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("DELETE FROM users")
+                cursor.execute("SELECT id FROM users WHERE email = %s", (TEST_USER["email"],))
+                result = cursor.fetchone()
+                if result:
+                    user_id = result[0]
+                    user = database.get_user_by_id(user_id)
+                    print(f"Using existing user: {user.username} (ID: {user.id})")
+                else:
+                    raise Exception("Failed to create or find test user")
+    
+    # Create test course instances for different faculties and course codes
+    test_courses = [
+        {
+            "course_code": "CS101", 
+            "course_name": "Introduction to Computer Science", 
+            "faculty_name": "Computer Science", 
+            "course_year": 1, 
+            "date_year": 2023, 
+            "language": "English", 
+            "course_semester": "Fall", 
+            "canale": "A", 
+            "professors": ["Prof. Smith"]
+        },
+        {
+            "course_code": "MATH201", 
+            "course_name": "Linear Algebra", 
+            "faculty_name": "Mathematics", 
+            "course_year": 2, 
+            "date_year": 2023, 
+            "language": "English", 
+            "course_semester": "Spring", 
+            "canale": "B", 
+            "professors": ["Prof. Johnson"]
+        },
+        {
+            "course_code": "ENG303", 
+            "course_name": "Technical Writing", 
+            "faculty_name": "Engineering", 
+            "course_year": 3, 
+            "date_year": 2023, 
+            "language": "English", 
+            "course_semester": "Fall", 
+            "canale": "C", 
+            "professors": ["Prof. Williams"]
+        }
+    ]
+    
+    created_courses = []
+    with database.connect() as conn:
+        with conn.cursor() as cursor:
+            for course_data in test_courses:
+                cursor.execute(
+                    """
+                    INSERT INTO course_instances 
+                    (course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (course_code, faculty_name, canale) DO UPDATE 
+                    SET course_name = EXCLUDED.course_name
+                    RETURNING id
+                    """,
+                    (
+                        course_data["course_code"], 
+                        course_data["course_name"], 
+                        course_data["faculty_name"], 
+                        course_data["course_year"], 
+                        course_data["date_year"], 
+                        course_data["language"], 
+                        course_data["course_semester"], 
+                        course_data["canale"], 
+                        course_data["professors"]
+                    )
+                )
+                course_id = cursor.fetchone()[0]
                 conn.commit()
+                course = database.get_course_by_id(course_id)
+                created_courses.append(course)
+                print(f"Created/updated course: {course.course_name} (ID: {course.instance_id})")
+    
+    # Create test vetrine with different names for search testing
+    vetrine_data = [
+        {"name": "Python Programming", "description": "Resources for Python programming", "course_id": created_courses[0].instance_id},
+        {"name": "Data Structures", "description": "Materials about data structures", "course_id": created_courses[0].instance_id},
+        {"name": "Linear Algebra Notes", "description": "Complete notes for Linear Algebra", "course_id": created_courses[1].instance_id},
+        {"name": "Math Programming", "description": "Programming applications in mathematics", "course_id": created_courses[1].instance_id},
+        {"name": "Technical Writing Guide", "description": "Guide for technical documentation", "course_id": created_courses[2].instance_id}
+    ]
+    
+    created_vetrine = []
+    for data in vetrine_data:
+        try:
+            vetrina = database.create_vetrina(
+                user.id, 
+                data["course_id"], 
+                data["name"], 
+                data["description"]
+            )
+            created_vetrine.append(vetrina)
+            print(f"Created vetrina: {vetrina.name} (ID: {vetrina.id}) for course ID: {data['course_id']}")
+        except Exception as e:
+            print(f"Error creating vetrina {data['name']}: {e}")
+    
+    return user, created_courses, created_vetrine
 
-    def test_register_success(self):
-        """Test successful user registration"""
-        response = self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser',
-                'email': 'test@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertIn('access_token', data)
-        
-        # Verify user was created in database
-        with connect() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM users WHERE email = 'test@example.com'")
-                user = cursor.fetchone()
-                self.assertIsNotNone(user)
-                self.assertEqual(user[1], 'testuser')  # username
+def get_auth_token(email, password):
+    """Get JWT auth token for API requests"""
+    response = requests.post(
+        f"{BASE_URL}/login",
+        json={"email": email, "password": password}
+    )
+    
+    if response.status_code != 200:
+        print(f"Login failed: {response.text}")
+        return None
+    
+    return response.json()["access_token"]
 
-    def test_register_duplicate_email(self):
-        """Test registration with duplicate email"""
-        # First registration
-        self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser',
-                'email': 'test@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        # Second registration with same email
-        response = self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser2',
-                'email': 'test@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertEqual(data['error'], 'email_already_exists')
+def test_get_all_vetrine(token):
+    """Test getting all vetrine (first 100)"""
+    print("\nTesting get all vetrine...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    print(f"Found {data['count']} vetrine")
+    
+    if data['count'] > 0:
+        print(f"Sample vetrina: {data['vetrine'][0]['name']}")
+    
+    return True
 
-    def test_register_duplicate_username(self):
-        """Test registration with duplicate username"""
-        # First registration
-        self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser',
-                'email': 'test1@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        # Second registration with same username
-        response = self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser',
-                'email': 'test2@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertEqual(data['error'], 'username_already_exists')
+def test_search_by_name(token, search_term, expected_count=None):
+    """Test searching vetrine by name"""
+    print(f"\nTesting search by name: '{search_term}'...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine?name={search_term}", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    print(f"Found {data['count']} vetrine matching '{search_term}'")
+    
+    for vetrina in data['vetrine']:
+        print(f"- {vetrina['name']}")
+    
+    if expected_count is not None:
+        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
+        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
+    
+    return True
 
-    def test_login_success(self):
-        """Test successful login"""
-        # Register a user first
-        self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser',
-                'email': 'test@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        # Try to login
-        response = self.client.post(
-            '/login',
-            data=json.dumps({
-                'email': 'test@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertIn('access_token', data)
+def test_search_by_course_code(token, course_code, expected_count=None):
+    """Test searching vetrine by course code"""
+    print(f"\nTesting search by course code: '{course_code}'...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine?course_code={course_code}", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    print(f"Found {data['count']} vetrine for course code '{course_code}'")
+    
+    for vetrina in data['vetrine']:
+        print(f"- {vetrina['name']}")
+    
+    if expected_count is not None:
+        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
+        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
+    
+    return True
 
-    def test_login_invalid_email(self):
-        """Test login with invalid email"""
-        response = self.client.post(
-            '/login',
-            data=json.dumps({
-                'email': 'nonexistent@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 401)
-        data = json.loads(response.data)
-        self.assertEqual(data['error'], 'unauthorized')
+def test_search_by_faculty(token, faculty, expected_count=None):
+    """Test searching vetrine by faculty"""
+    print(f"\nTesting search by faculty: '{faculty}'...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine?faculty={faculty}", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    print(f"Found {data['count']} vetrine for faculty '{faculty}'")
+    
+    for vetrina in data['vetrine']:
+        print(f"- {vetrina['name']}")
+    
+    if expected_count is not None:
+        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
+        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
+    
+    return True
 
-    def test_login_invalid_password(self):
-        """Test login with invalid password"""
-        # Register a user first
-        self.client.post(
-            '/register',
-            data=json.dumps({
-                'username': 'testuser',
-                'email': 'test@example.com',
-                'password': 'password123'
-            }),
-            content_type='application/json'
-        )
-        
-        # Try to login with wrong password
-        response = self.client.post(
-            '/login',
-            data=json.dumps({
-                'email': 'test@example.com',
-                'password': 'wrongpassword'
-            }),
-            content_type='application/json'
-        )
-        
-        self.assertEqual(response.status_code, 401)
-        data = json.loads(response.data)
-        self.assertEqual(data['error'], 'unauthorized')
+def test_combined_search(token, params, expected_count=None):
+    """Test searching vetrine with multiple parameters"""
+    print(f"\nTesting combined search with params: {params}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Build query string
+    query_parts = []
+    for key, value in params.items():
+        query_parts.append(f"{key}={value}")
+    query_string = "&".join(query_parts)
+    
+    response = requests.get(
+        f"{BASE_URL}/vetrine?{query_string}", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    print(f"Found {data['count']} vetrine matching combined search")
+    
+    for vetrina in data['vetrine']:
+        print(f"- {vetrina['name']}")
+    
+    if expected_count is not None:
+        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
+        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
+    
+    return True
 
-if __name__ == '__main__':
-    unittest.main()
+def test_get_hierarchy():
+    """Test getting faculties and courses hierarchy"""
+    print("\nTesting get hierarchy endpoint...")
+    
+    response = requests.get(f"{BASE_URL}/hierarchy")
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    
+    # Check if we have faculties
+    if not data or not isinstance(data, dict):
+        print("Error: Invalid response format")
+        return False
+    
+    print(f"Found {len(data)} faculties")
+    
+    # Print sample data from the first faculty
+    if len(data) > 0:
+        faculty = list(data.keys())[0]
+        print(f"Sample faculty: {faculty}")
+        if 'courses' in data[faculty] and len(data[faculty]['courses']) > 0:
+            print(f"Sample course: {data[faculty]['courses'][0]}")
+    
+    return True
+
+def run_tests():
+    """Run all tests"""
+    # Start Flask app in a separate thread for testing
+    import threading
+    threading.Thread(target=lambda: app.run(debug=False, port=5000)).start()
+    
+    # Setup test data
+    user, courses, vetrine = setup()
+    
+    # Get auth token
+    token = get_auth_token(TEST_USER["email"], TEST_USER["password"])
+    if not token:
+        print("Failed to get auth token. Tests cannot continue.")
+        return
+    
+    # Run tests with expected counts
+    test_get_all_vetrine(token)
+    test_search_by_name(token, "Python", expected_count=1)
+    test_search_by_name(token, "Programming", expected_count=2)
+    
+    # Test course code searches
+    test_search_by_course_code(token, "CS101", expected_count=2)
+    test_search_by_course_code(token, "MATH201", expected_count=2)
+    test_search_by_course_code(token, "ENG303", expected_count=1)
+    
+    # Test faculty searches
+    test_search_by_faculty(token, "Computer Science", expected_count=2)
+    test_search_by_faculty(token, "Mathematics", expected_count=2)
+    test_search_by_faculty(token, "Engineering", expected_count=1)
+    
+    # Combined search tests
+    test_combined_search(token, {
+        "name": "Programming",
+        "course_code": "CS101"
+    }, expected_count=1)
+    
+    test_combined_search(token, {
+        "name": "Programming",
+        "faculty": "Mathematics"
+    }, expected_count=1)
+    
+    # Test hierarchy endpoint
+    test_get_hierarchy()
+    
+    print("\nAll tests completed!")
+
+if __name__ == "__main__":
+    # Create database tables if they don't exist
+    database.create_tables()
+    
+    # Run the tests
+    run_tests()

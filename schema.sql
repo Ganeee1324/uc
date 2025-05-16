@@ -6,45 +6,39 @@ DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS vetrina_subscriptions CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS course_instances CASCADE;
-DROP TABLE IF EXISTS courses CASCADE;
 DROP TABLE IF EXISTS faculty CASCADE;
 DROP TABLE IF EXISTS vetrina CASCADE;
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    surname VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     last_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS faculty (
-    name VARCHAR(255) PRIMARY KEY
-);
-
-CREATE TABLE IF NOT EXISTS courses (
-    course_name VARCHAR(255) NOT NULL,
-    course_code VARCHAR(10) PRIMARY KEY
-);
-
 CREATE TABLE IF NOT EXISTS course_instances (
     id SERIAL PRIMARY KEY,
     professors VARCHAR(40)[],
-    course_code VARCHAR(10) REFERENCES courses(course_code) ON DELETE CASCADE NOT NULL,
-    faculty_name VARCHAR(255) REFERENCES faculty(name) ON DELETE CASCADE NOT NULL,
+    course_code VARCHAR(10) NOT NULL,
+    course_name VARCHAR(255) NOT NULL,
+    faculty_name VARCHAR(255) NOT NULL,
     course_year INTEGER,
     date_year INTEGER,
     language VARCHAR(15),
     course_semester VARCHAR(40),
     canale VARCHAR(10),
-    UNIQUE (course_code, faculty_name, canale, language)
+    UNIQUE (course_code, faculty_name, canale)
 );
 
 CREATE TABLE IF NOT EXISTS vetrina (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    course_instance_id INTEGER REFERENCES course_instances(id) ON DELETE CASCADE NOT NULL,
     description TEXT NOT NULL
 );
 
@@ -104,4 +98,4 @@ CREATE TABLE IF NOT EXISTS blocked_users (
 );
 
 
-INSERT INTO users (username, email, password) VALUES ('admin', 'admin@admin.com', 'admin');
+INSERT INTO users (username, name, surname, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');

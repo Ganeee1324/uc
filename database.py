@@ -62,8 +62,8 @@ def add_follow(follower_id: int, following_id: int) -> None:
     Add a follow relationship between two users.
 
     Args:
-        follower: The user who is following
-        following: The user being followed
+        follower_id: ID of the user who is following
+        following_id: ID of the user being followed
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -76,8 +76,8 @@ def remove_follow(follower_id: int, following_id: int) -> None:
     Remove a follow relationship between two users.
 
     Args:
-        follower: The user who is following
-        following: The user being followed
+        follower_id: ID of the user who is following
+        following_id: ID of the user being followed
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -90,10 +90,10 @@ def get_followed_users(user_id: int) -> List[User]:
     Get all users followed by a specific user.
 
     Args:
-        user: The user whose follows to retrieve
+        user_id: ID of the user whose follows to retrieve
 
     Returns:
-        list: List of User objects containing followed user information.
+        List[User]: List of User objects containing followed user information
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -121,8 +121,8 @@ def block_user(user_id: int, blocked_user_id: int) -> None:
     Block a user.
 
     Args:
-        user: The user who is blocking
-        blocked_user: The user being blocked
+        user_id: ID of the user who is blocking
+        blocked_user_id: ID of the user being blocked
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -135,8 +135,8 @@ def unblock_user(user_id: int, blocked_user_id: int) -> None:
     Unblock a previously blocked user.
 
     Args:
-        user: The user who is unblocking
-        blocked_user: The user being unblocked
+        user_id: ID of the user who is unblocking
+        blocked_user_id: ID of the user being unblocked
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -149,10 +149,10 @@ def get_blocked_users(user_id: int) -> List[User]:
     Get all users blocked by a specific user.
 
     Args:
-        user: The user whose blocks to retrieve
+        user_id: ID of the user whose blocks to retrieve
 
     Returns:
-        list: List of User objects containing blocked user information.
+        List[User]: List of User objects containing blocked user information
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -180,9 +180,12 @@ def subscribe_to_vetrina(user_id: int, vetrina_id: int, price: int = 0) -> None:
     Subscribe a user to a vetrina.
 
     Args:
-        user: The user subscribing
-        vetrina: The vetrina to subscribe to
+        user_id: ID of the user subscribing
+        vetrina_id: ID of the vetrina to subscribe to
         price: The subscription price (default: 0)
+        
+    Raises:
+        NotFoundException: If the vetrina doesn't exist
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -201,8 +204,11 @@ def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
     Unsubscribe a user from a vetrina.
 
     Args:
-        user: The user unsubscribing
-        vetrina: The vetrina to unsubscribe from
+        user_id: ID of the user unsubscribing
+        vetrina_id: ID of the vetrina to unsubscribe from
+        
+    Raises:
+        NotFoundException: If the vetrina doesn't exist
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -218,10 +224,10 @@ def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
     Get all vetrina subscriptions for a specific user.
 
     Args:
-        user: The user whose subscriptions to retrieve
+        user_id: ID of the user whose subscriptions to retrieve
 
     Returns:
-        list: List of Vetrina objects containing subscription information.
+        List[VetrinaSubscription]: List of VetrinaSubscription objects containing subscription information
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -253,10 +259,10 @@ def get_vetrina_subscribers(vetrina_id: int) -> List[User]:
     Get all subscribers for a specific vetrina.
 
     Args:
-        vetrina_id: The ID of the vetrina whose subscribers to retrieve
+        vetrina_id: ID of the vetrina whose subscribers to retrieve
 
     Returns:
-        list: List of User objects containing subscriber information.
+        List[User]: List of User objects containing subscriber information
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -290,9 +296,11 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
         name: The name for the new user
         surname: The surname for the new user
 
-
     Returns:
         User: The newly created user object
+        
+    Raises:
+        UniqueViolation: If the username or email already exists
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -319,7 +327,10 @@ def verify_user(email: str, password: str) -> User:
         password: The user's password
 
     Returns:
-        User: The user object if the credentials are valid, None otherwise
+        User: The user object if the credentials are valid
+        
+    Raises:
+        UnauthorizedError: If the email or password is invalid
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -344,7 +355,7 @@ def delete_user(user_id: int) -> None:
     Delete a user account.
 
     Args:
-        user: The user to delete
+        user_id: ID of the user to delete
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -357,11 +368,15 @@ def update_username(user_id: int, new_username: str) -> User:
     Update a user's username.
 
     Args:
-        user: The user to update
+        user_id: ID of the user to update
         new_username: The new username
 
     Returns:
         User: The updated user object
+        
+    Raises:
+        Exception: If the user is not found
+        UniqueViolation: If the username already exists
     """
     # TODO make it atomic
     with connect() as conn:
@@ -388,11 +403,15 @@ def update_email(user_id: int, new_email: str) -> User:
     Update a user's email address.
 
     Args:
-        user: The user to update
+        user_id: ID of the user to update
         new_email: The new email address
 
     Returns:
         User: The updated user object
+        
+    Raises:
+        Exception: If the user is not found
+        UniqueViolation: If the email already exists
     """
     # TODO make it atomic
     with connect() as conn:
@@ -448,7 +467,10 @@ def get_vetrina_by_id(vetrina_id: int) -> Vetrina:
         vetrina_id: The ID of the vetrina to retrieve
 
     Returns:
-        Vetrina: The vetrina object if found, None otherwise
+        Vetrina: The vetrina object if found
+        
+    Raises:
+        NotFoundException: If the vetrina is not found
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -479,10 +501,10 @@ def search_vetrine(params: Dict[str, Any]) -> List[Vetrina]:
     Search for vetrine based on provided parameters.
 
     Args:
-        params: Dictionary containing search parameters (name, course_code, etc.)
+        params: Dictionary containing search parameters (name, course_code, course_name, faculty)
 
     Returns:
-        list: List of Vetrina objects matching the search criteria
+        List[Vetrina]: List of Vetrina objects matching the search criteria
     """
     query_parts = []
     query_params = []
@@ -525,6 +547,15 @@ def search_vetrine(params: Dict[str, Any]) -> List[Vetrina]:
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:
     """
     Create a new vetrina.
+    
+    Args:
+        user_id: ID of the user creating the vetrina
+        course_instance_id: ID of the course instance for the vetrina
+        name: Name of the vetrina
+        description: Description of the vetrina
+        
+    Returns:
+        Vetrina: The newly created vetrina object
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -551,6 +582,9 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
 def delete_vetrina(vetrina_id: int) -> None:
     """
     Delete a vetrina.
+    
+    Args:
+        vetrina_id: ID of the vetrina to delete
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -561,6 +595,10 @@ def delete_vetrina(vetrina_id: int) -> None:
 def vetrina_change_name(vetrina_id: int, new_name: str) -> None:
     """
     Change the name of a vetrina.
+    
+    Args:
+        vetrina_id: ID of the vetrina to update
+        new_name: New name for the vetrina
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -571,6 +609,10 @@ def vetrina_change_name(vetrina_id: int, new_name: str) -> None:
 def vetrina_change_description(vetrina_id: int, new_description: str) -> None:
     """
     Change the description of a vetrina.
+    
+    Args:
+        vetrina_id: ID of the vetrina to update
+        new_description: New description for the vetrina
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -586,7 +628,9 @@ def vetrina_change_description(vetrina_id: int, new_description: str) -> None:
 def scrape_faculties_courses() -> Dict[str, List[Tuple[str, str]]]:
     """
     Scrape courses from the database, avoiding duplicates by course_code and faculty_name.
-    Returns a dictionary of faculties with their courses.
+    
+    Returns:
+        Dict[str, List[Tuple[str, str]]]: Dictionary of faculties with their courses (course_code, course_name)
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -605,6 +649,15 @@ def scrape_faculties_courses() -> Dict[str, List[Tuple[str, str]]]:
 def get_course_by_id(course_id: int) -> CourseInstance:
     """
     Get a course by its ID.
+    
+    Args:
+        course_id: ID of the course to retrieve
+        
+    Returns:
+        CourseInstance: The course instance object
+        
+    Raises:
+        NotFoundException: If the course is not found
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -623,6 +676,17 @@ def get_course_by_id(course_id: int) -> CourseInstance:
 def get_course_by_code(course_code: str, faculty_name: str, canale: str) -> CourseInstance:
     """
     Get a course by its code.
+    
+    Args:
+        course_code: Code of the course to retrieve
+        faculty_name: Name of the faculty the course belongs to
+        canale: Canale of the course
+        
+    Returns:
+        CourseInstance: The course instance object
+        
+    Raises:
+        NotFoundException: If the course is not found
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -643,18 +707,6 @@ faculties_courses_cache = None
 # ---------------------------------------------
 # File management
 # ---------------------------------------------
-
-# CREATE TABLE IF NOT EXISTS files (
-#     id SERIAL PRIMARY KEY,
-#     filename VARCHAR(255) NOT NULL,
-#     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-#     fact_mark INTEGER NOT NULL DEFAULT 0,
-#     sha256 VARCHAR(64) NOT NULL,
-#     fact_mark_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-#     size INTEGER NOT NULL DEFAULT 0,
-#     download_count INTEGER NOT NULL DEFAULT 0,
-#     vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE,
-# );
 
 
 def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str) -> File:
@@ -705,6 +757,12 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
 def get_files_from_vetrina(vetrina_id: int) -> List[File]:
     """
     Get all files from a vetrina.
+    
+    Args:
+        vetrina_id: ID of the vetrina whose files to retrieve
+        
+    Returns:
+        List[File]: List of File objects in the vetrina
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -718,6 +776,16 @@ def get_files_from_vetrina(vetrina_id: int) -> List[File]:
 def delete_file(requester_id: int, file_id: int) -> File:
     """
     Delete a file to which the requester has access.
+    
+    Args:
+        requester_id: ID of the user making the request
+        file_id: ID of the file to delete
+        
+    Returns:
+        File: The deleted file object
+        
+    Raises:
+        NotFoundException: If the file is not found or the user doesn't have access
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -746,6 +814,15 @@ def delete_file(requester_id: int, file_id: int) -> File:
 def get_file(file_id: int) -> File:
     """
     Get a file.
+    
+    Args:
+        file_id: ID of the file to retrieve
+        
+    Returns:
+        File: The file object
+        
+    Raises:
+        NotFoundException: If the file is not found
     """
     with connect() as conn:
         with conn.cursor() as cursor:

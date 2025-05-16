@@ -187,10 +187,13 @@ def subscribe_to_vetrina(user_id: int, vetrina_id: int, price: int = 0) -> None:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, price) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, price) VALUES (%s, %s, %s)",
                 (user_id, vetrina_id, price),
             )
             conn.commit()
+
+            if cursor.rowcount == 0:
+                raise NotFoundException("Vetrina not found")
 
 
 def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
@@ -205,6 +208,9 @@ def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM vetrina_subscriptions WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
             conn.commit()
+
+            if cursor.rowcount == 0:
+                raise NotFoundException("Vetrina not found")
 
 
 def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:

@@ -334,6 +334,98 @@ def test_get_hierarchy():
     
     return True
 
+def test_subscribe_to_vetrina(token, vetrina_id):
+    """Test subscribing to a vetrina"""
+    print(f"\nTesting subscribe to vetrina ID: {vetrina_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.post(
+        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    print(f"Successfully subscribed to vetrina ID: {vetrina_id}")
+    return True
+
+def test_unsubscribe_from_vetrina(token, vetrina_id):
+    """Test unsubscribing from a vetrina"""
+    print(f"\nTesting unsubscribe from vetrina ID: {vetrina_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.delete(
+        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    print(f"Successfully unsubscribed from vetrina ID: {vetrina_id}")
+    return True
+
+def test_get_vetrina_details(token, vetrina_id):
+    """Test getting details of a specific vetrina"""
+    print(f"\nTesting get vetrina details for ID: {vetrina_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine/{vetrina_id}", 
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        print(f"Error: {response.status_code} - {response.text}")
+        return False
+    
+    data = response.json()
+    print(f"Vetrina details: {data}")
+    return True
+
+def test_already_subscribed_case(token, vetrina_id):
+    """Test the behavior when a user is already subscribed to a vetrina"""
+    print(f"\nTesting 'already subscribed' case for vetrina ID: {vetrina_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # First, make sure we're subscribed
+    subscribe_response = requests.post(
+        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+        headers=headers
+    )
+    
+    if subscribe_response.status_code != 200:
+        print(f"Error during initial subscription: {subscribe_response.status_code} - {subscribe_response.text}")
+        return False
+    
+    # Now try to subscribe again - should return 200 with an "already_subscribed" message
+    duplicate_response = requests.post(
+        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+        headers=headers
+    )
+    
+    if duplicate_response.status_code != 200:
+        print(f"Error: Expected status code 200 for already subscribed case, got {duplicate_response.status_code}")
+        return False
+    
+    response_data = duplicate_response.json()
+    if "error" in response_data and response_data["error"] == "already_subscribed":
+        print("✓ Successfully detected 'already subscribed' case")
+    else:
+        print(f"Warning: Expected 'already_subscribed' error, got: {response_data}")
+    
+    # Clean up by unsubscribing
+    requests.delete(
+        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+        headers=headers
+    )
+    
+    return True
+
 def run_tests():
     """Run all tests"""
     # Start Flask app in a separate thread for testing
@@ -377,6 +469,18 @@ def run_tests():
     
     # Test hierarchy endpoint
     test_get_hierarchy()
+    
+    # Test subscription functionality
+    if vetrine and len(vetrine) > 0:
+        # Get details of the first vetrina
+        test_get_vetrina_details(token, vetrine[0].id)
+        
+        # Test already subscribed case
+        test_already_subscribed_case(token, vetrine[0].id)
+        
+        # Test subscribe and unsubscribe
+        test_subscribe_to_vetrina(token, vetrine[0].id)
+        test_unsubscribe_from_vetrina(token, vetrine[0].id)
     
     print("\nAll tests completed!")
 

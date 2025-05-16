@@ -47,6 +47,8 @@ def unique_violation_error(e):
         return jsonify({"error": "email_already_exists", "msg": "Email already exists"}), 400
     elif diag.constraint_name == "users_username_key":
         return jsonify({"error": "username_already_exists", "msg": "Username already exists"}), 400
+    elif diag.constraint_name == "vetrina_subscriptions_pkey":
+        return jsonify({"error": "already_subscribed", "msg": "User already subscribed to this vetrina"}), 200
     else:
         return jsonify({"error": "unique_violation", "msg": f"Unique violation error on constraint {diag.constraint_name}"}), 500
 
@@ -93,7 +95,7 @@ def get_vetrina(vetrina_id):
 
 
 # subscribe to vetrina
-@app.route("/vetrine/<int:vetrina_id>/subscription", methods=["POST"])
+@app.route("/vetrine/<int:vetrina_id>/subscriptions", methods=["POST"])
 @jwt_required()
 def subscribe_to_vetrina(vetrina_id):
     user_id = get_jwt_identity()
@@ -102,7 +104,7 @@ def subscribe_to_vetrina(vetrina_id):
 
 
 # unsubscribe from vetrina
-@app.route("/vetrine/<int:vetrina_id>/subscription", methods=["DELETE"])
+@app.route("/vetrine/<int:vetrina_id>/subscriptions", methods=["DELETE"])
 @jwt_required()
 def unsubscribe_from_vetrina(vetrina_id):
     user_id = get_jwt_identity()

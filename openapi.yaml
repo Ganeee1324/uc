@@ -1,14 +1,23 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: User Authentication API
-  description: API for user registration and authentication
+  description: API for user registration, authentication, and vetrina management
   version: 1.0.0
 servers:
   - url: http://localhost:5000
     description: Development server
+tags:
+  - name: User
+    description: User registration and authentication operations
+  - name: Vetrine
+    description: Operations related to vetrine management
+  - name: Courses
+    description: Operations related to courses and faculty hierarchy
 paths:
   /register:
     post:
+      tags:
+        - User
       summary: Register a new user
       description: Create a new user account with username, email, and password
       requestBody:
@@ -33,6 +42,12 @@ paths:
                   type: string
                   format: password
                   description: User's password
+                name:
+                  type: string
+                  description: User's first name
+                surname:
+                  type: string
+                  description: User's last name
       responses:
         '200':
           description: User successfully registered
@@ -54,11 +69,13 @@ paths:
                   error:
                     type: string
                     enum: [email_already_exists, username_already_exists]
-                  message:
+                  msg:
                     type: string
 
   /login:
     post:
+      tags:
+        - User
       summary: Authenticate a user
       description: Verify user credentials and return an access token
       requestBody:
@@ -100,9 +117,279 @@ paths:
                   error:
                     type: string
                     enum: [unauthorized]
-                  message:
+                  msg:
                     type: string
+
+  /vetrine/{vetrina_id}:
+    get:
+      tags:
+        - Vetrine
+      summary: Get vetrina details
+      description: Retrieve details for a specific vetrina by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to retrieve
+      responses:
+        '200':
+          description: Vetrina details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vetrina'
+        '404':
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+
+  /vetrine/{vetrina_id}/subscriptions:
+    post:
+      tags:
+        - Vetrine
+      summary: Subscribe to a vetrina
+      description: Subscribe the authenticated user to a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to subscribe to
+      responses:
+        '200':
+          description: Successfully subscribed to vetrina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Subscribed to vetrina
+        '404':
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+    
+    delete:
+      tags:
+        - Vetrine
+      summary: Unsubscribe from a vetrina
+      description: Unsubscribe the authenticated user from a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to unsubscribe from
+      responses:
+        '200':
+          description: Successfully unsubscribed from vetrina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Unsubscribed from vetrina
+        '404':
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    enum: [not_found]
+                  msg:
+                    type: string
+
+  /vetrine:
+    get:
+      tags:
+        - Vetrine
+      summary: Search vetrine
+      description: Search for vetrine based on various criteria
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vetrina name
+        - name: course_code
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by course code
+        - name: course_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by course name
+        - name: faculty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by faculty
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Vetrina'
+                  count:
+                    type: integer
+                    description: Number of results returned
+
+  /hierarchy:
+    get:
+      tags:
+        - Courses
+      summary: Get faculties and courses hierarchy
+      description: Retrieve the hierarchy of faculties and their associated courses
+      responses:
+        '200':
+          description: Hierarchy data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Hierarchical structure of faculties and courses
+
 components:
+  schemas:
+    Vetrina:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the vetrina
+        name:
+          type: string
+          description: Name of the vetrina
+        owner_id:
+          type: integer
+          description: ID of the user who owns the vetrina
+        description:
+          type: string
+          description: Description of the vetrina
+        course_instance_id:
+          type: integer
+          description: ID of the course instance associated with the vetrina
+        course_code:
+          type: string
+          description: Course code associated with the vetrina
+        course_name:
+          type: string
+          description: Course name associated with the vetrina
+        faculty:
+          type: string
+          description: Faculty associated with the vetrina
+
+    CourseInstance:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the course instance
+        course_code:
+          type: string
+          description: Code of the course
+        course_name:
+          type: string
+          description: Name of the course
+        faculty_name:
+          type: string
+          description: Name of the faculty
+        course_year:
+          type: integer
+          description: Year of the course in curriculum
+        date_year:
+          type: integer
+          description: Academic year
+        language:
+          type: string
+          description: Language of instruction
+        course_semester:
+          type: integer
+          description: Semester of the course
+        canale:
+          type: string
+          description: Course channel/section
+        professors:
+          type: array
+          items:
+            type: string
+          description: List of professors teaching the course
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the user
+        username:
+          type: string
+          description: User's username
+        name:
+          type: string
+          description: User's first name
+        surname:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          format: email
+          description: User's email address
+        last_login:
+          type: string
+          format: date-time
+          description: Timestamp of the user's last login
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created
+
   securitySchemes:
     BearerAuth:
       type: http

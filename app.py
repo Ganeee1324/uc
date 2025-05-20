@@ -3,7 +3,7 @@ import database
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 import os
-from psycopg.errors import UniqueViolation
+from psycopg.errors import UniqueViolation, ForeignKeyViolation
 import hashlib
 from db_errors import NotFoundException, UnauthorizedError, ForbiddenError
 
@@ -55,6 +55,11 @@ def not_found_error(e):
     return jsonify({"error": "not_found", "msg": str(e)}), 404
 
 
+@app.errorhandler(ForeignKeyViolation)
+def foreign_key_violation_error(e):
+    return jsonify({"error": "foreign_key_violation", "msg": str(e)}), 404
+
+
 @app.errorhandler(UniqueViolation)
 def unique_violation_error(e):
     diag = e.diag
@@ -63,7 +68,7 @@ def unique_violation_error(e):
     elif diag.constraint_name == "users_username_key":
         return jsonify({"error": "username_already_exists", "msg": "Username already exists"}), 409
     elif diag.constraint_name == "vetrina_subscriptions_pkey":
-        return jsonify({"error": "already_subscribed", "msg": "User already subscribed to this vetrina"}), 309
+        return jsonify({"error": "already_subscribed", "msg": "User already subscribed to this vetrina"}), 409
     else:
         return jsonify({"error": "unique_violation", "msg": f"Unique violation error on constraint {diag.constraint_name}"}), 500
 

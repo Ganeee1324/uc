@@ -193,7 +193,7 @@ paths:
                     enum: [not_found]
                   msg:
                     type: string
-        "309":
+        "409":
           description: User already subscribed to this vetrina
           content:
             application/json:

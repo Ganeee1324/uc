@@ -150,6 +150,7 @@ class File:
         download_count: int = 0,
         fact_mark: int | None = None,
         fact_mark_updated_at: datetime | None = None,
+        owned: bool = False,
     ):
         self.id = id
         self.filename = filename
@@ -160,6 +161,7 @@ class File:
         self.download_count = download_count
         self.vetrina_id = vetrina_id
         self.sha256 = sha256
+        self.owned = owned
 
     def __str__(self) -> str:
         return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count})"
@@ -178,4 +180,5 @@ class File:
             "fact_mark_updated_at": self.fact_mark_updated_at,
             "size": self.size,
             "download_count": self.download_count,
+            "owned": self.owned,
         }

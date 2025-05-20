@@ -54,11 +54,11 @@ CREATE TABLE IF NOT EXISTS files (
     vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS file_buys (
-    id SERIAL PRIMARY KEY,
-    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE NOT NULL,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS owned_files (
+    file_id INTEGER REFERENCES files(id) NOT NULL,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    transaction_id INTEGER REFERENCES transactions(id),
+    PRIMARY KEY (file_id, owner_id)
 );
 
 CREATE TABLE IF NOT EXISTS vetrina_subscriptions (

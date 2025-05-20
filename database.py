@@ -15,8 +15,8 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 
-def connect() -> psycopg.Connection:
-    return psycopg.connect(f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}")
+def connect(autocommit: bool = False) -> psycopg.Connection:
+    return psycopg.connect(f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}", autocommit=autocommit)
 
 
 def create_tables(debug: bool = False) -> None:
@@ -177,46 +177,38 @@ def get_blocked_users(user_id: int) -> List[User]:
 
 def subscribe_to_vetrina(user_id: int, vetrina_id: int, price: int = 0) -> None:
     """
-    Subscribe a user to a vetrina.
+    Subscribe a user to a vetrina and add all its files to the user's owned files.
 
     Args:
         user_id: ID of the user subscribing
         vetrina_id: ID of the vetrina to subscribe to
         price: The subscription price (default: 0)
-        
+
     Raises:
-        NotFoundException: If the vetrina doesn't exist
+        UniqueViolation: If the user is already subscribed to this vetrina
+        ForeignKeyViolation: If the vetrina doesn't exist
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, price) VALUES (%s, %s, %s)",
-                (user_id, vetrina_id, price),
-            )
-            conn.commit()
-
-            if cursor.rowcount == 0:
-                raise NotFoundException("Vetrina not found")
+            cursor.execute("INSERT INTO vetrina_subscriptions (user_id, vetrina_id, price) VALUES (%s, %s, %s)", (user_id, vetrina_id, price))
 
 
 def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
     """
-    Unsubscribe a user from a vetrina.
+    Unsubscribe a user from a vetrina and remove all files associated with this subscription.
 
     Args:
         user_id: ID of the user unsubscribing
         vetrina_id: ID of the vetrina to unsubscribe from
-        
+
     Raises:
-        NotFoundException: If the vetrina doesn't exist
+        NotFoundException: If the subscription doesn't exist
     """
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM vetrina_subscriptions WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
-            conn.commit()
-
             if cursor.rowcount == 0:
-                raise NotFoundException("Vetrina not found")
+                raise NotFoundException("Subscription or vetrina not found")
 
 
 def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
@@ -298,7 +290,7 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
 
     Returns:
         User: The newly created user object
-        
+
     Raises:
         UniqueViolation: If the username or email already exists
     """
@@ -328,7 +320,7 @@ def verify_user(email: str, password: str) -> User:
 
     Returns:
         User: The user object if the credentials are valid
-        
+
     Raises:
         UnauthorizedError: If the email or password is invalid
     """
@@ -373,7 +365,7 @@ def update_username(user_id: int, new_username: str) -> User:
 
     Returns:
         User: The updated user object
-        
+
     Raises:
         Exception: If the user is not found
         UniqueViolation: If the username already exists
@@ -408,7 +400,7 @@ def update_email(user_id: int, new_email: str) -> User:
 
     Returns:
         User: The updated user object
-        
+
     Raises:
         Exception: If the user is not found
         UniqueViolation: If the email already exists
@@ -468,7 +460,7 @@ def get_vetrina_by_id(vetrina_id: int) -> Vetrina:
 
     Returns:
         Vetrina: The vetrina object if found
-        
+
     Raises:
         NotFoundException: If the vetrina is not found
     """
@@ -547,13 +539,13 @@ def search_vetrine(params: Dict[str, Any]) -> List[Vetrina]:
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:
     """
     Create a new vetrina.
-    
+
     Args:
         user_id: ID of the user creating the vetrina
         course_instance_id: ID of the course instance for the vetrina
         name: Name of the vetrina
         description: Description of the vetrina
-        
+
     Returns:
         Vetrina: The newly created vetrina object
     """
@@ -582,7 +574,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
 def delete_vetrina(vetrina_id: int) -> None:
     """
     Delete a vetrina.
-    
+
     Args:
         vetrina_id: ID of the vetrina to delete
     """
@@ -595,7 +587,7 @@ def delete_vetrina(vetrina_id: int) -> None:
 def vetrina_change_name(vetrina_id: int, new_name: str) -> None:
     """
     Change the name of a vetrina.
-    
+
     Args:
         vetrina_id: ID of the vetrina to update
         new_name: New name for the vetrina
@@ -609,7 +601,7 @@ def vetrina_change_name(vetrina_id: int, new_name: str) -> None:
 def vetrina_change_description(vetrina_id: int, new_description: str) -> None:
     """
     Change the description of a vetrina.
-    
+
     Args:
         vetrina_id: ID of the vetrina to update
         new_description: New description for the vetrina
@@ -628,7 +620,7 @@ def vetrina_change_description(vetrina_id: int, new_description: str) -> None:
 def scrape_faculties_courses() -> Dict[str, List[Tuple[str, str]]]:
     """
     Scrape courses from the database, avoiding duplicates by course_code and faculty_name.
-    
+
     Returns:
         Dict[str, List[Tuple[str, str]]]: Dictionary of faculties with their courses (course_code, course_name)
     """
@@ -649,13 +641,13 @@ def scrape_faculties_courses() -> Dict[str, List[Tuple[str, str]]]:
 def get_course_by_id(course_id: int) -> CourseInstance:
     """
     Get a course by its ID.
-    
+
     Args:
         course_id: ID of the course to retrieve
-        
+
     Returns:
         CourseInstance: The course instance object
-        
+
     Raises:
         NotFoundException: If the course is not found
     """
@@ -664,35 +656,6 @@ def get_course_by_id(course_id: int) -> CourseInstance:
             cursor.execute(
                 "SELECT id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE id = %s",
                 (course_id,),
-            )
-            course_data = cursor.fetchone()
-
-            if not course_data:
-                raise NotFoundException("Course not found")
-
-            return CourseInstance(*course_data)
-
-
-def get_course_by_code(course_code: str, faculty_name: str, canale: str) -> CourseInstance:
-    """
-    Get a course by its code.
-    
-    Args:
-        course_code: Code of the course to retrieve
-        faculty_name: Name of the faculty the course belongs to
-        canale: Canale of the course
-        
-    Returns:
-        CourseInstance: The course instance object
-        
-    Raises:
-        NotFoundException: If the course is not found
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                "SELECT id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE course_code = %s",
-                (course_code,),
             )
             course_data = cursor.fetchone()
 
@@ -725,65 +688,79 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            # Start transaction
-            conn.autocommit = False
+            with conn.transaction():
 
-            # First check if the vetrina exists
-            cursor.execute("SELECT owner_id FROM vetrina WHERE id = %s", (vetrina_id,))
-            vetrina = cursor.fetchone()
+                # First check if the vetrina exists
+                cursor.execute("SELECT owner_id FROM vetrina WHERE id = %s", (vetrina_id,))
+                vetrina = cursor.fetchone()
 
-            if not vetrina:
-                conn.rollback()
-                raise NotFoundException("Vetrina not found")
+                if not vetrina:
+                    raise NotFoundException("Vetrina not found")
 
-            # Then check if the requester is the owner
-            if vetrina[0] != requester_id:
-                conn.rollback()
-                raise ForbiddenError("Only the owner can add files to this vetrina")
+                # Then check if the requester is the owner
+                if vetrina[0] != requester_id:
+                    raise ForbiddenError("Only the owner can add files to this vetrina")
 
-            # If all checks pass, insert the file
-            cursor.execute(
-                "INSERT INTO files (vetrina_id, filename, sha256) VALUES (%s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at",
-                (vetrina_id, file_name, sha256),
-            )
-            file_data = cursor.fetchone()
-
-            # Commit the transaction
-            conn.commit()
+                # If all checks pass, insert the file
+                cursor.execute(
+                    "INSERT INTO files (vetrina_id, filename, sha256) VALUES (%s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at",
+                    (vetrina_id, file_name, sha256),
+                )
+                file_data = cursor.fetchone()
 
             return File(*file_data)
 
 
-def get_files_from_vetrina(vetrina_id: int) -> List[File]:
+def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[File]:
     """
     Get all files from a vetrina.
-    
+
     Args:
         vetrina_id: ID of the vetrina whose files to retrieve
-        
+        user_id: Optional ID of the user to check file ownership
+
     Returns:
-        List[File]: List of File objects in the vetrina
+        List[File]: List of File objects in the vetrina, with ownership information if user_id is provided
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(
-                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at FROM files WHERE vetrina_id = %s",
-                (vetrina_id,),
-            )
+            if user_id is not None:
+                # Query that checks if the user owns the file either directly or through subscription
+                cursor.execute(
+                    """
+                    SELECT f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
+                           f.download_count, f.fact_mark, f.fact_mark_updated_at,
+                           (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.id AND owner_id = %s) OR
+                            EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = %s AND user_id = %s)) AS owned
+                    FROM files f
+                    WHERE f.vetrina_id = %s
+                    """,
+                    (user_id, vetrina_id, user_id, vetrina_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT id, filename, created_at, size, vetrina_id, sha256, 
+                           download_count, fact_mark, fact_mark_updated_at
+                    FROM files 
+                    WHERE vetrina_id = %s
+                    """,
+                    (vetrina_id,),
+                )
             return [File(*data) for data in cursor.fetchall()]
 
 
 def delete_file(requester_id: int, file_id: int) -> File:
     """
     Delete a file to which the requester has access.
-    
+
     Args:
         requester_id: ID of the user making the request
         file_id: ID of the file to delete
-        
+
     Returns:
         File: The deleted file object
-        
+
     Raises:
         NotFoundException: If the file is not found or the user doesn't have access
     """
@@ -814,13 +791,13 @@ def delete_file(requester_id: int, file_id: int) -> File:
 def get_file(file_id: int) -> File:
     """
     Get a file.
-    
+
     Args:
         file_id: ID of the file to retrieve
-        
+
     Returns:
         File: The file object
-        
+
     Raises:
         NotFoundException: If the file is not found
     """
@@ -836,3 +813,28 @@ def get_file(file_id: int) -> File:
                 raise NotFoundException("File not found")
 
             return File(*file_data)
+
+
+# ---------------------------------------------
+# File ownership management
+# ---------------------------------------------
+
+
+def add_owned_file(user_id: int, file_id: int) -> None:
+    """
+    Add a file to the owned files of a user.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO owned_files (user_id, file_id) VALUES (%s, %s)", (user_id, file_id))
+            conn.commit()
+
+
+def remove_owned_file(user_id: int, file_id: int) -> None:
+    """
+    Remove a file from the owned files of a user.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM owned_files WHERE user_id = %s AND file_id = %s", (user_id, file_id))
+            conn.commit()

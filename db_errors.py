@@ -8,3 +8,7 @@ class NotFoundException(Exception):
 
 class ForbiddenError(Exception):
     pass
+
+
+class AlreadyOwnedError(Exception):
+    pass

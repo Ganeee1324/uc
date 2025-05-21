@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Tuple
 import psycopg
 import os
-from common import CourseInstance, File, User, Vetrina, VetrinaSubscription
-from db_errors import UnauthorizedError, NotFoundException, ForbiddenError
+from common import CourseInstance, File, Transaction, User, Vetrina, VetrinaSubscription
+from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
@@ -53,144 +53,8 @@ def fill_courses(debug: bool = False) -> None:
 
 
 # ---------------------------------------------
-# Follow management
-# ---------------------------------------------
-
-
-def add_follow(follower_id: int, following_id: int) -> None:
-    """
-    Add a follow relationship between two users.
-
-    Args:
-        follower_id: ID of the user who is following
-        following_id: ID of the user being followed
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO follows (follower_id, following_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (follower_id, following_id))
-            conn.commit()
-
-
-def remove_follow(follower_id: int, following_id: int) -> None:
-    """
-    Remove a follow relationship between two users.
-
-    Args:
-        follower_id: ID of the user who is following
-        following_id: ID of the user being followed
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM follows WHERE follower_id = %s AND following_id = %s", (follower_id, following_id))
-            conn.commit()
-
-
-def get_followed_users(user_id: int) -> List[User]:
-    """
-    Get all users followed by a specific user.
-
-    Args:
-        user_id: ID of the user whose follows to retrieve
-
-    Returns:
-        List[User]: List of User objects containing followed user information
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at
-                FROM follows f
-                JOIN users u ON f.following_id = u.id
-                WHERE f.follower_id = %s
-                """,
-                (user_id,),
-            )
-            followed_users = cursor.fetchall()
-
-            return [User(*user_data) for user_data in followed_users]
-
-
-# ---------------------------------------------
-# Blocked users management
-# ---------------------------------------------
-
-
-def block_user(user_id: int, blocked_user_id: int) -> None:
-    """
-    Block a user.
-
-    Args:
-        user_id: ID of the user who is blocking
-        blocked_user_id: ID of the user being blocked
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO blocked_users (user_id, blocked_user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, blocked_user_id))
-            conn.commit()
-
-
-def unblock_user(user_id: int, blocked_user_id: int) -> None:
-    """
-    Unblock a previously blocked user.
-
-    Args:
-        user_id: ID of the user who is unblocking
-        blocked_user_id: ID of the user being unblocked
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM blocked_users WHERE user_id = %s AND blocked_user_id = %s", (user_id, blocked_user_id))
-            conn.commit()
-
-
-def get_blocked_users(user_id: int) -> List[User]:
-    """
-    Get all users blocked by a specific user.
-
-    Args:
-        user_id: ID of the user whose blocks to retrieve
-
-    Returns:
-        List[User]: List of User objects containing blocked user information
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at
-                FROM blocked_users b
-                JOIN users u ON b.blocked_user_id = u.id
-                WHERE b.user_id = %s
-                """,
-                (user_id,),
-            )
-            blocked_users = cursor.fetchall()
-
-            return [User(*user_data) for user_data in blocked_users]
-
-
-# ---------------------------------------------
 # Subscription management
 # ---------------------------------------------
-
-
-def subscribe_to_vetrina(user_id: int, vetrina_id: int, price: int = 0) -> None:
-    """
-    Subscribe a user to a vetrina and add all its files to the user's owned files.
-
-    Args:
-        user_id: ID of the user subscribing
-        vetrina_id: ID of the vetrina to subscribe to
-        price: The subscription price (default: 0)
-
-    Raises:
-        UniqueViolation: If the user is already subscribed to this vetrina
-        ForeignKeyViolation: If the vetrina doesn't exist
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO vetrina_subscriptions (user_id, vetrina_id, price) VALUES (%s, %s, %s)", (user_id, vetrina_id, price))
 
 
 def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
@@ -355,76 +219,6 @@ def delete_user(user_id: int) -> None:
             conn.commit()
 
 
-def update_username(user_id: int, new_username: str) -> User:
-    """
-    Update a user's username.
-
-    Args:
-        user_id: ID of the user to update
-        new_username: The new username
-
-    Returns:
-        User: The updated user object
-
-    Raises:
-        Exception: If the user is not found
-        UniqueViolation: If the username already exists
-    """
-    # TODO make it atomic
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                UPDATE users
-                SET username = %s
-                WHERE id = %s
-                RETURNING id, username, name, surname, email, last_login, created_at
-                """,
-                (new_username, user_id),
-            )
-            user_data = cursor.fetchone()
-            if not user_data:
-                raise Exception("User not found")
-            conn.commit()
-
-            return User(*user_data)
-
-
-def update_email(user_id: int, new_email: str) -> User:
-    """
-    Update a user's email address.
-
-    Args:
-        user_id: ID of the user to update
-        new_email: The new email address
-
-    Returns:
-        User: The updated user object
-
-    Raises:
-        Exception: If the user is not found
-        UniqueViolation: If the email already exists
-    """
-    # TODO make it atomic
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                UPDATE users
-                SET email = %s
-                WHERE id = %s
-                RETURNING id, username, name, surname, email, last_login, created_at
-                """,
-                (new_email, user_id),
-            )
-            user_data = cursor.fetchone()
-            if not user_data:
-                raise Exception("User not found")
-            conn.commit()
-
-            return User(*user_data)
-
-
 def get_user_by_id(user_id: int) -> User:
     """
     Get a user by their ID.
@@ -584,34 +378,6 @@ def delete_vetrina(vetrina_id: int) -> None:
             conn.commit()
 
 
-def vetrina_change_name(vetrina_id: int, new_name: str) -> None:
-    """
-    Change the name of a vetrina.
-
-    Args:
-        vetrina_id: ID of the vetrina to update
-        new_name: New name for the vetrina
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("UPDATE vetrina SET name = %s WHERE id = %s", (new_name, vetrina_id))
-            conn.commit()
-
-
-def vetrina_change_description(vetrina_id: int, new_description: str) -> None:
-    """
-    Change the description of a vetrina.
-
-    Args:
-        vetrina_id: ID of the vetrina to update
-        new_description: New description for the vetrina
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("UPDATE vetrina SET description = %s WHERE id = %s", (new_description, vetrina_id))
-            conn.commit()
-
-
 # ---------------------------------------------
 # Course management
 # ---------------------------------------------
@@ -672,7 +438,7 @@ faculties_courses_cache = None
 # ---------------------------------------------
 
 
-def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str) -> File:
+def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str, price: int = 0) -> File:
     """
     Add a file to a vetrina.
 
@@ -681,7 +447,7 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
         vetrina_id: ID of the vetrina to add the file to
         file_name: Name of the file
         sha256: SHA256 hash of the file
-
+        price: Price of the file
     Raises:
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the owner of the vetrina
@@ -703,8 +469,8 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
 
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256) VALUES (%s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at",
-                    (vetrina_id, file_name, sha256),
+                    "INSERT INTO files (vetrina_id, filename, sha256, price) VALUES (%s, %s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price",
+                    (vetrina_id, file_name, sha256, price),
                 )
                 file_data = cursor.fetchone()
 
@@ -729,7 +495,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 cursor.execute(
                     """
                     SELECT f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
-                           f.download_count, f.fact_mark, f.fact_mark_updated_at,
+                           f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price,
                            (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.id AND owner_id = %s) OR
                             EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = %s AND user_id = %s)) AS owned
                     FROM files f
@@ -741,7 +507,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 cursor.execute(
                     """
                     SELECT id, filename, created_at, size, vetrina_id, sha256, 
-                           download_count, fact_mark, fact_mark_updated_at
+                           download_count, fact_mark, fact_mark_updated_at, price
                     FROM files 
                     WHERE vetrina_id = %s
                     """,
@@ -775,7 +541,7 @@ def delete_file(requester_id: int, file_id: int) -> File:
                     FROM vetrina v 
                     WHERE v.owner_id = %s
                 )
-                RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at
+                RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price
             """,
                 (file_id, requester_id),
             )
@@ -804,7 +570,7 @@ def get_file(file_id: int) -> File:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at FROM files WHERE id = %s",
+                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price FROM files WHERE id = %s",
                 (file_id,),
             )
             file_data = cursor.fetchone()
@@ -813,6 +579,44 @@ def get_file(file_id: int) -> File:
                 raise NotFoundException("File not found")
 
             return File(*file_data)
+
+
+def check_file_ownership(user_id: int, file_id: int) -> File:
+    """
+    Check if a user owns a file.
+
+    Args:
+        user_id: ID of the user to check
+        file_id: ID of the file to check
+
+    Returns:
+        File: The file object if the user owns it, None otherwise
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            # First check if the user owns the file
+            cursor.execute(
+                """
+                SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s
+                UNION
+                SELECT 1 FROM vetrina_subscriptions vs
+                JOIN files f ON f.vetrina_id = vs.vetrina_id
+                WHERE vs.user_id = %s AND f.id = %s
+                """,
+                (user_id, file_id, user_id, file_id),
+            )
+
+            if not cursor.fetchone():
+                raise ForbiddenError("You do not have access to this file")
+
+            cursor.execute(
+                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price FROM files WHERE id = %s",
+                (file_id,),
+            )
+            file_data = cursor.fetchone()
+            file = File(*file_data)
+            file.owned = True
+            return file
 
 
 # ---------------------------------------------
@@ -838,3 +642,99 @@ def remove_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM owned_files WHERE user_id = %s AND file_id = %s", (user_id, file_id))
             conn.commit()
+
+
+# ---------------------------------------------
+# Transaction management
+# ---------------------------------------------
+
+
+def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]:
+    """
+    Create a new transaction for purchasing a file.
+
+    Args:
+        user_id: ID of the user making the purchase
+        file_id: ID of the file being purchased
+
+    Returns:
+        Transaction: The created transaction object
+
+    Raises:
+        NotFoundException: If the file is not found
+        AlreadyOwnedError: If the user already owns the file
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            with conn.transaction():
+                cursor.execute(
+                    """
+                    SELECT 1 FROM owned_files WHERE user_id = %s AND file_id = %s
+                    UNION
+                    SELECT 1 FROM vetrina_subscriptions vs
+                    JOIN files f ON f.vetrina_id = vs.vetrina_id
+                    WHERE vs.user_id = %s AND f.id = %s
+                    """,
+                    (user_id, file_id, user_id, file_id),
+                )
+
+                if cursor.fetchone():
+                    raise AlreadyOwnedError("You already own this file")
+
+                cursor.execute(
+                    "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price FROM files WHERE id = %s",
+                    (file_id,),
+                )
+                file_data = cursor.fetchone()
+
+                if not file_data:
+                    raise NotFoundException("File not found")
+
+                file = File(*file_data)
+
+                cursor.execute(
+                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, file.price)
+                )
+                transaction_data = cursor.fetchone()
+                transaction = Transaction(*transaction_data)
+
+                cursor.execute("INSERT INTO owned_files (user_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.id))
+                cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE id = %s", (file_id,))
+
+                conn.commit()
+
+            return transaction, file
+
+
+def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transaction, VetrinaSubscription]:
+    """
+    Create a new transaction for purchasing a subscription to a vetrina.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            with conn.transaction():
+                cursor.execute(
+                    "SELECT price FROM vetrina WHERE id = %s",
+                    (vetrina_id,),
+                )
+                vetrina_data = cursor.fetchone()
+
+                if not vetrina_data:
+                    raise NotFoundException("Vetrina not found")
+
+                cursor.execute(
+                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, vetrina_data[0])
+                )
+                transaction_data = cursor.fetchone()
+                transaction = Transaction(*transaction_data)
+
+                cursor.execute(
+                    "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, transaction_id) VALUES (%s, %s, %s) RETURNING user_id, vetrina_id, price, created_at",
+                    (user_id, vetrina_id, transaction.id),
+                )
+                subscription_data = cursor.fetchone()
+                subscription = VetrinaSubscription(*subscription_data)
+
+                conn.commit()
+
+                return transaction, subscription

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: User Authentication API
-  description: API for user registration, authentication, and vetrina management
+  title: Marketplace API
+  description: API for user registration, authentication, vetrina management, and file sharing
   version: 1.0.0
 servers:
   - url: http://localhost:5000
@@ -11,6 +11,8 @@ tags:
     description: User registration and authentication operations
   - name: Vetrine
     description: Operations related to vetrine management
+  - name: Files
+    description: Operations related to file management
   - name: Courses
     description: Operations related to courses and faculty hierarchy
 paths:
@@ -64,13 +66,22 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [email_already_exists, username_already_exists]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                email_exists:
+                  value:
+                    error: email_already_exists
+                    msg: Email already exists
+                username_exists:
+                  value:
+                    error: username_already_exists
+                    msg: Username already exists
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /login:
     post:
@@ -112,13 +123,10 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [unauthorized]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: unauthorized
+                msg: Invalid email or password
 
   /vetrine/{vetrina_id}:
     get:
@@ -147,13 +155,10 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [not_found]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: not_found
+                msg: Vetrina not found
 
   /vetrine/{vetrina_id}/subscriptions:
     post:
@@ -181,30 +186,25 @@ paths:
                   msg:
                     type: string
                     example: Subscribed to vetrina
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+                  subscription:
+                    $ref: "#/components/schemas/VetrinaSubscription"
         "404":
           description: Vetrina not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [not_found]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: User already subscribed to this vetrina
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [already_subscribed]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: already_subscribed
+                msg: User already subscribed to this vetrina
 
     delete:
       tags:
@@ -232,17 +232,11 @@ paths:
                     type: string
                     example: Unsubscribed from vetrina
         "404":
-          description: Vetrina not found
+          description: Subscription or vetrina not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [not_found]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
 
   /vetrine:
     get:
@@ -307,15 +301,22 @@ paths:
               schema:
                 type: object
                 description: Hierarchical structure of faculties and courses
+                additionalProperties:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: string
                 example:
-                  "Computer Science": [["CS101", "Introduction to Computer Science"]]
+                  "Computer Science":
+                    [["CS101", "Introduction to Computer Science"]]
                   "Engineering": [["ENG303", "Technical Writing"]]
                   "Mathematics": [["MATH201", "Linear Algebra"]]
 
   /vetrine/{vetrina_id}/files:
     post:
       tags:
-        - Vetrine
+        - Files
       summary: Upload a file to a vetrina
       description: Upload a file to a specific vetrina (only available to vetrina owner)
       security:
@@ -354,41 +355,23 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [not_found]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not the owner of the vetrina
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [forbidden]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: File already exists or save failed
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [file_already_exists, save_failed]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
 
     get:
       tags:
-        - Vetrine
+        - Files
       summary: Get files for a vetrina
       description: Retrieve all files associated with a specific vetrina
       security:
@@ -417,18 +400,12 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [not_found]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
 
   /files/{file_id}:
     get:
       tags:
-        - Vetrine
+        - Files
       summary: Get file details
       description: Retrieve details for a specific file by ID
       security:
@@ -452,17 +429,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    enum: [not_found]
-                  msg:
-                    type: string
+                $ref: "#/components/schemas/ErrorResponse"
 
     delete:
       tags:
-        - Vetrine
+        - Files
       summary: Delete a file
       description: Delete a specific file (only available to vetrina owner)
       security:
@@ -490,16 +461,69 @@ paths:
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/{file_id}/buy:
+    post:
+      tags:
+        - Files
+      summary: Buy a file
+      description: Purchase a specific file
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to buy
+      responses:
+        "200":
+          description: File bought successfully
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  error:
-                    type: string
-                    enum: [not_found]
                   msg:
                     type: string
+                    example: File bought
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+                  file:
+                    $ref: "#/components/schemas/File"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already owns this file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: already_owned
+                msg: You already own this file
 
 components:
   schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        msg:
+          type: string
+          description: Error message
+      required:
+        - error
+        - msg
+
     Vetrina:
       type: object
       properties:
@@ -518,20 +542,11 @@ components:
         course_instance_id:
           type: integer
           description: ID of the course instance associated with the vetrina
-        course_code:
-          type: string
-          description: Course code associated with the vetrina
-        course_name:
-          type: string
-          description: Course name associated with the vetrina
-        faculty:
-          type: string
-          description: Faculty associated with the vetrina
 
     CourseInstance:
       type: object
       properties:
-        id:
+        instance_id:
           type: integer
           description: Unique identifier for the course instance
         course_code:
@@ -543,7 +558,7 @@ components:
         faculty_name:
           type: string
           description: Name of the faculty
-        course_year:
+        year:
           type: integer
           description: Year of the course in curriculum
         date_year:
@@ -553,7 +568,7 @@ components:
           type: string
           description: Language of instruction
         course_semester:
-          type: integer
+          type: string
           description: Semester of the course
         canale:
           type: string
@@ -619,11 +634,52 @@ components:
           description: Number of times the file has been downloaded
         fact_mark:
           type: integer
+          nullable: true
           description: Factual accuracy mark for the file
         fact_mark_updated_at:
           type: string
           format: date-time
+          nullable: true
           description: Timestamp when the factual accuracy mark was last updated
+        price:
+          type: integer
+          description: Price of the file
+        owned:
+          type: boolean
+          description: Whether the current user owns this file
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the transaction
+        user_id:
+          type: integer
+          description: ID of the user who made the transaction
+        amount:
+          type: integer
+          description: Amount of the transaction
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the transaction was created
+
+    VetrinaSubscription:
+      type: object
+      properties:
+        subscriber_id:
+          type: integer
+          description: ID of the user who subscribed
+        vetrina:
+          $ref: "#/components/schemas/Vetrina"
+        price:
+          type: integer
+          description: Price of the subscription
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the subscription was created
 
   securitySchemes:
     BearerAuth:

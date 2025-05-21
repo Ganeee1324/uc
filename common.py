@@ -150,6 +150,7 @@ class File:
         download_count: int = 0,
         fact_mark: int | None = None,
         fact_mark_updated_at: datetime | None = None,
+        price: int = 0,
         owned: bool = False,
     ):
         self.id = id
@@ -162,6 +163,7 @@ class File:
         self.vetrina_id = vetrina_id
         self.sha256 = sha256
         self.owned = owned
+        self.price = price
 
     def __str__(self) -> str:
         return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count})"
@@ -181,4 +183,35 @@ class File:
             "size": self.size,
             "download_count": self.download_count,
             "owned": self.owned,
+            "price": self.price,
+        }
+
+
+class Transaction:
+    def __init__(self, id: int, user_id: int, amount: int, created_at: datetime):
+        self.id = id
+        self.user_id = user_id
+        self.amount = amount
+        self.created_at = created_at
+
+    def __str__(self) -> str:
+        return f"Transaction(id={self.id}, user_id={self.user_id}, amount={self.amount}, created_at={self.created_at})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Transaction):
+            return False
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash("transaction" + str(self.id))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "amount": self.amount,
+            "created_at": self.created_at,
         }

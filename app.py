@@ -210,7 +210,8 @@ def delete_file(file_id):
 @app.route("/vetrine/<int:vetrina_id>/files", methods=["GET"])
 @jwt_required()
 def get_files_for_vetrina(vetrina_id):
-    files = database.get_files_from_vetrina(vetrina_id)
+    user_id = get_jwt_identity()
+    files = database.get_files_from_vetrina(vetrina_id, user_id)
     return jsonify({"files": [file.to_dict() for file in files]}), 200
 
 

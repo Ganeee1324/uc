@@ -130,7 +130,7 @@ def get_vetrina(vetrina_id):
 @jwt_required()
 def subscribe_to_vetrina(vetrina_id):
     user_id = get_jwt_identity()
-    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id)
+    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id, 100)  # TODO: remove hardcoded price
     return jsonify({"msg": "Subscribed to vetrina", "transaction": transaction.to_dict(), "subscription": subscription.to_dict()}), 200
 
 
@@ -165,12 +165,34 @@ def search_vetrine():
 @jwt_required()
 def upload_file(vetrina_id):
     requester_id = get_jwt_identity()
+    
+    # Check if file is provided in the request
+    if 'file' not in request.files:
+        return jsonify({"error": "no_file", "msg": "No file provided"}), 400
+    
     file = request.files["file"]
+    
+    # Check if filename is empty
+    if file.filename == '':
+        return jsonify({"error": "no_filename", "msg": "No filename provided"}), 400
+    
+    # Save file content to calculate size and hash
+    file_content = file.read()
+    file_size = len(file_content)
+    file_hash = hashlib.sha256(file_content).hexdigest()
+    
+    # Reset file pointer for later saving
+    file.seek(0)
+    
     new_file_name = "-".join([str(uuid.uuid4()), str(requester_id), file.filename])
     new_file_path = os.path.join(files_folder_path, new_file_name)
+    
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
-    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, hashlib.sha256(file.read()).hexdigest())
+    
+    # Add file to database with size
+    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, price=0, size=file_size)
+    
     try:
         file.save(new_file_path)
     except Exception as e:

@@ -201,8 +201,8 @@ def verify_user(email: str, password: str) -> User:
                 name=user_data[2],
                 surname=user_data[3],
                 email=user_data[4],
-                last_login=user_data[5],
-                created_at=user_data[6],
+                last_login=user_data[6],
+                created_at=user_data[7],
             )
 
 
@@ -438,7 +438,7 @@ faculties_courses_cache = None
 # ---------------------------------------------
 
 
-def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str, price: int = 0) -> File:
+def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str, price: int = 0, size: int = 0) -> File:
     """
     Add a file to a vetrina.
 
@@ -448,6 +448,7 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
         file_name: Name of the file
         sha256: SHA256 hash of the file
         price: Price of the file
+        size: Size of the file in bytes
     Raises:
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the owner of the vetrina
@@ -469,8 +470,8 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
 
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256, price) VALUES (%s, %s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price",
-                    (vetrina_id, file_name, sha256, price),
+                    "INSERT INTO files (vetrina_id, filename, sha256, price, size) VALUES (%s, %s, %s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price",
+                    (vetrina_id, file_name, sha256, price, size),
                 )
                 file_data = cursor.fetchone()
 
@@ -630,7 +631,7 @@ def add_owned_file(user_id: int, file_id: int) -> None:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO owned_files (user_id, file_id) VALUES (%s, %s)", (user_id, file_id))
+            cursor.execute("INSERT INTO owned_files (owner_id, file_id) VALUES (%s, %s)", (user_id, file_id))
             conn.commit()
 
 
@@ -640,7 +641,7 @@ def remove_owned_file(user_id: int, file_id: int) -> None:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM owned_files WHERE user_id = %s AND file_id = %s", (user_id, file_id))
+            cursor.execute("DELETE FROM owned_files WHERE owner_id = %s AND file_id = %s", (user_id, file_id))
             conn.commit()
 
 
@@ -669,7 +670,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
             with conn.transaction():
                 cursor.execute(
                     """
-                    SELECT 1 FROM owned_files WHERE user_id = %s AND file_id = %s
+                    SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s
                     UNION
                     SELECT 1 FROM vetrina_subscriptions vs
                     JOIN files f ON f.vetrina_id = vs.vetrina_id
@@ -698,7 +699,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 transaction_data = cursor.fetchone()
                 transaction = Transaction(*transaction_data)
 
-                cursor.execute("INSERT INTO owned_files (user_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.id))
+                cursor.execute("INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.id))
                 cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE id = %s", (file_id,))
 
                 conn.commit()
@@ -706,15 +707,23 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
             return transaction, file
 
 
-def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transaction, VetrinaSubscription]:
+def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> Tuple[Transaction, VetrinaSubscription]:
     """
     Create a new transaction for purchasing a subscription to a vetrina.
     """
     with connect() as conn:
         with conn.cursor() as cursor:
             with conn.transaction():
+                # Check if the user is already subscribed to this vetrina
                 cursor.execute(
-                    "SELECT price FROM vetrina WHERE id = %s",
+                    "SELECT 1 FROM vetrina_subscriptions WHERE user_id = %s AND vetrina_id = %s",
+                    (user_id, vetrina_id),
+                )
+                if cursor.fetchone():
+                    raise AlreadyOwnedError("You are already subscribed to this vetrina")
+                
+                cursor.execute(
+                    "SELECT id, name, owner_id, description, course_instance_id FROM vetrina WHERE id = %s",
                     (vetrina_id,),
                 )
                 vetrina_data = cursor.fetchone()
@@ -723,17 +732,22 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transac
                     raise NotFoundException("Vetrina not found")
 
                 cursor.execute(
-                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, vetrina_data[0])
+                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, price)
                 )
                 transaction_data = cursor.fetchone()
                 transaction = Transaction(*transaction_data)
 
                 cursor.execute(
-                    "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, transaction_id) VALUES (%s, %s, %s) RETURNING user_id, vetrina_id, price, created_at",
-                    (user_id, vetrina_id, transaction.id),
+                    "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, transaction_id, price) VALUES (%s, %s, %s, %s) RETURNING user_id, vetrina_id, price, created_at",
+                    (user_id, vetrina_id, transaction.id, price),
                 )
                 subscription_data = cursor.fetchone()
-                subscription = VetrinaSubscription(*subscription_data)
+                subscription = VetrinaSubscription(
+                    subscriber_id=user_id,
+                    vetrina=Vetrina(*vetrina_data),
+                    price=price,
+                    created_at=subscription_data[3],
+                )
 
                 conn.commit()
 

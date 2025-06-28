@@ -12,6 +12,14 @@ class User:
         self.last_login = last_login
         self.created_at = created_at
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "username": self.username,
+            "name": self.name,
+            "surname": self.surname,
+        }
+
     def __str__(self) -> str:
         return f"User(id={self.id}, username={self.username}, name={self.name}, surname={self.surname}, email={self.email}, last_login={self.last_login}, created_at={self.created_at})"
 
@@ -82,15 +90,15 @@ class CourseInstance:
 
 
 class Vetrina:
-    def __init__(self, id: int, name: str, owner_id: int, description: str, course_instance_id: int):
+    def __init__(self, id: int, name: str, owner: User, description: str, course_instance: CourseInstance):
         self.id = id
         self.name = name
-        self.owner_id = owner_id
+        self.owner = owner
         self.description = description
-        self.course_instance_id = course_instance_id
+        self.course_instance = course_instance
 
     def __str__(self) -> str:
-        return f"Vetrina(id={self.id}, name={self.name}, owner_id={self.owner_id}, description={self.description}, course_instance_id={self.course_instance_id})"
+        return f"Vetrina(id={self.id}, name={self.name}, owner={self.owner}, description={self.description}, course_instance={self.course_instance})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -107,9 +115,9 @@ class Vetrina:
         return {
             "id": self.id,
             "name": self.name,
-            "owner_id": self.owner_id,
+            "owner": self.owner.to_dict(),
             "description": self.description,
-            "course_instance_id": self.course_instance_id,
+            "course_instance": self.course_instance.to_dict(),
         }
 
 

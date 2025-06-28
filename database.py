@@ -89,24 +89,57 @@ def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT v.id, v.name, v.owner_id, v.description, v.course_instance_id, vs.price, vs.created_at, vs.user_id
+                SELECT v.id, v.name, v.description, v.course_instance_id, vs.price, vs.created_at, vs.user_id,
+                       u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+                       ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                       ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
                 FROM vetrina_subscriptions vs
                 JOIN vetrina v ON vs.vetrina_id = v.id
+                JOIN users u ON v.owner_id = u.id
+                JOIN course_instances ci ON v.course_instance_id = ci.id
                 WHERE vs.user_id = %s
                 """,
                 (user_id,),
             )
             subscriptions = cursor.fetchall()
 
-            result = [
-                VetrinaSubscription(
-                    subscriber_id=sub[7],
-                    vetrina=Vetrina(id=sub[0], name=sub[1], owner_id=sub[2], description=sub[3], course_instance_id=sub[4]),
-                    price=sub[5],
-                    created_at=sub[6],
+            result = []
+            for sub in subscriptions:
+                owner = User(
+                    id=sub[7],
+                    username=sub[8],
+                    name=sub[9],
+                    surname=sub[10],
+                    email=sub[11],
+                    last_login=sub[12],
+                    created_at=sub[13],
                 )
-                for sub in subscriptions
-            ]
+                course_instance = CourseInstance(
+                    instance_id=sub[14],
+                    course_code=sub[15],
+                    course_name=sub[16],
+                    faculty_name=sub[17],
+                    year=sub[18],
+                    date_year=sub[19],
+                    language=sub[20],
+                    course_semester=sub[21],
+                    canale=sub[22],
+                    professors=sub[23],
+                )
+                vetrina = Vetrina(
+                    id=sub[0],
+                    name=sub[1],
+                    owner=owner,
+                    description=sub[2],
+                    course_instance=course_instance,
+                )
+                subscription = VetrinaSubscription(
+                    subscriber_id=sub[6],
+                    vetrina=vetrina,
+                    price=sub[4],
+                    created_at=sub[5],
+                )
+                result.append(subscription)
             return result
 
 
@@ -262,9 +295,14 @@ def get_vetrina_by_id(vetrina_id: int) -> Vetrina:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id, name, owner_id, description, course_instance_id
-                FROM vetrina
-                WHERE id = %s
+                SELECT v.id, v.name, v.description, v.course_instance_id,
+                       u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+                       ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                       ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
+                FROM vetrina v
+                JOIN users u ON v.owner_id = u.id
+                JOIN course_instances ci ON v.course_instance_id = ci.id
+                WHERE v.id = %s
                 """,
                 (vetrina_id,),
             )
@@ -273,12 +311,35 @@ def get_vetrina_by_id(vetrina_id: int) -> Vetrina:
             if not vetrina_data:
                 raise NotFoundException("Vetrina not found")
 
+            owner = User(
+                id=vetrina_data[4],
+                username=vetrina_data[5],
+                name=vetrina_data[6],
+                surname=vetrina_data[7],
+                email=vetrina_data[8],
+                last_login=vetrina_data[9],
+                created_at=vetrina_data[10],
+            )
+
+            course_instance = CourseInstance(
+                instance_id=vetrina_data[11],
+                course_code=vetrina_data[12],
+                course_name=vetrina_data[13],
+                faculty_name=vetrina_data[14],
+                year=vetrina_data[15],
+                date_year=vetrina_data[16],
+                language=vetrina_data[17],
+                course_semester=vetrina_data[18],
+                canale=vetrina_data[19],
+                professors=vetrina_data[20],
+            )
+
             return Vetrina(
                 id=vetrina_data[0],
                 name=vetrina_data[1],
-                owner_id=vetrina_data[2],
-                description=vetrina_data[3],
-                course_instance_id=vetrina_data[4],
+                owner=owner,
+                description=vetrina_data[2],
+                course_instance=course_instance,
             )
 
 
@@ -296,9 +357,13 @@ def search_vetrine(params: Dict[str, Any]) -> List[Vetrina]:
     query_params = []
 
     base_query = """
-        SELECT v.id, v.name, v.owner_id, v.description, v.course_instance_id
+        SELECT v.id, v.name, v.description, v.course_instance_id,
+               u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+               ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+               ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
         FROM vetrina v
         JOIN course_instances ci ON v.course_instance_id = ci.id
+        JOIN users u ON v.owner_id = u.id
         WHERE 1=1
     """
 
@@ -327,7 +392,38 @@ def search_vetrine(params: Dict[str, Any]) -> List[Vetrina]:
             cursor.execute(final_query, tuple(query_params))
             vetrine_data = cursor.fetchall()
 
-            return [Vetrina(*data) for data in vetrine_data]
+            result = []
+            for data in vetrine_data:
+                owner = User(
+                    id=data[4],
+                    username=data[5],
+                    name=data[6],
+                    surname=data[7],
+                    email=data[8],
+                    last_login=data[9],
+                    created_at=data[10],
+                )
+                course_instance = CourseInstance(
+                    instance_id=data[11],
+                    course_code=data[12],
+                    course_name=data[13],
+                    faculty_name=data[14],
+                    year=data[15],
+                    date_year=data[16],
+                    language=data[17],
+                    course_semester=data[18],
+                    canale=data[19],
+                    professors=data[20],
+                )
+                vetrina = Vetrina(
+                    id=data[0],
+                    name=data[1],
+                    owner=owner,
+                    description=data[2],
+                    course_instance=course_instance,
+                )
+                result.append(vetrina)
+            return result
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:
@@ -349,19 +445,36 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
                 """
                 INSERT INTO vetrina (owner_id, course_instance_id, name, description) 
                 VALUES (%s, %s, %s, %s) 
-                RETURNING id, name, owner_id, description, course_instance_id
+                RETURNING id, name, description, course_instance_id
                 """,
                 (user_id, course_instance_id, name, description),
             )
-            conn.commit()
             vetrina_data = cursor.fetchone()
+            
+            # Get the user data for the owner
+            cursor.execute(
+                "SELECT id, username, name, surname, email, last_login, created_at FROM users WHERE id = %s",
+                (user_id,),
+            )
+            user_data = cursor.fetchone()
+            owner = User(*user_data)
+            
+            # Get the course instance data
+            cursor.execute(
+                "SELECT id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE id = %s",
+                (course_instance_id,),
+            )
+            course_data = cursor.fetchone()
+            course_instance = CourseInstance(*course_data)
+            
+            conn.commit()
 
             return Vetrina(
                 id=vetrina_data[0],
                 name=vetrina_data[1],
-                owner_id=vetrina_data[2],
-                description=vetrina_data[3],
-                course_instance_id=vetrina_data[4],
+                owner=owner,
+                description=vetrina_data[2],
+                course_instance=course_instance,
             )
 
 
@@ -723,13 +836,45 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                     raise AlreadyOwnedError("You are already subscribed to this vetrina")
                 
                 cursor.execute(
-                    "SELECT id, name, owner_id, description, course_instance_id FROM vetrina WHERE id = %s",
+                    """
+                    SELECT v.id, v.name, v.description, v.course_instance_id,
+                           u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+                           ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                           ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
+                    FROM vetrina v
+                    JOIN users u ON v.owner_id = u.id
+                    JOIN course_instances ci ON v.course_instance_id = ci.id
+                    WHERE v.id = %s
+                    """,
                     (vetrina_id,),
                 )
                 vetrina_data = cursor.fetchone()
 
                 if not vetrina_data:
                     raise NotFoundException("Vetrina not found")
+
+                owner = User(
+                    id=vetrina_data[4],
+                    username=vetrina_data[5],
+                    name=vetrina_data[6],
+                    surname=vetrina_data[7],
+                    email=vetrina_data[8],
+                    last_login=vetrina_data[9],
+                    created_at=vetrina_data[10],
+                )
+
+                course_instance = CourseInstance(
+                    instance_id=vetrina_data[11],
+                    course_code=vetrina_data[12],
+                    course_name=vetrina_data[13],
+                    faculty_name=vetrina_data[14],
+                    year=vetrina_data[15],
+                    date_year=vetrina_data[16],
+                    language=vetrina_data[17],
+                    course_semester=vetrina_data[18],
+                    canale=vetrina_data[19],
+                    professors=vetrina_data[20],
+                )
 
                 cursor.execute(
                     "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, price)
@@ -744,7 +889,13 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                 subscription_data = cursor.fetchone()
                 subscription = VetrinaSubscription(
                     subscriber_id=user_id,
-                    vetrina=Vetrina(*vetrina_data),
+                    vetrina=Vetrina(
+                        id=vetrina_data[0],
+                        name=vetrina_data[1],
+                        owner=owner,
+                        description=vetrina_data[2],
+                        course_instance=course_instance,
+                    ),
                     price=price,
                     created_at=subscription_data[3],
                 )

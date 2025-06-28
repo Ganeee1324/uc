@@ -1,0 +1,689 @@
+openapi: 3.0.3
+info:
+  title: Marketplace API
+  description: API for user registration, authentication, vetrina management, and file sharing
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Development server
+tags:
+  - name: User
+    description: User registration and authentication operations
+  - name: Vetrine
+    description: Operations related to vetrine management
+  - name: Files
+    description: Operations related to file management
+  - name: Courses
+    description: Operations related to courses and faculty hierarchy
+paths:
+  /register:
+    post:
+      tags:
+        - User
+      summary: Register a new user
+      description: Create a new user account with username, email, and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Unique username for the user
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                password:
+                  type: string
+                  format: password
+                  description: User's password
+                name:
+                  type: string
+                  description: User's first name
+                surname:
+                  type: string
+                  description: User's last name
+      responses:
+        "200":
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: JWT access token for authentication
+        "409":
+          description: Email or username already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                email_exists:
+                  value:
+                    error: email_already_exists
+                    msg: Email already exists
+                username_exists:
+                  value:
+                    error: username_already_exists
+                    msg: Username already exists
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /login:
+    post:
+      tags:
+        - User
+      summary: Authenticate a user
+      description: Verify user credentials and return an access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                password:
+                  type: string
+                  format: password
+                  description: User's password
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: JWT access token for authentication
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: unauthorized
+                msg: Invalid email or password
+
+  /vetrine/{vetrina_id}:
+    get:
+      tags:
+        - Vetrine
+      summary: Get vetrina details
+      description: Retrieve details for a specific vetrina by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to retrieve
+      responses:
+        "200":
+          description: Vetrina details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vetrina"
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: not_found
+                msg: Vetrina not found
+
+  /vetrine/{vetrina_id}/subscriptions:
+    post:
+      tags:
+        - Vetrine
+      summary: Subscribe to a vetrina
+      description: Subscribe the authenticated user to a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to subscribe to
+      responses:
+        "200":
+          description: Successfully subscribed to vetrina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Subscribed to vetrina
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+                  subscription:
+                    $ref: "#/components/schemas/VetrinaSubscription"
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already subscribed to this vetrina
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: already_subscribed
+                msg: User already subscribed to this vetrina
+
+    delete:
+      tags:
+        - Vetrine
+      summary: Unsubscribe from a vetrina
+      description: Unsubscribe the authenticated user from a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to unsubscribe from
+      responses:
+        "200":
+          description: Successfully unsubscribed from vetrina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Unsubscribed from vetrina
+        "404":
+          description: Subscription or vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /vetrine:
+    get:
+      tags:
+        - Vetrine
+      summary: Search vetrine
+      description: Search for vetrine based on various criteria
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vetrina name
+        - name: course_code
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by course code
+        - name: course_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by course name
+        - name: faculty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by faculty
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vetrina"
+                  count:
+                    type: integer
+                    description: Number of results returned
+
+  /hierarchy:
+    get:
+      tags:
+        - Courses
+      summary: Get faculties and courses hierarchy
+      description: Retrieve the hierarchy of faculties and their associated courses
+      responses:
+        "200":
+          description: Hierarchy data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Hierarchical structure of faculties and courses
+                additionalProperties:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: string
+                example:
+                  "Computer Science":
+                    [["CS101", "Introduction to Computer Science"]]
+                  "Engineering": [["ENG303", "Technical Writing"]]
+                  "Mathematics": [["MATH201", "Linear Algebra"]]
+
+  /vetrine/{vetrina_id}/files:
+    post:
+      tags:
+        - Files
+      summary: Upload a file to a vetrina
+      description: Upload a file to a specific vetrina (only available to vetrina owner)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to upload the file to
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File uploaded
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not the owner of the vetrina
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: File already exists or save failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags:
+        - Files
+      summary: Get files for a vetrina
+      description: Retrieve all files associated with a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to get files from
+      responses:
+        "200":
+          description: Files retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/File"
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/{file_id}:
+    get:
+      tags:
+        - Files
+      summary: Get file details
+      description: Retrieve details for a specific file by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to retrieve
+      responses:
+        "200":
+          description: File details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Files
+      summary: Delete a file
+      description: Delete a specific file (only available to vetrina owner)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to delete
+      responses:
+        "200":
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File deleted
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/{file_id}/buy:
+    post:
+      tags:
+        - Files
+      summary: Buy a file
+      description: Purchase a specific file
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to buy
+      responses:
+        "200":
+          description: File bought successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File bought
+                  transaction:
+                    $ref: "#/components/schemas/Transaction"
+                  file:
+                    $ref: "#/components/schemas/File"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already owns this file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: already_owned
+                msg: You already own this file
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        msg:
+          type: string
+          description: Error message
+      required:
+        - error
+        - msg
+
+    Vetrina:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the vetrina
+        name:
+          type: string
+          description: Name of the vetrina
+        owner_id:
+          type: integer
+          description: ID of the user who owns the vetrina
+        description:
+          type: string
+          description: Description of the vetrina
+        course_instance_id:
+          type: integer
+          description: ID of the course instance associated with the vetrina
+
+    CourseInstance:
+      type: object
+      properties:
+        instance_id:
+          type: integer
+          description: Unique identifier for the course instance
+        course_code:
+          type: string
+          description: Code of the course
+        course_name:
+          type: string
+          description: Name of the course
+        faculty_name:
+          type: string
+          description: Name of the faculty
+        year:
+          type: integer
+          description: Year of the course in curriculum
+        date_year:
+          type: integer
+          description: Academic year
+        language:
+          type: string
+          description: Language of instruction
+        course_semester:
+          type: string
+          description: Semester of the course
+        canale:
+          type: string
+          description: Course channel/section
+        professors:
+          type: array
+          items:
+            type: string
+          description: List of professors teaching the course
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the user
+        username:
+          type: string
+          description: User's username
+        name:
+          type: string
+          description: User's first name
+        surname:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          format: email
+          description: User's email address
+        last_login:
+          type: string
+          format: date-time
+          description: Timestamp of the user's last login
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created
+
+    File:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the file
+        filename:
+          type: string
+          description: Name of the file
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the file was uploaded
+        size:
+          type: integer
+          description: Size of the file in bytes
+        vetrina_id:
+          type: integer
+          description: ID of the vetrina the file belongs to
+        sha256:
+          type: string
+          description: SHA256 hash of the file
+        download_count:
+          type: integer
+          description: Number of times the file has been downloaded
+        fact_mark:
+          type: integer
+          nullable: true
+          description: Factual accuracy mark for the file
+        fact_mark_updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the factual accuracy mark was last updated
+        price:
+          type: integer
+          description: Price of the file
+        owned:
+          type: boolean
+          description: Whether the current user owns this file
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the transaction
+        user_id:
+          type: integer
+          description: ID of the user who made the transaction
+        amount:
+          type: integer
+          description: Amount of the transaction
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the transaction was created
+
+    VetrinaSubscription:
+      type: object
+      properties:
+        subscriber_id:
+          type: integer
+          description: ID of the user who subscribed
+        vetrina:
+          $ref: "#/components/schemas/Vetrina"
+        price:
+          type: integer
+          description: Price of the subscription
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the subscription was created
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication

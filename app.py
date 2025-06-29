@@ -86,7 +86,7 @@ def already_owned_error(e):
 
 
 # ---------------------------------------------
-# User routes
+# Auth routes
 # ---------------------------------------------
 
 
@@ -165,34 +165,34 @@ def search_vetrine():
 @jwt_required()
 def upload_file(vetrina_id):
     requester_id = get_jwt_identity()
-    
+
     # Check if file is provided in the request
-    if 'file' not in request.files:
+    if "file" not in request.files:
         return jsonify({"error": "no_file", "msg": "No file provided"}), 400
-    
+
     file = request.files["file"]
-    
+
     # Check if filename is empty
-    if file.filename == '':
+    if file.filename == "":
         return jsonify({"error": "no_filename", "msg": "No filename provided"}), 400
-    
+
     # Save file content to calculate size and hash
     file_content = file.read()
     file_size = len(file_content)
     file_hash = hashlib.sha256(file_content).hexdigest()
-    
+
     # Reset file pointer for later saving
     file.seek(0)
-    
+
     new_file_name = "-".join([str(uuid.uuid4()), str(requester_id), file.filename])
     new_file_path = os.path.join(files_folder_path, new_file_name)
-    
+
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
-    
+
     # Add file to database with size
     db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, price=0, size=file_size)
-    
+
     try:
         file.save(new_file_path)
     except Exception as e:
@@ -215,6 +215,13 @@ def download_file(file_id):
     user_id = get_jwt_identity()
     file = database.check_file_ownership(user_id, file_id)
     return send_file(os.path.join(files_folder_path, file.filename), as_attachment=True)
+
+
+@app.route("/files/<int:file_id>/download/redacted", methods=["GET"])
+@jwt_required()
+def download_file_redacted(file_id):
+    file = database.get_file(file_id)
+    return send_file(os.path.join(files_folder_path, file.filename.replace(".pdf", "_redacted.pdf")), as_attachment=True)
 
 
 @app.route("/files/<int:file_id>", methods=["DELETE"])
@@ -253,6 +260,80 @@ def buy_file(file_id):
 
 
 # ---------------------------------------------
+# User routes
+# ---------------------------------------------
+
+
+@app.route("/user/favorites/vetrine", methods=["GET"])
+@jwt_required()
+def get_favorite_vetrine():
+    user_id = get_jwt_identity()
+    favorite_vetrine = database.get_favorite_vetrine(user_id)
+    return jsonify({"vetrine": [vetrina.to_dict() for vetrina in favorite_vetrine], "count": len(favorite_vetrine)}), 200
+
+
+@app.route("/user/favorites/vetrine/<int:vetrina_id>", methods=["POST"])
+@jwt_required()
+def add_favorite_vetrina(vetrina_id):
+    user_id = get_jwt_identity()
+    database.add_favorite_vetrina(user_id, vetrina_id)
+    return jsonify({"msg": "Vetrina added to favorites"}), 200
+
+
+@app.route("/user/favorites/vetrine/<int:vetrina_id>", methods=["DELETE"])
+@jwt_required()
+def remove_favorite_vetrina(vetrina_id):
+    user_id = get_jwt_identity()
+    database.remove_favorite_vetrina(user_id, vetrina_id)
+    return jsonify({"msg": "Vetrina removed from favorites"}), 200
+
+
+@app.route("/user/favorites/files", methods=["GET"])
+@jwt_required()
+def get_favorite_files():
+    user_id = get_jwt_identity()
+    favorite_files = database.get_favorite_files(user_id)
+    return jsonify({"files": [file.to_dict() for file in favorite_files], "count": len(favorite_files)}), 200
+
+
+@app.route("/user/favorites/files/<int:file_id>", methods=["POST"])
+@jwt_required()
+def add_favorite_file(file_id):
+    user_id = get_jwt_identity()
+    database.add_favorite_file(user_id, file_id)
+    return jsonify({"msg": "File added to favorites"}), 200
+
+
+@app.route("/user/favorites/files/<int:file_id>", methods=["DELETE"])
+@jwt_required()
+def remove_favorite_file(file_id):
+    user_id = get_jwt_identity()
+    database.remove_favorite_file(user_id, file_id)
+    return jsonify({"msg": "File removed from favorites"}), 200
+
+
+@app.route("/user/favorites", methods=["GET"])
+@jwt_required()
+def get_favorite_files_grouped():
+    user_id = get_jwt_identity()
+    vetrine_with_favorites = database.get_favorite_files_grouped_by_vetrina(user_id)
+    return jsonify({"vetrine": [vetrina.to_dict() for vetrina in vetrine_with_favorites], "count": len(vetrine_with_favorites)}), 200
+
+
+# ---------------------------------------------
+# Owned files routes
+# ---------------------------------------------
+
+
+@app.route("/user/owned", methods=["GET"])
+@jwt_required()
+def get_owned_files_grouped():
+    user_id = get_jwt_identity()
+    vetrine_with_owned = database.get_owned_files_grouped_by_vetrina(user_id)
+    return jsonify({"vetrine": [vetrina.to_dict() for vetrina in vetrine_with_owned], "count": len(vetrine_with_owned)}), 200
+
+
+# ---------------------------------------------
 # Courses routes
 # ---------------------------------------------
 
@@ -260,7 +341,7 @@ def buy_file(file_id):
 # get faculties and courses
 @app.route("/hierarchy", methods=["GET"])
 def get_hierarchy():
-    # if database.faculties_courses_cache is None:
+    # TODO: if database.faculties_courses_cache is None:
     database.faculties_courses_cache = database.scrape_faculties_courses()
     return jsonify(database.faculties_courses_cache), 200
 

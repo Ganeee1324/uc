@@ -75,4 +75,16 @@ CREATE TABLE IF NOT EXISTS vetrina_subscriptions (
     PRIMARY KEY (user_id, vetrina_id)
 );
 
+CREATE TABLE IF NOT EXISTS favourite_vetrine (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(id) NOT NULL,
+    PRIMARY KEY (user_id, vetrina_id)
+);
+
+CREATE TABLE IF NOT EXISTS favourite_file (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    file_id INTEGER REFERENCES files(id) NOT NULL,
+    PRIMARY KEY (user_id, file_id)
+);
+
 INSERT INTO users (username, name, surname, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');

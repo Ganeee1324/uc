@@ -15,6 +15,7 @@ tags:
     description: Operations related to file management
   - name: Courses
     description: Operations related to courses and faculty hierarchy
+
 paths:
   /register:
     post:
@@ -316,7 +317,7 @@ paths:
   /vetrine/{vetrina_id}/files:
     post:
       tags:
-        - Files
+        - Vetrine
       summary: Upload a file to a vetrina
       description: Upload a file to a specific vetrina (only available to vetrina owner)
       security:
@@ -371,7 +372,7 @@ paths:
 
     get:
       tags:
-        - Files
+        - Vetrine
       summary: Get files for a vetrina
       description: Retrieve all files associated with a specific vetrina
       security:
@@ -463,6 +464,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /files/{file_id}/download:
+    get:
+      tags:
+        - Files
+      summary: Download a file
+      description: Download a specific file (only available to users who own the file)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to download
+      responses:
+        "200":
+          description: File downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "403":
+          description: User does not have access to this file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/{file_id}/download/redacted:
+    get:
+      tags:
+        - Files
+      summary: Download a redacted version of a file
+      description: Download a redacted version of a specific file
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to download (redacted version)
+      responses:
+        "200":
+          description: Redacted file downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /files/{file_id}/buy:
     post:
       tags:
@@ -509,6 +576,232 @@ paths:
                 error: already_owned
                 msg: You already own this file
 
+  /user/favorites/vetrine:
+    get:
+      tags:
+        - User
+      summary: Get favorite vetrine
+      description: Retrieve all favorite vetrine for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Favorite vetrine retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vetrina"
+                  count:
+                    type: integer
+                    description: Number of favorite vetrine
+
+  /user/favorites/vetrine/{vetrina_id}:
+    post:
+      tags:
+        - User
+      summary: Add vetrina to favorites
+      description: Add a specific vetrina to the user's favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to add to favorites
+      responses:
+        "200":
+          description: Vetrina added to favorites successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Vetrina added to favorites
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - User
+      summary: Remove vetrina from favorites
+      description: Remove a specific vetrina from the user's favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to remove from favorites
+      responses:
+        "200":
+          description: Vetrina removed from favorites successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Vetrina removed from favorites
+        "404":
+          description: Favorite vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/favorites/files:
+    get:
+      tags:
+        - User
+      summary: Get favorite files
+      description: Retrieve all favorite files for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Favorite files retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/File"
+                  count:
+                    type: integer
+                    description: Number of favorite files
+
+  /user/favorites/files/{file_id}:
+    post:
+      tags:
+        - User
+      summary: Add file to favorites
+      description: Add a specific file to the user's favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to add to favorites
+      responses:
+        "200":
+          description: File added to favorites successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File added to favorites
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - User
+      summary: Remove file from favorites
+      description: Remove a specific file from the user's favorites
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to remove from favorites
+      responses:
+        "200":
+          description: File removed from favorites successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: File removed from favorites
+        "404":
+          description: Favorite file not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/favorites:
+    get:
+      tags:
+        - User
+      summary: Get favorite files grouped by vetrina
+      description: Retrieve all favorite files for the authenticated user, grouped by vetrina
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Favorite files grouped by vetrina retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VetrinaWithFiles"
+                  count:
+                    type: integer
+                    description: Number of vetrine with favorite files
+
+  /user/owned:
+    get:
+      tags:
+        - User
+      summary: Get owned files grouped by vetrina
+      description: Retrieve all owned files for the authenticated user, grouped by vetrina
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Owned files grouped by vetrina retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VetrinaWithFiles"
+                  count:
+                    type: integer
+                    description: Number of vetrine with owned files
+
 components:
   schemas:
     ErrorResponse:
@@ -533,15 +826,26 @@ components:
         name:
           type: string
           description: Name of the vetrina
-        owner_id:
-          type: integer
-          description: ID of the user who owns the vetrina
+        owner:
+          $ref: "#/components/schemas/User"
+          description: User who owns the vetrina
         description:
           type: string
           description: Description of the vetrina
-        course_instance_id:
-          type: integer
-          description: ID of the course instance associated with the vetrina
+        course_instance:
+          $ref: "#/components/schemas/CourseInstance"
+          description: Course instance associated with the vetrina
+
+    VetrinaWithFiles:
+      allOf:
+        - $ref: "#/components/schemas/Vetrina"
+        - type: object
+          properties:
+            files:
+              type: array
+              items:
+                $ref: "#/components/schemas/File"
+              description: List of files in the vetrina (only present in certain contexts)
 
     CourseInstance:
       type: object
@@ -588,24 +892,6 @@ components:
         username:
           type: string
           description: User's username
-        name:
-          type: string
-          description: User's first name
-        surname:
-          type: string
-          description: User's last name
-        email:
-          type: string
-          format: email
-          description: User's email address
-        last_login:
-          type: string
-          format: date-time
-          description: Timestamp of the user's last login
-        created_at:
-          type: string
-          format: date-time
-          description: Timestamp when the user account was created
 
     File:
       type: object
@@ -647,6 +933,9 @@ components:
         owned:
           type: boolean
           description: Whether the current user owns this file
+        favorite:
+          type: boolean
+          description: Whether the current user has marked this file as favorite
 
     Transaction:
       type: object

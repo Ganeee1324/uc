@@ -450,7 +450,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
                 (user_id, course_instance_id, name, description),
             )
             vetrina_data = cursor.fetchone()
-            
+
             # Get the user data for the owner
             cursor.execute(
                 "SELECT id, username, name, surname, email, last_login, created_at FROM users WHERE id = %s",
@@ -458,7 +458,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
             )
             user_data = cursor.fetchone()
             owner = User(*user_data)
-            
+
             # Get the course instance data
             cursor.execute(
                 "SELECT id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE id = %s",
@@ -466,7 +466,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
             )
             course_data = cursor.fetchone()
             course_instance = CourseInstance(*course_data)
-            
+
             conn.commit()
 
             return Vetrina(
@@ -834,7 +834,7 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                 )
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You are already subscribed to this vetrina")
-                
+
                 cursor.execute(
                     """
                     SELECT v.id, v.name, v.description, v.course_instance_id,
@@ -903,3 +903,349 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                 conn.commit()
 
                 return transaction, subscription
+
+
+# ---------------------------------------------
+# Favorite management
+# ---------------------------------------------
+
+
+def add_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
+    """
+    Add a vetrina to user's favorites.
+
+    Args:
+        user_id: ID of the user
+        vetrina_id: ID of the vetrina to add to favorites
+
+    Raises:
+        NotFoundException: If the vetrina doesn't exist
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO favourite_vetrine (user_id, vetrina_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, vetrina_id))
+            conn.commit()
+
+
+def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
+    """
+    Remove a vetrina from user's favorites.
+
+    Args:
+        user_id: ID of the user
+        vetrina_id: ID of the vetrina to remove from favorites
+
+    Raises:
+        NotFoundException: If the favorite doesn't exist
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM favourite_vetrine WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
+            if cursor.rowcount == 0:
+                raise NotFoundException("Favorite vetrina not found")
+            conn.commit()
+
+
+def get_favorite_vetrine(user_id: int) -> List[Vetrina]:
+    """
+    Get all favorite vetrine for a user.
+
+    Args:
+        user_id: ID of the user whose favorite vetrine to retrieve
+
+    Returns:
+        List[Vetrina]: List of favorite Vetrina objects
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT v.id, v.name, v.description, v.course_instance_id,
+                       u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+                       ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                       ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
+                FROM favourite_vetrine fv
+                JOIN vetrina v ON fv.vetrina_id = v.id
+                JOIN users u ON v.owner_id = u.id
+                JOIN course_instances ci ON v.course_instance_id = ci.id
+                WHERE fv.user_id = %s
+                """,
+                (user_id,),
+            )
+            vetrine_data = cursor.fetchall()
+
+            result = []
+            for data in vetrine_data:
+                owner = User(
+                    id=data[4],
+                    username=data[5],
+                    name=data[6],
+                    surname=data[7],
+                    email=data[8],
+                    last_login=data[9],
+                    created_at=data[10],
+                )
+                course_instance = CourseInstance(
+                    instance_id=data[11],
+                    course_code=data[12],
+                    course_name=data[13],
+                    faculty_name=data[14],
+                    year=data[15],
+                    date_year=data[16],
+                    language=data[17],
+                    course_semester=data[18],
+                    canale=data[19],
+                    professors=data[20],
+                )
+                vetrina = Vetrina(
+                    id=data[0],
+                    name=data[1],
+                    owner=owner,
+                    description=data[2],
+                    course_instance=course_instance,
+                )
+                result.append(vetrina)
+            return result
+
+
+def add_favorite_file(user_id: int, file_id: int) -> None:
+    """
+    Add a file to user's favorites.
+
+    Args:
+        user_id: ID of the user
+        file_id: ID of the file to add to favorites
+
+    Raises:
+        NotFoundException: If the file doesn't exist
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO favourite_file (user_id, file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, file_id))
+            conn.commit()
+
+
+def remove_favorite_file(user_id: int, file_id: int) -> None:
+    """
+    Remove a file from user's favorites.
+
+    Args:
+        user_id: ID of the user
+        file_id: ID of the file to remove from favorites
+
+    Raises:
+        NotFoundException: If the favorite doesn't exist
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM favourite_file WHERE user_id = %s AND file_id = %s", (user_id, file_id))
+            if cursor.rowcount == 0:
+                raise NotFoundException("Favorite file not found")
+            conn.commit()
+
+
+def get_favorite_files(user_id: int) -> List[File]:
+    """
+    Get all favorite files for a user.
+
+    Args:
+        user_id: ID of the user whose favorite files to retrieve
+
+    Returns:
+        List[File]: List of favorite File objects
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
+                       f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price
+                FROM favourite_file ff
+                JOIN files f ON ff.file_id = f.id
+                WHERE ff.user_id = %s
+                """,
+                (user_id,),
+            )
+            return [File(*data) for data in cursor.fetchall()]
+
+
+def get_owned_files_grouped_by_vetrina(user_id: int) -> List[Vetrina]:
+    """
+    Get all owned files for a user grouped by vetrina.
+    A file is considered owned if the user either owns it directly or has a subscription to the vetrina.
+
+    Args:
+        user_id: ID of the user whose owned files to retrieve
+
+    Returns:
+        List[Vetrina]: List of Vetrina objects with files populated (owned files with owned=True, favorite status also checked)
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT DISTINCT
+                    v.id, v.name, v.description, v.course_instance_id,
+                    u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+                    ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                    ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors,
+                    f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
+                    f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price,
+                    EXISTS(SELECT 1 FROM favourite_file WHERE file_id = f.id AND user_id = %s) AS is_favorite
+                FROM files f
+                JOIN vetrina v ON f.vetrina_id = v.id
+                JOIN users u ON v.owner_id = u.id
+                JOIN course_instances ci ON v.course_instance_id = ci.id
+                WHERE (
+                    EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.id AND owner_id = %s) OR
+                    EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = v.id AND user_id = %s)
+                )
+                ORDER BY v.id, f.id
+                """,
+                (user_id, user_id, user_id),
+            )
+            results = cursor.fetchall()
+
+            vetrina_dict = {}
+            for row in results:
+                vetrina_id = row[0]
+
+                if vetrina_id not in vetrina_dict:
+                    owner = User(
+                        id=row[4],
+                        username=row[5],
+                        name=row[6],
+                        surname=row[7],
+                        email=row[8],
+                        last_login=row[9],
+                        created_at=row[10],
+                    )
+
+                    course_instance = CourseInstance(
+                        instance_id=row[11],
+                        course_code=row[12],
+                        course_name=row[13],
+                        faculty_name=row[14],
+                        year=row[15],
+                        date_year=row[16],
+                        language=row[17],
+                        course_semester=row[18],
+                        canale=row[19],
+                        professors=row[20],
+                    )
+
+                    vetrina_dict[vetrina_id] = Vetrina(
+                        id=row[0],
+                        name=row[1],
+                        owner=owner,
+                        description=row[2],
+                        course_instance=course_instance,
+                    )
+
+                file = File(
+                    id=row[21],
+                    filename=row[22],
+                    created_at=row[23],
+                    size=row[24],
+                    vetrina_id=row[25],
+                    sha256=row[26],
+                    download_count=row[27],
+                    fact_mark=row[28],
+                    fact_mark_updated_at=row[29],
+                    price=row[30],
+                    owned=True,
+                    favorite=row[31],
+                )
+                vetrina_dict[vetrina_id].files.append(file)
+
+            return list(vetrina_dict.values())
+
+
+def get_favorite_files_grouped_by_vetrina(user_id: int) -> List[Vetrina]:
+    """
+    Get all favorite files for a user grouped by vetrina.
+
+    Args:
+        user_id: ID of the user whose favorite files to retrieve
+
+    Returns:
+        List[Vetrina]: List of Vetrina objects with files populated (favorite files with favorite=True, owned status also checked)
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT DISTINCT
+                    v.id, v.name, v.description, v.course_instance_id,
+                    u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at,
+                    ci.id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                    ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors,
+                    f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
+                    f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price,
+                    (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.id AND owner_id = %s) OR
+                     EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = v.id AND user_id = %s)) AS is_owned
+                FROM favourite_file ff
+                JOIN files f ON ff.file_id = f.id
+                JOIN vetrina v ON f.vetrina_id = v.id
+                JOIN users u ON v.owner_id = u.id
+                JOIN course_instances ci ON v.course_instance_id = ci.id
+                WHERE ff.user_id = %s
+                ORDER BY v.id, f.id
+                """,
+                (user_id, user_id, user_id),
+            )
+            results = cursor.fetchall()
+
+            vetrina_dict = {}
+            for row in results:
+                vetrina_id = row[0]
+
+                if vetrina_id not in vetrina_dict:
+                    owner = User(
+                        id=row[4],
+                        username=row[5],
+                        name=row[6],
+                        surname=row[7],
+                        email=row[8],
+                        last_login=row[9],
+                        created_at=row[10],
+                    )
+
+                    course_instance = CourseInstance(
+                        instance_id=row[11],
+                        course_code=row[12],
+                        course_name=row[13],
+                        faculty_name=row[14],
+                        year=row[15],
+                        date_year=row[16],
+                        language=row[17],
+                        course_semester=row[18],
+                        canale=row[19],
+                        professors=row[20],
+                    )
+
+                    vetrina_dict[vetrina_id] = Vetrina(
+                        id=row[0],
+                        name=row[1],
+                        owner=owner,
+                        description=row[2],
+                        course_instance=course_instance,
+                    )
+
+                file = File(
+                    id=row[21],
+                    filename=row[22],
+                    created_at=row[23],
+                    size=row[24],
+                    vetrina_id=row[25],
+                    sha256=row[26],
+                    download_count=row[27],
+                    fact_mark=row[28],
+                    fact_mark_updated_at=row[29],
+                    price=row[30],
+                    owned=row[31],
+                    favorite=True,
+                )
+                vetrina_dict[vetrina_id].files.append(file)
+
+            return list(vetrina_dict.values())

@@ -2,6 +2,58 @@ from datetime import datetime
 from typing import Any, List
 
 
+class File:
+    def __init__(
+        self,
+        id: int,
+        filename: str,
+        created_at: datetime,
+        size: int,
+        vetrina_id: int,
+        sha256: str,
+        download_count: int = 0,
+        fact_mark: int | None = None,
+        fact_mark_updated_at: datetime | None = None,
+        price: int = 0,
+        owned: bool = False,
+        favorite: bool = False,
+    ):
+        self.id = id
+        self.filename = filename
+        self.created_at = created_at
+        self.fact_mark = fact_mark
+        self.fact_mark_updated_at = fact_mark_updated_at
+        self.size = size
+        self.download_count = download_count
+        self.vetrina_id = vetrina_id
+        self.sha256 = sha256
+        self.owned = owned
+        self.favorite = favorite
+        self.price = price
+
+    def __str__(self) -> str:
+        return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "filename": self.filename,
+            "created_at": self.created_at,
+            "vetrina_id": self.vetrina_id,
+            "sha256": self.sha256,
+            "fact_mark": self.fact_mark,
+            "fact_mark_updated_at": self.fact_mark_updated_at,
+            "size": self.size,
+            "download_count": self.download_count,
+            "owned": self.owned,
+            "price": self.price,
+            "favorite": self.favorite,
+        }
+
+
 class User:
     def __init__(self, id: int, username: str, name: str, surname: str, email: str, last_login: datetime, created_at: datetime):
         self.id = id
@@ -88,12 +140,21 @@ class CourseInstance:
 
 
 class Vetrina:
-    def __init__(self, id: int, name: str, owner: User, description: str, course_instance: CourseInstance):
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        owner: User,
+        description: str,
+        course_instance: CourseInstance,
+        files: List[File] = [],
+    ):
         self.id = id
         self.name = name
         self.owner = owner
         self.description = description
         self.course_instance = course_instance
+        self.files = files
 
     def __str__(self) -> str:
         return f"Vetrina(id={self.id}, name={self.name}, owner={self.owner}, description={self.description}, course_instance={self.course_instance})"
@@ -110,13 +171,16 @@ class Vetrina:
         return hash("vetrina" + str(self.id))
 
     def to_dict(self) -> dict:
-        return {
+        res = {
             "id": self.id,
             "name": self.name,
             "owner": self.owner.to_dict(),
             "description": self.description,
             "course_instance": self.course_instance.to_dict(),
         }
+        if self.files:
+            res["files"] = [file.to_dict() for file in self.files]
+        return res
 
 
 class VetrinaSubscription:
@@ -141,55 +205,6 @@ class VetrinaSubscription:
             "vetrina": self.vetrina.to_dict(),
             "price": self.price,
             "created_at": self.created_at,
-        }
-
-
-class File:
-    def __init__(
-        self,
-        id: int,
-        filename: str,
-        created_at: datetime,
-        size: int,
-        vetrina_id: int,
-        sha256: str,
-        download_count: int = 0,
-        fact_mark: int | None = None,
-        fact_mark_updated_at: datetime | None = None,
-        price: int = 0,
-        owned: bool = False,
-    ):
-        self.id = id
-        self.filename = filename
-        self.created_at = created_at
-        self.fact_mark = fact_mark
-        self.fact_mark_updated_at = fact_mark_updated_at
-        self.size = size
-        self.download_count = download_count
-        self.vetrina_id = vetrina_id
-        self.sha256 = sha256
-        self.owned = owned
-        self.price = price
-
-    def __str__(self) -> str:
-        return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "filename": self.filename,
-            "created_at": self.created_at,
-            "vetrina_id": self.vetrina_id,
-            "sha256": self.sha256,
-            "fact_mark": self.fact_mark,
-            "fact_mark_updated_at": self.fact_mark_updated_at,
-            "size": self.size,
-            "download_count": self.download_count,
-            "owned": self.owned,
-            "price": self.price,
         }
 
 

@@ -800,8 +800,6 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 cursor.execute("INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.id))
                 cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE id = %s", (file_id,))
 
-                conn.commit()
-
             return transaction, file
 
 
@@ -884,8 +882,6 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                     price=price,
                     created_at=subscription_data[3],
                 )
-
-                conn.commit()
 
                 return transaction, subscription
 

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniclarity - File Sharing Platform</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="css/search.css">
+</head>
+<body>
+    <!-- Background Image Element -->
+    <div class="background-image" aria-hidden="true"></div>
+
+    <!-- Header matching the image -->
+    <header class="header">
+        <a href="#" class="logo">
+            <img src="images/Logo.png" alt="Uniclarity">
+        </a>
+        <nav class="nav-menu">
+            <a href="#" class="nav-link">Home</a>
+            <a href="#" class="nav-link">About</a>
+            <a href="#" class="nav-link">FAQ</a>
+        </nav>
+        <div class="auth-buttons">
+            <div class="user-info" id="userInfo">
+                <span class="user-avatar" id="userAvatar">U</span>
+                <span class="user-name" id="userName">User</span>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <i class="material-symbols-outlined">logout</i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content - Centered Search Interface -->
+    <main class="main-content" id="mainContent">
+        <!-- Search Section with integrated cards -->
+        <div class="search-section" id="searchSection">
+            <h1 class="search-title">Cerca.</h1>
+            <p class="search-subtitle">Pensato per chi vuole di più.</p>
+            
+            <div class="search-container">
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Cerca una dispensa...">
+                    <button class="search-btn" id="searchBtn">
+                        <i class="material-symbols-outlined">search</i>
+                    </button>
+                </div>
+                <button class="filters-btn" id="filtersBtn">
+                    <i class="material-symbols-outlined">tune</i>
+                    <span class="filters-text">Filtri</span>
+                    <span class="filter-count" id="filterCount">0</span>
+                </button>
+            </div>
+
+            <!-- Documents Grid - Will be populated dynamically -->
+            <div class="documents-grid" id="documentsGrid">
+                <!-- Cards will be loaded from the database via JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Advanced Filters Panel -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-content">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <h2>🎯 Filtri</h2>
+                    <span class="filters-subtitle">Trova esattamente quello che cerchi</span>
+                </div>
+                <div class="filters-actions">
+                    <button class="filter-clear-btn" id="clearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        Reset
+                    </button>
+                    <button class="filters-close" id="filtersClose">
+                        <i class="material-symbols-outlined">close</i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filters-grid">
+                <!-- Academic Context Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">school</i>
+                        Contesto Accademico
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="facultyFilter" class="filter-label">Facoltà</label>
+                            <div class="dropdown-container" data-dropdown="faculty">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="facultyFilter" class="dropdown-input" placeholder="Scrivi o scegli una facoltà...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="facultyDropdown">
+                                    <div class="dropdown-options" id="facultyOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="courseFilter" class="filter-label">Corso</label>
+                            <div class="dropdown-container" data-dropdown="course">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="courseFilter" class="dropdown-input" placeholder="Scrivi o scegli un corso...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="courseDropdown">
+                                    <div class="dropdown-options" id="courseOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="canaleFilter" class="filter-label">Canale</label>
+                            <div class="dropdown-container" data-dropdown="canale">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="canaleFilter" class="dropdown-input" placeholder="Scrivi o scegli un canale...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="canaleDropdown">
+                                    <div class="dropdown-options" id="canaleOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="autoreFilter" class="filter-label">Autore</label>
+                            <div class="author-container">
+                                <div class="author-input-wrapper">
+                                    <input type="text" id="autoreFilter" class="author-input" placeholder="Scrivi per cercare autore...">
+                                </div>
+                                <div class="author-suggestions" id="authorSuggestions">
+                                    <div class="author-options" id="authorOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Properties Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">description</i>
+                        Tipologia Documento
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="documentTypeFilter" class="filter-label">Tipo Documento</label>
+                            <div class="dropdown-container" data-dropdown="documentType">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="documentTypeFilter" class="dropdown-input" value="Tutti i tipi" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="documentTypeDropdown">
+                                    <div class="dropdown-options" id="documentTypeOptions">
+                                        <div class="dropdown-option selected" data-value="">
+                                            <span>Tutti i tipi</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="PDF">
+                                            <span>PDF</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="DOCX">
+                                            <span>DOCX</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="PPTX">
+                                            <span>PPTX</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="XLSX">
+                                            <span>XLSX</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="languageFilter" class="filter-label">Lingua</label>
+                            <div class="dropdown-container" data-dropdown="language">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="languageFilter" class="dropdown-input" value="Tutte le lingue" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="languageDropdown">
+                                    <div class="dropdown-options" id="languageOptions">
+                                        <div class="dropdown-option selected" data-value="">
+                                            <span>Tutte le lingue</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="Italian">
+                                            <span>Italiano</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="English">
+                                            <span>Inglese</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Period Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">calendar_month</i>
+                        Periodo Accademico
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="academicYearFilter" class="filter-label">Anno Accademico</label>
+                            <div class="dropdown-container" data-dropdown="academicYear">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="academicYearFilter" class="dropdown-input" value="Tutti gli anni" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="academicYearDropdown">
+                                    <div class="dropdown-options" id="academicYearOptions">
+                                        <div class="dropdown-option selected" data-value="">
+                                            <span>Tutti gli anni</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="2024/2025">
+                                            <span>2024/2025</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="2023/2024">
+                                            <span>2023/2024</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="2022/2023">
+                                            <span>2022/2023</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="2021/2022">
+                                            <span>2021/2022</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality & Engagement Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">star</i>
+                        Qualità & Engagement
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="filter-label">Rating Minimo</label>
+                            <div class="rating-filter">
+                                <div class="rating-stars-filter" id="ratingFilter">
+                                    <span class="rating-star-filter" data-rating="1">★</span>
+                                    <span class="rating-star-filter" data-rating="2">★</span>
+                                    <span class="rating-star-filter" data-rating="3">★</span>
+                                    <span class="rating-star-filter" data-rating="4">★</span>
+                                    <span class="rating-star-filter" data-rating="5">★</span>
+                                </div>
+                                <span class="rating-text" id="ratingText">Qualsiasi rating</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price & Availability Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">payments</i>
+                        Prezzo & Disponibilità
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="filter-label">Prezzo</label>
+                            <div class="price-toggle-group">
+                                <button class="price-toggle active" data-price="all">
+                                    <i class="material-symbols-outlined">select_all</i>
+                                    Tutti
+                                </button>
+                                <button class="price-toggle" data-price="free">
+                                    <i class="material-symbols-outlined">volunteer_activism</i>
+                                    Gratis
+                                </button>
+                                <button class="price-toggle" data-price="paid">
+                                    <i class="material-symbols-outlined">paid</i>
+                                    A Pagamento
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-item" id="priceRangeContainer">
+                            <label class="filter-label">Range di Prezzo (€)</label>
+                            <div class="price-range-filter">
+                                <div class="dual-range-container">
+                                    <div class="range-track">
+                                        <div class="range-fill" id="rangeFill"></div>
+                                    </div>
+                                    <input type="range" id="minPriceRange" class="range-slider range-slider-min" min="0" max="100" value="0" step="0.5">
+                                    <input type="range" id="maxPriceRange" class="range-slider range-slider-max" min="0" max="100" value="100" step="0.5">
+                                </div>
+                                <div class="price-values">
+                                    <span id="minPriceValue">€0</span>
+                                    <span id="maxPriceValue">€100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Properties Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">folder</i>
+                        Proprietà File
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="filter-label">Dimensione File</label>
+                            <div class="size-toggle-group">
+                                <button class="size-toggle active" data-size="all">Tutte</button>
+                                <button class="size-toggle" data-size="small">< 5MB</button>
+                                <button class="size-toggle" data-size="medium">5-20MB</button>
+                                <button class="size-toggle" data-size="large">> 20MB</button>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">Data di Pubblicazione</label>
+                            <div class="time-toggle-group">
+                                <button class="time-toggle active" data-time="all">Sempre</button>
+                                <button class="time-toggle" data-time="week">Ultima settimana</button>
+                                <button class="time-toggle" data-time="month">Ultimo mese</button>
+                                <button class="time-toggle" data-time="year">Ultimo anno</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Overlay -->
+    <div class="filters-overlay" id="filtersOverlay"></div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h2 class="preview-title" id="previewTitle">Document Preview</h2>
+                <button class="preview-close" onclick="closePreview()">×</button>
+            </div>
+            <div id="previewBody" class="preview-body">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div id="previewActions" class="preview-actions">
+                <!-- Action buttons will be added here -->
+            </div>
+        </div>
+    </div>
+    <script src="js/search.js"></script>
+</body>
+</html>

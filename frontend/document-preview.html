@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anteprima Documento - StudyHub</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/search.css">
+    <link rel="stylesheet" href="css/document-preview.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+</head>
+<body>
+    <!-- Professional Clean Background -->
+    <div class="clean-background"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <a href="search.html" class="logo">
+            <img src="images/Logo.png" alt="StudyHub">
+        </a>
+        
+        <nav class="nav-menu" id="navMenu">
+            <a href="search.html" class="nav-link">Cerca</a>
+            <a href="upload.html" class="nav-link">Carica</a>
+            <a href="#" class="nav-link">I Miei Documenti</a>
+            <a href="#" class="nav-link">Preferiti</a>
+        </nav>
+        
+        <div class="auth-buttons">
+            <div class="user-info">
+                <div class="user-avatar"></div>
+                <span class="user-name">Marco R.</span>
+                <button class="logout-btn">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </div>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="preview-main">
+        <!-- Document Viewer Section -->
+        <section class="document-viewer-section">
+            <div class="viewer-header">
+                <button class="back-btn" onclick="window.history.back()">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Torna alla ricerca
+                </button>
+                
+                <div class="viewer-controls">
+                    <button class="zoom-btn" id="zoomOut">
+                        <span class="material-symbols-outlined">zoom_out</span>
+                    </button>
+                    <span class="zoom-level">100%</span>
+                    <button class="zoom-btn" id="zoomIn">
+                        <span class="material-symbols-outlined">zoom_in</span>
+                    </button>
+                    <button class="fullscreen-btn" id="fullscreenBtn">
+                        <span class="material-symbols-outlined">fullscreen</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="document-viewer" id="documentViewer">
+                <div class="viewer-container">
+                    <!-- Document Pages -->
+                    <div class="document-page active" data-page="1">
+                        <div class="page-content">
+                            <div class="page-header">
+                                <h1>Analisi Matematica I</h1>
+                                <h2>Appunti delle Lezioni</h2>
+                                <p class="page-subtitle">Prof. Giuseppe Rossi - Università di Milano</p>
+                            </div>
+                            <div class="page-text">
+                                <h3>1. Introduzione alle Funzioni</h3>
+                                <p>Le funzioni matematiche rappresentano uno dei concetti fondamentali dell'analisi matematica. In questa sezione introduciamo le definizioni base e le proprietà principali.</p>
+                                
+                                <h4>1.1 Definizione di Funzione</h4>
+                                <p>Una funzione f: A → B è una regola che associa ad ogni elemento x ∈ A esattamente un elemento f(x) ∈ B.</p>
+                                
+                                <h4>1.2 Dominio e Codominio</h4>
+                                <p>Il dominio di una funzione è l'insieme di tutti i valori per cui la funzione è definita, mentre il codominio è l'insieme di arrivo della funzione.</p>
+                                
+                                <div class="formula-box">
+                                    <p><strong>Esempio:</strong> f(x) = x² + 2x - 1</p>
+                                    <p>Dominio: ℝ (tutti i numeri reali)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="document-page" data-page="2">
+                        <div class="page-content">
+                            <div class="page-text">
+                                <h3>2. Limiti di Funzioni</h3>
+                                <p>Il concetto di limite è cruciale per comprendere il comportamento delle funzioni in prossimità di determinati punti.</p>
+                                
+                                <h4>2.1 Definizione di Limite</h4>
+                                <p>Si dice che lim(x→a) f(x) = L se per ogni ε > 0 esiste δ > 0 tale che se 0 < |x - a| < δ allora |f(x) - L| < ε.</p>
+                                
+                                <div class="formula-box">
+                                    <p><strong>Teorema:</strong> Se il limite esiste, allora è unico.</p>
+                                </div>
+                                
+                                <h4>2.2 Proprietà dei Limiti</h4>
+                                <ul>
+                                    <li>Linearità: lim[af(x) + bg(x)] = a·lim f(x) + b·lim g(x)</li>
+                                    <li>Prodotto: lim[f(x)·g(x)] = lim f(x) · lim g(x)</li>
+                                    <li>Quoziente: lim[f(x)/g(x)] = lim f(x) / lim g(x) (se lim g(x) ≠ 0)</li>
+                                </ul>
+                                
+                                <h4>2.3 Esempi Pratici</h4>
+                                <p>Calcoliamo alcuni limiti fondamentali:</p>
+                                <div class="formula-box">
+                                    <p>lim(x→0) sin(x)/x = 1</p>
+                                    <p>lim(x→∞) (1 + 1/x)ˣ = e</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="document-page" data-page="3">
+                        <div class="page-content">
+                            <div class="page-text">
+                                <h3>3. Derivate</h3>
+                                <p>La derivata di una funzione rappresenta il tasso di variazione istantaneo della funzione stessa.</p>
+                                
+                                <h4>3.1 Definizione di Derivata</h4>
+                                <p>La derivata di f(x) nel punto a è definita come:</p>
+                                <div class="formula-box">
+                                    <p>f'(a) = lim(h→0) [f(a+h) - f(a)]/h</p>
+                                </div>
+                                
+                                <h4>3.2 Regole di Derivazione</h4>
+                                <ul>
+                                    <li>Regola della potenza: (xⁿ)' = n·xⁿ⁻¹</li>
+                                    <li>Regola del prodotto: (f·g)' = f'·g + f·g'</li>
+                                    <li>Regola del quoziente: (f/g)' = (f'·g - f·g')/g²</li>
+                                    <li>Regola della catena: (f∘g)' = f'(g(x))·g'(x)</li>
+                                </ul>
+                                
+                                <h4>3.3 Interpretazione Geometrica</h4>
+                                <p>La derivata in un punto rappresenta la pendenza della retta tangente alla curva in quel punto.</p>
+                                
+                                <div class="formula-box">
+                                    <p><strong>Esempio:</strong> f(x) = x³ - 2x + 1</p>
+                                    <p>f'(x) = 3x² - 2</p>
+                                    <p>Nel punto x = 1: f'(1) = 3(1)² - 2 = 1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="document-page" data-page="4">
+                        <div class="page-content">
+                            <div class="page-text">
+                                <h3>4. Integrali</h3>
+                                <p>L'integrale rappresenta l'operazione inversa della derivazione e ha molteplici interpretazioni geometriche e fisiche.</p>
+                                
+                                <h4>4.1 Integrale Indefinito</h4>
+                                <p>L'integrale indefinito di f(x) è l'insieme di tutte le primitive di f(x):</p>
+                                <div class="formula-box">
+                                    <p>∫ f(x) dx = F(x) + C</p>
+                                    <p>dove F'(x) = f(x) e C è una costante arbitraria</p>
+                                </div>
+                                
+                                <h4>4.2 Integrale Definito</h4>
+                                <p>L'integrale definito rappresenta l'area sottesa dalla curva f(x) nell'intervallo [a,b]:</p>
+                                <div class="formula-box">
+                                    <p>∫ₐᵇ f(x) dx = F(b) - F(a)</p>
+                                </div>
+                                
+                                <h4>4.3 Tecniche di Integrazione</h4>
+                                <ul>
+                                    <li>Integrazione per parti: ∫ u dv = uv - ∫ v du</li>
+                                    <li>Sostituzione: ∫ f(g(x))g'(x) dx = ∫ f(u) du</li>
+                                    <li>Frazioni parziali per funzioni razionali</li>
+                                </ul>
+                                
+                                <h4>4.4 Teorema Fondamentale del Calcolo</h4>
+                                <p>Questo teorema stabilisce la connessione tra derivazione e integrazione.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="document-page" data-page="5">
+                        <div class="page-content">
+                            <div class="page-text">
+                                <h3>5. Serie e Successioni</h3>
+                                <p>Le serie e le successioni sono strumenti fondamentali per approssimare funzioni e risolvere equazioni complesse.</p>
+                                
+                                <h4>5.1 Successioni</h4>
+                                <p>Una successione è una funzione definita sui numeri naturali: a: ℕ → ℝ</p>
+                                <div class="formula-box">
+                                    <p>aₙ = f(n) per n ∈ ℕ</p>
+                                </div>
+                                
+                                <h4>5.2 Convergenza di Successioni</h4>
+                                <p>Una successione {aₙ} converge a L se:</p>
+                                <div class="formula-box">
+                                    <p>lim(n→∞) aₙ = L</p>
+                                </div>
+                                
+                                <h4>5.3 Serie Numeriche</h4>
+                                <p>Una serie è la somma dei termini di una successione:</p>
+                                <div class="formula-box">
+                                    <p>Σ(n=1 to ∞) aₙ = a₁ + a₂ + a₃ + ...</p>
+                                </div>
+                                
+                                <h4>5.4 Criteri di Convergenza</h4>
+                                <ul>
+                                    <li>Criterio del confronto</li>
+                                    <li>Criterio della radice</li>
+                                    <li>Criterio del rapporto</li>
+                                    <li>Criterio di Leibniz per serie alternate</li>
+                                </ul>
+                                
+                                <p><strong>Fine degli Appunti</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Navigation -->
+                <div class="page-navigation">
+                    <button class="nav-btn prev-btn" id="prevBtn" disabled>
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <div class="page-indicator">
+                        <span class="current-page">1</span> / <span class="total-pages">5</span>
+                    </div>
+                    <button class="nav-btn next-btn" id="nextBtn">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Document Info Sidebar -->
+        <aside class="document-info-sidebar">
+            <div class="doc-info-content">
+                <!-- Document Header -->
+                <div class="doc-info-header">
+                    <h1 class="doc-title">Analisi Matematica I - Appunti Completi</h1>
+                    <div class="doc-meta">
+                        <div class="doc-rating">
+                            <div class="stars">
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star filled">★</span>
+                                <span class="star">★</span>
+                            </div>
+                            <span class="rating-score">4.2</span>
+                            <span class="rating-count">(127 recensioni)</span>
+                        </div>
+                        <div class="doc-price">
+                            <span class="price-label">Prezzo:</span>
+                            <span class="price-value">€12.99</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="action-btn primary">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                        Acquista Documento
+                    </button>
+                    <button class="action-btn secondary">
+                        <span class="material-symbols-outlined">favorite_border</span>
+                        Salva nei Preferiti
+                    </button>
+                    <button class="action-btn secondary">
+                        <span class="material-symbols-outlined">share</span>
+                        Condividi
+                    </button>
+                </div>
+
+                <!-- Document Details -->
+                <div class="doc-details">
+                    <h3>Dettagli Documento</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Autore:</span>
+                        <span class="detail-value">Marco Bianchi</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Università:</span>
+                        <span class="detail-value">Università Statale di Milano</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Corso:</span>
+                        <span class="detail-value">Analisi Matematica I</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Professore:</span>
+                        <span class="detail-value">Prof. Giuseppe Rossi</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Anno Accademico:</span>
+                        <span class="detail-value">2023/2024</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Pagine:</span>
+                        <span class="detail-value">5 pagine</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Formato:</span>
+                        <span class="detail-value">PDF</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Lingua:</span>
+                        <span class="detail-value">Italiano</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="doc-description">
+                    <h3>Descrizione</h3>
+                    <p>Appunti completi del corso di Analisi Matematica I tenuto dal Prof. Giuseppe Rossi presso l'Università Statale di Milano. Gli appunti coprono tutti gli argomenti fondamentali del corso:</p>
+                    <ul>
+                        <li>Funzioni e loro proprietà</li>
+                        <li>Limiti e continuità</li>
+                        <li>Derivate e applicazioni</li>
+                        <li>Integrali definiti e indefiniti</li>
+                        <li>Serie e successioni numeriche</li>
+                    </ul>
+                    <p>Gli appunti sono stati presi durante le lezioni del semestre autunnale 2023 e includono esempi pratici, dimostrazioni e esercizi svolti. Ideali per la preparazione all'esame.</p>
+                </div>
+
+                <!-- Tags -->
+                <div class="doc-tags">
+                    <h3>Argomenti</h3>
+                    <div class="tags-container">
+                        <span class="tag">Matematica</span>
+                        <span class="tag">Analisi</span>
+                        <span class="tag">Limiti</span>
+                        <span class="tag">Derivate</span>
+                        <span class="tag">Integrali</span>
+                        <span class="tag">Serie</span>
+                        <span class="tag">Università</span>
+                        <span class="tag">Appunti</span>
+                    </div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="reviews-section">
+                    <h3>Recensioni Recenti</h3>
+                    
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">A</div>
+                                <div class="reviewer-details">
+                                    <span class="reviewer-name">Alessandro M.</span>
+                                    <div class="review-rating">
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">2 giorni fa</span>
+                        </div>
+                        <p class="review-text">Appunti molto ben fatti e completi. Mi hanno aiutato tantissimo per l'esame. La spiegazione dei limiti è particolarmente chiara.</p>
+                    </div>
+
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">L</div>
+                                <div class="reviewer-details">
+                                    <span class="reviewer-name">Laura F.</span>
+                                    <div class="review-rating">
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">1 settimana fa</span>
+                        </div>
+                        <p class="review-text">Ottimi appunti, ben organizzati e facili da seguire. Unico piccolo difetto: avrei gradito più esempi pratici nella sezione degli integrali.</p>
+                    </div>
+
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">M</div>
+                                <div class="reviewer-details">
+                                    <span class="reviewer-name">Mario R.</span>
+                                    <div class="review-rating">
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star filled">★</span>
+                                        <span class="star">★</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="review-date">2 settimane fa</span>
+                        </div>
+                        <p class="review-text">Documenti di qualità eccellente. Si vede che sono stati presi con cura durante le lezioni. Consigliati!</p>
+                    </div>
+
+                    <button class="show-more-reviews">
+                        Mostra tutte le recensioni
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                </div>
+
+                <!-- Related Documents -->
+                <div class="related-docs">
+                    <h3>Documenti Correlati</h3>
+                    <div class="related-doc-item">
+                        <div class="related-doc-preview"></div>
+                        <div class="related-doc-info">
+                            <h4>Analisi Matematica I - Esercizi</h4>
+                            <p>Stesso autore • €8.99</p>
+                            <div class="related-doc-rating">
+                                <span class="stars">★★★★☆</span>
+                                <span>4.1</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="related-doc-item">
+                        <div class="related-doc-preview"></div>
+                        <div class="related-doc-info">
+                            <h4>Geometria Analitica - Teoria</h4>
+                            <p>Marco Bianchi • €10.50</p>
+                            <div class="related-doc-rating">
+                                <span class="stars">★★★★★</span>
+                                <span>4.6</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script src="js/document-preview.js"></script>
+</body>
+</html> 

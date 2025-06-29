@@ -745,13 +745,15 @@ async function loadHierarchyData() {
         const response = await fetch(`${API_BASE}/hierarchy`);
         const data = await response.json();
         
-        window.facultyCoursesData = {};
-        data.forEach(item => {
-            if (!window.facultyCoursesData[item.faculty_name]) {
-                window.facultyCoursesData[item.faculty_name] = [];
-            }
-            window.facultyCoursesData[item.faculty_name].push([item.course_code, item.course_name]);
-        });
+        // The backend returns data already in the correct format:
+        // { "Faculty Name": [["course_code", "course_name"], ...], ... }
+        if (data && typeof data === 'object') {
+            window.facultyCoursesData = data;
+            console.log('Loaded hierarchy data:', Object.keys(data).length, 'faculties');
+        } else {
+            console.warn('Unexpected hierarchy data format:', data);
+            window.facultyCoursesData = {};
+        }
     } catch (error) {
         console.error('Error loading hierarchy data:', error);
         window.facultyCoursesData = {};

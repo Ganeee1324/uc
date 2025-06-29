@@ -167,7 +167,6 @@ def search_vetrine():
             if value and value.strip():  # Check if value exists and is not just whitespace
                 search_params[key] = value.strip()
 
-    # Perform the search
     results = database.search_vetrine(search_params, user_id)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
 

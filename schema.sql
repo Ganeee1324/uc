@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS vetrina_subscriptions CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS course_instances CASCADE;
 DROP TABLE IF EXISTS vetrina CASCADE;
+DROP TABLE IF EXISTS favourite_vetrine CASCADE;
+DROP TABLE IF EXISTS favourite_file CASCADE;
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -77,13 +79,13 @@ CREATE TABLE IF NOT EXISTS vetrina_subscriptions (
 
 CREATE TABLE IF NOT EXISTS favourite_vetrine (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    vetrina_id INTEGER REFERENCES vetrina(id) NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (user_id, vetrina_id)
 );
 
 CREATE TABLE IF NOT EXISTS favourite_file (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    file_id INTEGER REFERENCES files(id) NOT NULL,
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (user_id, file_id)
 );
 

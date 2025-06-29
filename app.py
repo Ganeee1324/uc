@@ -120,12 +120,6 @@ def login():
 # ---------------------------------------------
 
 
-@app.route("/vetrine/<int:vetrina_id>", methods=["GET"])
-@jwt_required()
-def get_vetrina(vetrina_id):
-    return jsonify(database.get_vetrina_by_id(vetrina_id).to_dict()), 200
-
-
 @app.route("/vetrine/<int:vetrina_id>/subscriptions", methods=["POST"])
 @jwt_required()
 def subscribe_to_vetrina(vetrina_id):
@@ -143,8 +137,9 @@ def unsubscribe_from_vetrina(vetrina_id):
 
 
 @app.route("/vetrine", methods=["GET"])
-@jwt_required()
+@jwt_required(optional=True)
 def search_vetrine():
+    user_id = get_jwt_identity()
     search_params = {}
     for key, value in request.args.items():
         if key in ["name", "course_code", "course_name", "faculty"]:
@@ -152,7 +147,7 @@ def search_vetrine():
                 search_params[key] = value.strip()
 
     # Perform the search
-    results = database.search_vetrine(search_params)
+    results = database.search_vetrine(search_params, user_id)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
 
 
@@ -264,14 +259,6 @@ def buy_file(file_id):
 # ---------------------------------------------
 
 
-@app.route("/user/favorites/vetrine", methods=["GET"])
-@jwt_required()
-def get_favorite_vetrine():
-    user_id = get_jwt_identity()
-    favorite_vetrine = database.get_favorite_vetrine(user_id)
-    return jsonify({"vetrine": [vetrina.to_dict() for vetrina in favorite_vetrine], "count": len(favorite_vetrine)}), 200
-
-
 @app.route("/user/favorites/vetrine/<int:vetrina_id>", methods=["POST"])
 @jwt_required()
 def add_favorite_vetrina(vetrina_id):
@@ -314,9 +301,9 @@ def remove_favorite_file(file_id):
 
 @app.route("/user/favorites", methods=["GET"])
 @jwt_required()
-def get_favorite_files_grouped():
+def get_favorites():
     user_id = get_jwt_identity()
-    vetrine_with_favorites = database.get_favorite_files_grouped_by_vetrina(user_id)
+    vetrine_with_favorites = database.get_favorites(user_id)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in vetrine_with_favorites], "count": len(vetrine_with_favorites)}), 200
 
 
@@ -327,9 +314,9 @@ def get_favorite_files_grouped():
 
 @app.route("/user/owned", methods=["GET"])
 @jwt_required()
-def get_owned_files_grouped():
+def get_owned_vetrine():
     user_id = get_jwt_identity()
-    vetrine_with_owned = database.get_owned_files_grouped_by_vetrina(user_id)
+    vetrine_with_owned = database.get_vetrine_with_owned_files(user_id)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in vetrine_with_owned], "count": len(vetrine_with_owned)}), 200
 
 

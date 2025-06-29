@@ -129,38 +129,6 @@ paths:
                 error: unauthorized
                 msg: Invalid email or password
 
-  /vetrine/{vetrina_id}:
-    get:
-      tags:
-        - Vetrine
-      summary: Get vetrina details
-      description: Retrieve details for a specific vetrina by ID
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: vetrina_id
-          schema:
-            type: integer
-          required: true
-          description: ID of the vetrina to retrieve
-      responses:
-        "200":
-          description: Vetrina details retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Vetrina"
-        "404":
-          description: Vetrina not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error: not_found
-                msg: Vetrina not found
-
   /vetrine/{vetrina_id}/subscriptions:
     post:
       tags:
@@ -244,7 +212,7 @@ paths:
       tags:
         - Vetrine
       summary: Search vetrine
-      description: Search for vetrine based on various criteria
+      description: Search for vetrine based on various criteria. If no JWT is provided, the response will not include the favorite field.
       security:
         - BearerAuth: []
       parameters:
@@ -319,7 +287,7 @@ paths:
       tags:
         - Vetrine
       summary: Upload a file to a vetrina
-      description: Upload a file to a specific vetrina (only available to vetrina owner)
+      description: Upload a file to a specific vetrina (only available to vetrina author)
       security:
         - BearerAuth: []
       parameters:
@@ -358,7 +326,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
-          description: User is not the owner of the vetrina
+          description: User is not the author of the vetrina
           content:
             application/json:
               schema:
@@ -436,7 +404,7 @@ paths:
       tags:
         - Files
       summary: Delete a file
-      description: Delete a specific file (only available to vetrina owner)
+      description: Delete a specific file (only available to vetrina author)
       security:
         - BearerAuth: []
       parameters:
@@ -576,29 +544,7 @@ paths:
                 error: already_owned
                 msg: You already own this file
 
-  /user/favorites/vetrine:
-    get:
-      tags:
-        - User
-      summary: Get favorite vetrine
-      description: Retrieve all favorite vetrine for the authenticated user
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Favorite vetrine retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  vetrine:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Vetrina"
-                  count:
-                    type: integer
-                    description: Number of favorite vetrine
+
 
   /user/favorites/vetrine/{vetrina_id}:
     post:
@@ -665,29 +611,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/favorites/files:
-    get:
-      tags:
-        - User
-      summary: Get favorite files
-      description: Retrieve all favorite files for the authenticated user
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Favorite files retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  files:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/File"
-                  count:
-                    type: integer
-                    description: Number of favorite files
+
 
   /user/favorites/files/{file_id}:
     post:
@@ -758,13 +682,13 @@ paths:
     get:
       tags:
         - User
-      summary: Get favorite files grouped by vetrina
-      description: Retrieve all favorite files for the authenticated user, grouped by vetrina
+      summary: Get favorite vetrine and files
+      description: Retrieve all vetrine that are either favorited or contain favorite files for the authenticated user
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Favorite files grouped by vetrina retrieved successfully
+          description: Favorite vetrine retrieved successfully
           content:
             application/json:
               schema:
@@ -773,22 +697,22 @@ paths:
                   vetrine:
                     type: array
                     items:
-                      $ref: "#/components/schemas/VetrinaWithFiles"
+                      $ref: "#/components/schemas/Vetrina"
                   count:
                     type: integer
-                    description: Number of vetrine with favorite files
+                    description: Number of vetrine with favorites
 
   /user/owned:
     get:
       tags:
         - User
-      summary: Get owned files grouped by vetrina
-      description: Retrieve all owned files for the authenticated user, grouped by vetrina
+      summary: Get vetrine with owned files
+      description: Retrieve all vetrine where the user has ownership access (either through subscription or individual file ownership)
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Owned files grouped by vetrina retrieved successfully
+          description: Vetrine with owned files retrieved successfully
           content:
             application/json:
               schema:
@@ -797,7 +721,7 @@ paths:
                   vetrine:
                     type: array
                     items:
-                      $ref: "#/components/schemas/VetrinaWithFiles"
+                      $ref: "#/components/schemas/Vetrina"
                   count:
                     type: integer
                     description: Number of vetrine with owned files
@@ -826,26 +750,20 @@ components:
         name:
           type: string
           description: Name of the vetrina
-        owner:
+        author:
           $ref: "#/components/schemas/User"
-          description: User who owns the vetrina
+          description: User who authored the vetrina
         description:
           type: string
           description: Description of the vetrina
         course_instance:
           $ref: "#/components/schemas/CourseInstance"
           description: Course instance associated with the vetrina
+        favorite:
+          type: boolean
+          description: Whether the current user has marked this vetrina as favorite
 
-    VetrinaWithFiles:
-      allOf:
-        - $ref: "#/components/schemas/Vetrina"
-        - type: object
-          properties:
-            files:
-              type: array
-              items:
-                $ref: "#/components/schemas/File"
-              description: List of files in the vetrina (only present in certain contexts)
+
 
     CourseInstance:
       type: object

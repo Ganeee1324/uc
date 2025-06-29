@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS course_instances (
 CREATE TABLE IF NOT EXISTS vetrina (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    author_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     course_instance_id INTEGER REFERENCES course_instances(id) ON DELETE CASCADE NOT NULL,
     description TEXT NOT NULL
 );

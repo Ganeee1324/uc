@@ -144,20 +144,20 @@ class Vetrina:
         self,
         id: int,
         name: str,
-        owner: User,
+        author: User,
         description: str,
         course_instance: CourseInstance,
-        files: List[File] = [],
+        favorite: bool = False,
     ):
         self.id = id
         self.name = name
-        self.owner = owner
+        self.author = author
         self.description = description
         self.course_instance = course_instance
-        self.files = files
+        self.favorite = favorite
 
     def __str__(self) -> str:
-        return f"Vetrina(id={self.id}, name={self.name}, owner={self.owner}, description={self.description}, course_instance={self.course_instance})"
+        return f"Vetrina(id={self.id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -174,12 +174,11 @@ class Vetrina:
         res = {
             "id": self.id,
             "name": self.name,
-            "owner": self.owner.to_dict(),
+            "author": self.author.to_dict(),
             "description": self.description,
             "course_instance": self.course_instance.to_dict(),
+            "favorite": self.favorite,
         }
-        if self.files:
-            res["files"] = [file.to_dict() for file in self.files]
         return res
 
 

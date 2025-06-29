@@ -1223,7 +1223,30 @@ html {
     position: fixed !important;
     top: 0 !important;
     right: 0 !important;
+    bottom: 0 !important;
     z-index: 9999 !important;
+    height: 100vh !important;
+ }
+ 
+ /* Ultimate bulletproof positioning - highest specificity */
+ body .filters-panel,
+ body .filters-panel.active {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    width: 380px !important;
+    max-width: 380px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.5s var(--ease-4) !important;
+ }
+ 
+ body .filters-panel.active {
+    transform: translateX(0) !important;
  }
  
  .filters-content {
@@ -2315,13 +2338,24 @@ html {
    }
 
    /* Ensure filters panel stays fixed on mobile too */
-   .filters-panel {
+   body .filters-panel,
+   body .filters-panel.active {
        width: 90% !important;
        max-width: 350px !important;
        position: fixed !important;
        top: 0 !important;
        right: 0 !important;
+       bottom: 0 !important;
        height: 100vh !important;
+       z-index: 9999 !important;
+       margin: 0 !important;
+       padding: 0 !important;
+       transform: translateX(100%) !important;
+       transition: transform 0.5s var(--ease-4) !important;
+   }
+   
+   body .filters-panel.active {
+       transform: translateX(0) !important;
    }
    
    .documents-grid.filters-open {

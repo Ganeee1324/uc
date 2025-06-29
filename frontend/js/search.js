@@ -1234,7 +1234,20 @@ function toggleFiltersPanel() {
     const documentsGrid = document.getElementById('documentsGrid');
     
     if (isFiltersOpen) {
-        if (filtersPanel) filtersPanel.classList.add('active');
+        // Ensure robust positioning before showing
+        if (filtersPanel) {
+            filtersPanel.style.position = 'fixed';
+            filtersPanel.style.top = '0';
+            filtersPanel.style.right = '0';
+            filtersPanel.style.bottom = '0';
+            filtersPanel.style.height = '100vh';
+            filtersPanel.style.zIndex = '9999';
+            filtersPanel.style.width = window.innerWidth <= 900 ? '90%' : '380px';
+            filtersPanel.style.maxWidth = window.innerWidth <= 900 ? '350px' : '380px';
+            filtersPanel.style.margin = '0';
+            filtersPanel.style.padding = '0';
+            filtersPanel.classList.add('active');
+        }
         if (filtersOverlay) filtersOverlay.classList.add('active');
         if (mainContent) mainContent.classList.add('filters-open');
         if (documentsGrid) documentsGrid.classList.add('filters-open');

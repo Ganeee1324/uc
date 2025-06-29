@@ -16,8 +16,6 @@ class User:
         return {
             "id": self.id,
             "username": self.username,
-            "name": self.name,
-            "surname": self.surname,
         }
 
     def __str__(self) -> str:

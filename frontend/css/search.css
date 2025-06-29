@@ -133,6 +133,7 @@ body {
     color: var(--gray-900);
     line-height: 1.6;
     min-height: 100vh;
+    height: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
@@ -141,6 +142,15 @@ body {
     position: relative;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
+}
+
+/* Ensure filters panel is never affected by parent container issues */
+body.filters-open {
+    position: relative !important;
+}
+
+html {
+    height: 100%;
 }
 
 /* Hide scrollbar for webkit browsers */
@@ -1181,22 +1191,39 @@ html {
     position: fixed !important;
     top: 0 !important;
     right: 0 !important;
-    width: 520px;
+    bottom: 0 !important;
+    width: 520px !important;
     height: 100vh !important;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(40px) saturate(180%) brightness(105%);
-    border-left: 1px solid rgba(233, 236, 239, 0.8);
-    box-shadow: var(--shadow-luxury);
-    transform: translateX(100%);
-    transition: all 0.5s var(--ease-4);
+    max-height: 100vh !important;
+    min-height: 100vh !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(40px) saturate(180%) brightness(105%) !important;
+    border-left: 1px solid rgba(233, 236, 239, 0.8) !important;
+    box-shadow: var(--shadow-luxury) !important;
+    transform: translateX(100%) !important;
+    transition: all 0.5s var(--ease-4) !important;
     z-index: 9999 !important;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: 0 !important;
+    padding: 0 !important;
  }
  
  .filters-panel.active {
-    transform: translateX(0);
+    transform: translateX(0) !important;
+    right: 0 !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+ }
+
+ /* Extra robust positioning for edge cases */
+ .filters-panel[style*="transform"] {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
  }
  
  .filters-content {
@@ -2291,6 +2318,10 @@ html {
    .filters-panel {
        width: 90% !important;
        max-width: 350px !important;
+       position: fixed !important;
+       top: 0 !important;
+       right: 0 !important;
+       height: 100vh !important;
    }
    
    .documents-grid.filters-open {

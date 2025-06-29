@@ -1238,6 +1238,7 @@ function toggleFiltersPanel() {
         if (filtersOverlay) filtersOverlay.classList.add('active');
         if (mainContent) mainContent.classList.add('filters-open');
         if (documentsGrid) documentsGrid.classList.add('filters-open');
+        document.body.classList.add('filters-open');
         document.body.style.overflow = 'hidden';
         
         // Populate filter options when opening
@@ -1292,6 +1293,7 @@ function closeFiltersPanel() {
     if (filtersOverlay) filtersOverlay.classList.remove('active');
     if (mainContent) mainContent.classList.remove('filters-open');
     if (documentsGrid) documentsGrid.classList.remove('filters-open');
+    document.body.classList.remove('filters-open');
     document.body.style.overflow = '';
 }
 

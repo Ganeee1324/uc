@@ -140,8 +140,6 @@ body {
     letter-spacing: -0.011em;
     overflow-x: hidden;
     position: relative;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
 }
 
 /* Ensure filters panel is never affected by parent container issues */

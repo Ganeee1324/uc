@@ -1,6 +1,7 @@
 from datetime import timedelta
 import database
 from flask import Flask, jsonify, request, send_file
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
@@ -20,6 +21,14 @@ if not jwt_secret_key:
     print("Warning: Using default JWT secret key. This is not secure for production.")
 
 app = Flask(__name__)
+
+# Configure CORS to allow frontend origins
+CORS(app, origins=[
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3000",  # Common development port
+    "http://127.0.0.1:3000"   # Common development port
+], supports_credentials=True)
 
 app.config["JWT_SECRET_KEY"] = jwt_secret_key
 app.config["JWT_VERIFY_SUB"] = False

@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 CREATE TABLE IF NOT EXISTS owned_files (
-    file_id INTEGER REFERENCES files(id) NOT NULL,
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE NOT NULL,
     owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     transaction_id INTEGER REFERENCES transactions(id),
     PRIMARY KEY (file_id, owner_id)
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS owned_files (
 CREATE TABLE IF NOT EXISTS vetrina_subscriptions (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     price INTEGER NOT NULL DEFAULT 0,
-    vetrina_id INTEGER REFERENCES vetrina(id) NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_id INTEGER REFERENCES transactions(id),
     PRIMARY KEY (user_id, vetrina_id)

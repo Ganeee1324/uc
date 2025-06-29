@@ -2,7 +2,7 @@
 // WORLD-CLASS DYNAMIC DOCUMENT PREVIEW SYSTEM
 // ============================================
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'http://localhost:5001';
 let authToken = localStorage.getItem('authToken');
 
 // Document State Management

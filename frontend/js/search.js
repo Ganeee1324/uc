@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'http://localhost:5001';
 let authToken = localStorage.getItem('authToken');
 
 // Check if user is authenticated, redirect to login if not

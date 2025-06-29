@@ -1,5 +1,6 @@
 from datetime import timedelta
 import database
+import redact
 from flask import Flask, jsonify, request, send_file
 from dotenv import load_dotenv
 import os
@@ -190,11 +191,17 @@ def upload_file(vetrina_id):
 
     try:
         file.save(new_file_path)
+        redact.blur_pages(new_file_path, [1])
+
     except Exception as e:
         try:
             os.remove(new_file_path)
         except Exception as e:
             print(f"Error deleting file: {e}")
+        try:
+            os.remove(new_file_path.replace(".pdf", "_redacted.pdf"))
+        except Exception as e:
+            print(f"Error deleting redacted file: {e}")
         try:
             database.delete_file(requester_id, db_file.id)
         except Exception as e:

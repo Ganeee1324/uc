@@ -208,6 +208,45 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /vetrine:
+    post:
+      tags:
+        - Vetrine
+      summary: Create a new vetrina
+      description: Create a new vetrina for sharing course materials
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - course_instance_id
+                - name
+                - description
+              properties:
+                course_instance_id:
+                  type: integer
+                  description: ID of the course instance this vetrina belongs to
+                name:
+                  type: string
+                  description: Name of the vetrina
+                description:
+                  type: string
+                  description: Description of the vetrina
+      responses:
+        "200":
+          description: Vetrina created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Vetrina created
+
     get:
       tags:
         - Vetrine
@@ -255,6 +294,33 @@ paths:
                   count:
                     type: integer
                     description: Number of results returned
+
+  /vetrine/{vetrina_id}:
+    delete:
+      tags:
+        - Vetrine
+      summary: Delete a vetrina
+      description: Delete a specific vetrina (only available to vetrina author)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to delete
+      responses:
+        "200":
+          description: Vetrina deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Vetrina deleted
 
   /hierarchy:
     get:

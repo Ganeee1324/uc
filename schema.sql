@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS vetrina (
     name VARCHAR(255) NOT NULL,
     author_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     course_instance_id INTEGER REFERENCES course_instances(id) ON DELETE CASCADE NOT NULL,
-    description TEXT NOT NULL
+    description TEXT NOT NULL,
+    UNIQUE (author_id, name, course_instance_id)
 );
 
 CREATE TABLE IF NOT EXISTS files (

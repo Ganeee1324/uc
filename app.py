@@ -95,11 +95,11 @@ def already_owned_error(e):
 def register():
     data = request.json
     user = database.create_user(
-        data.get("username"),
-        data.get("email"),
-        data.get("password"),
-        data.get("name"),
-        data.get("surname"),
+        str(data.get("username")),
+        str(data.get("email")),
+        str(data.get("password")),
+        str(data.get("name")),
+        str(data.get("surname")),
     )
     access_token = create_access_token(identity=user.id)
     return jsonify({"access_token": access_token}), 200
@@ -119,6 +119,26 @@ def login():
 # ---------------------------------------------
 # Vetrina routes
 # ---------------------------------------------
+
+
+@app.route("/vetrine", methods=["POST"])
+@jwt_required()
+def create_vetrina():
+    user_id = get_jwt_identity()
+    data = request.json
+    course_instance_id = int(data.get("course_instance_id"))
+    name = str(data.get("name"))
+    description = str(data.get("description"))
+    database.create_vetrina(user_id, course_instance_id, name, description)
+    return jsonify({"msg": "Vetrina created"}), 200
+
+
+@app.route("/vetrine/<int:vetrina_id>", methods=["DELETE"])
+@jwt_required()
+def delete_vetrina(vetrina_id):
+    user_id = get_jwt_identity()
+    database.delete_vetrina(user_id, vetrina_id)
+    return jsonify({"msg": "Vetrina deleted"}), 200
 
 
 @app.route("/vetrine/<int:vetrina_id>/subscriptions", methods=["POST"])
@@ -280,14 +300,6 @@ def remove_favorite_vetrina(vetrina_id):
     user_id = get_jwt_identity()
     database.remove_favorite_vetrina(user_id, vetrina_id)
     return jsonify({"msg": "Vetrina removed from favorites"}), 200
-
-
-@app.route("/user/favorites/files", methods=["GET"])
-@jwt_required()
-def get_favorite_files():
-    user_id = get_jwt_identity()
-    favorite_files = database.get_favorite_files(user_id)
-    return jsonify({"files": [file.to_dict() for file in favorite_files], "count": len(favorite_files)}), 200
 
 
 @app.route("/user/favorites/files/<int:file_id>", methods=["POST"])

@@ -438,16 +438,21 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
             )
 
 
-def delete_vetrina(vetrina_id: int) -> None:
+def delete_vetrina(user_id: int, vetrina_id: int) -> None:
     """
     Delete a vetrina.
 
     Args:
         vetrina_id: ID of the vetrina to delete
+        user_id: ID of the user deleting the vetrina
+
+    Raises:
+        NotFoundException: If the vetrina is not found
+        ForbiddenError: If the user is not the author of the vetrina
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM vetrina WHERE id = %s", (vetrina_id,))
+            cursor.execute("DELETE FROM vetrina WHERE id = %s AND author_id = %s", (vetrina_id, user_id))
             conn.commit()
 
 

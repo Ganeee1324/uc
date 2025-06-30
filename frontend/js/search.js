@@ -2003,8 +2003,10 @@ async function loadAllFiles() {
             }
         }
         
-        currentFiles = allFiles;
-        originalFiles = [...allFiles]; // Keep original copy
+        // Group files by vetrina for proper display
+        const groupedVetrine = groupFilesByVetrina(allFiles);
+        currentFiles = groupedVetrine;
+        originalFiles = [...groupedVetrine]; // Keep original copy
         renderDocuments(currentFiles);
         populateFilterOptions();
         showStatus(`${allFiles.length} documenti caricati con successo! 🎉`);
@@ -2015,6 +2017,58 @@ async function loadAllFiles() {
         // Show empty state
         renderDocuments([]);
     }
+}
+
+// Group files by vetrina for proper display
+function groupFilesByVetrina(files) {
+    const vetrineMap = new Map();
+    
+    // Group files by vetrina ID
+    files.forEach(file => {
+        const vetrinaId = file.vetrina_info.id;
+        if (!vetrineMap.has(vetrinaId)) {
+            vetrineMap.set(vetrinaId, {
+                ...file, // Use first file as base
+                files: [],
+                isVetrina: true,
+                fileCount: 0
+            });
+        }
+        vetrineMap.get(vetrinaId).files.push(file);
+    });
+    
+    // Convert to array and set proper display properties
+    const groupedVetrine = Array.from(vetrineMap.values()).map(vetrina => {
+        vetrina.fileCount = vetrina.files.length;
+        
+        if (vetrina.fileCount === 1) {
+            // Single file - display as individual file
+            return vetrina.files[0];
+        } else {
+            // Multiple files - display as vetrina with file count
+            vetrina.title = vetrina.vetrina_info.name;
+            vetrina.description = vetrina.vetrina_info.description;
+            
+            // Calculate aggregated price (sum of all files)
+            const totalPrice = vetrina.files.reduce((sum, file) => sum + (file.price || 0), 0);
+            const freeFiles = vetrina.files.filter(file => (file.price || 0) === 0).length;
+            
+            if (freeFiles === vetrina.fileCount) {
+                vetrina.price = 0;
+                vetrina.priceDisplay = 'Gratis';
+            } else if (freeFiles > 0) {
+                vetrina.price = totalPrice;
+                vetrina.priceDisplay = `€${totalPrice} (${freeFiles} gratis)`;
+            } else {
+                vetrina.price = totalPrice;
+                vetrina.priceDisplay = `€${totalPrice}`;
+            }
+            
+            return vetrina;
+        }
+    });
+    
+    return groupedVetrine;
 }
 
 // Helper function to extract course name from vetrina name
@@ -2137,23 +2191,37 @@ function renderDocuments(files) {
         return;
     }
     
-    files.forEach((file, index) => {
+    files.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'document-card';
+        
+        // Add special class for multi-file vetrine
+        if (item.isVetrina && item.fileCount > 1) {
+            card.classList.add('vetrina-card');
+        }
+        
         card.style.animationDelay = `${index * 0.1}s`;
         
         // Make the entire card clickable
         card.style.cursor = 'pointer';
         card.onclick = () => {
-            window.location.href = `document-preview.html?id=${file.id}`;
+            if (item.isVetrina && item.fileCount > 1) {
+                // For multi-file vetrine, go to first file's preview
+                window.location.href = `document-preview.html?id=${item.files[0].id}`;
+            } else {
+                // For single files, go directly to preview
+                window.location.href = `document-preview.html?id=${item.id}`;
+            }
         };
 
-        const documentType = file.document_type || 'Documento';
-        const documentTitle = file.title || 'Documento Senza Titolo';
-        const rating = parseFloat(file.rating) || 0;
-        const reviewCount = parseInt(file.review_count) || 0;
-        const description = file.description || 'Nessuna descrizione disponibile';
-        const price = parseFloat(file.price) || 0;
+        const isMultiFileVetrina = item.isVetrina && item.fileCount > 1;
+        
+        const documentType = isMultiFileVetrina ? 'Vetrina' : (item.document_type || 'Documento');
+        const documentTitle = item.title || 'Documento Senza Titolo';
+        const rating = parseFloat(item.rating) || 0;
+        const reviewCount = parseInt(item.review_count) || 0;
+        const description = item.description || 'Nessuna descrizione disponibile';
+        const price = parseFloat(item.price) || 0;
         
         const stars = generateStars(Math.floor(rating));
         const documentCategory = getDocumentCategory(documentTitle, description);
@@ -2161,8 +2229,9 @@ function renderDocuments(files) {
         card.innerHTML = `
             <div class="document-preview">
                 <div class="preview-icon">
-                    <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
+                    <span class="document-icon">${isMultiFileVetrina ? '📁' : getDocumentPreviewIcon(item.filename)}</span>
                     <div class="file-extension">${documentType}</div>
+                    ${isMultiFileVetrina ? `<div class="file-count-badge">${item.fileCount} file</div>` : ''}
                 </div>
                 <div class="document-type-badge">${documentCategory}</div>
                 <div class="rating-badge">
@@ -2183,28 +2252,33 @@ function renderDocuments(files) {
                     </div>
                 </div>
                 <div class="document-info">
-                    <div class="document-info-item" title="Corso: ${file.course_name || 'N/A'}">
+                    <div class="document-info-item" title="Corso: ${item.course_name || 'N/A'}">
                         <span class="info-icon">📚</span>
-                        <span class="info-text">${file.course_name || 'N/A'}</span>
+                        <span class="info-text">${item.course_name || 'N/A'}</span>
                     </div>
-                    <div class="document-info-item" title="Facoltà: ${file.faculty_name || 'N/A'}">
+                    <div class="document-info-item" title="Facoltà: ${item.faculty_name || 'N/A'}">
                         <span class="info-icon">🏛️</span>
-                        <span class="info-text">${file.faculty_name || 'N/A'}</span>
+                        <span class="info-text">${item.faculty_name || 'N/A'}</span>
                     </div>
-                    <div class="document-info-item" title="Lingua: ${file.language || 'N/A'}">
+                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}">
                         <span class="info-icon">📝</span>
-                        <span class="info-text">${file.language || 'N/A'}</span>
+                        <span class="info-text">${item.language || 'N/A'}</span>
                     </div>
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar" title="Caricato da ${file.author_username || 'Unknown'}">
-                            ${file.author_username ? file.author_username.charAt(0).toUpperCase() : 'U'}
+                        <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
+                            ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
-                        <div class="document-meta">${formatFileSize(file.size || 0)}</div>
+                        <div class="document-meta">
+                            ${isMultiFileVetrina ? 
+                                `${item.fileCount} file` : 
+                                formatFileSize(item.size || 0)
+                            }
+                        </div>
                     </div>
                     <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
-                        ${price === 0 ? 'Gratis' : `€${price}`}
+                        ${isMultiFileVetrina && item.priceDisplay ? item.priceDisplay : (price === 0 ? 'Gratis' : `€${price}`)}
                     </div>
                 </div>
             </div>

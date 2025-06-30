@@ -3547,3 +3547,87 @@ html {
 .dropdown-options::-webkit-scrollbar-thumb:hover {
     background: var(--gray-500);
 }
+
+/* Multi-file vetrina styling */
+.file-count-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--gradient-primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+    animation: fadeInScale 0.3s var(--ease-2);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.vetrina-card {
+    position: relative;
+}
+
+.vetrina-card::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    background: var(--gradient-secondary);
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+    z-index: 5;
+}
+
+.vetrina-card .document-icon {
+    font-size: 2.5rem;
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+}
+
+.vetrina-card .file-extension {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+/* Enhanced styling for multi-file vetrine */
+.vetrina-card .document-preview {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.vetrina-card:hover .document-preview {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.vetrina-card .document-type-badge {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.vetrina-card .document-price.free {
+    background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+    color: white;
+}
+
+.vetrina-card .document-price.paid {
+    background: var(--gradient-primary);
+    color: white;
+}

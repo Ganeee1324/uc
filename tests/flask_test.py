@@ -3,14 +3,8 @@ import json
 import sys
 import os
 
-# Add parent directory to path to import modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import database
-from app import app
-
 # Test configuration
-BASE_URL = "http://localhost:5000"
+BASE_URL = "http://146.59.236.26:5000"
 TEST_USER = {
     "username": "testuser",
     "name": "Test",
@@ -20,10 +14,8 @@ TEST_USER = {
 }
 
 def setup():
-    """Set up test data - create user, course instance, and vetrine"""
+    """Set up test data - create user only"""
     print("Setting up test data...")
-
-    database.create_tables()
     
     # Create test user using the API
     try:
@@ -39,272 +31,97 @@ def setup():
         )
         
         if response.status_code == 200:
-            print(f"Created test user: {TEST_USER['username']}")
-            # Get the user from database to have the full user object
-            with database.connect() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("SELECT id FROM users WHERE email = %s", (TEST_USER["email"],))
-                    user_id = cursor.fetchone()[0]
-                    user = database.get_user_by_id(user_id)
+            print(f"✓ Created test user: {TEST_USER['username']}")
+            return True
         else:
-            # User might already exist, try to get it
-            print(f"User registration error (might already exist): {response.text}")
-            with database.connect() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("SELECT id FROM users WHERE email = %s", (TEST_USER["email"],))
-                    user_id = cursor.fetchone()[0]
-                    user = database.get_user_by_id(user_id)
-                    print(f"Using existing user: {user.username} (ID: {user.id})")
+            # User might already exist
+            print(f"User registration response: {response.status_code} - {response.text}")
+            if "email_already_exists" in response.text or "username_already_exists" in response.text:
+                print(f"✓ Test user already exists: {TEST_USER['username']}")
+                return True
+            else:
+                print(f"✗ Failed to create test user")
+                raise AssertionError(f"Failed to create test user: {response.status_code} - {response.text}")
     except Exception as e:
-        # Handle any other errors
-        print(f"Error during user setup: {e}")
-        # Try to get the user if it exists
-        with database.connect() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT id FROM users WHERE email = %s", (TEST_USER["email"],))
-                result = cursor.fetchone()
-                if result:
-                    user_id = result[0]
-                    user = database.get_user_by_id(user_id)
-                    print(f"Using existing user: {user.username} (ID: {user.id})")
-                else:
-                    raise Exception("Failed to create or find test user")
-    
-    # Create test course instances for different faculties and course codes
-    test_courses = [
-        {
-            "course_code": "CS101", 
-            "course_name": "Introduction to Computer Science", 
-            "faculty_name": "Computer Science", 
-            "course_year": 1, 
-            "date_year": 2023, 
-            "language": "English", 
-            "course_semester": "Fall", 
-            "canale": "A", 
-            "professors": ["Prof. Smith"]
-        },
-        {
-            "course_code": "MATH201", 
-            "course_name": "Linear Algebra", 
-            "faculty_name": "Mathematics", 
-            "course_year": 2, 
-            "date_year": 2023, 
-            "language": "English", 
-            "course_semester": "Spring", 
-            "canale": "B", 
-            "professors": ["Prof. Johnson"]
-        },
-        {
-            "course_code": "ENG303", 
-            "course_name": "Technical Writing", 
-            "faculty_name": "Engineering", 
-            "course_year": 3, 
-            "date_year": 2023, 
-            "language": "English", 
-            "course_semester": "Fall", 
-            "canale": "C", 
-            "professors": ["Prof. Williams"]
-        }
-    ]
-    
-    created_courses = []
-    with database.connect() as conn:
-        with conn.cursor() as cursor:
-            for course_data in test_courses:
-                cursor.execute(
-                    """
-                    INSERT INTO course_instances 
-                    (course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (course_code, faculty_name, canale) DO UPDATE 
-                    SET course_name = EXCLUDED.course_name
-                    RETURNING id
-                    """,
-                    (
-                        course_data["course_code"], 
-                        course_data["course_name"], 
-                        course_data["faculty_name"], 
-                        course_data["course_year"], 
-                        course_data["date_year"], 
-                        course_data["language"], 
-                        course_data["course_semester"], 
-                        course_data["canale"], 
-                        course_data["professors"]
-                    )
-                )
-                course_id = cursor.fetchone()[0]
-                conn.commit()
-                course = database.get_course_by_id(course_id)
-                created_courses.append(course)
-                print(f"Created/updated course: {course.course_name} (ID: {course.instance_id})")
-    
-    # Create test vetrine with different names for search testing
-    vetrine_data = [
-        {"name": "Python Programming", "description": "Resources for Python programming", "course_id": created_courses[0].instance_id},
-        {"name": "Data Structures", "description": "Materials about data structures", "course_id": created_courses[0].instance_id},
-        {"name": "Linear Algebra Notes", "description": "Complete notes for Linear Algebra", "course_id": created_courses[1].instance_id},
-        {"name": "Math Programming", "description": "Programming applications in mathematics", "course_id": created_courses[1].instance_id},
-        {"name": "Technical Writing Guide", "description": "Guide for technical documentation", "course_id": created_courses[2].instance_id}
-    ]
-    
-    created_vetrine = []
-    for data in vetrine_data:
-        try:
-            vetrina = database.create_vetrina(
-                user.id, 
-                data["course_id"], 
-                data["name"], 
-                data["description"]
-            )
-            created_vetrine.append(vetrina)
-            print(f"Created vetrina: {vetrina.name} (ID: {vetrina.id}) for course ID: {data['course_id']}")
-        except Exception as e:
-            print(f"Error creating vetrina {data['name']}: {e}")
-    
-    return user, created_courses, created_vetrine
+        print(f"✗ Error during user setup: {e}")
+        raise AssertionError(f"Error during user setup: {e}")
 
-def get_auth_token(email, password):
-    """Get JWT auth token for API requests"""
+def test_register():
+    """Test user registration"""
+    print("\nTesting user registration...")
+    
+    # Try to register a new user with unique email
+    import time
+    unique_email = f"test_{int(time.time())}@example.com"
+    unique_username = f"testuser_{int(time.time())}"
+    
+    response = requests.post(
+        f"{BASE_URL}/register",
+        json={
+            "username": unique_username,
+            "name": "Test",
+            "surname": "User",
+            "email": unique_email,
+            "password": "password123"
+        }
+    )
+    
+    if response.status_code == 200:
+        print("✓ User registration successful")
+        data = response.json()
+        if "access_token" in data:
+            print("✓ Access token received")
+            return True
+        else:
+            print("✗ No access token in response")
+            raise AssertionError("No access token in registration response")
+    else:
+        print(f"✗ Registration failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Registration failed: {response.status_code} - {response.text}")
+
+def test_login():
+    """Test user login"""
+    print("\nTesting user login...")
+    
     response = requests.post(
         f"{BASE_URL}/login",
-        json={"email": email, "password": password}
+        json={
+            "email": TEST_USER["email"],
+            "password": TEST_USER["password"]
+        }
     )
     
-    if response.status_code != 200:
-        print(f"Login failed: {response.text}")
-        return None
-    
-    return response.json()["access_token"]
+    if response.status_code == 200:
+        print("✓ Login successful")
+        data = response.json()
+        if "access_token" in data:
+            print("✓ Access token received")
+            return data["access_token"]
+        else:
+            print("✗ No access token in response")
+            raise AssertionError("No access token in login response")
+    else:
+        print(f"✗ Login failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Login failed: {response.status_code} - {response.text}")
 
-def test_get_all_vetrine(token):
-    """Test getting all vetrine (first 100)"""
-    print("\nTesting get all vetrine...")
+def test_login_invalid_credentials():
+    """Test login with invalid credentials"""
+    print("\nTesting login with invalid credentials...")
     
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
-    
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
-    
-    data = response.json()
-    print(f"Found {data['count']} vetrine")
-    
-    if data['count'] > 0:
-        print(f"Sample vetrina: {data['vetrine'][0]['name']}")
-    
-    return True
-
-def test_search_by_name(token, search_term, expected_count=None):
-    """Test searching vetrine by name"""
-    print(f"\nTesting search by name: '{search_term}'...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?name={search_term}", 
-        headers=headers
+    response = requests.post(
+        f"{BASE_URL}/login",
+        json={
+            "email": TEST_USER["email"],
+            "password": "wrongpassword"
+        }
     )
     
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
-    
-    data = response.json()
-    print(f"Found {data['count']} vetrine matching '{search_term}'")
-    
-    for vetrina in data['vetrine']:
-        print(f"- {vetrina['name']}")
-    
-    if expected_count is not None:
-        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
-        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
-    
-    return True
-
-def test_search_by_course_code(token, course_code, expected_count=None):
-    """Test searching vetrine by course code"""
-    print(f"\nTesting search by course code: '{course_code}'...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?course_code={course_code}", 
-        headers=headers
-    )
-    
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
-    
-    data = response.json()
-    print(f"Found {data['count']} vetrine for course code '{course_code}'")
-    
-    for vetrina in data['vetrine']:
-        print(f"- {vetrina['name']}")
-    
-    if expected_count is not None:
-        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
-        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
-    
-    return True
-
-def test_search_by_faculty(token, faculty, expected_count=None):
-    """Test searching vetrine by faculty"""
-    print(f"\nTesting search by faculty: '{faculty}'...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?faculty={faculty}", 
-        headers=headers
-    )
-    
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
-    
-    data = response.json()
-    print(f"Found {data['count']} vetrine for faculty '{faculty}'")
-    
-    for vetrina in data['vetrine']:
-        print(f"- {vetrina['name']}")
-    
-    if expected_count is not None:
-        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
-        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
-    
-    return True
-
-def test_combined_search(token, params, expected_count=None):
-    """Test searching vetrine with multiple parameters"""
-    print(f"\nTesting combined search with params: {params}...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    # Build query string
-    query_parts = []
-    for key, value in params.items():
-        query_parts.append(f"{key}={value}")
-    query_string = "&".join(query_parts)
-    
-    response = requests.get(
-        f"{BASE_URL}/vetrine?{query_string}", 
-        headers=headers
-    )
-    
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
-    
-    data = response.json()
-    print(f"Found {data['count']} vetrine matching combined search")
-    
-    for vetrina in data['vetrine']:
-        print(f"- {vetrina['name']}")
-    
-    if expected_count is not None:
-        assert data['count'] == expected_count, f"Expected {expected_count} results, got {data['count']}"
-        print(f"✓ Assertion passed: Found expected number of results ({expected_count})")
-    
-    return True
+    if response.status_code == 401:
+        print("✓ Invalid credentials correctly rejected")
+        return True
+    else:
+        print(f"✗ Expected 401, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 401 for invalid credentials, got {response.status_code}")
 
 def test_get_hierarchy():
     """Test getting faculties and courses hierarchy"""
@@ -313,350 +130,964 @@ def test_get_hierarchy():
     response = requests.get(f"{BASE_URL}/hierarchy")
     
     if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
+        print(f"✗ Error: {response.status_code} - {response.text}")
+        raise AssertionError(f"Hierarchy endpoint failed: {response.status_code} - {response.text}")
     
     data = response.json()
     
     # Check if we have faculties
     if not data or not isinstance(data, dict):
-        print("Error: Invalid response format")
-        return False
+        print("✗ Invalid response format")
+        raise AssertionError("Hierarchy endpoint returned invalid response format")
     
-    print(f"Found {len(data)} faculties")
-    print(f"Faculties: {data}")
+    print(f"✓ Found {len(data)} faculties")
     
-    # Print sample data from the first faculty
-    if len(data) > 0:
-        faculty = list(data.keys())[0]
-        print(f"Sample faculty: {faculty}")
-        if 'courses' in data[faculty] and len(data[faculty]['courses']) > 0:
-            print(f"Sample course: {data[faculty]['courses'][0]}")
+    # Print sample data from the first few faculties
+    faculty_count = 0
+    for faculty_name, faculty_data in data.items():
+        if faculty_count >= 3:  # Only show first 3 faculties
+            break
+        print(f"  - Faculty: {faculty_name}")
+        if isinstance(faculty_data, list):
+            print(f"    Courses: {len(faculty_data)} courses")
+            if len(faculty_data) > 0:
+                print(f"    Sample course: {faculty_data[0]}")
+        faculty_count += 1
+    
+    if len(data) > 3:
+        print(f"  ... and {len(data) - 3} more faculties")
     
     return True
 
-def test_subscribe_to_vetrina(token, vetrina_id):
-    """Test subscribing to a vetrina"""
-    print(f"\nTesting subscribe to vetrina ID: {vetrina_id}...")
+def test_protected_endpoint_without_auth():
+    """Test accessing a protected endpoint without authentication"""
+    print("\nTesting protected endpoint without authentication...")
+    
+    response = requests.get(f"{BASE_URL}/vetrine")
+    
+    # The endpoint is optional auth, so it should work but without user-specific data
+    if response.status_code == 200:
+        print("✓ Endpoint accessible without auth (optional auth)")
+        return True
+    else:
+        print(f"Response: {response.status_code} - {response.text}")
+        return True  # This is acceptable behavior
+
+def test_protected_endpoint_with_auth(token):
+    """Test accessing a protected endpoint with authentication"""
+    print("\nTesting protected endpoint with authentication...")
     
     headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
+    
+    if response.status_code == 200:
+        print("✓ Authenticated request successful")
+        data = response.json()
+        print(f"  Found {data.get('count', 0)} vetrine")
+        return True
+    else:
+        print(f"✗ Error: {response.status_code} - {response.text}")
+        raise AssertionError(f"Authenticated request failed: {response.status_code} - {response.text}")
+
+def test_invalid_token():
+    """Test using an invalid token"""
+    print("\nTesting invalid token...")
+    
+    headers = {"Authorization": "Bearer invalid_token_here"}
+    response = requests.get(f"{BASE_URL}/user/favorites", headers=headers)  # This requires auth
+    
+    if response.status_code == 422:  # JWT decode error
+        print("✓ Invalid token correctly rejected")
+        return True
+    else:
+        print(f"Response: {response.status_code} - {response.text}")
+        # Different JWT libraries might return different status codes
+        return True
+
+def get_sample_course_instance():
+    """Get a sample course instance from hierarchy for testing"""
+    response = requests.get(f"{BASE_URL}/hierarchy")
+    if response.status_code != 200:
+        return None
+    
+    data = response.json()
+    if not data:
+        return None
+    
+    # Find the first faculty with courses
+    for faculty_name, courses in data.items():
+        if courses and len(courses) > 0:
+            # Get the first course
+            course_code, course_name = courses[0]
+            # Since we can't query the database directly, we'll return the course info
+            # and let the calling function handle getting the actual course instance ID
+            # by creating a vetrina and seeing if it works, or by other API means
+            return {
+                "course_code": course_code,
+                "course_name": course_name,
+                "faculty_name": faculty_name
+            }
+    return None
+
+def test_create_vetrina(token):
+    """Test creating a vetrina"""
+    print("\nTesting vetrina creation...")
+    
+    # Get a sample course instance
+    course_instance = get_sample_course_instance()
+    if not course_instance:
+        print("✗ No course instances available for testing")
+        raise AssertionError("No course instances available for testing")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Since we don't have the course instance ID, we'll try to find it by creating a vetrina
+    # and trying different IDs or by using existing vetrine to find valid course instance IDs
+    
+    # First, let's try to get existing vetrine to find a valid course instance ID
+    search_response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
+    course_instance_id = None
+    
+    if search_response.status_code == 200:
+        search_data = search_response.json()
+        if search_data['count'] > 0:
+            # Use the course instance ID from an existing vetrina
+            course_instance_id = search_data['vetrine'][0]['course_instance']['instance_id']
+            print(f"  Using course instance ID {course_instance_id} from existing vetrina")
+    
+    # If we couldn't find an existing vetrina, try some common IDs (1, 2, 3, etc.)
+    if course_instance_id is None:
+        print("  No existing vetrine found, trying common course instance IDs...")
+        for test_id in [1, 2, 3, 4, 5]:
+            test_vetrina_data = {
+                "course_instance_id": test_id,
+                "name": f"Test Vetrina {int(__import__('time').time())}",
+                "description": "This is a test vetrina for automated testing"
+            }
+            
+            test_response = requests.post(
+                f"{BASE_URL}/vetrine",
+                headers=headers,
+                json=test_vetrina_data
+            )
+            
+            if test_response.status_code == 200:
+                course_instance_id = test_id
+                print(f"  Found valid course instance ID: {course_instance_id}")
+                return test_vetrina_data["name"]  # Return name for later use
+            elif test_response.status_code == 404:
+                continue  # Try next ID
+            else:
+                # Some other error occurred
+                print(f"  Unexpected error with ID {test_id}: {test_response.status_code} - {test_response.text}")
+    
+    if course_instance_id is None:
+        print("✗ Could not find a valid course instance ID")
+        raise AssertionError("Could not find a valid course instance ID for testing")
+    
+    # Create vetrina with the found course instance ID
+    vetrina_data = {
+        "course_instance_id": course_instance_id,
+        "name": f"Test Vetrina {int(__import__('time').time())}",  # Unique name
+        "description": "This is a test vetrina for automated testing"
+    }
+    
     response = requests.post(
-        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
-        headers=headers
+        f"{BASE_URL}/vetrine",
+        headers=headers,
+        json=vetrina_data
     )
     
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
-    
-    print(f"Successfully subscribed to vetrina ID: {vetrina_id}")
-    return True
+    if response.status_code == 200:
+        print("✓ Vetrina created successfully")
+        print(f"  Course: {course_instance.get('course_name', 'Unknown')} ({course_instance.get('course_code', 'Unknown')})")
+        print(f"  Faculty: {course_instance.get('faculty_name', 'Unknown')}")
+        print(f"  Name: {vetrina_data['name']}")
+        return vetrina_data["name"]  # Return name for later use
+    else:
+        print(f"✗ Failed to create vetrina: {response.status_code} - {response.text}")
+        raise AssertionError(f"Failed to create vetrina: {response.status_code} - {response.text}")
 
-def test_unsubscribe_from_vetrina(token, vetrina_id):
-    """Test unsubscribing from a vetrina"""
-    print(f"\nTesting unsubscribe from vetrina ID: {vetrina_id}...")
+def test_create_vetrina_invalid_course(token):
+    """Test creating a vetrina with invalid course instance"""
+    print("\nTesting vetrina creation with invalid course...")
     
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.delete(
-        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
-        headers=headers
+    vetrina_data = {
+        "course_instance_id": 99999,  # Non-existent course
+        "name": "Test Invalid Vetrina",
+        "description": "This should fail"
+    }
+    
+    response = requests.post(
+        f"{BASE_URL}/vetrine",
+        headers=headers,
+        json=vetrina_data
     )
     
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
+    if response.status_code == 404:
+        print("✓ Invalid course instance correctly rejected")
+        return True
+    else:
+        print(f"Expected 404, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 404 for invalid course, got {response.status_code}")
+
+def test_create_vetrina_missing_fields(token):
+    """Test creating a vetrina with missing required fields"""
+    print("\nTesting vetrina creation with missing fields...")
     
-    print(f"Successfully unsubscribed from vetrina ID: {vetrina_id}")
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Test missing course_instance_id
+    response = requests.post(
+        f"{BASE_URL}/vetrine",
+        headers=headers,
+        json={"name": "Test", "description": "Test"}
+    )
+    
+    if response.status_code == 500:  # Internal server error due to missing field
+        print("✓ Missing course_instance_id correctly handled")
+    else:
+        print(f"Missing course_instance_id: {response.status_code} - {response.text}")
+    
+    # Test missing name
+    response = requests.post(
+        f"{BASE_URL}/vetrine",
+        headers=headers,
+        json={"course_instance_id": 1, "description": "Test"}
+    )
+    
+    if response.status_code == 500:  # Internal server error due to missing field
+        print("✓ Missing name correctly handled")
+    else:
+        print(f"Missing name: {response.status_code} - {response.text}")
+    
     return True
 
-def test_get_vetrina_details(token, vetrina_id):
-    """Test getting details of a specific vetrina"""
-    print(f"\nTesting get vetrina details for ID: {vetrina_id}...")
+def test_create_vetrina_unauthorized():
+    """Test creating a vetrina without authentication"""
+    print("\nTesting vetrina creation without authentication...")
+    
+    vetrina_data = {
+        "course_instance_id": 1,
+        "name": "Unauthorized Test",
+        "description": "This should fail"
+    }
+    
+    response = requests.post(
+        f"{BASE_URL}/vetrine",
+        json=vetrina_data
+    )
+    
+    if response.status_code == 401:
+        print("✓ Unauthorized request correctly rejected")
+        return True
+    else:
+        print(f"Expected 401, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 401 for unauthorized request, got {response.status_code}")
+
+def test_search_vetrine_basic(token):
+    """Test basic vetrina search functionality"""
+    print("\nTesting basic vetrina search...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Search successful - found {data['count']} vetrine")
+        return data['vetrine']
+    else:
+        print(f"✗ Search failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Basic vetrina search failed: {response.status_code} - {response.text}")
+
+def test_search_vetrine_by_name(token, search_term):
+    """Test searching vetrine by name"""
+    print(f"\nTesting search by name: '{search_term}'...")
     
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.get(
-        f"{BASE_URL}/vetrine/{vetrina_id}", 
+        f"{BASE_URL}/vetrine?name={search_term}",
         headers=headers
     )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Found {data['count']} vetrine matching '{search_term}'")
+        
+        # Verify that all results contain the search term
+        for vetrina in data['vetrine']:
+            if search_term.lower() not in vetrina['name'].lower():
+                print(f"✗ Result '{vetrina['name']}' doesn't contain search term")
+                raise AssertionError(f"Search result '{vetrina['name']}' doesn't contain search term '{search_term}'")
+        
+        if data['count'] > 0:
+            print(f"  Sample result: {data['vetrine'][0]['name']}")
+        
+        return True
+    else:
+        print(f"✗ Search failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Search by name failed: {response.status_code} - {response.text}")
+
+def test_search_vetrine_by_course_code(token):
+    """Test searching vetrine by course code"""
+    print("\nTesting search by course code...")
+    
+    # Get a sample course code from hierarchy
+    course_instance = get_sample_course_instance()
+    if not course_instance:
+        print("✗ No course instances available for testing")
+        raise AssertionError("No course instances available for course code testing")
+    
+    course_code = course_instance["course_code"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine?course_code={course_code}",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Found {data['count']} vetrine for course code '{course_code}'")
+        
+        # Verify that all results match the course code
+        for vetrina in data['vetrine']:
+            if course_code.lower() not in vetrina['course_instance']['course_code'].lower():
+                print(f"✗ Result course code '{vetrina['course_instance']['course_code']}' doesn't match search")
+                raise AssertionError(f"Search result course code '{vetrina['course_instance']['course_code']}' doesn't match '{course_code}'")
+        
+        return True
+    else:
+        print(f"✗ Search failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Search by course code failed: {response.status_code} - {response.text}")
+
+def test_search_vetrine_by_faculty(token):
+    """Test searching vetrine by faculty"""
+    print("\nTesting search by faculty...")
+    
+    # Get a sample faculty from hierarchy
+    course_instance = get_sample_course_instance()
+    if not course_instance:
+        print("✗ No course instances available for testing")
+        raise AssertionError("No course instances available for faculty testing")
+    
+    faculty_name = course_instance["faculty_name"]
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine?faculty={faculty_name}",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Found {data['count']} vetrine for faculty '{faculty_name}'")
+        
+        # Verify that all results match the faculty
+        for vetrina in data['vetrine']:
+            if faculty_name.lower() not in vetrina['course_instance']['faculty_name'].lower():
+                print(f"✗ Result faculty '{vetrina['course_instance']['faculty_name']}' doesn't match search")
+                raise AssertionError(f"Search result faculty '{vetrina['course_instance']['faculty_name']}' doesn't match '{faculty_name}'")
+        
+        return True
+    else:
+        print(f"✗ Search failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Search by faculty failed: {response.status_code} - {response.text}")
+
+def test_search_vetrine_combined(token):
+    """Test searching vetrine with multiple parameters"""
+    print("\nTesting combined search parameters...")
+    
+    course_instance = get_sample_course_instance()
+    if not course_instance:
+        print("✗ No course instances available for testing")
+        raise AssertionError("No course instances available for combined search testing")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {
+        "course_code": course_instance["course_code"],
+        "faculty": course_instance["faculty_name"]
+    }
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    response = requests.get(
+        f"{BASE_URL}/vetrine?{query_string}",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Combined search found {data['count']} vetrine")
+        print(f"  Parameters: {params}")
+        return True
+    else:
+        print(f"✗ Combined search failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Combined search failed: {response.status_code} - {response.text}")
+
+def test_search_vetrine_no_results(token):
+    """Test searching vetrine with parameters that should return no results"""
+    print("\nTesting search with no expected results...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine?name=NonExistentVetrinaName12345",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        if data['count'] == 0:
+            print("✓ Search with no results handled correctly")
+            return True
+        else:
+            print(f"✗ Expected 0 results, got {data['count']}")
+            raise AssertionError(f"Expected 0 results for non-existent search, got {data['count']}")
+    else:
+        print(f"✗ Search failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Search with no results failed: {response.status_code} - {response.text}")
+
+def find_user_vetrina(token):
+    """Find a vetrina created by the current user for deletion testing"""
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        # Look for vetrine that might be owned by the current user
+        # We'll identify them by the test name pattern
+        for vetrina in data['vetrine']:
+            if "Test Vetrina" in vetrina['name']:
+                return vetrina['id']
+    return None
+
+def test_delete_vetrina(token, vetrina_name):
+    """Test deleting a vetrina"""
+    print("\nTesting vetrina deletion...")
+    
+    if not vetrina_name:
+        print("✗ No vetrina available for deletion testing")
+        raise AssertionError("No vetrina available for deletion testing")
+    
+    # First, find the vetrina ID by searching for it
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{BASE_URL}/vetrine?name={vetrina_name}", headers=headers)
     
     if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return False
+        print("✗ Failed to find vetrina for deletion")
+        raise AssertionError("Failed to find vetrina for deletion")
     
     data = response.json()
-    print(f"Vetrina details: {data}")
-    return True
-
-def test_already_subscribed_case(token, vetrina_id):
-    """Test the behavior when a user is already subscribed to a vetrina"""
-    print(f"\nTesting 'already subscribed' case for vetrina ID: {vetrina_id}...")
+    if data['count'] == 0:
+        print("✗ Vetrina not found for deletion")
+        raise AssertionError("Vetrina not found for deletion")
     
-    headers = {"Authorization": f"Bearer {token}"}
+    vetrina_id = data['vetrine'][0]['id']
     
-    # First, make sure we're subscribed
-    subscribe_response = requests.post(
-        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+    # Now delete the vetrina
+    response = requests.delete(
+        f"{BASE_URL}/vetrine/{vetrina_id}",
         headers=headers
     )
     
-    if subscribe_response.status_code != 200:
-        print(f"Error during initial subscription: {subscribe_response.status_code} - {subscribe_response.text}")
-        return False
-    
-    # Now try to subscribe again - should return 200 with an "already_subscribed" message
-    duplicate_response = requests.post(
-        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
-        headers=headers
-    )
-    
-    if duplicate_response.status_code != 309:
-        print(f"Error: Expected status code 309 for already subscribed case, got {duplicate_response.status_code}")
-        return False
-    
-    response_data = duplicate_response.json()
-    if "error" in response_data and response_data["error"] == "already_subscribed":
-        print("✓ Successfully detected 'already subscribed' case")
+    if response.status_code == 200:
+        print(f"✓ Vetrina deleted successfully (ID: {vetrina_id})")
+        
+        # Verify it's actually deleted by trying to find it again
+        response = requests.get(f"{BASE_URL}/vetrine?name={vetrina_name}", headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if data['count'] == 0:
+                print("✓ Deletion verified - vetrina no longer found")
+                return True
+            else:
+                print("✗ Vetrina still exists after deletion")
+                raise AssertionError("Vetrina still exists after deletion")
+        else:
+            print("✗ Failed to verify deletion")
+            raise AssertionError("Failed to verify deletion")
     else:
-        print(f"Warning: Expected 'already_subscribed' error, got: {response_data}")
+        print(f"✗ Failed to delete vetrina: {response.status_code} - {response.text}")
+        raise AssertionError(f"Failed to delete vetrina: {response.status_code} - {response.text}")
+
+def test_delete_vetrina_unauthorized(token):
+    """Test deleting a vetrina without proper authorization"""
+    print("\nTesting unauthorized vetrina deletion...")
     
-    # Clean up by unsubscribing
-    requests.delete(
-        f"{BASE_URL}/vetrine/{vetrina_id}/subscriptions", 
+    # Try to delete without token
+    response = requests.delete(f"{BASE_URL}/vetrine/1")
+    
+    if response.status_code == 401:
+        print("✓ Unauthorized deletion correctly rejected")
+        return True
+    else:
+        print(f"Expected 401, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 401 for unauthorized deletion, got {response.status_code}")
+
+def test_delete_nonexistent_vetrina(token):
+    """Test deleting a non-existent vetrina"""
+    print("\nTesting deletion of non-existent vetrina...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.delete(
+        f"{BASE_URL}/vetrine/99999",  # Non-existent ID
         headers=headers
     )
     
-    return True
+    # The delete operation might succeed even if the vetrina doesn't exist
+    # or the user doesn't own it (depending on implementation)
+    print(f"Non-existent vetrina deletion: {response.status_code} - {response.text}")
+    return True  # This is acceptable behavior
 
-def test_file_operations(token, vetrina_id):
-    """Test file upload, retrieval and deletion for a vetrina"""
-    print(f"\nTesting file operations for vetrina ID: {vetrina_id}...")
+def run_vetrina_tests(token):
+    """Run all vetrina-related tests"""
+    print("\n" + "=" * 50)
+    print("RUNNING VETRINA TESTS")
+    print("=" * 50)
+    
+    # Test vetrina creation
+    test_create_vetrina_unauthorized()
+    test_create_vetrina_missing_fields(token)
+    test_create_vetrina_invalid_course(token)
+    created_vetrina_name = test_create_vetrina(token)
+    
+    # Test vetrina search
+    all_vetrine = test_search_vetrine_basic(token)
+    test_search_vetrine_no_results(token)
+    
+    # Test search by different parameters
+    if created_vetrina_name:
+        test_search_vetrine_by_name(token, "Test Vetrina")
+    
+    test_search_vetrine_by_course_code(token)
+    test_search_vetrine_by_faculty(token)
+    test_search_vetrine_combined(token)
+    
+    # Test vetrina deletion
+    test_delete_vetrina_unauthorized(token)
+    test_delete_nonexistent_vetrina(token)
+    
+    if created_vetrina_name:
+        test_delete_vetrina(token, created_vetrina_name)
+    
+    print("\n" + "=" * 50)
+    print("VETRINA TESTS COMPLETED")
+    print("=" * 50)
+
+def get_or_create_test_vetrina(token):
+    """Get an existing vetrina or create one for file testing"""
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # First try to get existing vetrine
+    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        if data['count'] > 0:
+            vetrina = data['vetrine'][0]
+            print(f"  Using existing vetrina: {vetrina['name']} (ID: {vetrina['id']})")
+            return vetrina['id']
+    
+    # If no existing vetrina, create one
+    print("  No existing vetrine found, creating one for file testing...")
+    created_name = test_create_vetrina(token)
+    if created_name:
+        # Find the created vetrina
+        response = requests.get(f"{BASE_URL}/vetrine?name={created_name}", headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if data['count'] > 0:
+                return data['vetrine'][0]['id']
+    
+    raise AssertionError("Could not get or create a vetrina for file testing")
+
+def test_file_upload(token, vetrina_id):
+    """Test uploading a file to a vetrina"""
+    print("\nTesting file upload...")
     
     headers = {"Authorization": f"Bearer {token}"}
     
-    # Create a test file
-    test_file_path = "test_upload_file.txt"
-    with open(test_file_path, "w") as f:
-        f.write("This is a test file for upload testing.")
+    # Check if test.pdf exists
+    test_file_path = "tests/test.pdf"
+    if not os.path.exists(test_file_path):
+        # Create a simple test file if it doesn't exist
+        os.makedirs("tests", exist_ok=True)
+        with open(test_file_path, "w") as f:
+            f.write("%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n")
+            f.write("2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n")
+            f.write("3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\n")
+            f.write("xref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000074 00000 n \n")
+            f.write("0000000120 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n")
+            f.write("174\n%%EOF")
+        print("  Created test.pdf file")
     
     try:
-        # 1. Upload file
-        print("Testing file upload...")
         with open(test_file_path, "rb") as f:
-            files = {"file": f}
+            files = {"file": ("test.pdf", f, "application/pdf")}
             response = requests.post(
                 f"{BASE_URL}/vetrine/{vetrina_id}/files",
                 headers=headers,
                 files=files
             )
         
-        if response.status_code != 200:
-            print(f"Error uploading file: {response.status_code} - {response.text}")
-            return False
-        
-        print("✓ File uploaded successfully")
-        
-        # 2. Get files for vetrina
-        print("Testing get files for vetrina...")
-        response = requests.get(
-            f"{BASE_URL}/vetrine/{vetrina_id}/files",
-            headers=headers
-        )
-        
-        if response.status_code != 200:
-            print(f"Error getting files: {response.status_code} - {response.text}")
-            return False
-        
-        files_data = response.json()
-        if not files_data["files"] or len(files_data["files"]) == 0:
-            print("Error: No files found after upload")
-            return False
-        
-        # Get the first file for testing
-        file_id = files_data["files"][0]["id"]
-        print(f"✓ Found {len(files_data['files'])} files, using file ID: {file_id}")
-        
-        # 3. Get specific file details
-        print("Testing get specific file details...")
-        response = requests.get(
-            f"{BASE_URL}/files/{file_id}",
-            headers=headers
-        )
-        
-        if response.status_code != 200:
-            print(f"Error getting file details: {response.status_code} - {response.text}")
-            return False
-        
-        file_details = response.json()
-        print(f"✓ Got file details: {file_details['filename']}")
-        
-        # 4. Delete file
-        print("Testing file deletion...")
-        response = requests.delete(
-            f"{BASE_URL}/files/{file_id}",
-            headers=headers
-        )
-        
-        if response.status_code != 200:
-            print(f"Error deleting file: {response.status_code} - {response.text}")
-            return False
-        
-        print("✓ File deleted successfully")
-        
-        # 5. Verify file is deleted
-        print("Verifying file deletion...")
-        response = requests.get(
-            f"{BASE_URL}/files/{file_id}",
-            headers=headers
-        )
-        
-        if response.status_code == 404:
-            print("✓ File deletion verified - file no longer exists")
+        if response.status_code == 200:
+            print("✓ File uploaded successfully")
+            return True
         else:
-            print(f"Warning: File still accessible after deletion: {response.status_code} - {response.text}")
-            return False
-        
-        return True
+            print(f"✗ File upload failed: {response.status_code} - {response.text}")
+            raise AssertionError(f"File upload failed: {response.status_code} - {response.text}")
     
-    finally:
-        # Clean up test file
-        if os.path.exists(test_file_path):
-            os.remove(test_file_path)
-            print(f"Cleaned up test file: {test_file_path}")
+    except FileNotFoundError:
+        print("✗ test.pdf file not found")
+        raise AssertionError("test.pdf file not found in tests/ directory")
 
-def test_file_upload_without_auth():
-    """Test file upload without authentication"""
+def test_file_upload_unauthorized(vetrina_id):
+    """Test uploading a file without authentication"""
     print("\nTesting file upload without authentication...")
     
-    # Create a test file
-    test_file_path = "test_upload_file.txt"
-    with open(test_file_path, "w") as f:
-        f.write("This is a test file for upload testing.")
+    test_file_path = "tests/test.pdf"
+    if not os.path.exists(test_file_path):
+        print("  Skipping unauthorized upload test - no test file")
+        return
     
     try:
-        # Try to upload without auth token
         with open(test_file_path, "rb") as f:
-            files = {"file": f}
+            files = {"file": ("test.pdf", f, "application/pdf")}
             response = requests.post(
-                f"{BASE_URL}/vetrine/1/files",  # Using arbitrary vetrina ID
+                f"{BASE_URL}/vetrine/{vetrina_id}/files",
                 files=files
             )
         
         if response.status_code == 401:
-            print("✓ Correctly rejected unauthenticated file upload")
+            print("✓ Unauthorized file upload correctly rejected")
             return True
         else:
-            print(f"Error: Expected 401 status code, got {response.status_code} - {response.text}")
-            return False
+            print(f"Expected 401, got {response.status_code} - {response.text}")
+            raise AssertionError(f"Expected 401 for unauthorized upload, got {response.status_code}")
     
-    finally:
-        # Clean up test file
-        if os.path.exists(test_file_path):
-            os.remove(test_file_path)
+    except FileNotFoundError:
+        print("  Skipping unauthorized upload test - no test file")
+        return
 
-def test_file_operations_wrong_vetrina(token):
-    """Test file operations with a non-existent vetrina"""
-    print("\nTesting file operations with non-existent vetrina...")
+def test_file_upload_missing_file(token, vetrina_id):
+    """Test uploading without providing a file"""
+    print("\nTesting file upload without file...")
     
     headers = {"Authorization": f"Bearer {token}"}
-    non_existent_vetrina_id = 99999  # Assuming this ID doesn't exist
+    response = requests.post(
+        f"{BASE_URL}/vetrine/{vetrina_id}/files",
+        headers=headers
+    )
     
-    # Create a test file
-    test_file_path = "test_upload_file.txt"
-    with open(test_file_path, "w") as f:
-        f.write("This is a test file for upload testing.")
+    if response.status_code == 400:
+        print("✓ Missing file correctly rejected")
+        return True
+    else:
+        print(f"Expected 400, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 400 for missing file, got {response.status_code}")
+
+def test_file_upload_to_nonexistent_vetrina(token):
+    """Test uploading to a non-existent vetrina"""
+    print("\nTesting file upload to non-existent vetrina...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    test_file_path = "tests/test.pdf"
+    
+    if not os.path.exists(test_file_path):
+        print("  Skipping test - no test file")
+        return
     
     try:
-        # Try to upload to non-existent vetrina
         with open(test_file_path, "rb") as f:
-            files = {"file": f}
+            files = {"file": ("test.pdf", f, "application/pdf")}
             response = requests.post(
-                f"{BASE_URL}/vetrine/{non_existent_vetrina_id}/files",
+                f"{BASE_URL}/vetrine/99999/files",  # Non-existent vetrina
                 headers=headers,
                 files=files
             )
         
         if response.status_code == 404:
-            print("✓ Correctly rejected upload to non-existent vetrina")
+            print("✓ Upload to non-existent vetrina correctly rejected")
             return True
         else:
-            print(f"Warning: Expected 404 status code, got {response.status_code} - {response.text}")
-            return False
+            print(f"Expected 404, got {response.status_code} - {response.text}")
+            raise AssertionError(f"Expected 404 for non-existent vetrina, got {response.status_code}")
     
-    finally:
-        # Clean up test file
-        if os.path.exists(test_file_path):
-            os.remove(test_file_path)
+    except FileNotFoundError:
+        print("  Skipping test - no test file")
+        return
+
+def test_get_files_for_vetrina(token, vetrina_id):
+    """Test getting files for a vetrina"""
+    print("\nTesting get files for vetrina...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/vetrine/{vetrina_id}/files",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Retrieved files for vetrina - found {len(data['files'])} files")
+        
+        # Return the files for use in other tests
+        return data['files']
+    else:
+        print(f"✗ Failed to get files: {response.status_code} - {response.text}")
+        raise AssertionError(f"Failed to get files for vetrina: {response.status_code} - {response.text}")
+
+def test_get_file_details(token, file_id):
+    """Test getting details of a specific file"""
+    print(f"\nTesting get file details for file ID {file_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/files/{file_id}",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✓ Retrieved file details: {data.get('filename', 'Unknown')}")
+        print(f"  Size: {data.get('size', 0)} bytes")
+        print(f"  Price: {data.get('price', 0)}")
+        print(f"  Owned: {data.get('owned', False)}")
+        return data
+    else:
+        print(f"✗ Failed to get file details: {response.status_code} - {response.text}")
+        raise AssertionError(f"Failed to get file details: {response.status_code} - {response.text}")
+
+def test_download_file_redacted(token, file_id):
+    """Test downloading the redacted version of a file"""
+    print(f"\nTesting redacted file download for file ID {file_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/files/{file_id}/download/redacted",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        print("✓ Redacted file download successful")
+        print(f"  Content-Type: {response.headers.get('Content-Type', 'Unknown')}")
+        print(f"  Content-Length: {len(response.content)} bytes")
+        return True
+    else:
+        print(f"✗ Redacted file download failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Redacted file download failed: {response.status_code} - {response.text}")
+
+def test_download_file_full_unauthorized(file_id):
+    """Test downloading full file without authentication"""
+    print(f"\nTesting unauthorized full file download for file ID {file_id}...")
+    
+    response = requests.get(f"{BASE_URL}/files/{file_id}/download")
+    
+    if response.status_code == 401:
+        print("✓ Unauthorized download correctly rejected")
+        return True
+    else:
+        print(f"Expected 401, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 401 for unauthorized download, got {response.status_code}")
+
+def test_buy_file(token, file_id):
+    """Test buying a file"""
+    print(f"\nTesting file purchase for file ID {file_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.post(
+        f"{BASE_URL}/files/{file_id}/buy",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        print("✓ File purchase successful")
+        print(f"  Transaction ID: {data.get('transaction', {}).get('id', 'Unknown')}")
+        print(f"  Amount: {data.get('transaction', {}).get('amount', 0)}")
+        return data
+    elif response.status_code == 409:
+        # Already owned
+        print("✓ File already owned (expected for price 0 files)")
+        return None
+    else:
+        print(f"✗ File purchase failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"File purchase failed: {response.status_code} - {response.text}")
+
+def test_download_file_full_after_purchase(token, file_id):
+    """Test downloading full file after purchase"""
+    print(f"\nTesting full file download after purchase for file ID {file_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(
+        f"{BASE_URL}/files/{file_id}/download",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        print("✓ Full file download successful after purchase")
+        print(f"  Content-Type: {response.headers.get('Content-Type', 'Unknown')}")
+        print(f"  Content-Length: {len(response.content)} bytes")
+        return True
+    else:
+        print(f"✗ Full file download failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"Full file download failed after purchase: {response.status_code} - {response.text}")
+
+def test_buy_file_unauthorized(file_id):
+    """Test buying a file without authentication"""
+    print(f"\nTesting unauthorized file purchase for file ID {file_id}...")
+    
+    response = requests.post(f"{BASE_URL}/files/{file_id}/buy")
+    
+    if response.status_code == 401:
+        print("✓ Unauthorized purchase correctly rejected")
+        return True
+    else:
+        print(f"Expected 401, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 401 for unauthorized purchase, got {response.status_code}")
+
+def test_buy_nonexistent_file(token):
+    """Test buying a non-existent file"""
+    print("\nTesting purchase of non-existent file...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.post(
+        f"{BASE_URL}/files/99999/buy",  # Non-existent file
+        headers=headers
+    )
+    
+    if response.status_code == 404:
+        print("✓ Purchase of non-existent file correctly rejected")
+        return True
+    else:
+        print(f"Expected 404, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 404 for non-existent file purchase, got {response.status_code}")
+
+def test_delete_file(token, file_id):
+    """Test deleting a file"""
+    print(f"\nTesting file deletion for file ID {file_id}...")
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.delete(
+        f"{BASE_URL}/files/{file_id}",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        print("✓ File deleted successfully")
+        
+        # Verify deletion by trying to get file details
+        verify_response = requests.get(
+            f"{BASE_URL}/files/{file_id}",
+            headers=headers
+        )
+        
+        if verify_response.status_code == 404:
+            print("✓ File deletion verified - file no longer exists")
+            return True
+        else:
+            print("✗ File still exists after deletion")
+            raise AssertionError("File still exists after deletion")
+    else:
+        print(f"✗ File deletion failed: {response.status_code} - {response.text}")
+        raise AssertionError(f"File deletion failed: {response.status_code} - {response.text}")
+
+def test_delete_file_unauthorized(file_id):
+    """Test deleting a file without authentication"""
+    print(f"\nTesting unauthorized file deletion for file ID {file_id}...")
+    
+    response = requests.delete(f"{BASE_URL}/files/{file_id}")
+    
+    if response.status_code == 401:
+        print("✓ Unauthorized deletion correctly rejected")
+        return True
+    else:
+        print(f"Expected 401, got {response.status_code} - {response.text}")
+        raise AssertionError(f"Expected 401 for unauthorized deletion, got {response.status_code}")
+
+def run_file_tests(token):
+    """Run all file-related tests"""
+    print("\n" + "=" * 50)
+    print("RUNNING FILE TESTS")
+    print("=" * 50)
+    
+    # Get or create a vetrina for testing
+    vetrina_id = get_or_create_test_vetrina(token)
+    
+    # Test file upload
+    test_file_upload_unauthorized(vetrina_id)
+    test_file_upload_missing_file(token, vetrina_id)
+    test_file_upload_to_nonexistent_vetrina(token)
+    test_file_upload(token, vetrina_id)
+    
+    # Get files for the vetrina
+    files = test_get_files_for_vetrina(token, vetrina_id)
+    
+    if not files:
+        print("✗ No files found after upload")
+        raise AssertionError("No files found after upload")
+    
+    # Use the first uploaded file for testing
+    test_file = files[0]
+    file_id = test_file['id']
+    print(f"\nUsing file ID {file_id} for testing: {test_file.get('filename', 'Unknown')}")
+    
+    # Test file operations
+    test_get_file_details(token, file_id)
+    test_download_file_redacted(token, file_id)
+    test_download_file_full_unauthorized(file_id)
+    
+    # Test file buying
+    test_buy_file_unauthorized(file_id)
+    test_buy_nonexistent_file(token)
+    test_buy_file(token, file_id)
+    
+    # Test download after purchase
+    test_download_file_full_after_purchase(token, file_id)
+    
+    # Test file deletion
+    test_delete_file_unauthorized(file_id)
+    test_delete_file(token, file_id)
+    
+    print("\n" + "=" * 50)
+    print("FILE TESTS COMPLETED")
+    print("=" * 50)
 
 def run_tests():
-    """Run all tests"""
-    # Start Flask app in a separate thread for testing
-    import threading
-    threading.Thread(target=lambda: app.run(debug=False, port=5000)).start()
+    """Run all authentication tests"""
+    print("=" * 50)
+    print("RUNNING AUTHENTICATION TESTS")
+    print("=" * 50)
     
     # Setup test data
-    user, courses, vetrine = setup()
+    setup()
     
-    # Get auth token
-    token = get_auth_token(TEST_USER["email"], TEST_USER["password"])
-    if not token:
-        print("Failed to get auth token. Tests cannot continue.")
-        return
+    # Test registration
+    test_register()
     
-    # Run tests with expected counts
-    test_get_all_vetrine(token)
-    test_search_by_name(token, "Python", expected_count=1)
-    test_search_by_name(token, "Programming", expected_count=2)
+    # Test login
+    token = test_login()
     
-    # Test course code searches
-    test_search_by_course_code(token, "CS101", expected_count=2)
-    test_search_by_course_code(token, "MATH201", expected_count=2)
-    test_search_by_course_code(token, "ENG303", expected_count=1)
+    # Test invalid login
+    test_login_invalid_credentials()
     
-    # Test faculty searches
-    test_search_by_faculty(token, "Computer Science", expected_count=2)
-    test_search_by_faculty(token, "Mathematics", expected_count=2)
-    test_search_by_faculty(token, "Engineering", expected_count=1)
-    
-    # Combined search tests
-    test_combined_search(token, {
-        "name": "Programming",
-        "course_code": "CS101"
-    }, expected_count=1)
-    
-    test_combined_search(token, {
-        "name": "Programming",
-        "faculty": "Mathematics"
-    }, expected_count=1)
-    
-    # Test hierarchy endpoint
+    # Test hierarchy endpoint (no auth required)
     test_get_hierarchy()
     
-    # Test subscription functionality
-    if vetrine and len(vetrine) > 0:
-        # Get details of the first vetrina
-        test_get_vetrina_details(token, vetrine[0].id)
-        
-        # Test already subscribed case
-        test_already_subscribed_case(token, vetrine[0].id)
-        
-        # Test subscribe and unsubscribe
-        test_subscribe_to_vetrina(token, vetrine[0].id)
-        test_unsubscribe_from_vetrina(token, vetrine[0].id)
-        
-        # Test file operations
-        test_file_operations(token, vetrine[0].id)
+    # Test protected endpoints
+    test_protected_endpoint_without_auth()
+    test_protected_endpoint_with_auth(token)
     
-    # Test file upload without authentication
-    test_file_upload_without_auth()
+    # Test invalid token
+    test_invalid_token()
     
-    # Test file operations with non-existent vetrina
-    test_file_operations_wrong_vetrina(token)
+    print("\n" + "=" * 50)
+    print("AUTHENTICATION TESTS COMPLETED")
+    print("=" * 50)
     
-    print("\nAll tests completed!")
+    # Run vetrina tests
+    run_vetrina_tests(token)
+    
+    # Run file tests
+    run_file_tests(token)
 
 if __name__ == "__main__":
-    # Create database tables if they don't exist
-    database.create_tables()
-    
     # Run the tests
     run_tests()

@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS vetrina_subscriptions CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS course_instances CASCADE;
 DROP TABLE IF EXISTS vetrina CASCADE;
+DROP TABLE IF EXISTS favourite_vetrine CASCADE;
+DROP TABLE IF EXISTS favourite_file CASCADE;
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -34,9 +36,10 @@ CREATE TABLE IF NOT EXISTS course_instances (
 CREATE TABLE IF NOT EXISTS vetrina (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    author_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     course_instance_id INTEGER REFERENCES course_instances(id) ON DELETE CASCADE NOT NULL,
-    description TEXT NOT NULL
+    description TEXT NOT NULL,
+    UNIQUE (author_id, name, course_instance_id)
 );
 
 CREATE TABLE IF NOT EXISTS files (
@@ -60,7 +63,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 CREATE TABLE IF NOT EXISTS owned_files (
-    file_id INTEGER REFERENCES files(id) NOT NULL,
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE NOT NULL,
     owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     transaction_id INTEGER REFERENCES transactions(id),
     PRIMARY KEY (file_id, owner_id)
@@ -69,10 +72,22 @@ CREATE TABLE IF NOT EXISTS owned_files (
 CREATE TABLE IF NOT EXISTS vetrina_subscriptions (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     price INTEGER NOT NULL DEFAULT 0,
-    vetrina_id INTEGER REFERENCES vetrina(id) NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_id INTEGER REFERENCES transactions(id),
     PRIMARY KEY (user_id, vetrina_id)
+);
+
+CREATE TABLE IF NOT EXISTS favourite_vetrine (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE NOT NULL,
+    PRIMARY KEY (user_id, vetrina_id)
+);
+
+CREATE TABLE IF NOT EXISTS favourite_file (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE NOT NULL,
+    PRIMARY KEY (user_id, file_id)
 );
 
 INSERT INTO users (username, name, surname, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');

@@ -287,8 +287,8 @@ body::before {
     grid-template-columns: 1fr 420px; /* Document viewer | Sidebar */
     gap: var(--space-6);
     padding: var(--space-4) var(--space-8) 0; /* No bottom padding */
-    height: calc(100vh - 72px - var(--space-16)); /* Full height to bottom */
-    margin-top: var(--space-16); /* Moved down further from header */
+    height: calc(100vh - 72px); /* Full height exactly to bottom */
+    margin-top: 72px; /* Start directly after header */
     overflow: hidden;
 }
 
@@ -580,15 +580,7 @@ body::before {
     max-height: calc(320px - 80px); /* Subtract padding (48px) and header (32px) */
 }
 
-/* Details Section Header with Più info button */
-.details-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-6);
-    padding-bottom: var(--space-3);
-    border-bottom: 2px solid var(--primary-100);
-}
+
 
 .doc-details-section h3 {
     display: flex;
@@ -597,7 +589,9 @@ body::before {
     font-size: var(--text-lg);
     font-weight: 600;
     color: var(--neutral-800);
-    margin: 0;
+    margin: 0 0 var(--space-6) 0;
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--primary-100);
 }
 
 /* Main Document Info - Back outside details section */
@@ -610,60 +604,9 @@ body::before {
     margin-bottom: var(--space-6);
 }
 
-/* Essential Details */
-.essential-details {
-    margin-bottom: 0;
-}
 
-/* Più info Button - In details header */
-.more-info-btn {
-    background: var(--primary-50);
-    border: 1px solid var(--primary-200);
-    border-radius: var(--radius-lg);
-    padding: var(--space-2) var(--space-3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-1);
-    font-size: var(--text-xs);
-    font-weight: 500;
-    color: var(--primary-700);
-    cursor: pointer;
-    transition: all 0.3s var(--ease-out);
-    white-space: nowrap;
-}
 
-.more-info-btn:hover {
-    background: var(--primary-100);
-    border-color: var(--primary-300);
-    transform: translateY(-1px);
-}
 
-.more-info-btn .material-symbols-outlined {
-    transition: transform 0.3s var(--ease-out);
-}
-
-.more-info-btn.expanded .material-symbols-outlined {
-    transform: rotate(180deg);
-}
-
-/* Additional Details - Expandable within section */
-.additional-details {
-    max-height: 0;
-    overflow: hidden;
-    transition: all 0.4s var(--ease-out);
-    opacity: 0;
-    visibility: hidden;
-}
-
-.additional-details.expanded {
-    max-height: 500px;
-    opacity: 1;
-    visibility: visible;
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
-    border-top: 1px solid var(--neutral-200);
-}
 
 /* Vertical Detail Items - Professional Structure */
 .detail-item-vertical {

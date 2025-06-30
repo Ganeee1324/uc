@@ -209,7 +209,7 @@ function renderDocumentInfo(docData) {
     }
 
     // Initialize expandable functionality
-    initializeExpandableDetails();
+
     
     // Set up action buttons with proper data
     setupActionButtons(fileData);
@@ -243,40 +243,7 @@ function updateAdditionalDetailValue(label, value) {
     });
 }
 
-// Initialize expandable details functionality
-function initializeExpandableDetails() {
-    const moreInfoBtn = document.getElementById('moreInfoBtn');
-    const additionalDetails = document.getElementById('additionalDetails');
-    
-    if (moreInfoBtn && additionalDetails) {
-        // Ensure the button is visible
-        moreInfoBtn.style.display = 'flex';
-        
-        moreInfoBtn.addEventListener('click', () => {
-            const isExpanded = additionalDetails.classList.contains('expanded');
-            
-            if (isExpanded) {
-                // Collapse
-                additionalDetails.classList.remove('expanded');
-                moreInfoBtn.classList.remove('expanded');
-                moreInfoBtn.innerHTML = `
-                    <span class="material-symbols-outlined">expand_more</span>
-                    Più info
-                `;
-            } else {
-                // Expand
-                additionalDetails.classList.add('expanded');
-                moreInfoBtn.classList.add('expanded');
-                moreInfoBtn.innerHTML = `
-                    <span class="material-symbols-outlined">expand_less</span>
-                    Meno info
-                `;
-            }
-        });
-    } else {
-        console.warn('More info button or additional details not found');
-    }
-}
+
 
 // Get document type from filename
 function getDocumentTypeFromFilename(filename) {

@@ -2184,17 +2184,39 @@ function renderDocuments(files) {
         // Generate preview based on whether it's a single file or multi-file vetrina
         let previewContent;
         if (isMultiFile) {
-            // Show file stack with preview of first file
+            // Show professional file stack with hover preview grid
             const firstFile = item.files[0];
+            const secondFile = item.files[1] || firstFile;
+            const thirdFile = item.files[2] || secondFile;
+            
+            // Generate individual file preview items for the grid
+            const filePreviewItems = item.files.map(file => `
+                <div class="file-preview-item">
+                    <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
+                    <div class="file-name" title="${getOriginalFilename(file.filename)}">${getOriginalFilename(file.filename)}</div>
+                </div>
+            `).join('');
+            
             previewContent = `
                 <div class="preview-icon ${fileStackClass}">
-                    <div class="stack-layer stack-back"></div>
-                    <div class="stack-layer stack-middle"></div>
-                    <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(firstFile.filename)}</span>
-                        <div class="file-extension">${firstFile.document_type}</div>
+                    <div class="file-stack-container">
+                        <div class="stack-layer stack-back">
+                            <span class="document-icon">${getDocumentPreviewIcon(thirdFile.filename)}</span>
+                            <div class="file-extension">${thirdFile.document_type}</div>
+                        </div>
+                        <div class="stack-layer stack-middle">
+                            <span class="document-icon">${getDocumentPreviewIcon(secondFile.filename)}</span>
+                            <div class="file-extension">${secondFile.document_type}</div>
+                        </div>
+                        <div class="stack-layer stack-front">
+                            <span class="document-icon">${getDocumentPreviewIcon(firstFile.filename)}</span>
+                            <div class="file-extension">${firstFile.document_type}</div>
+                        </div>
+                        ${stackCountBadge}
                     </div>
-                    ${stackCountBadge}
+                    <div class="file-preview-grid">
+                        ${filePreviewItems}
+                    </div>
                 </div>
             `;
         } else {

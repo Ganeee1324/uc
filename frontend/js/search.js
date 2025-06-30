@@ -2067,14 +2067,56 @@ function getDocumentPreviewIcon(filename) {
     return iconMap[extension] || '📄';
 }
 
+function getDocumentCategory(title, description) {
+    const content = (title + ' ' + description).toLowerCase();
+    
+    // Define keywords for each document type
+    const categories = {
+        'Esercizi': ['esercizi', 'exercise', 'problema', 'problem', 'quiz', 'test', 'verifica', 'compito', 'prova'],
+        'Appunti': ['appunti', 'notes', 'lezione', 'lecture', 'corso', 'class', 'note'],
+        'Dispense': ['dispense', 'dispensa', 'handout', 'materiale', 'material', 'guida', 'guide'],
+        'Formulari': ['formulario', 'formule', 'formula', 'riassunto', 'summary', 'cheat sheet'],
+        'Progetti': ['progetto', 'project', 'tesi', 'thesis', 'elaborato', 'relazione', 'report'],
+        'Slide': ['slide', 'slides', 'presentazione', 'presentation', 'powerpoint', 'ppt'],
+        'Libro': ['libro', 'book', 'manuale', 'manual', 'testo', 'textbook'],
+        'Laboratorio': ['laboratorio', 'lab', 'pratica', 'practice', 'esperimento', 'experiment']
+    };
+    
+    // Check each category for keyword matches
+    for (const [category, keywords] of Object.entries(categories)) {
+        for (const keyword of keywords) {
+            if (content.includes(keyword)) {
+                return category;
+            }
+        }
+    }
+    
+    // Default fallback
+    return 'Documento';
+}
+
 function renderDocuments(files) {
     const grid = document.getElementById('documentsGrid');
     const resultsCount = document.getElementById('resultsCount');
     
+    // Group files by vetrina
+    const vetrineGroups = {};
+    files.forEach(file => {
+        const vetrinaId = file.vetrina_info?.id;
+        if (vetrinaId) {
+            if (!vetrineGroups[vetrinaId]) {
+                vetrineGroups[vetrinaId] = [];
+            }
+            vetrineGroups[vetrinaId].push(file);
+        }
+    });
+    
+    const totalCards = Object.keys(vetrineGroups).length;
+    
     if (resultsCount) {
         const filterText = Object.keys(activeFilters).length > 0 ? 
             ` (${Object.keys(activeFilters).length} filtri attivi)` : '';
-        resultsCount.textContent = `${files.length} documenti trovati`;
+        resultsCount.textContent = `${totalCards} collezioni trovate (${files.length} documenti totali)`;
     }
     
     if (files.length === 0) {
@@ -2100,43 +2142,63 @@ function renderDocuments(files) {
     }
 
     if (grid) {
-        grid.innerHTML = files.map(file => {
-            // Use REAL database information
-            const documentType = file.document_type || 'Documento';
-            const documentTitle = file.title || 'Documento Senza Titolo';
-            const rating = parseFloat(file.rating) || 0;
-            const reviewCount = parseInt(file.review_count) || 0;
-            const courseName = file.course_name || file.vetrina_info?.course_name || 'Corso';
-            const faculty = file.faculty_name || file.vetrina_info?.faculty_name || 'Facoltà';
-            const canale = file.canale || file.vetrina_info?.canale || 'A';
-            const semester = file.semester || file.vetrina_info?.course_semester || 'Semestre';
-            const language = file.language || 'English';
-            const academicYear = file.academic_year || '2024/2025';
-            const description = file.description || file.vetrina_info?.description || 'Nessuna descrizione disponibile';
-            const price = parseFloat(file.price) || 0;
+        grid.innerHTML = Object.entries(vetrineGroups).map(([vetrinaId, vetrinaFiles]) => {
+            const isBundle = vetrinaFiles.length > 1;
+            const primaryFile = vetrinaFiles[0]; // Use first file as primary data source
+            
+            // Use REAL database information from primary file
+            const documentType = primaryFile.document_type || 'Documento';
+            const documentTitle = isBundle ? primaryFile.vetrina_info?.name || 'Bundle di Documenti' : primaryFile.title || 'Documento Senza Titolo';
+            const rating = parseFloat(primaryFile.rating) || 0;
+            const reviewCount = parseInt(primaryFile.review_count) || 0;
+            const courseName = primaryFile.course_name || primaryFile.vetrina_info?.course_name || 'Corso';
+            const faculty = primaryFile.faculty_name || primaryFile.vetrina_info?.faculty_name || 'Facoltà';
+            const canale = primaryFile.canale || primaryFile.vetrina_info?.canale || 'A';
+            const semester = primaryFile.semester || primaryFile.vetrina_info?.course_semester || 'Semestre';
+            const language = primaryFile.language || 'English';
+            const academicYear = primaryFile.academic_year || '2024/2025';
+            const description = primaryFile.description || primaryFile.vetrina_info?.description || 'Nessuna descrizione disponibile';
+            const totalPrice = vetrinaFiles.reduce((sum, f) => sum + (parseFloat(f.price) || 0), 0);
             
             const stars = generateStars(Math.floor(rating));
-            const ownerUsername = file.vetrina_info?.owner_username || 'Unknown';
+            const ownerUsername = primaryFile.vetrina_info?.owner_username || 'Unknown';
             const avatarVariant = getAvatarVariant(ownerUsername);
             
+            // Get document category (Esercizi, Appunti, etc.)
+            const documentCategory = getDocumentCategory(documentTitle, description);
+            
             // All document cards now redirect to the preview page with vetrina ID
-            const cardAction = `onclick="window.location.href='document-preview.html?id=${file.id}'"`;
+            const cardAction = `onclick="window.location.href='document-preview.html?id=${vetrinaId}'"`;
             
             // Check if this is a special document for the preview badge
             const isPreviewDocument = documentTitle.toLowerCase().includes('analisi matematica') || 
                                     documentTitle.toLowerCase().includes('matematica i') ||
                                     documentTitle.toLowerCase().includes('appunti');
             
-            return `
-            <div class="document-card" ${cardAction}>
-                <div class="document-preview">
-                    <div class="preview-icon">
-                        <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
-                        <div class="file-extension">${documentType}</div>
+            // Create preview content based on bundle or single file
+            const previewContent = isBundle ? 
+                `<div class="bundle-preview">
+                    <div class="document-stack">
+                        <div class="stack-layer stack-layer-0">${vetrinaFiles.length}</div>
+                        <div class="stack-layer stack-layer-1"></div>
+                        <div class="stack-layer stack-layer-2"></div>
                     </div>
+                </div>` :
+                `<div class="preview-icon">
+                    <span class="document-icon">${getDocumentPreviewIcon(primaryFile.filename)}</span>
+                    <div class="file-extension">${documentType}</div>
+                </div>`;
+            
+            const totalSize = vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+            const bundleInfo = isBundle ? `${vetrinaFiles.length} file, ${formatFileSize(totalSize)}` : formatFileSize(primaryFile.size);
+            
+            return `
+            <div class="document-card ${isBundle ? 'bundle-card' : ''}" ${cardAction}>
+                <div class="document-preview">
+                    ${previewContent}
                     
                     <!-- Badges positioned within preview area -->
-                    <div class="document-type-badge">${documentType}</div>
+                    <div class="document-type-badge">${documentCategory}</div>
                     <div class="rating-badge">
                         <div class="rating-stars">${stars}</div>
                         <span class="rating-count">(${reviewCount})</span>
@@ -2178,10 +2240,10 @@ function renderDocuments(files) {
                             <div class="owner-avatar ${avatarVariant}" title="Vetrina pubblicata da @${ownerUsername}">
                                 ${ownerUsername ? ownerUsername.charAt(0).toUpperCase() : 'U'}
                             </div>
-                            <div class="document-meta">${formatFileSize(file.size)}</div>
+                            <div class="document-meta">${bundleInfo}</div>
                         </div>
-                        <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
-                            ${price === 0 ? 'Gratis' : `€${price}`}
+                        <div class="document-price ${totalPrice === 0 ? 'free' : 'paid'}" title="${totalPrice === 0 ? 'Documento gratuito' : `Prezzo: €${totalPrice}`}">
+                            ${totalPrice === 0 ? 'Gratis' : `€${totalPrice}`}
                         </div>
                     </div>
                 </div>

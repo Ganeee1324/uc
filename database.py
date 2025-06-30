@@ -355,10 +355,12 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             (v.name ILIKE %s OR 
              v.description ILIKE %s OR 
              ci.course_name ILIKE %s OR 
-             ci.faculty_name ILIKE %s)
+             ci.faculty_name ILIKE %s OR
+             u.username ILIKE %s OR
+             CONCAT(u.name, ' ', u.surname) ILIKE %s)
         """
         )
-        query_params.extend([text_search] * 4)
+        query_params.extend([text_search] * 6)
 
         # Optimized ORDER BY using a single CASE statement
         order_by_clause = f"""
@@ -367,10 +369,12 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
                 WHEN v.description ILIKE %s THEN 2
                 WHEN ci.course_name ILIKE %s THEN 3
                 WHEN ci.faculty_name ILIKE %s THEN 4
-                ELSE 5
+                WHEN u.username ILIKE %s THEN 5
+                WHEN CONCAT(u.name, ' ', u.surname) ILIKE %s THEN 6
+                ELSE 7
             END
         """
-        query_params.extend([text_search] * 4)
+        query_params.extend([text_search] * 6)
 
     # Add filters - only build filter strings for non-empty values
     filters = [
@@ -390,46 +394,40 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
         with conn.cursor() as cursor:
             cursor.execute(final_query, tuple(query_params))
             vetrine_data = cursor.fetchall()
-
-            # Helper function to create Vetrina objects
-            def create_vetrina_from_data(data: Dict[str, Any]) -> Vetrina:
+            vetrine = []
+            for row in vetrine_data:
                 author = User(
-                    id=data["u_id"],
-                    username=data["username"],
-                    name=data["u_name"],
-                    surname=data["surname"],
-                    email=data["email"],
-                    last_login=data["u_last_login"],
-                    created_at=data["u_created_at"],
+                    id=row["u_id"],
+                    username=row["username"],
+                    name=row["u_name"],
+                    surname=row["surname"],
+                    email=row["email"],
+                    last_login=row["u_last_login"],
+                    created_at=row["u_created_at"],
                 )
                 course_instance = CourseInstance(
-                    instance_id=data["ci_id"],
-                    course_code=data["course_code"],
-                    course_name=data["course_name"],
-                    faculty_name=data["faculty_name"],
-                    year=data["course_year"],
-                    date_year=data["date_year"],
-                    language=data["language"],
-                    course_semester=data["course_semester"],
-                    canale=data["canale"],
-                    professors=data["professors"],
+                    instance_id=row["ci_id"],
+                    course_code=row["course_code"],
+                    course_name=row["course_name"],
+                    faculty_name=row["faculty_name"],
+                    year=row["course_year"],
+                    date_year=row["date_year"],
+                    language=row["language"],
+                    course_semester=row["course_semester"],
+                    canale=row["canale"],
+                    professors=row["professors"],
                 )
-
-                vetrina_kwargs = {
-                    "id": data["v_id"],
-                    "name": data["v_name"],
-                    "author": author,
-                    "description": data["description"],
-                    "course_instance": course_instance,
-                }
-
-                # Add favorite status if user_id was provided
+                vetrina = Vetrina(
+                    id=row["v_id"],
+                    name=row["v_name"],
+                    author=author,
+                    description=row["description"],
+                    course_instance=course_instance,
+                )
                 if user_id is not None:
-                    vetrina_kwargs["favorite"] = data["is_vetrina_favorite"]
-
-                return Vetrina(**vetrina_kwargs)
-
-            return [create_vetrina_from_data(data) for data in vetrine_data]
+                    vetrina.favorite = row["is_vetrina_favorite"]
+                vetrine.append(vetrina)
+            return vetrine
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:

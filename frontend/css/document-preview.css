@@ -146,25 +146,7 @@ body {
     position: relative;
 }
 
-/* Animated Background - Premium */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(600px circle at 0% 0%, rgba(120, 119, 198, 0.3), transparent 50%),
-        radial-gradient(600px circle at 100% 100%, rgba(120, 119, 198, 0.3), transparent 50%);
-    z-index: -1;
-    animation: backgroundShift 20s ease-in-out infinite;
-}
 
-@keyframes backgroundShift {
-    0%, 100% { transform: translateX(0) translateY(0); }
-    50% { transform: translateX(-10px) translateY(-10px); }
-}
 
 /* Professional Header - Restored Original Design */
 .header {
@@ -287,7 +269,7 @@ body::before {
     grid-template-columns: 1fr 420px; /* Document viewer | Sidebar */
     gap: var(--space-6);
     padding: var(--space-4) var(--space-8) 0; /* No bottom padding */
-    height: calc(100vh - 72px); /* Full height exactly to bottom */
+    height: calc(100vh - 100px); /* Full height exactly to bottom */
     margin-top: 72px; /* Start directly after header */
     overflow: hidden;
 }

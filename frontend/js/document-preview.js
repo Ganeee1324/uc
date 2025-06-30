@@ -96,37 +96,45 @@ function handleAuthError() {
 }
 
 // URL Parameter Handler
-function getVetrinaIdFromUrl() {
+function getFileIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
-    const vetrinaId = urlParams.get('id');
+    const fileId = urlParams.get('id');
     
-    if (!vetrinaId) {
+    if (!fileId) {
         window.location.href = 'search.html';
         return null;
     }
     
-    return parseInt(vetrinaId);
+    return parseInt(fileId);
 }
 
-// Document Data Fetcher
-async function fetchDocumentData(vetrinaId) {
+// Document Data Fetcher - Enhanced to get complete information
+async function fetchDocumentData(fileId) {
     try {
-        // Fetch vetrina data using the correct backend endpoint
-        const vetrinaResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}`);
+        // Fetch file data using the correct backend endpoint
+        const fileResponse = await makeRequest(`${API_BASE}/files/${fileId}`);
         
-        // Fetch files for this vetrina
-        const filesResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/files`);
-        
+        if (!fileResponse) {
+            throw new Error('File not found');
+        }
+
+        // Fetch vetrina data to get course information
+        let vetrinaData = null;
+        if (fileResponse.vetrina_id) {
+            try {
+                vetrinaData = await makeRequest(`${API_BASE}/vetrine/${fileResponse.vetrina_id}`);
+            } catch (error) {
+                console.warn('Could not fetch vetrina data:', error);
+            }
+        }
+
         // For now, we'll use mock data for reviews and related since endpoints don't exist
-        // In a real scenario, you'd add these endpoints to your backend
         const mockReviews = [];
         const mockRelated = [];
 
         return {
-            document: {
-                ...vetrinaResponse,
-                files: filesResponse || []
-            },
+            document: fileResponse,
+            vetrina: vetrinaData,
             reviews: mockReviews,
             related: mockRelated
         };
@@ -136,111 +144,165 @@ async function fetchDocumentData(vetrinaId) {
     }
 }
 
-// Premium Document Renderer
+// Premium Document Renderer - Enhanced with complete information
 function renderDocumentInfo(docData) {
-    // Update document title - mapping backend vetrina fields
-    const title = docData.name || docData.title || docData.course_name || 'Documento Senza Titolo';
+    const { document: fileData, vetrina: vetrinaData } = docData;
+    
+    // Extract course information from vetrina if available
+    const courseInfo = vetrinaData?.course_instance || {};
+    
+    // Update document title
+    const title = vetrinaData?.name || fileData.filename || 'Documento Senza Titolo';
     document.querySelector('.doc-title').textContent = title;
-    
-    // Update document metadata
-    const rating = parseFloat(docData.rating) || 0;
-    const reviewCount = parseInt(docData.review_count) || 0;
-    const price = parseFloat(docData.price) || 0;
-    
-    // Render stars
-    const starsContainer = document.querySelector('.stars');
-    starsContainer.innerHTML = generateStars(Math.floor(rating));
-    
-    // Update rating info
-    document.querySelector('.rating-score').textContent = rating.toFixed(1);
-    document.querySelector('.rating-count').textContent = `(${reviewCount} recensioni)`;
-    
-    // Update price
-    const priceElement = document.querySelector('.price-value');
-    if (price === 0) {
-        priceElement.textContent = 'Gratuito';
-        priceElement.style.color = 'var(--success-500)';
-    } else {
-        priceElement.textContent = `€${price.toFixed(2)}`;
-    }
-    
-    // Update document details - mapping backend vetrina structure
-    const details = {
-        'Autore': docData.owner_username || docData.author_username || 'Non specificato',
-        'Università': docData.faculty || docData.faculty_name || 'Non specificata',
-        'Corso': docData.course_name || docData.name || 'Non specificato',
-        'Professore': docData.professor || docData.main_professor || 'Non specificato',
-        'Anno Accademico': docData.academic_year || '2024/2025',
-        'Pagine': `${totalPages} pagine`,
-        'Formato': docData.files && docData.files[0] ? getFileExtension(docData.files[0].filename) : 'PDF',
-        'Lingua': docData.language || 'Italiano',
-        'Dimensione': docData.files && docData.files[0] ? formatFileSize(docData.files[0].size || 0) : 'Non disponibile',
-        'Data Pubblicazione': formatDate(docData.created_at)
-    };
-    
-    const detailsContainer = document.querySelector('.doc-details');
-    const detailsHTML = Object.entries(details).map(([label, value]) => `
-        <div class="detail-item">
-            <span class="detail-label">${label}:</span>
-            <span class="detail-value">${value}</span>
-        </div>
-    `).join('');
-    
-    detailsContainer.innerHTML = `
-        <h3>Dettagli Documento</h3>
-        ${detailsHTML}
-    `;
-    
-    // Update description - mapping backend vetrina fields
-    const description = docData.description || 'Nessuna descrizione disponibile per questo documento.';
-    const descriptionContainer = document.querySelector('.doc-description');
-    descriptionContainer.innerHTML = `
-        <h3>Descrizione</h3>
-        <p>${description}</p>
-        ${docData.tags ? `
-            <div class="description-tags">
-                <h4>Argomenti trattati:</h4>
-                <ul>
-                    ${docData.tags.split(',').map(tag => `<li>${tag.trim()}</li>`).join('')}
-                </ul>
-            </div>
-        ` : ''}
-    `;
-    
-    // Generate and update tags
-    const tags = generateDocumentTags(docData);
-    const tagsContainer = document.querySelector('.tags-container');
-    tagsContainer.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-    
-    // Update page title and meta tags
     document.title = `${title} - StudyHub`;
+
+    // Determine document type from filename
+    const documentType = getDocumentTypeFromFilename(fileData.filename);
     
-    // Update meta description for SEO
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-        metaDescription.content = description.slice(0, 160) + (description.length > 160 ? '...' : '');
-    } else {
-        const meta = document.createElement('meta');
-        meta.name = 'description';
-        meta.content = description.slice(0, 160) + (description.length > 160 ? '...' : '');
-        document.head.appendChild(meta);
+    // Update rating and price (mock data for now)
+    const rating = 4.2; // Mock rating
+    const reviewCount = 127; // Mock review count
+    const price = fileData.price || 0;
+
+    const starsContainer = document.querySelector('.stars');
+    if(starsContainer) starsContainer.innerHTML = generateStars(Math.floor(rating));
+    
+    const ratingScore = document.querySelector('.rating-score');
+    if(ratingScore) ratingScore.textContent = rating.toFixed(1);
+
+    const ratingCount = document.querySelector('.rating-count');
+    if(ratingCount) ratingCount.textContent = `(${reviewCount} recensioni)`;
+
+    const priceElement = document.querySelector('.price-value');
+    if (priceElement) {
+        if (price === 0) {
+            priceElement.textContent = 'Gratuito';
+            priceElement.classList.remove('paid');
+        } else {
+            priceElement.textContent = `€${price.toFixed(2)}`;
+            priceElement.classList.add('paid');
+        }
     }
     
-    // Update Open Graph tags for social sharing
-    const updateOrCreateMetaTag = (property, content) => {
-        let tag = document.querySelector(`meta[property="${property}"]`);
-        if (!tag) {
-            tag = document.createElement('meta');
-            tag.property = property;
-            document.head.appendChild(tag);
-        }
-        tag.content = content;
-    };
+    // Update essential details (always visible)
+    updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
+    updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
+    updateDetailValue('Canale', courseInfo.canale || 'Non specificato');
+    updateDetailValue('Tipo Documento', documentType);
+    updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
+    updateDetailValue('Autore', vetrinaData?.owner?.username || 'Non specificato');
     
-    updateOrCreateMetaTag('og:title', `${title} - StudyHub`);
-    updateOrCreateMetaTag('og:description', description.slice(0, 160) + (description.length > 160 ? '...' : ''));
-    updateOrCreateMetaTag('og:url', window.location.href);
-    updateOrCreateMetaTag('og:type', 'article');
+    // Update additional details (expandable)
+    updateAdditionalDetailValue('Lingua', courseInfo.language || 'Non specificata');
+    updateAdditionalDetailValue('Semestre', courseInfo.course_semester || 'Non specificato');
+    updateAdditionalDetailValue('Pagine', `${totalPages} pagine`);
+    updateAdditionalDetailValue('Formato', getFileExtension(fileData.filename));
+    updateAdditionalDetailValue('Dimensione', formatFileSize(fileData.size || 0));
+    updateAdditionalDetailValue('Download', `${fileData.download_count || 0} volte`);
+    updateAdditionalDetailValue('Data Pubblicazione', formatDate(fileData.created_at));
+
+    // Update description
+    const description = vetrinaData?.description || 'Nessuna descrizione disponibile per questo documento.';
+    const descriptionContainer = document.querySelector('.doc-description');
+    if(descriptionContainer) {
+        descriptionContainer.innerHTML = `<p>${description}</p>`;
+    }
+
+    // Initialize expandable functionality
+    initializeExpandableDetails();
+    
+    // Set up action buttons
+    setupActionButtons(fileData);
+}
+
+// Helper function to update detail values in essential section
+function updateDetailValue(label, value) {
+    const detailItems = document.querySelectorAll('.essential-details .detail-item');
+    detailItems.forEach(item => {
+        const labelElement = item.querySelector('.detail-label');
+        if (labelElement && labelElement.textContent === label) {
+            const valueElement = item.querySelector('.detail-value');
+            if (valueElement) {
+                valueElement.textContent = value;
+            }
+        }
+    });
+}
+
+// Helper function to update detail values in additional section
+function updateAdditionalDetailValue(label, value) {
+    const detailItems = document.querySelectorAll('.additional-details .detail-item');
+    detailItems.forEach(item => {
+        const labelElement = item.querySelector('.detail-label');
+        if (labelElement && labelElement.textContent === label) {
+            const valueElement = item.querySelector('.detail-value');
+            if (valueElement) {
+                valueElement.textContent = value;
+            }
+        }
+    });
+}
+
+// Initialize expandable details functionality
+function initializeExpandableDetails() {
+    const moreInfoBtn = document.getElementById('moreInfoBtn');
+    const additionalDetails = document.getElementById('additionalDetails');
+    
+    if (moreInfoBtn && additionalDetails) {
+        moreInfoBtn.addEventListener('click', () => {
+            const isExpanded = additionalDetails.classList.contains('expanded');
+            
+            if (isExpanded) {
+                // Collapse
+                additionalDetails.classList.remove('expanded');
+                moreInfoBtn.classList.remove('expanded');
+                moreInfoBtn.innerHTML = `
+                    <span class="material-symbols-outlined">expand_more</span>
+                    Più info
+                `;
+            } else {
+                // Expand
+                additionalDetails.classList.add('expanded');
+                moreInfoBtn.classList.add('expanded');
+                moreInfoBtn.innerHTML = `
+                    <span class="material-symbols-outlined">expand_less</span>
+                    Meno info
+                `;
+            }
+        });
+    }
+}
+
+// Get document type from filename
+function getDocumentTypeFromFilename(filename) {
+    const lowerFilename = filename.toLowerCase();
+    
+    if (lowerFilename.includes('appunti') || lowerFilename.includes('notes')) {
+        return 'Appunti';
+    } else if (lowerFilename.includes('esercizi') || lowerFilename.includes('exercise')) {
+        return 'Esercizi';
+    } else if (lowerFilename.includes('slides') || lowerFilename.includes('presentazione')) {
+        return 'Slides';
+    } else if (lowerFilename.includes('libro') || lowerFilename.includes('book')) {
+        return 'Libro';
+    } else if (lowerFilename.includes('riassunto') || lowerFilename.includes('summary')) {
+        return 'Riassunto';
+    } else if (lowerFilename.includes('formula') || lowerFilename.includes('cheat')) {
+        return 'Formulario';
+    } else if (lowerFilename.includes('esame') || lowerFilename.includes('exam')) {
+        return 'Esame';
+    } else {
+        return 'Documento';
+    }
+}
+
+// Get academic year from course info
+function getAcademicYear(courseInfo) {
+    if (courseInfo.date_year) {
+        const year = courseInfo.date_year;
+        return `${year}/${year + 1}`;
+    }
+    return 'Non specificato';
 }
 
 // Dynamic Document Pages Generator
@@ -426,31 +488,25 @@ function generateContentPages(courseInfo) {
 // Document Pages Renderer
 function renderDocumentPages(pages) {
     const viewerContainer = document.querySelector('.viewer-container');
+    if (!viewerContainer) return;
     
-    viewerContainer.innerHTML = `
-        ${pages.map((page, index) => `
-            <div class="document-page ${index === 0 ? 'active' : ''}" data-page="${index + 1}">
-                <div class="page-content">
-                    ${page.content}
-                </div>
-            </div>
-        `).join('')}
+    viewerContainer.innerHTML = ''; // Clear previous content
+    
+    pages.forEach(pageHTML => {
+        const pageElement = document.createElement('div');
+        // pageHTML is already a complete div, so we just need its content
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = pageHTML;
         
-        <div class="page-navigation">
-            <button class="nav-btn prev-btn" id="prevBtn" ${pages.length <= 1 ? 'disabled' : ''}>
-                <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <div class="page-indicator">
-                <span class="current-page">1</span> / <span class="total-pages">${pages.length}</span>
-            </div>
-            <button class="nav-btn next-btn" id="nextBtn" ${pages.length <= 1 ? 'disabled' : ''}>
-                <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-        </div>
-    `;
+        const pageContent = tempDiv.firstChild;
+        if(pageContent) {
+            viewerContainer.appendChild(pageContent);
+        }
+    });
     
-    // Update navigation references
-    updateNavigationElements();
+    totalPages = pages.length;
+    
+    // No need to manage 'active' class anymore, all pages are shown
 }
 
 // Reviews Renderer
@@ -686,29 +742,33 @@ function formatDate(dateString) {
 // Reading Position Management
 function saveReadingPosition() {
     if (currentDocument) {
-        const vetrinaId = currentDocument.id;
-        localStorage.setItem(`vetrina-${vetrinaId}-page`, currentPage);
-        localStorage.setItem(`vetrina-${vetrinaId}-zoom`, currentZoom);
+        const fileId = currentDocument.id;
+        const scrollable = document.querySelector('.document-viewer-section');
+        if (scrollable) {
+            localStorage.setItem(`file-${fileId}-scroll`, scrollable.scrollTop);
+        }
+        localStorage.setItem(`file-${fileId}-zoom`, currentZoom);
     }
 }
 
 function loadReadingPosition() {
     if (currentDocument) {
-        const vetrinaId = currentDocument.id;
-        const savedPage = localStorage.getItem(`vetrina-${vetrinaId}-page`);
-        const savedZoom = localStorage.getItem(`vetrina-${vetrinaId}-zoom`);
-        
-        if (savedPage) {
-            const page = parseInt(savedPage);
-            if (page >= 1 && page <= totalPages) {
-                currentPage = page;
-            }
-        }
+        const fileId = currentDocument.id;
+        const savedScroll = localStorage.getItem(`file-${fileId}-scroll`);
+        const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
         
         if (savedZoom) {
-            const zoom = parseInt(savedZoom);
-            if (zoom >= ZOOM_CONFIG.min && zoom <= ZOOM_CONFIG.max) {
-                currentZoom = zoom;
+            currentZoom = parseInt(savedZoom);
+            adjustZoom(0); // Apply zoom
+        }
+
+        if (savedScroll) {
+            const scrollable = document.querySelector('.document-viewer-section');
+            if (scrollable) {
+                // Use a timeout to ensure content is rendered before scrolling
+                setTimeout(() => {
+                    scrollable.scrollTop = parseInt(savedScroll);
+                }, 100);
             }
         }
     }
@@ -723,7 +783,7 @@ function handlePurchase() {
         downloadDocument();
     } else {
         // Paid document - payment flow
-        window.location.href = `payment.html?vetrina=${currentDocument.id}&price=${currentDocument.price}`;
+        window.location.href = `payment.html?file=${currentDocument.id}&price=${currentDocument.price}`;
     }
 }
 
@@ -874,90 +934,121 @@ function initializeTouchNavigation() {
 
 // Main Initialization
 async function initializeDocumentPreview() {
+    if (!checkAuthentication()) {
+        return;
+    }
+
+    const fileId = getFileIdFromUrl();
+    if (!fileId) {
+        return;
+    }
+
+    const viewer = document.getElementById('documentViewer');
+    if (!viewer) {
+        return;
+    }
+
+    const loader = LoadingManager.show(viewer);
+
     try {
-        // Check authentication
-        if (!authToken) {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        // Get vetrina ID from URL
-        const vetrinaId = getVetrinaIdFromUrl();
-        if (!vetrinaId) return;
-        
-        // Show loading state
-        const mainContent = document.querySelector('.preview-main');
-        const loader = LoadingManager.show(mainContent, 'Caricamento documento...');
-        
-        // Fetch document data
-        const { document: docData, reviews, related } = await fetchDocumentData(vetrinaId);
-        currentDocument = docData;
-        
-        // Generate document pages
-        const pages = generateDocumentPages(docData);
-        documentPages = pages;
-        
-        // Load reading position
-        loadReadingPosition();
-        
-        // Hide loader
-        LoadingManager.hide(loader);
-        
-        // Render everything
-        renderDocumentInfo(docData);
-        renderDocumentPages(pages);
-        renderReviews(reviews);
-        renderRelatedDocuments(related);
-        
-        // Initialize systems
+        const data = await fetchDocumentData(fileId);
+        currentDocument = data.document;
+
+        // Generate and render document pages
+        documentPages = await generateDocumentPages(currentDocument);
+        renderDocumentPages(documentPages);
+
+        // Render document information
+        renderDocumentInfo(data);
+
+        // Initialize controls
         initializeZoom();
-        initializeKeyboardNavigation();
-        initializeTouchNavigation();
-        
-        // Setup action buttons
-        setupActionButtons();
-        
+        setupActionButtons(currentDocument);
+        initializeTabs();
+
+        // Load saved reading position
+        loadReadingPosition();
+
         // Auto-save position
-        setInterval(saveReadingPosition, 30000); // Every 30 seconds
-        
-        console.log('Document preview initialized successfully');
-        
+        const scrollable = document.querySelector('.document-viewer-section');
+        if (scrollable) {
+            scrollable.addEventListener('scroll', saveReadingPosition);
+        }
+        window.addEventListener('beforeunload', saveReadingPosition);
+
+        LoadingManager.hide(loader);
     } catch (error) {
         console.error('Failed to initialize document preview:', error);
-        
-        const mainContent = document.querySelector('.preview-main');
         LoadingManager.showError(
-            mainContent,
-            'Impossibile caricare il documento. Verifica la connessione e riprova.',
+            viewer,
+            'Impossibile caricare il documento. Riprova più tardi.',
             'Torna alla ricerca',
             () => window.location.href = 'search.html'
         );
     }
 }
 
+// Initialize when the page loads
+window.onload = initializeDocumentPreview;
+
 // Action Buttons Setup
-function setupActionButtons() {
-    const actionButtons = document.querySelectorAll('.action-btn');
+function setupActionButtons(docData) {
+    const purchaseBtn = document.getElementById('purchaseBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    if (!docData) return;
+
+    const isFree = (parseFloat(docData.price) || 0) === 0;
+
+    if (isFree) {
+        if (purchaseBtn) purchaseBtn.style.display = 'none';
+        if (downloadBtn) {
+            downloadBtn.style.display = 'flex';
+            downloadBtn.onclick = () => downloadDocument(docData.id);
+        }
+    } else {
+        if (downloadBtn) downloadBtn.style.display = 'none';
+        if (purchaseBtn) {
+            purchaseBtn.style.display = 'flex';
+            purchaseBtn.onclick = () => handlePurchase(docData.id);
+            // Update text to show price
+            purchaseBtn.innerHTML = `
+                <span class="material-symbols-outlined">shopping_cart</span>
+                Acquista per €${docData.price.toFixed(2)}
+            `;
+        }
+    }
+
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
     
-    actionButtons.forEach((btn, index) => {
-        btn.addEventListener('click', () => {
-            switch(index) {
-                case 0: // Purchase/Download
-                    handlePurchase();
-                    break;
-                case 1: // Favorite
-                    handleFavorite();
-                    break;
-                case 2: // Share
-                    handleShare();
-                    break;
-            }
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) shareBtn.onclick = handleShare;
+}
+
+function initializeTabs() {
+    const tabNav = document.querySelector('.tab-nav');
+    if (!tabNav) return;
+
+    const tabLinks = tabNav.querySelectorAll('.tab-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabNav.addEventListener('click', (e) => {
+        const targetLink = e.target.closest('.tab-link');
+        if (!targetLink) return;
+
+        e.preventDefault();
+        const tabId = targetLink.dataset.tab;
+
+        tabLinks.forEach(link => {
+            link.classList.toggle('active', link === targetLink);
+        });
+
+        tabContents.forEach(content => {
+            content.classList.toggle('active', content.id === tabId);
         });
     });
 }
-
-// Initialize on DOM Content Loaded
-document.addEventListener('DOMContentLoaded', initializeDocumentPreview);
 
 // Save state when leaving page
 window.addEventListener('beforeunload', saveReadingPosition);

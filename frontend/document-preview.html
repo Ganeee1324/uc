@@ -10,9 +10,6 @@
     <link rel="icon" href="images/favicon.png" type="image/png">
 </head>
 <body>
-    <!-- Professional Clean Background -->
-    <div class="clean-background"></div>
-
     <!-- Header -->
     <header class="header">
         <a href="search.html" class="logo">
@@ -28,7 +25,7 @@
         
         <div class="auth-buttons">
             <div class="user-info">
-                <div class="user-avatar"></div>
+                <div class="user-avatar">MR</div>
                 <span class="user-name">Marco R.</span>
                 <button class="logout-btn">
                     <span class="material-symbols-outlined">logout</span>
@@ -223,222 +220,166 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Page Navigation -->
-                <div class="page-navigation">
-                    <button class="nav-btn prev-btn" id="prevBtn" disabled>
-                        <span class="material-symbols-outlined">chevron_left</span>
-                    </button>
-                    <div class="page-indicator">
-                        <span class="current-page">1</span> / <span class="total-pages">5</span>
-                    </div>
-                    <button class="nav-btn next-btn" id="nextBtn">
-                        <span class="material-symbols-outlined">chevron_right</span>
-                    </button>
-                </div>
             </div>
         </section>
 
-        <!-- Document Info Sidebar -->
+        <!-- Document Info Sidebar - PROFESSIONAL SINGLE CONTAINER -->
         <aside class="document-info-sidebar">
             <div class="doc-info-content">
-                <!-- Document Header -->
-                <div class="doc-info-header">
+                <!-- Main Info & CTA -->
+                <div class="doc-main-info">
                     <h1 class="doc-title">Analisi Matematica I - Appunti Completi</h1>
-                    <div class="doc-meta">
+                    <div class="doc-meta-header">
                         <div class="doc-rating">
                             <div class="stars">
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
-                                <span class="star filled">★</span>
                                 <span class="star">★</span>
+                                <span class="star">★</span>
+                                <span class="star">★</span>
+                                <span class="star">★</span>
+                                <span class="star">☆</span>
                             </div>
                             <span class="rating-score">4.2</span>
                             <span class="rating-count">(127 recensioni)</span>
                         </div>
                         <div class="doc-price">
-                            <span class="price-label">Prezzo:</span>
-                            <span class="price-value">€12.99</span>
+                            <span class="price-value">Gratuito</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <button class="action-btn primary">
+                <!-- Premium Action Buttons -->
+                <div class="doc-actions">
+                    <button class="action-btn primary" id="purchaseBtn">
                         <span class="material-symbols-outlined">shopping_cart</span>
-                        Acquista Documento
+                        Acquista Ora
                     </button>
-                    <button class="action-btn secondary">
-                        <span class="material-symbols-outlined">favorite_border</span>
-                        Salva nei Preferiti
-                    </button>
-                    <button class="action-btn secondary">
-                        <span class="material-symbols-outlined">share</span>
-                        Condividi
-                    </button>
-                </div>
-
-                <!-- Document Details -->
-                <div class="doc-details">
-                    <h3>Dettagli Documento</h3>
-                    <div class="detail-item">
-                        <span class="detail-label">Autore:</span>
-                        <span class="detail-value">Marco Bianchi</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Università:</span>
-                        <span class="detail-value">Università Statale di Milano</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Corso:</span>
-                        <span class="detail-value">Analisi Matematica I</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Professore:</span>
-                        <span class="detail-value">Prof. Giuseppe Rossi</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Anno Accademico:</span>
-                        <span class="detail-value">2023/2024</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Pagine:</span>
-                        <span class="detail-value">5 pagine</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Formato:</span>
-                        <span class="detail-value">PDF</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Lingua:</span>
-                        <span class="detail-value">Italiano</span>
+                    <div class="secondary-actions">
+                        <button class="action-btn secondary" id="favoriteBtn">
+                            <span class="material-symbols-outlined">favorite_border</span>
+                            <span>Preferiti</span>
+                        </button>
+                        <button class="action-btn secondary" id="shareBtn">
+                            <span class="material-symbols-outlined">share</span>
+                            <span>Condividi</span>
+                        </button>
+                        <button class="action-btn secondary" id="downloadBtn">
+                            <span class="material-symbols-outlined">download</span>
+                            <span>Download</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Description -->
-                <div class="doc-description">
-                    <h3>Descrizione</h3>
-                    <p>Appunti completi del corso di Analisi Matematica I tenuto dal Prof. Giuseppe Rossi presso l'Università Statale di Milano. Gli appunti coprono tutti gli argomenti fondamentali del corso:</p>
-                    <ul>
-                        <li>Funzioni e loro proprietà</li>
-                        <li>Limiti e continuità</li>
-                        <li>Derivate e applicazioni</li>
-                        <li>Integrali definiti e indefiniti</li>
-                        <li>Serie e successioni numeriche</li>
-                    </ul>
-                    <p>Gli appunti sono stati presi durante le lezioni del semestre autunnale 2023 e includono esempi pratici, dimostrazioni e esercizi svolti. Ideali per la preparazione all'esame.</p>
+                <!-- Document Details Section -->
+                <div class="doc-details-section">
+                    <h3>
+                        <span class="material-symbols-outlined">info</span>
+                        Dettagli Documento
+                    </h3>
+                    <div class="doc-details">
+                        <!-- Essential Information (Always visible) -->
+                        <div class="essential-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Facoltà</span>
+                                <span class="detail-value">Università di Milano</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Corso</span>
+                                <span class="detail-value">Analisi Matematica I</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Canale</span>
+                                <span class="detail-value">A</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Tipo Documento</span>
+                                <span class="detail-value">Appunti</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Anno Accademico</span>
+                                <span class="detail-value">2023/2024</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Autore</span>
+                                <span class="detail-value">Marco Rossi</span>
+                            </div>
+                        </div>
+
+                        <!-- More Info Button -->
+                        <button class="more-info-btn" id="moreInfoBtn">
+                            <span class="material-symbols-outlined">expand_more</span>
+                            Più info
+                        </button>
+
+                        <!-- Additional Information (Expandable) -->
+                        <div class="additional-details" id="additionalDetails">
+                            <div class="detail-item">
+                                <span class="detail-label">Lingua</span>
+                                <span class="detail-value">Italiano</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Semestre</span>
+                                <span class="detail-value">1</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Pagine</span>
+                                <span class="detail-value">5 pagine</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Formato</span>
+                                <span class="detail-value">PDF</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Dimensione</span>
+                                <span class="detail-value">2.3 MB</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Download</span>
+                                <span class="detail-value">127 volte</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Data Pubblicazione</span>
+                                <span class="detail-value">15 Marzo 2024</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Tags -->
-                <div class="doc-tags">
-                    <h3>Argomenti</h3>
-                    <div class="tags-container">
-                        <span class="tag">Matematica</span>
-                        <span class="tag">Analisi</span>
-                        <span class="tag">Limiti</span>
-                        <span class="tag">Derivate</span>
-                        <span class="tag">Integrali</span>
-                        <span class="tag">Serie</span>
-                        <span class="tag">Università</span>
-                        <span class="tag">Appunti</span>
+                <!-- Document Description Section -->
+                <div class="doc-description-section">
+                    <h3>
+                        <span class="material-symbols-outlined">description</span>
+                        Descrizione
+                    </h3>
+                    <div class="doc-description">
+                        <p>Appunti completi e dettagliati del corso di Analisi Matematica I. Include tutti gli argomenti fondamentali: funzioni, limiti, derivate, integrali e serie numeriche.</p>
+                        <p>Gli appunti sono stati redatti con cura durante le lezioni e includono esempi pratici, dimostrazioni complete e esercizi svolti.</p>
+                        <p>Perfetti per la preparazione dell'esame e per un ripasso completo della materia.</p>
                     </div>
                 </div>
 
                 <!-- Reviews Section -->
-                <div class="reviews-section">
-                    <h3>Recensioni Recenti</h3>
-                    
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <div class="reviewer-avatar">A</div>
-                                <div class="reviewer-details">
-                                    <span class="reviewer-name">Alessandro M.</span>
-                                    <div class="review-rating">
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span class="review-date">2 giorni fa</span>
+                <div class="doc-reviews-section">
+                    <h3>
+                        <span class="material-symbols-outlined">star</span>
+                        Recensioni
+                    </h3>
+                    <div class="reviews-section">
+                        <div class="no-reviews">
+                            <p>Nessuna recensione disponibile per questo documento.</p>
+                            <p>Sii il primo a lasciare una recensione!</p>
                         </div>
-                        <p class="review-text">Appunti molto ben fatti e completi. Mi hanno aiutato tantissimo per l'esame. La spiegazione dei limiti è particolarmente chiara.</p>
                     </div>
-
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <div class="reviewer-avatar">L</div>
-                                <div class="reviewer-details">
-                                    <span class="reviewer-name">Laura F.</span>
-                                    <div class="review-rating">
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star">★</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span class="review-date">1 settimana fa</span>
-                        </div>
-                        <p class="review-text">Ottimi appunti, ben organizzati e facili da seguire. Unico piccolo difetto: avrei gradito più esempi pratici nella sezione degli integrali.</p>
-                    </div>
-
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <div class="reviewer-avatar">M</div>
-                                <div class="reviewer-details">
-                                    <span class="reviewer-name">Mario R.</span>
-                                    <div class="review-rating">
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star filled">★</span>
-                                        <span class="star">★</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span class="review-date">2 settimane fa</span>
-                        </div>
-                        <p class="review-text">Documenti di qualità eccellente. Si vede che sono stati presi con cura durante le lezioni. Consigliati!</p>
-                    </div>
-
-                    <button class="show-more-reviews">
-                        Mostra tutte le recensioni
-                        <span class="material-symbols-outlined">expand_more</span>
-                    </button>
                 </div>
 
-                <!-- Related Documents -->
-                <div class="related-docs">
-                    <h3>Documenti Correlati</h3>
-                    <div class="related-doc-item">
-                        <div class="related-doc-preview"></div>
-                        <div class="related-doc-info">
-                            <h4>Analisi Matematica I - Esercizi</h4>
-                            <p>Stesso autore • €8.99</p>
-                            <div class="related-doc-rating">
-                                <span class="stars">★★★★☆</span>
-                                <span>4.1</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="related-doc-item">
-                        <div class="related-doc-preview"></div>
-                        <div class="related-doc-info">
-                            <h4>Geometria Analitica - Teoria</h4>
-                            <p>Marco Bianchi • €10.50</p>
-                            <div class="related-doc-rating">
-                                <span class="stars">★★★★★</span>
-                                <span>4.6</span>
-                            </div>
+                <!-- Related Documents Section -->
+                <div class="related-docs-section">
+                    <h3>
+                        <span class="material-symbols-outlined">library_books</span>
+                        Documenti Correlati
+                    </h3>
+                    <div class="related-docs-list">
+                        <div class="no-related">
+                            <p>Nessun documento correlato trovato.</p>
                         </div>
                     </div>
                 </div>

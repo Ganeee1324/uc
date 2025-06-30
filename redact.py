@@ -24,3 +24,6 @@ def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 2)
         page.clean_contents()
         page.insert_image(page.rect, stream=bio)
     doc.save(doc_path.replace(".pdf", "_redacted.pdf"))
+
+if __name__ == "__main__":
+    blur_pages("test.pdf", [1])

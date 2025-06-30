@@ -346,7 +346,6 @@ def get_owned_vetrine():
 # ---------------------------------------------
 
 
-# get faculties and courses
 @app.route("/hierarchy", methods=["GET"])
 def get_hierarchy():
     if database.faculties_courses_cache is None:

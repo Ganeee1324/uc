@@ -38,6 +38,9 @@ if not files_folder:
 files_folder_path = os.path.join(os.path.dirname(__file__), files_folder)
 os.makedirs(files_folder_path, exist_ok=True)
 
+# Valid file tags
+VALID_TAGS = ["dispense", "appunti", "esercizi"]
+
 # ---------------------------------------------
 # Error handlers
 # ---------------------------------------------
@@ -194,6 +197,11 @@ def upload_file(vetrina_id):
     if file.filename == "":
         return jsonify({"error": "no_filename", "msg": "No filename provided"}), 400
 
+    # Get and validate tag if provided
+    tag = request.form.get("tag")
+    if tag and tag not in VALID_TAGS:
+        return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
+
     # Save file content to calculate size and hash
     file_content = file.read()
     file_size = len(file_content)
@@ -208,8 +216,8 @@ def upload_file(vetrina_id):
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
 
-    # Add file to database with size
-    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, price=0, size=file_size)
+    # Add file to database with size and tag
+    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, price=0, size=file_size, tag=tag)
 
     try:
         file.save(new_file_path)
@@ -352,6 +360,12 @@ def get_hierarchy():
         database.faculties_courses_cache = database.scrape_faculties_courses()
         logging.info("Added faculties and courses to cache")
     return jsonify(database.faculties_courses_cache), 200
+
+
+@app.route("/tags", methods=["GET"])
+def get_valid_tags():
+    """Get the list of valid file tags."""
+    return jsonify({"tags": VALID_TAGS}), 200
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ class File:
         price: int = 0,
         owned: bool = False,
         favorite: bool = False,
+        tag: str | None = None,
     ):
         self.id = id
         self.filename = filename
@@ -30,9 +31,10 @@ class File:
         self.owned = owned
         self.favorite = favorite
         self.price = price
+        self.tag = tag
 
     def __str__(self) -> str:
-        return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count})"
+        return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -51,6 +53,7 @@ class File:
             "owned": self.owned,
             "price": self.price,
             "favorite": self.favorite,
+            "tag": self.tag,
         }
 
 

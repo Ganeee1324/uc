@@ -1956,7 +1956,7 @@ async function loadAllFiles() {
         currentVetrine = vetrineResponse.vetrine || [];
         console.log('Loaded vetrine:', currentVetrine);
         
-        // Load files for each vetrina
+        // Load files for each vetrina and group them by vetrina
         const allFiles = [];
         for (const vetrina of currentVetrine) {
             try {
@@ -1964,49 +1964,65 @@ async function loadAllFiles() {
                 if (filesResponse && filesResponse.files) {
                     const files = filesResponse.files;
                     
-                    files.forEach(file => {
-                        // Transform the API response to match frontend expectations - NOW WITH REAL DATA!
-                        const transformedFile = {
+                    if (files.length === 0) continue;
+                    
+                    // Calculate total size and average price for the vetrina
+                    const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
+                    const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
+                    
+                    // Transform the vetrina into a card item
+                    const vetrineCard = {
+                        id: vetrina.id,
+                        isVetrina: true,
+                        fileCount: files.length,
+                        files: files.map(file => ({
                             id: file.id,
                             filename: file.filename,
                             title: getOriginalFilename(file.filename),
-                            description: vetrina.description || 'No description available',
                             size: file.size || 0,
-                            price: (file.price || 0) / 100, // Convert cents to euros
+                            price: file.price || 0,
+                            document_type: getFileTypeFromFilename(file.filename),
                             created_at: file.created_at,
                             download_count: file.download_count || 0,
-                            rating: Math.random() * 2 + 3, // Generate random rating between 3-5
-                            review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
-                            course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
-                            faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
-                            language: vetrina.course_instance?.language || 'Italiano',
-                            canale: vetrina.course_instance?.canale || 'A',
-                            course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                            academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                            document_type: getFileTypeFromFilename(file.filename),
-                            author_username: vetrina.owner?.username || 'Unknown',
-                            owned: file.owned || false,
-                            vetrina_info: {
-                                id: vetrina.id,
-                                name: vetrina.name,
-                                description: vetrina.description,
-                                course_instance_id: vetrina.course_instance?.instance_id,
-                                owner_id: vetrina.owner?.id,
-                                owner_username: vetrina.owner?.username || 'Unknown'
-                            }
-                        };
-                        allFiles.push(transformedFile);
-                    });
+                            owned: file.owned || false
+                        })),
+                        // Use vetrina info for the card
+                        filename: files.length > 1 ? `${files.length} files` : files[0].filename,
+                        title: vetrina.name || 'Vetrina Senza Nome',
+                        description: vetrina.description || 'No description available',
+                        size: totalSize,
+                        price: totalPrice,
+                        created_at: vetrina.created_at,
+                        download_count: files.reduce((sum, file) => sum + (file.download_count || 0), 0),
+                        rating: Math.random() * 2 + 3, // Generate random rating between 3-5
+                        review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
+                        course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
+                        faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
+                        language: vetrina.course_instance?.language || 'Italiano',
+                        canale: vetrina.course_instance?.canale || 'A',
+                        course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                        academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                        document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
+                        author_username: vetrina.owner?.username || 'Unknown',
+                        owned: files.every(file => file.owned),
+                        vetrina_info: {
+                            id: vetrina.id,
+                            name: vetrina.name,
+                            description: vetrina.description,
+                            course_instance_id: vetrina.course_instance?.instance_id,
+                            owner_id: vetrina.owner?.id,
+                            owner_username: vetrina.owner?.username || 'Unknown'
+                        }
+                    };
+                    allFiles.push(vetrineCard);
                 }
             } catch (error) {
                 console.error(`Error loading files for vetrina ${vetrina.id}:`, error);
             }
         }
         
-        // Group files by vetrina for proper display
-        const groupedVetrine = groupFilesByVetrina(allFiles);
-        currentFiles = groupedVetrine;
-        originalFiles = [...groupedVetrine]; // Keep original copy
+        currentFiles = allFiles;
+        originalFiles = [...allFiles]; // Keep original copy
         renderDocuments(currentFiles);
         populateFilterOptions();
         showStatus(`${allFiles.length} documenti caricati con successo! 🎉`);
@@ -2017,58 +2033,6 @@ async function loadAllFiles() {
         // Show empty state
         renderDocuments([]);
     }
-}
-
-// Group files by vetrina for proper display
-function groupFilesByVetrina(files) {
-    const vetrineMap = new Map();
-    
-    // Group files by vetrina ID
-    files.forEach(file => {
-        const vetrinaId = file.vetrina_info.id;
-        if (!vetrineMap.has(vetrinaId)) {
-            vetrineMap.set(vetrinaId, {
-                ...file, // Use first file as base
-                files: [],
-                isVetrina: true,
-                fileCount: 0
-            });
-        }
-        vetrineMap.get(vetrinaId).files.push(file);
-    });
-    
-    // Convert to array and set proper display properties
-    const groupedVetrine = Array.from(vetrineMap.values()).map(vetrina => {
-        vetrina.fileCount = vetrina.files.length;
-        
-        if (vetrina.fileCount === 1) {
-            // Single file - display as individual file
-            return vetrina.files[0];
-        } else {
-            // Multiple files - display as vetrina with file count
-            vetrina.title = vetrina.vetrina_info.name;
-            vetrina.description = vetrina.vetrina_info.description;
-            
-            // Calculate aggregated price (sum of all files)
-            const totalPrice = vetrina.files.reduce((sum, file) => sum + (file.price || 0), 0);
-            const freeFiles = vetrina.files.filter(file => (file.price || 0) === 0).length;
-            
-            if (freeFiles === vetrina.fileCount) {
-                vetrina.price = 0;
-                vetrina.priceDisplay = 'Gratis';
-            } else if (freeFiles > 0) {
-                vetrina.price = totalPrice;
-                vetrina.priceDisplay = `€${totalPrice} (${freeFiles} gratis)`;
-            } else {
-                vetrina.price = totalPrice;
-                vetrina.priceDisplay = `€${totalPrice}`;
-            }
-            
-            return vetrina;
-        }
-    });
-    
-    return groupedVetrine;
 }
 
 // Helper function to extract course name from vetrina name
@@ -2194,29 +2158,15 @@ function renderDocuments(files) {
     files.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'document-card';
-        
-        // Add special class for multi-file vetrine
-        if (item.isVetrina && item.fileCount > 1) {
-            card.classList.add('vetrina-card');
-        }
-        
         card.style.animationDelay = `${index * 0.1}s`;
         
         // Make the entire card clickable
         card.style.cursor = 'pointer';
         card.onclick = () => {
-            if (item.isVetrina && item.fileCount > 1) {
-                // For multi-file vetrine, go to first file's preview
-                window.location.href = `document-preview.html?id=${item.files[0].id}`;
-            } else {
-                // For single files, go directly to preview
-                window.location.href = `document-preview.html?id=${item.id}`;
-            }
+            window.location.href = `document-preview.html?id=${item.id}`;
         };
 
-        const isMultiFileVetrina = item.isVetrina && item.fileCount > 1;
-        
-        const documentType = isMultiFileVetrina ? 'Vetrina' : (item.document_type || 'Documento');
+        const documentType = item.document_type || 'Documento';
         const documentTitle = item.title || 'Documento Senza Titolo';
         const rating = parseFloat(item.rating) || 0;
         const reviewCount = parseInt(item.review_count) || 0;
@@ -2226,13 +2176,41 @@ function renderDocuments(files) {
         const stars = generateStars(Math.floor(rating));
         const documentCategory = getDocumentCategory(documentTitle, description);
         
+        // Determine if this is a multi-file vetrina
+        const isMultiFile = item.isVetrina && item.fileCount > 1;
+        const fileStackClass = isMultiFile ? 'file-stack' : '';
+        const stackCountBadge = isMultiFile ? `<div class="file-count-badge">${item.fileCount} files</div>` : '';
+        
+        // Generate preview based on whether it's a single file or multi-file vetrina
+        let previewContent;
+        if (isMultiFile) {
+            // Show file stack with preview of first file
+            const firstFile = item.files[0];
+            previewContent = `
+                <div class="preview-icon ${fileStackClass}">
+                    <div class="stack-layer stack-back"></div>
+                    <div class="stack-layer stack-middle"></div>
+                    <div class="stack-layer stack-front">
+                        <span class="document-icon">${getDocumentPreviewIcon(firstFile.filename)}</span>
+                        <div class="file-extension">${firstFile.document_type}</div>
+                    </div>
+                    ${stackCountBadge}
+                </div>
+            `;
+        } else {
+            // Single file preview
+            const filename = item.isVetrina ? item.files[0].filename : item.filename;
+            previewContent = `
+                <div class="preview-icon">
+                    <span class="document-icon">${getDocumentPreviewIcon(filename)}</span>
+                    <div class="file-extension">${documentType}</div>
+                </div>
+            `;
+        }
+        
         card.innerHTML = `
             <div class="document-preview">
-                <div class="preview-icon">
-                    <span class="document-icon">${isMultiFileVetrina ? '📁' : getDocumentPreviewIcon(item.filename)}</span>
-                    <div class="file-extension">${documentType}</div>
-                    ${isMultiFileVetrina ? `<div class="file-count-badge">${item.fileCount} file</div>` : ''}
-                </div>
+                ${previewContent}
                 <div class="document-type-badge">${documentCategory}</div>
                 <div class="rating-badge">
                     <div class="rating-stars">${stars}</div>
@@ -2270,15 +2248,10 @@ function renderDocuments(files) {
                         <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
-                        <div class="document-meta">
-                            ${isMultiFileVetrina ? 
-                                `${item.fileCount} file` : 
-                                formatFileSize(item.size || 0)
-                            }
-                        </div>
+                        <div class="document-meta">${formatFileSize(item.size || 0)}</div>
                     </div>
                     <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
-                        ${isMultiFileVetrina && item.priceDisplay ? item.priceDisplay : (price === 0 ? 'Gratis' : `€${price}`)}
+                        ${price === 0 ? 'Gratis' : `€${price}`}
                     </div>
                 </div>
             </div>

@@ -350,30 +350,11 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
     # Handle text search with optimized ordering
     if "text" in params and params["text"]:
         text_search = f"%{params['text']}%"
-        where_parts.append(
-            """
-            (v.name ILIKE %s OR 
-             v.description ILIKE %s OR 
-             ci.course_name ILIKE %s OR 
-             ci.faculty_name ILIKE %s OR
-             u.username ILIKE %s OR
-             CONCAT(u.name, ' ', u.surname) ILIKE %s)
-        """
-        )
+        where_parts.append("(v.name ILIKE %s OR v.description ILIKE %s OR ci.course_name ILIKE %s OR ci.faculty_name ILIKE %s OR u.username ILIKE %s OR CONCAT(u.name, ' ', u.surname) ILIKE %s)")
         query_params.extend([text_search] * 6)
 
         # Optimized ORDER BY using a single CASE statement
-        order_by_clause = f"""
-            ORDER BY CASE 
-                WHEN v.name ILIKE %s THEN 1
-                WHEN v.description ILIKE %s THEN 2
-                WHEN ci.course_name ILIKE %s THEN 3
-                WHEN ci.faculty_name ILIKE %s THEN 4
-                WHEN u.username ILIKE %s THEN 5
-                WHEN CONCAT(u.name, ' ', u.surname) ILIKE %s THEN 6
-                ELSE 7
-            END
-        """
+        order_by_clause = "ORDER BY CASE WHEN v.name ILIKE %s THEN 1 WHEN v.description ILIKE %s THEN 2 WHEN ci.course_name ILIKE %s THEN 3 WHEN ci.faculty_name ILIKE %s THEN 4 WHEN u.username ILIKE %s THEN 5 WHEN CONCAT(u.name, ' ', u.surname) ILIKE %s THEN 6 ELSE 7 END"
         query_params.extend([text_search] * 6)
 
     # Add filters - only build filter strings for non-empty values
@@ -384,11 +365,12 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
 
     for param_name, field_name, value in filters:
         if value:
-            where_parts.append(f"AND {field_name} ILIKE %s")
+            where_parts.append(f"{field_name} ILIKE %s")
             query_params.append(f"%{value}%")
 
     # Build final query
-    final_query = f"{base_query} WHERE {' '.join(where_parts)} {order_by_clause} LIMIT 100"
+    where_clause = " AND ".join(where_parts)
+    final_query = f"{base_query} WHERE {where_clause} {order_by_clause} LIMIT 100"
 
     with connect() as conn:
         with conn.cursor() as cursor:

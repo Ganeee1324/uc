@@ -68,6 +68,8 @@ class User:
         return {
             "id": self.id,
             "username": self.username,
+            "name": self.name,
+            "surname": self.surname,
         }
 
     def __str__(self) -> str:
@@ -157,7 +159,9 @@ class Vetrina:
         self.favorite = favorite
 
     def __str__(self) -> str:
-        return f"Vetrina(id={self.id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance})"
+        return (
+            f"Vetrina(id={self.id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance})"
+        )
 
     def __repr__(self) -> str:
         return self.__str__()

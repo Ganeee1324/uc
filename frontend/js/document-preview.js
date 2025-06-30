@@ -890,8 +890,9 @@ function setupActionButtons(fileData) {
 
     const isFree = (parseFloat(fileData.price) || 0) === 0;
 
-    // Purchase/Download button logic
+    // Purchase/Download button logic - Fix duplicate download buttons
     if (isFree) {
+        // For free documents: show primary button as download, hide secondary download
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
                 <span class="material-symbols-outlined">download</span>
@@ -899,7 +900,12 @@ function setupActionButtons(fileData) {
             `;
             purchaseBtn.onclick = () => downloadDocument(fileData.id);
         }
+        // Hide secondary download button for free documents
+        if (downloadBtn) {
+            downloadBtn.style.display = 'none';
+        }
     } else {
+        // For paid documents: show primary as purchase, show secondary download
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
                 <span class="material-symbols-outlined">shopping_cart</span>
@@ -907,12 +913,16 @@ function setupActionButtons(fileData) {
             `;
             purchaseBtn.onclick = () => handlePurchase(fileData.id);
         }
+        // Show secondary download button for paid documents (after purchase)
+        if (downloadBtn) {
+            downloadBtn.style.display = 'flex';
+            downloadBtn.onclick = () => downloadDocument(fileData.id);
+        }
     }
 
     // Setup other action buttons
     if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
     if (shareBtn) shareBtn.onclick = handleShare;
-    if (downloadBtn) downloadBtn.onclick = () => downloadDocument(fileData.id);
 }
 
 // Enhanced Purchase Handler

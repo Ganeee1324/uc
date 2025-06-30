@@ -139,9 +139,11 @@ body {
     color: var(--neutral-900);
     line-height: 1.6;
     letter-spacing: -0.025em;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
     overflow: hidden;
     position: relative;
-    min-height: 100vh;
 }
 
 /* Animated Background - Premium */
@@ -279,26 +281,28 @@ body::before {
     background: var(--danger-50);
 }
 
-/* Main Preview Layout - Closer to header */
+/* Main Preview Layout - Moved down from header */
 .preview-main {
     display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: var(--space-6); /* Reduced gap */
-    padding: var(--space-4) var(--space-8); /* Reduced top padding */
-    min-height: calc(100vh - 72px - var(--space-4)); /* Reduced space from header */
-    margin-top: var(--space-4); /* Reduced margin */
+    grid-template-columns: 1fr 420px; /* Document viewer | Sidebar */
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    min-height: calc(100vh - 72px - var(--space-8)); /* Added more space from header */
+    margin-top: var(--space-8); /* Moved down from header */
+    overflow: hidden;
 }
 
-/* Enhanced Document Viewer Section - Closer to header */
+/* Document Viewer Section - Adjusted positioning */
 .document-viewer-section {
     flex: 1;
     background: transparent;
     border-radius: var(--radius-3xl);
     overflow: hidden;
-    position: relative; /* For overlay positioning */
+    position: relative;
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.5s var(--ease-out); /* Extended transition for fullscreen */
+    transition: all 0.5s var(--ease-out);
+    height: calc(100vh - 72px - var(--space-16)); /* Adjusted for moved down position */
 }
 
 .document-viewer-section::before {
@@ -341,12 +345,15 @@ body::before {
     backdrop-filter: blur(16px);
 }
 
-/* Scrollable Document Viewer - Full height */
+/* Scrollable Document Viewer - Full height and properly scrollable */
 .document-viewer {
     height: 100%; /* Take full height of section */
-    overflow-y: auto;
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scroll */
     padding: var(--space-8);
     background: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .viewer-container {
@@ -530,17 +537,17 @@ body::before {
     font-style: italic;
 }
 
-/* Document Sidebar - Closer to header */
+/* Document Sidebar - Moved down */
 .document-info-sidebar {
-    width: 420px; /* Increased from 380px */
+    width: 420px;
     background: var(--neutral-0);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-xl);
     overflow: hidden;
     position: sticky;
-    top: calc(72px + var(--space-4)); /* Reduced from var(--space-8) */
-    height: calc(100vh - 72px - var(--space-8)); /* Increased effective height */
-    max-height: calc(100vh - 72px - var(--space-8));
+    top: calc(72px + var(--space-8)); /* Moved down from header */
+    height: calc(100vh - 72px - var(--space-16)); /* Adjusted height */
+    max-height: calc(100vh - 72px - var(--space-16));
     transition: all 0.4s var(--ease-out);
     border: 1px solid var(--neutral-100);
 }
@@ -568,6 +575,16 @@ body::before {
     min-height: 320px; /* Increased minimum height */
 }
 
+/* Details Section Header with Più info button */
+.details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--primary-100);
+}
+
 .doc-details-section h3 {
     display: flex;
     align-items: center;
@@ -575,33 +592,30 @@ body::before {
     font-size: var(--text-lg);
     font-weight: 600;
     color: var(--neutral-800);
-    margin-bottom: var(--space-6);
-    padding-bottom: var(--space-3);
-    border-bottom: 2px solid var(--primary-100);
+    margin: 0;
 }
 
-/* Essential Details */
+/* Essential Details - No margin since button is in header */
 .essential-details {
-    margin-bottom: var(--space-4);
+    margin-bottom: 0;
 }
 
-/* More Info Button */
+/* Più info Button - In details header */
 .more-info-btn {
-    width: 100%;
     background: var(--primary-50);
     border: 1px solid var(--primary-200);
     border-radius: var(--radius-lg);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-3);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
+    gap: var(--space-1);
+    font-size: var(--text-xs);
     font-weight: 500;
     color: var(--primary-700);
     cursor: pointer;
     transition: all 0.3s var(--ease-out);
-    margin: var(--space-4) 0;
+    white-space: nowrap;
 }
 
 .more-info-btn:hover {
@@ -618,20 +632,22 @@ body::before {
     transform: rotate(180deg);
 }
 
-/* Additional Details - Fixed visibility */
+/* Additional Details - Expandable within section */
 .additional-details {
     max-height: 0;
     overflow: hidden;
     transition: all 0.4s var(--ease-out);
     opacity: 0;
-    visibility: hidden; /* Added to ensure proper hiding */
+    visibility: hidden;
 }
 
 .additional-details.expanded {
     max-height: 500px;
     opacity: 1;
-    visibility: visible; /* Added to ensure proper showing */
+    visibility: visible;
     margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--neutral-200);
 }
 
 /* Vertical Detail Items - Professional Structure */
@@ -823,22 +839,30 @@ body::before {
     box-shadow: var(--shadow-2xl);
 }
 
+/* Secondary Actions - Two buttons under primary */
 .secondary-actions {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1fr; /* Two buttons side by side */
     gap: var(--space-3);
+    width: 100%;
 }
 
 .action-btn.secondary {
-    flex-direction: column;
-    padding: var(--space-3);
     background: var(--neutral-50);
-    border: 1px solid var(--neutral-200);
-    border-radius: var(--radius-xl);
     color: var(--neutral-700);
-    font-size: var(--text-xs);
-    gap: var(--space-1);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
     transition: all 0.2s var(--ease-out);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    flex: 1;
+    flex-direction: row; /* Horizontal layout */
 }
 
 .action-btn.secondary:hover {
@@ -850,6 +874,11 @@ body::before {
 
 .action-btn.secondary .material-symbols-outlined {
     font-size: 18px;
+}
+
+/* Hide download button by default (controlled by JS) */
+.action-btn.secondary#downloadBtn {
+    display: none !important;
 }
 
 /* Reviews Section - Enhanced */
@@ -908,26 +937,24 @@ body::before {
     display: none;
 }
 
-/* Premium Scrollbars */
-::-webkit-scrollbar {
-    width: 12px;
+/* Custom scrollbar for document viewer */
+.document-viewer::-webkit-scrollbar {
+    width: 8px;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+.document-viewer::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-full);
 }
 
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-    transition: all 0.3s var(--ease-out);
+.document-viewer::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-full);
+    transition: background 0.2s ease;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-    background-clip: content-box;
+.document-viewer::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive Design */

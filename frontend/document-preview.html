@@ -263,19 +263,26 @@
                             <span class="material-symbols-outlined">share</span>
                             <span>Condividi</span>
                         </button>
-                        <button class="action-btn secondary" id="downloadBtn">
-                            <span class="material-symbols-outlined">download</span>
-                            <span>Download</span>
-                        </button>
                     </div>
+                    <!-- Hidden download button (controlled by JS) -->
+                    <button class="action-btn secondary" id="downloadBtn" style="display: none;">
+                        <span class="material-symbols-outlined">download</span>
+                        <span>Download</span>
+                    </button>
                 </div>
 
                 <!-- Document Details Section -->
                 <div class="doc-details-section">
-                    <h3>
-                        <span class="material-symbols-outlined">info</span>
-                        Dettagli Documento
-                    </h3>
+                    <div class="details-header">
+                        <h3>
+                            <span class="material-symbols-outlined">info</span>
+                            Dettagli Documento
+                        </h3>
+                        <button class="more-info-btn" id="moreInfoBtn">
+                            <span class="material-symbols-outlined">expand_more</span>
+                            Più info
+                        </button>
+                    </div>
                     <div class="doc-details">
                         <!-- Essential Information (Always visible) -->
                         <div class="essential-details">
@@ -304,12 +311,6 @@
                                 <span class="detail-value">Marco Rossi</span>
                             </div>
                         </div>
-
-                        <!-- More Info Button -->
-                        <button class="more-info-btn" id="moreInfoBtn">
-                            <span class="material-symbols-outlined">expand_more</span>
-                            Più info
-                        </button>
 
                         <!-- Additional Information (Expandable) -->
                         <div class="additional-details" id="additionalDetails">

@@ -164,17 +164,16 @@ html {
 /* Background Image as Element */
 .background-image {
     position: absolute;
-    top: var(--bg-offset-top);
-    left: var(--bg-offset-left);
-    width: calc(100% + 4px);
+    top: -100px;
+    left: -1px;
+    width: calc(100% + 2px);
     height: calc(100% + 100px);
-    background-image: url('../images/bg.png');
-    background-position: center center;
-    background-size: var(--bg-size);
+    background-image: url('./images/bg.png'), url('../images/bg.png'), url('images/bg.png');
+    background-position: center top;
+    background-size: calc(100% + 2px) auto;
     background-repeat: no-repeat;
     z-index: -1;
     pointer-events: none;
-    transition: all 0.3s var(--ease-2);
 }
 
 /* Header - New Layout to Match Image */

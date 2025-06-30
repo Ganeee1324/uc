@@ -2097,168 +2097,105 @@ function getDocumentCategory(title, description) {
 
 function renderDocuments(files) {
     const grid = document.getElementById('documentsGrid');
-    const resultsCount = document.getElementById('resultsCount');
+    if (!grid) return;
     
-    // Group files by vetrina
-    const vetrineGroups = {};
-    files.forEach(file => {
-        const vetrinaId = file.vetrina_info?.id;
-        if (vetrinaId) {
-            if (!vetrineGroups[vetrinaId]) {
-                vetrineGroups[vetrinaId] = [];
-            }
-            vetrineGroups[vetrinaId].push(file);
-        }
-    });
+    grid.innerHTML = '';
     
-    const totalCards = Object.keys(vetrineGroups).length;
-    
-    if (resultsCount) {
-        const filterText = Object.keys(activeFilters).length > 0 ? 
-            ` (${Object.keys(activeFilters).length} filtri attivi)` : '';
-        resultsCount.textContent = `${totalCards} collezioni trovate (${files.length} documenti totali)`;
-    }
-    
-    if (files.length === 0) {
-        if (grid) {
-            const hasActiveFilters = Object.keys(activeFilters).length > 0;
-            grid.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">${hasActiveFilters ? '🔍' : '📄'}</div>
-                    <h2>${hasActiveFilters ? 'Nessun risultato trovato' : 'Nessun documento disponibile'}</h2>
-                    <p>${hasActiveFilters ? 
-                        'Prova a modificare i filtri o ampliare i criteri di ricerca.' : 
-                        'Carica alcuni file per iniziare oppure verifica la connessione.'}</p>
-                    ${hasActiveFilters ? `
-                        <button class="btn secondary" onclick="clearAllFiltersAction()">
-                            <i class="material-symbols-outlined">clear_all</i>
-                            Rimuovi tutti i filtri
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }
+    if (!files || files.length === 0) {
+        grid.innerHTML = `
+            <div class="no-results">
+                <span class="material-symbols-outlined">search_off</span>
+                <h3>Nessun risultato trovato</h3>
+                <p>Prova a modificare i filtri o a cercare qualcos'altro</p>
+            </div>
+        `;
         return;
     }
+    
+    files.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'document-card';
+        card.style.animationDelay = `${index * 0.1}s`;
+        
+        // Make the entire card clickable
+        card.style.cursor = 'pointer';
+        card.onclick = () => {
+            window.location.href = `document-preview.html?id=${file.id}`;
+        };
 
-    if (grid) {
-        grid.innerHTML = Object.entries(vetrineGroups).map(([vetrinaId, vetrinaFiles]) => {
-            const isBundle = vetrinaFiles.length > 1;
-            const primaryFile = vetrinaFiles[0]; // Use first file as primary data source
-            
-            // Use REAL database information from primary file
-            const documentType = primaryFile.document_type || 'Documento';
-            const documentTitle = isBundle ? primaryFile.vetrina_info?.name || 'Bundle di Documenti' : primaryFile.title || 'Documento Senza Titolo';
-            const rating = parseFloat(primaryFile.rating) || 0;
-            const reviewCount = parseInt(primaryFile.review_count) || 0;
-            const courseName = primaryFile.course_name || primaryFile.vetrina_info?.course_name || 'Corso';
-            const faculty = primaryFile.faculty_name || primaryFile.vetrina_info?.faculty_name || 'Facoltà';
-            const canale = primaryFile.canale || primaryFile.vetrina_info?.canale || 'A';
-            const semester = primaryFile.semester || primaryFile.vetrina_info?.course_semester || 'Semestre';
-            const language = primaryFile.language || 'English';
-            const academicYear = primaryFile.academic_year || '2024/2025';
-            const description = primaryFile.description || primaryFile.vetrina_info?.description || 'Nessuna descrizione disponibile';
-            const totalPrice = vetrinaFiles.reduce((sum, f) => sum + (parseFloat(f.price) || 0), 0);
-            
-            const stars = generateStars(Math.floor(rating));
-            const ownerUsername = primaryFile.vetrina_info?.owner_username || 'Unknown';
-            const avatarVariant = getAvatarVariant(ownerUsername);
-            
-            // Get document category (Esercizi, Appunti, etc.)
-            const documentCategory = getDocumentCategory(documentTitle, description);
-            
-            // All document cards now redirect to the preview page with vetrina ID
-            const cardAction = `onclick="window.location.href='document-preview.html?id=${vetrinaId}'"`;
-            
-            // Check if this is a special document for the preview badge
-            const isPreviewDocument = documentTitle.toLowerCase().includes('analisi matematica') || 
-                                    documentTitle.toLowerCase().includes('matematica i') ||
-                                    documentTitle.toLowerCase().includes('appunti');
-            
-            // Create preview content based on bundle or single file
-            const previewContent = isBundle ? 
-                `<div class="bundle-preview">
-                    <div class="document-stack">
-                        <div class="bundle-icon">📁</div>
-                        <div class="bundle-count">${vetrinaFiles.length} files</div>
-                    </div>
-                </div>` :
-                `<div class="preview-icon">
-                    <span class="document-icon">${getDocumentPreviewIcon(primaryFile.filename)}</span>
+        const documentType = file.document_type || 'Documento';
+        const documentTitle = file.title || 'Documento Senza Titolo';
+        const rating = parseFloat(file.rating) || 0;
+        const reviewCount = parseInt(file.review_count) || 0;
+        const description = file.description || 'Nessuna descrizione disponibile';
+        const price = parseFloat(file.price) || 0;
+        
+        const stars = generateStars(Math.floor(rating));
+        const documentCategory = getDocumentCategory(documentTitle, description);
+        
+        card.innerHTML = `
+            <div class="document-preview">
+                <div class="preview-icon">
+                    <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
                     <div class="file-extension">${documentType}</div>
-                </div>`;
-            
-            const totalSize = vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0);
-            const bundleInfo = isBundle ? `${vetrinaFiles.length} file, ${formatFileSize(totalSize)}` : formatFileSize(primaryFile.size);
-            
-            return `
-            <div class="document-card ${isBundle ? 'bundle-card' : ''}" ${cardAction}>
-                <div class="document-preview">
-                    ${previewContent}
-                    
-                    <!-- Badges positioned within preview area -->
-                    <div class="document-type-badge">${documentCategory}</div>
-                    <div class="rating-badge">
-                        <div class="rating-stars">${stars}</div>
-                        <span class="rating-count">(${reviewCount})</span>
-                    </div>
-                    ${isPreviewDocument ? '<div class="preview-available-badge">👁️ Anteprima</div>' : ''}
                 </div>
-                
-                <button class="favorite-button" onclick="event.stopPropagation(); toggleFavorite(this)" title="Aggiungi ai preferiti">
-                    <span class="material-symbols-outlined">favorite</span>
-                </button>
-                
-                <div class="document-content">
-                    <div class="document-header">
-                        <div class="document-title-section">
-                            <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
-                            <div class="document-description" title="${description}">${description}</div>
-                        </div>
+                <div class="document-type-badge">${documentCategory}</div>
+                <div class="rating-badge">
+                    <div class="rating-stars">${stars}</div>
+                    <span class="rating-count">(${reviewCount})</span>
+                </div>
+            </div>
+            
+            <button class="favorite-button" onclick="event.stopPropagation(); toggleFavorite(this)" title="Aggiungi ai preferiti">
+                <span class="material-symbols-outlined">favorite</span>
+            </button>
+            
+            <div class="document-content">
+                <div class="document-header">
+                    <div class="document-title-section">
+                        <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
+                        <div class="document-description" title="${description}">${description}</div>
                     </div>
-                    <div class="document-info">
-                        <div class="document-info-item" title="Corso: ${courseName}">
-                            <span class="info-icon">📚</span>
-                            <span class="info-text">${courseName}</span>
-                        </div>
-                        <div class="document-info-item" title="Facoltà: ${faculty}">
-                            <span class="info-icon">🏛️</span>
-                            <span class="info-text">${faculty}</span>
-                        </div>
-                        <div class="document-info-item" title="Lingua: ${language}, Canale: ${canale}">
-                            <span class="info-icon">📝</span>
-                            <span class="info-text">${language} - Canale ${canale}</span>
-                        </div>
-                        <div class="document-info-item" title="Anno Accademico: ${academicYear}">
-                            <span class="info-icon">🗓️</span>
-                            <span class="info-text">${academicYear}</span>
-                        </div>
+                </div>
+                <div class="document-info">
+                    <div class="document-info-item" title="Corso: ${file.course_name || 'N/A'}">
+                        <span class="info-icon">📚</span>
+                        <span class="info-text">${file.course_name || 'N/A'}</span>
                     </div>
-                    <div class="document-footer">
-                        <div class="document-footer-left">
-                            <div class="owner-avatar ${avatarVariant}" title="Vetrina pubblicata da @${ownerUsername}">
-                                ${ownerUsername ? ownerUsername.charAt(0).toUpperCase() : 'U'}
-                            </div>
-                            <div class="document-meta">${bundleInfo}</div>
+                    <div class="document-info-item" title="Facoltà: ${file.faculty_name || 'N/A'}">
+                        <span class="info-icon">🏛️</span>
+                        <span class="info-text">${file.faculty_name || 'N/A'}</span>
+                    </div>
+                    <div class="document-info-item" title="Lingua: ${file.language || 'N/A'}">
+                        <span class="info-icon">📝</span>
+                        <span class="info-text">${file.language || 'N/A'}</span>
+                    </div>
+                </div>
+                <div class="document-footer">
+                    <div class="document-footer-left">
+                        <div class="owner-avatar" title="Caricato da ${file.author_username || 'Unknown'}">
+                            ${file.author_username ? file.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
-                        <div class="document-price ${totalPrice === 0 ? 'free' : 'paid'}" title="${totalPrice === 0 ? 'Documento gratuito' : `Prezzo: €${totalPrice}`}">
-                            ${totalPrice === 0 ? 'Gratis' : `€${totalPrice}`}
-                        </div>
+                        <div class="document-meta">${formatFileSize(file.size || 0)}</div>
+                    </div>
+                    <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
+                        ${price === 0 ? 'Gratis' : `€${price}`}
                     </div>
                 </div>
             </div>
         `;
-        }).join('');
+        
+        grid.appendChild(card);
+    });
 
-        // Initialize card animations
-        setTimeout(() => {
-            const cards = document.querySelectorAll('.document-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            });
-        }, 100);
-    }
+    // Initialize card animations
+    setTimeout(() => {
+        const cards = document.querySelectorAll('.document-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        });
+    }, 100);
 }
 
 function generateStars(rating) {

@@ -281,18 +281,18 @@ body::before {
     background: var(--danger-50);
 }
 
-/* Main Preview Layout - Moved down further from header */
+/* Main Preview Layout - Full height to bottom of screen */
 .preview-main {
     display: grid;
     grid-template-columns: 1fr 420px; /* Document viewer | Sidebar */
     gap: var(--space-6);
-    padding: var(--space-4) var(--space-8);
-    min-height: calc(100vh - 72px - var(--space-16)); /* More space from header */
+    padding: var(--space-4) var(--space-8) 0; /* No bottom padding */
+    height: calc(100vh - 72px - var(--space-16)); /* Full height to bottom */
     margin-top: var(--space-16); /* Moved down further from header */
     overflow: hidden;
 }
 
-/* Document Viewer Section - Adjusted positioning further down */
+/* Document Viewer Section - Full height to bottom */
 .document-viewer-section {
     flex: 1;
     background: transparent;
@@ -302,7 +302,7 @@ body::before {
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.5s var(--ease-out);
-    height: calc(100vh - 72px - var(--space-24)); /* Adjusted for moved down further */
+    height: 100%; /* Full height within grid container */
 }
 
 .document-viewer-section::before {
@@ -364,10 +364,10 @@ body::before {
     gap: var(--space-8);
 }
 
-/* Overlay Controls - Floating over document viewer (moved down) */
+/* Overlay Controls - Floating over document viewer (moved up) */
 .viewer-overlay-controls {
     position: absolute;
-    top: 40px; /* Changed from var(--space-6) to 40px as requested */
+    top: 0; /* Moved 40px higher from previous 40px */
     left: var(--space-6);
     right: var(--space-6);
     display: flex;
@@ -537,17 +537,16 @@ body::before {
     font-style: italic;
 }
 
-/* Document Sidebar - Moved down further */
+/* Document Sidebar - Full height to bottom */
 .document-info-sidebar {
     width: 420px;
     background: var(--neutral-0);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-xl);
     overflow: hidden;
-    position: sticky;
-    top: calc(72px + var(--space-16)); /* Moved down further from header */
-    height: calc(100vh - 72px - var(--space-24)); /* Adjusted height further */
-    max-height: calc(100vh - 72px - var(--space-24));
+    position: relative; /* Changed from sticky to relative */
+    height: 100%; /* Full height within grid container */
+    max-height: 100%;
     transition: all 0.4s var(--ease-out);
     border: 1px solid var(--neutral-100);
 }
@@ -573,6 +572,12 @@ body::before {
     padding: var(--space-6);
     border: 1px solid var(--neutral-100);
     min-height: 320px; /* Fixed minimum height */
+    overflow: hidden; /* Prevent content overflow */
+}
+
+.doc-details {
+    overflow-y: auto; /* Enable scrolling for details content */
+    max-height: calc(320px - 80px); /* Subtract padding (48px) and header (32px) */
 }
 
 /* Details Section Header with Più info button */

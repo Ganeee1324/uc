@@ -2346,6 +2346,7 @@ function initializeCarousels() {
         const track = container.querySelector('.carousel-track');
         const files = container.querySelectorAll('.carousel-file');
         const filesCount = parseInt(container.dataset.filesCount) || files.length;
+        const documentCard = container.closest('.document-card');
         
         if (files.length === 0) return;
         
@@ -2353,11 +2354,30 @@ function initializeCarousels() {
         let isScrolling = false;
         let startX = 0;
         let startScrollLeft = 0;
+        let carouselActive = false;
         
-        // Set initial active state
-        updateCarouselDisplay();
+        // Listen for hover to start the animation sequence
+        documentCard.addEventListener('mouseenter', () => {
+            if (!carouselActive) {
+                // Delay setting active states until animation completes
+                setTimeout(() => {
+                    carouselActive = true;
+                    updateCarouselDisplay();
+                }, 1000); // After all files have animated in
+            }
+        });
+        
+        documentCard.addEventListener('mouseleave', () => {
+            carouselActive = false;
+            // Reset all states when leaving
+            files.forEach(file => {
+                file.classList.remove('active', 'side', 'far');
+            });
+        });
         
         function updateCarouselDisplay() {
+            if (!carouselActive) return;
+            
             files.forEach((file, index) => {
                 file.classList.remove('active', 'side', 'far');
                 
@@ -2384,11 +2404,13 @@ function initializeCarousels() {
         }
         
         function nextFile() {
+            if (!carouselActive) return;
             currentIndex = (currentIndex + 1) % filesCount;
             updateCarouselDisplay();
         }
         
         function prevFile() {
+            if (!carouselActive) return;
             currentIndex = (currentIndex - 1 + filesCount) % filesCount;
             updateCarouselDisplay();
         }
@@ -2398,6 +2420,7 @@ function initializeCarousels() {
         track.addEventListener('touchstart', startDrag);
         
         function startDrag(e) {
+            if (!carouselActive) return;
             isScrolling = true;
             startX = e.pageX || e.touches[0].pageX;
             startScrollLeft = currentIndex;
@@ -2436,6 +2459,7 @@ function initializeCarousels() {
         
         // Wheel scroll interaction
         container.addEventListener('wheel', (e) => {
+            if (!carouselActive) return;
             e.preventDefault();
             if (e.deltaY > 0) {
                 nextFile();
@@ -2447,6 +2471,7 @@ function initializeCarousels() {
         // Click on files to make them active
         files.forEach((file, index) => {
             file.addEventListener('click', () => {
+                if (!carouselActive) return;
                 currentIndex = index;
                 updateCarouselDisplay();
             });
@@ -2462,9 +2487,9 @@ function initializeCarousels() {
         container.addEventListener('mouseleave', () => {
             // Start auto-scroll after 3 seconds of no interaction
             setTimeout(() => {
-                if (!container.matches(':hover')) {
+                if (!container.matches(':hover') && carouselActive) {
                     autoScrollInterval = setInterval(() => {
-                        if (!container.matches(':hover')) {
+                        if (!container.matches(':hover') && carouselActive) {
                             nextFile();
                         } else {
                             clearInterval(autoScrollInterval);

@@ -2236,11 +2236,12 @@ function renderDocuments(files) {
                 `;
             }
             
-            // Generate all files for the circular orbit layout (max 6 for visual clarity)
-            const orbitFiles = files.slice(0, 6).map(file => `
-                <div class="orbit-file">
+            // Generate all files for the infinite carousel (duplicate for seamless loop)
+            const carouselFiles = files.concat(files).map(file => `
+                <div class="carousel-file">
                     <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
                     <div class="file-extension">${file.document_type}</div>
+                    <div class="file-name">${file.filename.length > 12 ? file.filename.substring(0, 12) + '...' : file.filename}</div>
                 </div>
             `).join('');
             
@@ -2250,9 +2251,11 @@ function renderDocuments(files) {
                         ${stackLayers}
                         ${stackCountBadge}
                     </div>
-                    <div class="circular-orbit-container">
-                        <div class="orbit-center">
-                            ${orbitFiles}
+                    <div class="files-carousel-container">
+                        <div class="carousel-wrapper">
+                            <div class="carousel-track">
+                                ${carouselFiles}
+                            </div>
                         </div>
                     </div>
                 </div>

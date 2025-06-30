@@ -1014,7 +1014,7 @@ html {
 .file-count-badge {
     position: absolute;
     top: -15px;
-    right: 5px;
+    right: -5px;
     background: linear-gradient(135deg, var(--blue-600), var(--indigo-600));
     color: var(--white);
     font-size: 14px;
@@ -1038,8 +1038,8 @@ html {
     background: linear-gradient(135deg, var(--purple-600), var(--blue-600));
 }
 
-/* Circular Orbit Animation */
-.circular-orbit-container {
+/* Infinite Horizontal Carousel */
+.files-carousel-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -1048,132 +1048,127 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 16px;
     opacity: 0;
+    transform: scale(0.95) translateY(10px);
     transition: all 0.25s var(--ease-3);
     z-index: 5;
     pointer-events: none;
 }
 
-.document-card:hover .circular-orbit-container {
+.document-card:hover .files-carousel-container {
     opacity: 1;
+    transform: scale(1) translateY(0);
     transition-delay: 0.15s;
     pointer-events: auto;
 }
 
-.orbit-center {
+.carousel-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     position: relative;
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
+    border-radius: var(--radius-lg);
 }
 
-.orbit-file {
-    position: absolute;
-    width: 45px;
-    height: 60px;
+.carousel-track {
+    display: flex;
+    animation: infiniteCarousel 20s linear infinite;
+    will-change: transform;
+}
+
+.carousel-track:hover {
+    animation-play-state: paused;
+}
+
+@keyframes infiniteCarousel {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.carousel-file {
+    flex-shrink: 0;
+    width: 80px;
+    height: 100px;
     background: var(--white);
     border: 1px solid var(--blue-300);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
-    opacity: 0;
-    transform: scale(0);
-    animation-duration: 8s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+    margin-right: 12px;
+    transition: all 0.3s var(--ease-2);
+    cursor: pointer;
 }
 
-.document-card:hover .orbit-file {
-    opacity: 1;
-    transform: scale(1);
-    transition: opacity 0.3s var(--ease-3), transform 0.3s var(--ease-3);
+.carousel-file:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.25);
+    border-color: var(--blue-500);
+    background: linear-gradient(135deg, var(--white), var(--blue-50));
 }
 
-/* Orbital positions and animations */
-.orbit-file:nth-child(1) {
-    animation-name: orbit1;
-    animation-delay: 0.2s;
-    transition-delay: 0.2s;
-}
-
-.orbit-file:nth-child(2) {
-    animation-name: orbit2;
-    animation-delay: 0.3s;
-    transition-delay: 0.3s;
-}
-
-.orbit-file:nth-child(3) {
-    animation-name: orbit3;
-    animation-delay: 0.4s;
-    transition-delay: 0.4s;
-}
-
-.orbit-file:nth-child(4) {
-    animation-name: orbit4;
-    animation-delay: 0.5s;
-    transition-delay: 0.5s;
-}
-
-.orbit-file:nth-child(5) {
-    animation-name: orbit5;
-    animation-delay: 0.6s;
-    transition-delay: 0.6s;
-}
-
-.orbit-file:nth-child(6) {
-    animation-name: orbit6;
-    animation-delay: 0.7s;
-    transition-delay: 0.7s;
-}
-
-@keyframes orbit1 {
-    from { transform: rotate(0deg) translateX(90px) rotate(0deg); }
-    to { transform: rotate(360deg) translateX(90px) rotate(-360deg); }
-}
-
-@keyframes orbit2 {
-    from { transform: rotate(60deg) translateX(90px) rotate(-60deg); }
-    to { transform: rotate(420deg) translateX(90px) rotate(-420deg); }
-}
-
-@keyframes orbit3 {
-    from { transform: rotate(120deg) translateX(90px) rotate(-120deg); }
-    to { transform: rotate(480deg) translateX(90px) rotate(-480deg); }
-}
-
-@keyframes orbit4 {
-    from { transform: rotate(180deg) translateX(90px) rotate(-180deg); }
-    to { transform: rotate(540deg) translateX(90px) rotate(-540deg); }
-}
-
-@keyframes orbit5 {
-    from { transform: rotate(240deg) translateX(90px) rotate(-240deg); }
-    to { transform: rotate(600deg) translateX(90px) rotate(-600deg); }
-}
-
-@keyframes orbit6 {
-    from { transform: rotate(300deg) translateX(90px) rotate(-300deg); }
-    to { transform: rotate(660deg) translateX(90px) rotate(-660deg); }
-}
-
-.orbit-file .document-icon {
-    font-size: 18px;
-    margin-bottom: 2px;
+.carousel-file .document-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
     color: var(--blue-600);
-    transition: all 0.15s var(--ease-2);
+    transition: all 0.2s var(--ease-2);
 }
 
-.orbit-file .file-extension {
-    font-size: 6px;
+.carousel-file:hover .document-icon {
+    color: var(--blue-700);
+    transform: scale(1.1);
+}
+
+.carousel-file .file-extension {
+    font-size: 8px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     opacity: 0.8;
     color: var(--gray-600);
     text-align: center;
+    margin-bottom: 4px;
+}
+
+.carousel-file .file-name {
+    font-size: 7px;
+    font-weight: 600;
+    color: var(--gray-700);
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+
+/* Gradient fade at edges for smooth infinite effect */
+.carousel-wrapper::before,
+.carousel-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.carousel-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(244, 246, 248, 1), rgba(244, 246, 248, 0));
+}
+
+.carousel-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(244, 246, 248, 1), rgba(244, 246, 248, 0));
 }
 
 .document-stack {

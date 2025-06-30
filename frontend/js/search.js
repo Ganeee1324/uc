@@ -1188,6 +1188,7 @@ function handlePriceRangeChange() {
     
     // Update filter count immediately for responsive UI
     updateFilterCount();
+    updateBottomFilterCount();
     updateActiveFiltersDisplay();
     
     // Apply filters with debounce to prevent too many renders
@@ -1218,6 +1219,7 @@ function applyFiltersAndRender() {
     renderDocuments(filteredFiles);
     updateActiveFiltersDisplay();
     updateFilterCount();
+    updateBottomFilterCount();
     
     // Show filter status
     const filterCount = Object.keys(activeFilters).length;
@@ -1293,6 +1295,29 @@ function addBottomClearAllButton() {
     
     // Update the bottom filter count
     updateBottomFilterCount();
+}
+
+function updateBottomFilterCount() {
+    const bottomFilterCountElement = document.getElementById('bottomFilterCount');
+    if (!bottomFilterCountElement) return;
+    
+    // Count active filters properly
+    let activeCount = 0;
+    
+    Object.entries(activeFilters).forEach(([key, value]) => {
+        if (key === 'minPrice' || key === 'maxPrice') {
+            // Price range counts as one filter - only count once
+            if (key === 'minPrice' && activeFilters.priceType === 'paid' && 
+                (activeFilters.minPrice !== 0 || activeFilters.maxPrice !== 100)) {
+                activeCount++;
+            }
+        } else if (value !== null && value !== undefined && value !== 'all' && value !== '') {
+            activeCount++;
+        }
+    });
+    
+    bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
+        activeCount === 1 ? '1 filtro attivo' : `${activeCount} filtri attivi`;
 }
 
 function closeFiltersPanel() {

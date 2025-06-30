@@ -2236,9 +2236,9 @@ function renderDocuments(files) {
                 `;
             }
             
-            // Generate all files for the infinite carousel (duplicate for seamless loop)
-            const carouselFiles = files.concat(files).map(file => `
-                <div class="carousel-file">
+            // Generate files for the centered carousel
+            const carouselFiles = files.map((file, index) => `
+                <div class="carousel-file" data-index="${index}">
                     <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
                     <div class="file-extension">${file.document_type}</div>
                     <div class="file-name">${file.filename.length > 12 ? file.filename.substring(0, 12) + '...' : file.filename}</div>
@@ -2251,11 +2251,12 @@ function renderDocuments(files) {
                         ${stackLayers}
                         ${stackCountBadge}
                     </div>
-                    <div class="files-carousel-container">
-                        <div class="carousel-wrapper">
+                    <div class="files-carousel-container" data-files-count="${files.length}">
+                        <div class="carousel-viewport">
                             <div class="carousel-track">
                                 ${carouselFiles}
                             </div>
+                            <div class="carousel-scroll-hint">scroll to browse</div>
                         </div>
                     </div>
                 </div>
@@ -2330,7 +2331,149 @@ function renderDocuments(files) {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
         });
+        
+        // Initialize carousel interactions after a brief delay
+        setTimeout(() => {
+            initializeCarousels();
+        }, 150);
     }, 100);
+}
+
+function initializeCarousels() {
+    const carouselContainers = document.querySelectorAll('.files-carousel-container');
+    
+    carouselContainers.forEach(container => {
+        const track = container.querySelector('.carousel-track');
+        const files = container.querySelectorAll('.carousel-file');
+        const filesCount = parseInt(container.dataset.filesCount) || files.length;
+        
+        if (files.length === 0) return;
+        
+        let currentIndex = 0;
+        let isScrolling = false;
+        let startX = 0;
+        let startScrollLeft = 0;
+        
+        // Set initial active state
+        updateCarouselDisplay();
+        
+        function updateCarouselDisplay() {
+            files.forEach((file, index) => {
+                file.classList.remove('active', 'side', 'far');
+                
+                if (index === currentIndex) {
+                    file.classList.add('active');
+                } else if (Math.abs(index - currentIndex) === 1 || 
+                          (currentIndex === 0 && index === filesCount - 1) ||
+                          (currentIndex === filesCount - 1 && index === 0)) {
+                    file.classList.add('side');
+                } else {
+                    file.classList.add('far');
+                }
+            });
+            
+            // Center the active file
+            const activeFile = files[currentIndex];
+            if (activeFile) {
+                const containerWidth = container.clientWidth;
+                const fileLeft = activeFile.offsetLeft;
+                const fileWidth = activeFile.clientWidth;
+                const centerPosition = fileLeft - (containerWidth / 2) + (fileWidth / 2);
+                track.style.transform = `translateX(-${centerPosition}px)`;
+            }
+        }
+        
+        function nextFile() {
+            currentIndex = (currentIndex + 1) % filesCount;
+            updateCarouselDisplay();
+        }
+        
+        function prevFile() {
+            currentIndex = (currentIndex - 1 + filesCount) % filesCount;
+            updateCarouselDisplay();
+        }
+        
+        // Mouse/touch interactions
+        track.addEventListener('mousedown', startDrag);
+        track.addEventListener('touchstart', startDrag);
+        
+        function startDrag(e) {
+            isScrolling = true;
+            startX = e.pageX || e.touches[0].pageX;
+            startScrollLeft = currentIndex;
+            track.style.cursor = 'grabbing';
+        }
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag);
+        
+        function drag(e) {
+            if (!isScrolling) return;
+            e.preventDefault();
+            
+            const x = e.pageX || e.touches[0].pageX;
+            const deltaX = startX - x;
+            const threshold = 50; // Minimum drag distance to trigger change
+            
+            if (Math.abs(deltaX) > threshold) {
+                if (deltaX > 0) {
+                    nextFile();
+                } else {
+                    prevFile();
+                }
+                isScrolling = false;
+                track.style.cursor = 'grab';
+            }
+        }
+        
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+        
+        function stopDrag() {
+            isScrolling = false;
+            track.style.cursor = 'grab';
+        }
+        
+        // Wheel scroll interaction
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY > 0) {
+                nextFile();
+            } else {
+                prevFile();
+            }
+        });
+        
+        // Click on files to make them active
+        files.forEach((file, index) => {
+            file.addEventListener('click', () => {
+                currentIndex = index;
+                updateCarouselDisplay();
+            });
+        });
+        
+        // Auto-scroll demonstration (optional - can be removed)
+        let autoScrollInterval;
+        
+        container.addEventListener('mouseenter', () => {
+            clearInterval(autoScrollInterval);
+        });
+        
+        container.addEventListener('mouseleave', () => {
+            // Start auto-scroll after 3 seconds of no interaction
+            setTimeout(() => {
+                if (!container.matches(':hover')) {
+                    autoScrollInterval = setInterval(() => {
+                        if (!container.matches(':hover')) {
+                            nextFile();
+                        } else {
+                            clearInterval(autoScrollInterval);
+                        }
+                    }, 2000);
+                }
+            }, 3000);
+        });
+    });
 }
 
 function generateStars(rating) {

@@ -217,11 +217,11 @@ function renderDocumentInfo(docData) {
 
 // Helper function to update detail values in essential section
 function updateDetailValue(label, value) {
-    const detailItems = document.querySelectorAll('.essential-details .detail-item');
-    detailItems.forEach(item => {
-        const labelElement = item.querySelector('.detail-label');
+    const detailRows = document.querySelectorAll('.essential-details .detail-row');
+    detailRows.forEach(row => {
+        const labelElement = row.querySelector('.detail-label');
         if (labelElement && labelElement.textContent === label) {
-            const valueElement = item.querySelector('.detail-value');
+            const valueElement = row.querySelector('.detail-value');
             if (valueElement) {
                 valueElement.textContent = value;
             }
@@ -231,11 +231,11 @@ function updateDetailValue(label, value) {
 
 // Helper function to update detail values in additional section
 function updateAdditionalDetailValue(label, value) {
-    const detailItems = document.querySelectorAll('.additional-details .detail-item');
-    detailItems.forEach(item => {
-        const labelElement = item.querySelector('.detail-label');
+    const detailRows = document.querySelectorAll('.additional-details .detail-row');
+    detailRows.forEach(row => {
+        const labelElement = row.querySelector('.detail-label');
         if (labelElement && labelElement.textContent === label) {
-            const valueElement = item.querySelector('.detail-value');
+            const valueElement = row.querySelector('.detail-value');
             if (valueElement) {
                 valueElement.textContent = value;
             }
@@ -245,29 +245,33 @@ function updateAdditionalDetailValue(label, value) {
 
 // Initialize expandable details functionality
 function initializeExpandableDetails() {
-    const moreInfoBtn = document.getElementById('moreInfoBtn');
+    const expandBtn = document.getElementById('moreInfoBtn');
     const additionalDetails = document.getElementById('additionalDetails');
     
-    if (moreInfoBtn && additionalDetails) {
-        moreInfoBtn.addEventListener('click', () => {
+    if (expandBtn && additionalDetails) {
+        expandBtn.addEventListener('click', () => {
             const isExpanded = additionalDetails.classList.contains('expanded');
             
             if (isExpanded) {
                 // Collapse
                 additionalDetails.classList.remove('expanded');
-                moreInfoBtn.classList.remove('expanded');
-                moreInfoBtn.innerHTML = `
-                    <span class="material-symbols-outlined">expand_more</span>
-                    Più info
-                `;
+                expandBtn.classList.remove('expanded');
+                
+                const expandText = expandBtn.querySelector('.expand-text');
+                const expandIcon = expandBtn.querySelector('.expand-icon');
+                
+                if (expandText) expandText.textContent = 'Più informazioni';
+                if (expandIcon) expandIcon.textContent = 'expand_more';
             } else {
                 // Expand
                 additionalDetails.classList.add('expanded');
-                moreInfoBtn.classList.add('expanded');
-                moreInfoBtn.innerHTML = `
-                    <span class="material-symbols-outlined">expand_less</span>
-                    Meno info
-                `;
+                expandBtn.classList.add('expanded');
+                
+                const expandText = expandBtn.querySelector('.expand-text');
+                const expandIcon = expandBtn.querySelector('.expand-icon');
+                
+                if (expandText) expandText.textContent = 'Meno informazioni';
+                if (expandIcon) expandIcon.textContent = 'expand_less';
             }
         });
     }
@@ -485,28 +489,29 @@ function generateContentPages(courseInfo) {
     }));
 }
 
-// Document Pages Renderer
+// Document Pages Renderer - Fixed
 function renderDocumentPages(pages) {
     const viewerContainer = document.querySelector('.viewer-container');
     if (!viewerContainer) return;
     
     viewerContainer.innerHTML = ''; // Clear previous content
     
-    pages.forEach(pageHTML => {
+    pages.forEach((page, index) => {
         const pageElement = document.createElement('div');
-        // pageHTML is already a complete div, so we just need its content
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = pageHTML;
+        pageElement.className = 'document-page';
+        pageElement.setAttribute('data-page', index + 1);
         
-        const pageContent = tempDiv.firstChild;
-        if(pageContent) {
-            viewerContainer.appendChild(pageContent);
-        }
+        const pageContent = document.createElement('div');
+        pageContent.className = 'page-content';
+        
+        // Insert the content HTML
+        pageContent.innerHTML = page.content;
+        
+        pageElement.appendChild(pageContent);
+        viewerContainer.appendChild(pageElement);
     });
     
     totalPages = pages.length;
-    
-    // No need to manage 'active' class anymore, all pages are shown
 }
 
 // Reviews Renderer

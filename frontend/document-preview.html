@@ -41,13 +41,14 @@
     <main class="preview-main">
         <!-- Document Viewer Section -->
         <section class="document-viewer-section">
-            <div class="viewer-header">
-                <button class="back-btn" onclick="window.history.back()">
+            <!-- Overlay Controls -->
+            <div class="viewer-overlay-controls">
+                <button class="back-btn-overlay" id="backBtn">
                     <span class="material-symbols-outlined">arrow_back</span>
                     Torna alla ricerca
                 </button>
                 
-                <div class="viewer-controls">
+                <div class="viewer-controls-overlay">
                     <button class="zoom-btn" id="zoomOut">
                         <span class="material-symbols-outlined">zoom_out</span>
                     </button>

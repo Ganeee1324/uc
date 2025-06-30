@@ -643,10 +643,18 @@ function updatePageDisplay() {
 function initializeZoom() {
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
-    const zoomLevelSpan = document.querySelector('.zoom-level');
     
-    if (zoomInBtn) zoomInBtn.addEventListener('click', () => adjustZoom(ZOOM_CONFIG.step));
-    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => adjustZoom(-ZOOM_CONFIG.step));
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => {
+            adjustZoom(ZOOM_CONFIG.step);
+        });
+    }
+    
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => {
+            adjustZoom(-ZOOM_CONFIG.step);
+        });
+    }
     
     updateZoomDisplay();
 }
@@ -666,14 +674,86 @@ function updateZoomDisplay() {
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
     
-    if (zoomLevelSpan) zoomLevelSpan.textContent = `${currentZoom}%`;
+    if (zoomLevelSpan) {
+        zoomLevelSpan.textContent = `${currentZoom}%`;
+    }
+    
     if (viewerContainer) {
         viewerContainer.style.transform = `scale(${currentZoom / 100})`;
         viewerContainer.style.transformOrigin = 'top center';
+        viewerContainer.style.transition = 'transform 0.3s ease-out';
     }
     
-    if (zoomInBtn) zoomInBtn.disabled = currentZoom >= ZOOM_CONFIG.max;
-    if (zoomOutBtn) zoomOutBtn.disabled = currentZoom <= ZOOM_CONFIG.min;
+    if (zoomInBtn) {
+        zoomInBtn.disabled = currentZoom >= ZOOM_CONFIG.max;
+    }
+    
+    if (zoomOutBtn) {
+        zoomOutBtn.disabled = currentZoom <= ZOOM_CONFIG.min;
+    }
+}
+
+// Initialize Back Button
+function initializeBackButton() {
+    const backBtn = document.getElementById('backBtn');
+    
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            // Try to go back in history, fallback to search page
+            if (document.referrer && document.referrer.includes('search.html')) {
+                window.history.back();
+            } else {
+                window.location.href = 'search.html';
+            }
+        });
+    }
+}
+
+// Initialize Fullscreen
+function initializeFullscreen() {
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            const documentViewer = document.getElementById('documentViewer');
+            
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                if (documentViewer.requestFullscreen) {
+                    documentViewer.requestFullscreen();
+                } else if (documentViewer.webkitRequestFullscreen) {
+                    documentViewer.webkitRequestFullscreen();
+                } else if (documentViewer.msRequestFullscreen) {
+                    documentViewer.msRequestFullscreen();
+                }
+                
+                fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
+                fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+            }
+        });
+        
+        // Listen for fullscreen changes
+        document.addEventListener('fullscreenchange', () => {
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            if (fullscreenBtn) {
+                if (document.fullscreenElement) {
+                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+                } else {
+                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                }
+            }
+        });
+    }
 }
 
 // Utility Functions
@@ -934,57 +1014,67 @@ function initializeTouchNavigation() {
 
 // Main Initialization
 async function initializeDocumentPreview() {
-    if (!checkAuthentication()) {
-        return;
-    }
-
-    const fileId = getFileIdFromUrl();
-    if (!fileId) {
-        return;
-    }
-
-    const viewer = document.getElementById('documentViewer');
-    if (!viewer) {
-        return;
-    }
-
-    const loader = LoadingManager.show(viewer);
-
     try {
-        const data = await fetchDocumentData(fileId);
-        currentDocument = data.document;
-
-        // Generate and render document pages
-        documentPages = await generateDocumentPages(currentDocument);
-        renderDocumentPages(documentPages);
-
-        // Render document information
-        renderDocumentInfo(data);
-
-        // Initialize controls
-        initializeZoom();
-        setupActionButtons(currentDocument);
-        initializeTabs();
-
-        // Load saved reading position
-        loadReadingPosition();
-
-        // Auto-save position
-        const scrollable = document.querySelector('.document-viewer-section');
-        if (scrollable) {
-            scrollable.addEventListener('scroll', saveReadingPosition);
+        // Check authentication first
+        if (!authToken) {
+            window.location.href = 'login.html';
+            return;
         }
-        window.addEventListener('beforeunload', saveReadingPosition);
+        
+        isLoading = true;
+        
+        // Get file ID from URL
+        const fileId = getFileIdFromUrl();
+        if (!fileId) return;
 
-        LoadingManager.hide(loader);
+        // Show loading state
+        const documentViewer = document.getElementById('documentViewer');
+        const loader = LoadingManager.show(documentViewer, 'Caricamento documento...');
+
+        try {
+            // Fetch document data
+            const data = await fetchDocumentData(fileId);
+            currentDocument = data.document;
+
+            // Hide loader
+            LoadingManager.hide(loader);
+
+            // Generate and render document pages
+            const pages = generateDocumentPages(data);
+            renderDocumentPages(pages);
+            
+            // Render document information
+            renderDocumentInfo(data);
+
+            // Initialize controls
+            initializeZoom();
+            initializeBackButton();
+            initializeFullscreen();
+            
+            // Initialize other systems
+            initializeKeyboardNavigation();
+            initializeTouchNavigation();
+            
+            // Load reading position
+            loadReadingPosition();
+            
+            isLoading = false;
+
+        } catch (error) {
+            console.error('Error loading document:', error);
+            LoadingManager.hide(loader);
+            LoadingManager.showError(
+                documentViewer,
+                'Impossibile caricare il documento. Verifica la tua connessione e riprova.',
+                'Riprova',
+                'initializeDocumentPreview'
+            );
+            isLoading = false;
+        }
+
     } catch (error) {
-        console.error('Failed to initialize document preview:', error);
-        LoadingManager.showError(
-            viewer,
-            'Impossibile caricare il documento. Riprova più tardi.',
-            'Torna alla ricerca',
-            () => window.location.href = 'search.html'
-        );
+        console.error('Critical error in document preview:', error);
+        isLoading = false;
     }
 }
 

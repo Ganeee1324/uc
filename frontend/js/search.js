@@ -2179,18 +2179,65 @@ function renderDocuments(files) {
         // Determine if this is a multi-file vetrina
         const isMultiFile = item.isVetrina && item.fileCount > 1;
         const fileStackClass = isMultiFile ? 'file-stack' : '';
-        const stackCountBadge = isMultiFile ? `<div class="file-count-badge">${item.fileCount} files</div>` : '';
+        const stackCountBadge = isMultiFile ? `<div class="file-count-badge">${item.fileCount}</div>` : '';
         
         // Generate preview based on whether it's a single file or multi-file vetrina
         let previewContent;
         if (isMultiFile) {
             // Show professional file stack with uniform grid on hover
-            const firstFile = item.files[0];
-            const secondFile = item.files[1] || firstFile;
-            const thirdFile = item.files[2] || secondFile;
+            const fileCount = item.fileCount;
+            const files = item.files;
+            
+            // Generate dynamic stack layers based on file count
+            let stackLayers = '';
+            if (fileCount === 2) {
+                // 2 files: back and front
+                stackLayers = `
+                    <div class="stack-layer stack-back">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                        <div class="file-extension">${files[1].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-front">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                        <div class="file-extension">${files[0].document_type}</div>
+                    </div>
+                `;
+            } else if (fileCount === 3) {
+                // 3 files: back, middle, front
+                stackLayers = `
+                    <div class="stack-layer stack-back">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
+                        <div class="file-extension">${files[2].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-middle">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                        <div class="file-extension">${files[1].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-front">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                        <div class="file-extension">${files[0].document_type}</div>
+                    </div>
+                `;
+            } else {
+                // More than 3 files: show 3 layers representing different files
+                stackLayers = `
+                    <div class="stack-layer stack-back">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
+                        <div class="file-extension">${files[2].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-middle">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                        <div class="file-extension">${files[1].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-front">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                        <div class="file-extension">${files[0].document_type}</div>
+                    </div>
+                `;
+            }
             
             // Generate all files for the grid layout
-            const gridFiles = item.files.map(file => `
+            const gridFiles = files.map(file => `
                 <div class="grid-file">
                     <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
                     <div class="file-extension">${file.document_type}</div>
@@ -2199,20 +2246,9 @@ function renderDocuments(files) {
             `).join('');
             
             previewContent = `
-                <div class="preview-icon ${fileStackClass}">
+                <div class="preview-icon ${fileStackClass}" data-file-count="${fileCount}">
                     <div class="file-stack-container">
-                        <div class="stack-layer stack-back">
-                            <span class="document-icon">${getDocumentPreviewIcon(thirdFile.filename)}</span>
-                            <div class="file-extension">${thirdFile.document_type}</div>
-                        </div>
-                        <div class="stack-layer stack-middle">
-                            <span class="document-icon">${getDocumentPreviewIcon(secondFile.filename)}</span>
-                            <div class="file-extension">${secondFile.document_type}</div>
-                        </div>
-                        <div class="stack-layer stack-front">
-                            <span class="document-icon">${getDocumentPreviewIcon(firstFile.filename)}</span>
-                            <div class="file-extension">${firstFile.document_type}</div>
-                        </div>
+                        ${stackLayers}
                         ${stackCountBadge}
                     </div>
                     <div class="files-grid-container">

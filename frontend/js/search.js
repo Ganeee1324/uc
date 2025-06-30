@@ -2236,12 +2236,11 @@ function renderDocuments(files) {
                 `;
             }
             
-            // Generate all files for the grid layout
-            const gridFiles = files.map(file => `
-                <div class="grid-file">
+            // Generate all files for the circular orbit layout (max 6 for visual clarity)
+            const orbitFiles = files.slice(0, 6).map(file => `
+                <div class="orbit-file">
                     <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
                     <div class="file-extension">${file.document_type}</div>
-                    <div class="file-name" title="${getOriginalFilename(file.filename)}">${getOriginalFilename(file.filename)}</div>
                 </div>
             `).join('');
             
@@ -2251,9 +2250,9 @@ function renderDocuments(files) {
                         ${stackLayers}
                         ${stackCountBadge}
                     </div>
-                    <div class="files-grid-container">
-                        <div class="files-grid">
-                            ${gridFiles}
+                    <div class="circular-orbit-container">
+                        <div class="orbit-center">
+                            ${orbitFiles}
                         </div>
                     </div>
                 </div>

@@ -917,8 +917,8 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 30px;
-    padding-left: 5px;
+    padding-top: 25px;
+    padding-left: 10px;
 }
 
 .file-stack-container {
@@ -1013,19 +1013,18 @@ html {
 /* Modern File Count Badge */
 .file-count-badge {
     position: absolute;
-    top: -10px;
-    right: -10px;
+    top: -15px;
+    right: 5px;
     background: linear-gradient(135deg, var(--blue-600), var(--indigo-600));
     color: var(--white);
     font-size: 14px;
     font-weight: 800;
-    padding: 8px;
     border-radius: 50%;
     z-index: 15;
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
     transition: all 0.2s var(--ease-3);
-    min-width: 32px;
-    min-height: 32px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1039,8 +1038,8 @@ html {
     background: linear-gradient(135deg, var(--purple-600), var(--blue-600));
 }
 
-/* Uniform Files Grid Layout */
-.files-grid-container {
+/* Circular Orbit Animation */
+.circular-orbit-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -1049,124 +1048,132 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px;
     opacity: 0;
-    transform: scale(0.95) translateY(10px);
     transition: all 0.25s var(--ease-3);
     z-index: 5;
     pointer-events: none;
 }
 
-.document-card:hover .files-grid-container {
+.document-card:hover .circular-orbit-container {
     opacity: 1;
-    transform: scale(1) translateY(0);
     transition-delay: 0.15s;
     pointer-events: auto;
 }
 
-.files-grid {
-    display: flex;
-    gap: 8px;
-    max-width: 100%;
-    height: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 0;
-    scrollbar-width: thin;
-    scrollbar-color: var(--blue-400) transparent;
+.orbit-center {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
 }
 
-.files-grid::-webkit-scrollbar {
-    height: 4px;
-}
-
-.files-grid::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 2px;
-}
-
-.files-grid::-webkit-scrollbar-thumb {
-    background: var(--blue-400);
-    border-radius: 2px;
-    transition: background-color 0.2s ease;
-}
-
-.files-grid::-webkit-scrollbar-thumb:hover {
-    background: var(--blue-500);
-}
-
-.grid-file {
-    flex-shrink: 0;
-    width: 70px;
-    height: 90px;
+.orbit-file {
+    position: absolute;
+    width: 45px;
+    height: 60px;
     background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
+    border: 1px solid var(--blue-300);
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.2s var(--ease-2);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
     opacity: 0;
-    transform: translateY(15px) scale(0.95);
+    transform: scale(0);
+    animation-duration: 8s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
 }
 
-.grid-file:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-    border-color: var(--blue-400);
-    background: linear-gradient(135deg, var(--white), var(--blue-50));
-}
-
-.document-card:hover .grid-file {
+.document-card:hover .orbit-file {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
+    transition: opacity 0.3s var(--ease-3), transform 0.3s var(--ease-3);
 }
 
-/* Fast staggered animation for grid files */
-.grid-file:nth-child(1) { transition-delay: 0.2s; }
-.grid-file:nth-child(2) { transition-delay: 0.25s; }
-.grid-file:nth-child(3) { transition-delay: 0.3s; }
-.grid-file:nth-child(4) { transition-delay: 0.35s; }
-.grid-file:nth-child(5) { transition-delay: 0.4s; }
-.grid-file:nth-child(6) { transition-delay: 0.45s; }
-.grid-file:nth-child(7) { transition-delay: 0.5s; }
-.grid-file:nth-child(8) { transition-delay: 0.55s; }
+/* Orbital positions and animations */
+.orbit-file:nth-child(1) {
+    animation-name: orbit1;
+    animation-delay: 0.2s;
+    transition-delay: 0.2s;
+}
 
-.grid-file .document-icon {
-    font-size: 24px;
-    margin-bottom: 4px;
+.orbit-file:nth-child(2) {
+    animation-name: orbit2;
+    animation-delay: 0.3s;
+    transition-delay: 0.3s;
+}
+
+.orbit-file:nth-child(3) {
+    animation-name: orbit3;
+    animation-delay: 0.4s;
+    transition-delay: 0.4s;
+}
+
+.orbit-file:nth-child(4) {
+    animation-name: orbit4;
+    animation-delay: 0.5s;
+    transition-delay: 0.5s;
+}
+
+.orbit-file:nth-child(5) {
+    animation-name: orbit5;
+    animation-delay: 0.6s;
+    transition-delay: 0.6s;
+}
+
+.orbit-file:nth-child(6) {
+    animation-name: orbit6;
+    animation-delay: 0.7s;
+    transition-delay: 0.7s;
+}
+
+@keyframes orbit1 {
+    from { transform: rotate(0deg) translateX(90px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(90px) rotate(-360deg); }
+}
+
+@keyframes orbit2 {
+    from { transform: rotate(60deg) translateX(90px) rotate(-60deg); }
+    to { transform: rotate(420deg) translateX(90px) rotate(-420deg); }
+}
+
+@keyframes orbit3 {
+    from { transform: rotate(120deg) translateX(90px) rotate(-120deg); }
+    to { transform: rotate(480deg) translateX(90px) rotate(-480deg); }
+}
+
+@keyframes orbit4 {
+    from { transform: rotate(180deg) translateX(90px) rotate(-180deg); }
+    to { transform: rotate(540deg) translateX(90px) rotate(-540deg); }
+}
+
+@keyframes orbit5 {
+    from { transform: rotate(240deg) translateX(90px) rotate(-240deg); }
+    to { transform: rotate(600deg) translateX(90px) rotate(-600deg); }
+}
+
+@keyframes orbit6 {
+    from { transform: rotate(300deg) translateX(90px) rotate(-300deg); }
+    to { transform: rotate(660deg) translateX(90px) rotate(-660deg); }
+}
+
+.orbit-file .document-icon {
+    font-size: 18px;
+    margin-bottom: 2px;
     color: var(--blue-600);
     transition: all 0.15s var(--ease-2);
 }
 
-.grid-file:hover .document-icon {
-    color: var(--blue-700);
-    transform: scale(1.1);
-}
-
-.grid-file .file-extension {
-    font-size: 8px;
+.orbit-file .file-extension {
+    font-size: 6px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
     opacity: 0.8;
     color: var(--gray-600);
     text-align: center;
-}
-
-.grid-file .file-name {
-    font-size: 7px;
-    font-weight: 600;
-    color: var(--gray-700);
-    text-align: center;
-    margin-top: 2px;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 0 4px;
 }
 
 .document-stack {

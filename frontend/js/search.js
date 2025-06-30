@@ -2179,11 +2179,8 @@ function renderDocuments(files) {
             const previewContent = isBundle ? 
                 `<div class="bundle-preview">
                     <div class="document-stack">
-                        <div class="stack-layer stack-layer-0">
-                            <div class="bundle-count">${vetrinaFiles.length} files</div>
-                        </div>
-                        <div class="stack-layer stack-layer-1"></div>
-                        <div class="stack-layer stack-layer-2"></div>
+                        <div class="bundle-icon">📁</div>
+                        <div class="bundle-count">${vetrinaFiles.length} files</div>
                     </div>
                 </div>` :
                 `<div class="preview-icon">

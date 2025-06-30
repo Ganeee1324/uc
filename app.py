@@ -1,4 +1,6 @@
 from datetime import timedelta
+import logging
+import traceback
 import database
 import redact
 from flask import Flask, jsonify, request, send_file
@@ -43,6 +45,7 @@ os.makedirs(files_folder_path, exist_ok=True)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    logging.error(f"Internal server error: {e} {traceback.format_exc()}")
     return jsonify({"error": "internal_server_error", "msg": str(e)}), 500
 
 

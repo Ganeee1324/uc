@@ -4,7 +4,7 @@ import sys
 import os
 
 # Test configuration
-BASE_URL = "http://146.59.236.26:5000"
+BASE_URL = "http://localhost:5000"
 TEST_USER = {
     "username": "testuser",
     "name": "Test",

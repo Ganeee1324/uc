@@ -2184,16 +2184,16 @@ function renderDocuments(files) {
         // Generate preview based on whether it's a single file or multi-file vetrina
         let previewContent;
         if (isMultiFile) {
-            // Show professional file stack with hover preview grid
+            // Show professional file stack with smooth expanding animation
             const firstFile = item.files[0];
             const secondFile = item.files[1] || firstFile;
             const thirdFile = item.files[2] || secondFile;
             
-            // Generate individual file preview items for the grid
-            const filePreviewItems = item.files.map(file => `
-                <div class="file-preview-item">
+            // Generate additional files that appear on hover (skip first 3 that are in the stack)
+            const additionalFiles = item.files.slice(3, 8).map(file => `
+                <div class="additional-file">
                     <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
-                    <div class="file-name" title="${getOriginalFilename(file.filename)}">${getOriginalFilename(file.filename)}</div>
+                    <div class="file-extension">${file.document_type}</div>
                 </div>
             `).join('');
             
@@ -2214,8 +2214,8 @@ function renderDocuments(files) {
                         </div>
                         ${stackCountBadge}
                     </div>
-                    <div class="file-preview-grid">
-                        ${filePreviewItems}
+                    <div class="additional-files">
+                        ${additionalFiles}
                     </div>
                 </div>
             `;

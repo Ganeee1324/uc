@@ -1019,7 +1019,7 @@ function initializeToggleFilters() {
     // Price toggles
     const priceToggles = document.querySelectorAll('.price-toggle');
     const priceRangeContainer = document.getElementById('priceRangeContainer');
-    
+
     priceToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             priceToggles.forEach(t => t.classList.remove('active'));
@@ -1099,7 +1099,7 @@ function initializeToggleFilters() {
     timeToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             timeToggles.forEach(t => t.classList.remove('active'));
-            toggle.classList.add('active');
+                toggle.classList.add('active');
             
             const timeType = toggle.dataset.time;
             
@@ -1184,7 +1184,7 @@ function handlePriceRangeChange() {
     if (maxPriceValue) maxPriceValue.textContent = `€${maxVal}`;
     
     // Update the visual fill
-    updatePriceSliderFill();
+        updatePriceSliderFill();
     
     // Update filter count immediately for responsive UI
     updateFilterCount();
@@ -1947,7 +1947,7 @@ async function loadAllFiles() {
     try {
         showStatus('Caricamento documenti... 📚');
         
-        // First get all vetrine
+        // First get all vetrines
         const vetrineResponse = await makeRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
@@ -2002,6 +2002,9 @@ async function loadAllFiles() {
                         canale: vetrina.course_instance?.canale || 'A',
                         course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
                         academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                        document_types: files.length > 1 ? 
+                            Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
+                            : [getDocumentCategory(getOriginalFilename(files[0].filename), '')],
                         document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
                         author_username: vetrina.owner?.username || 'Unknown',
                         owned: files.every(file => file.owned),
@@ -2152,12 +2155,12 @@ function renderDocuments(files) {
                 <p>Prova a modificare i filtri o a cercare qualcos'altro</p>
             </div>
         `;
-        return;
-    }
-    
+                return;
+            }
+
     files.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'document-card';
+                const card = document.createElement('div');
+                card.className = 'document-card';
         card.style.animationDelay = `${index * 0.1}s`;
         
         // Make the entire card clickable
@@ -2251,14 +2254,6 @@ function renderDocuments(files) {
                         ${stackLayers}
                         ${stackCountBadge}
                     </div>
-                    <div class="files-carousel-container" data-files-count="${files.length}">
-                        <div class="carousel-viewport">
-                            <div class="carousel-track">
-                                ${carouselFiles}
-                            </div>
-                            <div class="carousel-scroll-hint">scroll to browse</div>
-                        </div>
-                    </div>
                 </div>
             `;
         } else {
@@ -2272,32 +2267,41 @@ function renderDocuments(files) {
             `;
         }
         
-        card.innerHTML = `
-            <div class="document-preview">
+        // Add a view files button for vetrine
+        const viewFilesButton = item.isVetrina ? `<button class="view-files-button"><span class="material-symbols-outlined">fullscreen</span>Visualizza</button>` : '';
+
+                card.innerHTML = `
+                    <div class="document-preview">
                 ${previewContent}
-                <div class="document-type-badge">${documentCategory}</div>
+                ${viewFilesButton}
+                <div class="document-type-badges">
+                    <div class="document-type-badge">${item.document_types[0]}</div>
+                    ${item.document_types.length > 1 ? 
+                        `<div class="document-type-badge more-types">+${item.document_types.length - 1}</div>` : 
+                        ''}
+                </div>
                 <div class="rating-badge">
                     <div class="rating-stars">${stars}</div>
                     <span class="rating-count">(${reviewCount})</span>
-                </div>
-            </div>
+                            </div>
+                        </div>
             
             <button class="favorite-button" onclick="event.stopPropagation(); toggleFavorite(this)" title="Aggiungi ai preferiti">
                 <span class="material-symbols-outlined">favorite</span>
             </button>
             
-            <div class="document-content">
-                <div class="document-header">
-                    <div class="document-title-section">
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
                         <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
                         <div class="document-description" title="${description}">${description}</div>
-                    </div>
-                </div>
-                <div class="document-info">
+                            </div>
+                        </div>
+                        <div class="document-info">
                     <div class="document-info-item" title="Corso: ${item.course_name || 'N/A'}">
                         <span class="info-icon">📚</span>
                         <span class="info-text">${item.course_name || 'N/A'}</span>
-                    </div>
+                            </div>
                     <div class="document-info-item" title="Facoltà: ${item.faculty_name || 'N/A'}">
                         <span class="info-icon">🏛️</span>
                         <span class="info-text">${item.faculty_name || 'N/A'}</span>
@@ -2305,200 +2309,44 @@ function renderDocuments(files) {
                     <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}">
                         <span class="info-icon">📝</span>
                         <span class="info-text">${item.language || 'N/A'}</span>
-                    </div>
-                </div>
-                <div class="document-footer">
-                    <div class="document-footer-left">
+                            </div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="document-footer-left">
                         <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
-                        </div>
+                            </div>
                         <div class="document-meta">${formatFileSize(item.size || 0)}</div>
                     </div>
                     <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
                         ${price === 0 ? 'Gratis' : `€${price}`}
                     </div>
-                </div>
-            </div>
-        `;
-        
+                        </div>
+                    </div>
+                `;
+                
+        if (item.isVetrina) {
+            card.querySelector('.view-files-button').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openQuickLook(item);
+            });
+        }
+
         grid.appendChild(card);
     });
 
-    // Initialize card animations
+    // Initialize carousels IMMEDIATELY. This sets the initial scroll position
+    // before the element is visible, preventing the slide-in effect from the side.
+    // initializeCarousels(); // REMOVED
+
+    // Animate document cards into view after a short delay for a staggered effect.
     setTimeout(() => {
         const cards = document.querySelectorAll('.document-card');
         cards.forEach((card, index) => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
         });
-        
-        // Initialize carousel interactions after a brief delay
-        setTimeout(() => {
-            initializeCarousels();
-        }, 150);
     }, 100);
-}
-
-function initializeCarousels() {
-    const carouselContainers = document.querySelectorAll('.files-carousel-container');
-    
-    carouselContainers.forEach(container => {
-        const track = container.querySelector('.carousel-track');
-        const files = container.querySelectorAll('.carousel-file');
-        const filesCount = parseInt(container.dataset.filesCount) || files.length;
-        const documentCard = container.closest('.document-card');
-        
-        if (files.length === 0) return;
-        
-        let currentIndex = 0;
-        let isScrolling = false;
-        let startX = 0;
-        let startScrollLeft = 0;
-        let carouselActive = false;
-        
-        // Listen for hover to start the animation sequence
-        documentCard.addEventListener('mouseenter', () => {
-            if (!carouselActive) {
-                // Delay setting active states until animation completes
-                setTimeout(() => {
-                    carouselActive = true;
-                    updateCarouselDisplay();
-                }, 1000); // After all files have animated in
-            }
-        });
-        
-        documentCard.addEventListener('mouseleave', () => {
-            carouselActive = false;
-            // Reset all states when leaving
-            files.forEach(file => {
-                file.classList.remove('active', 'side', 'far');
-            });
-        });
-        
-        function updateCarouselDisplay() {
-            if (!carouselActive) return;
-            
-            files.forEach((file, index) => {
-                file.classList.remove('active', 'side', 'far');
-                
-                if (index === currentIndex) {
-                    file.classList.add('active');
-                } else if (Math.abs(index - currentIndex) === 1 || 
-                          (currentIndex === 0 && index === filesCount - 1) ||
-                          (currentIndex === filesCount - 1 && index === 0)) {
-                    file.classList.add('side');
-                } else {
-                    file.classList.add('far');
-                }
-            });
-            
-            // Center the active file
-            const activeFile = files[currentIndex];
-            if (activeFile) {
-                const containerWidth = container.clientWidth;
-                const fileLeft = activeFile.offsetLeft;
-                const fileWidth = activeFile.clientWidth;
-                const centerPosition = fileLeft - (containerWidth / 2) + (fileWidth / 2);
-                track.style.transform = `translateX(-${centerPosition}px)`;
-            }
-        }
-        
-        function nextFile() {
-            if (!carouselActive) return;
-            currentIndex = (currentIndex + 1) % filesCount;
-            updateCarouselDisplay();
-        }
-        
-        function prevFile() {
-            if (!carouselActive) return;
-            currentIndex = (currentIndex - 1 + filesCount) % filesCount;
-            updateCarouselDisplay();
-        }
-        
-        // Mouse/touch interactions
-        track.addEventListener('mousedown', startDrag);
-        track.addEventListener('touchstart', startDrag);
-        
-        function startDrag(e) {
-            if (!carouselActive) return;
-            isScrolling = true;
-            startX = e.pageX || e.touches[0].pageX;
-            startScrollLeft = currentIndex;
-            track.style.cursor = 'grabbing';
-        }
-        
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag);
-        
-        function drag(e) {
-            if (!isScrolling) return;
-            e.preventDefault();
-            
-            const x = e.pageX || e.touches[0].pageX;
-            const deltaX = startX - x;
-            const threshold = 50; // Minimum drag distance to trigger change
-            
-            if (Math.abs(deltaX) > threshold) {
-                if (deltaX > 0) {
-                    nextFile();
-                } else {
-                    prevFile();
-                }
-                isScrolling = false;
-                track.style.cursor = 'grab';
-            }
-        }
-        
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
-        
-        function stopDrag() {
-            isScrolling = false;
-            track.style.cursor = 'grab';
-        }
-        
-        // Wheel scroll interaction
-        container.addEventListener('wheel', (e) => {
-            if (!carouselActive) return;
-            e.preventDefault();
-            if (e.deltaY > 0) {
-                nextFile();
-            } else {
-                prevFile();
-            }
-        });
-        
-        // Click on files to make them active
-        files.forEach((file, index) => {
-            file.addEventListener('click', () => {
-                if (!carouselActive) return;
-                currentIndex = index;
-                updateCarouselDisplay();
-            });
-        });
-        
-        // Auto-scroll demonstration (optional - can be removed)
-        let autoScrollInterval;
-        
-        container.addEventListener('mouseenter', () => {
-            clearInterval(autoScrollInterval);
-        });
-        
-        container.addEventListener('mouseleave', () => {
-            // Start auto-scroll after 3 seconds of no interaction
-            setTimeout(() => {
-                if (!container.matches(':hover') && carouselActive) {
-                    autoScrollInterval = setInterval(() => {
-                        if (!container.matches(':hover') && carouselActive) {
-                            nextFile();
-                        } else {
-                            clearInterval(autoScrollInterval);
-                        }
-                    }, 2000);
-                }
-            }, 3000);
-        });
-    });
 }
 
 function generateStars(rating) {
@@ -2720,7 +2568,7 @@ async function downloadDocument(fileId) {
             a.click();
             window.URL.revokeObjectURL(url);
             showStatus('Documento scaricato con successo! 🎉');
-        } else {
+            } else {
             throw new Error('Download fallito');
         }
     } catch (error) {
@@ -2875,7 +2723,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (Object.keys(activeFilters).length > 0) {
                         const filtered = applyFiltersToFiles(originalFiles);
                         renderDocuments(filtered);
-                    } else {
+                } else {
                         renderDocuments(originalFiles);
                     }
                 } else if (this.value.length >= 2) {
@@ -2959,9 +2807,9 @@ function initializeKeyboardShortcuts() {
     });
 }
 
-// ===========================
+        // ===========================
 // GLOBAL UTILITIES
-// ===========================
+        // ===========================
 
 // Make functions globally available for onclick handlers
 window.previewDocument = previewDocument;
@@ -2971,3 +2819,107 @@ window.purchaseDocument = purchaseDocument;
 window.toggleFavorite = toggleFavorite;
 window.removeFilter = removeFilter;
 window.clearAllFiltersAction = clearAllFiltersAction;
+window.clearAllFiltersAction = clearAllFiltersAction;
+
+function openQuickLook(vetrina) {
+    // Prevent multiple modals
+    if (document.getElementById('quick-look-overlay')) return;
+
+    const modalHTML = `
+        <div id="quick-look-overlay" class="quick-look-overlay">
+            <div class="quick-look-modal">
+                <button class="quick-look-close-button">&times;</button>
+                <div class="quick-look-header">
+                    <h2 class="quick-look-title">${vetrina.title}</h2>
+                    <p class="quick-look-file-count">${vetrina.files.length} files</p>
+                </div>
+                <div class="quick-look-body">
+                    <div class="quick-look-main-preview">
+                        <div class="preview-placeholder">
+                            <span class="material-symbols-outlined">visibility</span>
+                            <p>Select a file to preview</p>
+                        </div>
+                    </div>
+                    <div class="quick-look-sidebar">
+                        <ul class="quick-look-file-list">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const overlay = document.getElementById('quick-look-overlay');
+    const modal = overlay.querySelector('.quick-look-modal');
+    const closeButton = overlay.querySelector('.quick-look-close-button');
+    const fileList = overlay.querySelector('.quick-look-file-list');
+
+    // Populate file list
+    vetrina.files.forEach((file, index) => {
+        const fileItem = document.createElement('li');
+        fileItem.className = 'quick-look-file-item';
+        fileItem.dataset.index = index;
+        fileItem.innerHTML = `
+            <span class="file-item-icon">${getDocumentPreviewIcon(file.filename)}</span>
+            <span class="file-item-name">${file.filename}</span>
+            <span class="file-item-size">${formatFileSize(file.size)}</span>
+        `;
+        fileList.appendChild(fileItem);
+    });
+    
+    // Show first file by default
+    switchQuickLookPreview(vetrina, 0);
+
+    // Event listeners
+    closeButton.addEventListener('click', closeQuickLook);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeQuickLook();
+        }
+    });
+    fileList.addEventListener('click', (e) => {
+        const item = e.target.closest('.quick-look-file-item');
+        if (item) {
+            switchQuickLookPreview(vetrina, parseInt(item.dataset.index, 10));
+        }
+    });
+
+    // Animate in
+    setTimeout(() => overlay.classList.add('visible'), 10);
+}
+
+function closeQuickLook() {
+    const overlay = document.getElementById('quick-look-overlay');
+    if (overlay) {
+        overlay.classList.remove('visible');
+        overlay.addEventListener('transitionend', () => {
+            overlay.remove();
+        }, { once: true });
+    }
+}
+
+function switchQuickLookPreview(vetrina, index) {
+    const file = vetrina.files[index];
+    if (!file) return;
+
+    const previewContainer = document.querySelector('.quick-look-main-preview');
+    const fileListItems = document.querySelectorAll('.quick-look-file-list .quick-look-file-item');
+
+    // Update preview content
+    previewContainer.innerHTML = `
+        <div class="preview-content-area">
+            <div class="preview-icon-large">${getDocumentPreviewIcon(file.filename)}</div>
+            <h3 class="preview-filename">${file.filename}</h3>
+            <p class="preview-file-details">
+                <span>Type: ${file.document_type}</span> | 
+                <span>Size: ${formatFileSize(file.size)}</span>
+            </p>
+        </div>
+    `;
+
+    // Update active class in file list
+    fileListItems.forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+    });
+}

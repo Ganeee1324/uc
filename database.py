@@ -374,8 +374,6 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
 
     # Add filters - only build filter strings for non-empty values
     filters = [
-        ("name", "v.name", params.get("name")),
-        ("description", "v.description", params.get("description")),
         ("course_name", "ci.course_name", params.get("course_name")),
         ("faculty", "ci.faculty_name", params.get("faculty")),
     ]

@@ -255,18 +255,12 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - name: name
+        - name: text
           in: query
           required: false
           schema:
             type: string
-          description: Filter by vetrina name
-        - name: course_code
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Filter by course code
+          description: Filter by text
         - name: course_name
           in: query
           required: false

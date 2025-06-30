@@ -166,7 +166,7 @@ def search_vetrine():
     user_id = get_jwt_identity()
     search_params = {}
     for key, value in request.args.items():
-        if key in ["name", "course_code", "course_name", "faculty"]:
+        if key in ["text", "course_name", "faculty"]:
             if value and value.strip():  # Check if value exists and is not just whitespace
                 search_params[key] = value.strip()
 

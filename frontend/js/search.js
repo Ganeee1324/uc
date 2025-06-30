@@ -2155,12 +2155,14 @@ function renderDocuments(files) {
                 <p>Prova a modificare i filtri o a cercare qualcos'altro</p>
             </div>
         `;
-                return;
-            }
+        return;
+    }
 
     files.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'document-card';
+        const card = document.createElement('div');
+        card.className = 'document-card';
+        // Always use the vetrina ID, whether it's a single file or a collection
+        card.setAttribute('data-vetrina-id', item.vetrina_id || item.id);
         card.style.animationDelay = `${index * 0.1}s`;
         
         // Make the entire card clickable
@@ -2194,7 +2196,6 @@ function renderDocuments(files) {
             // Generate dynamic stack layers based on file count
             let stackLayers = '';
             if (fileCount === 2) {
-                // 2 files: back and front
                 stackLayers = `
                     <div class="stack-layer stack-back">
                         <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
@@ -2206,7 +2207,6 @@ function renderDocuments(files) {
                     </div>
                 `;
             } else if (fileCount === 3) {
-                // 3 files: back, middle, front
                 stackLayers = `
                     <div class="stack-layer stack-back">
                         <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
@@ -2222,7 +2222,6 @@ function renderDocuments(files) {
                     </div>
                 `;
             } else {
-                // More than 3 files: show 3 layers representing different files
                 stackLayers = `
                     <div class="stack-layer stack-back">
                         <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
@@ -2238,15 +2237,6 @@ function renderDocuments(files) {
                     </div>
                 `;
             }
-            
-            // Generate files for the centered carousel
-            const carouselFiles = files.map((file, index) => `
-                <div class="carousel-file" data-index="${index}">
-                    <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
-                    <div class="file-extension">${file.document_type}</div>
-                    <div class="file-name">${file.filename.length > 12 ? file.filename.substring(0, 12) + '...' : file.filename}</div>
-                </div>
-            `).join('');
             
             previewContent = `
                 <div class="preview-icon ${fileStackClass}" data-file-count="${fileCount}">
@@ -2270,8 +2260,10 @@ function renderDocuments(files) {
         // Add a view files button for vetrine
         const viewFilesButton = item.isVetrina ? `<button class="view-files-button"><span class="material-symbols-outlined">fullscreen</span>Visualizza</button>` : '';
 
-                card.innerHTML = `
-                    <div class="document-preview">
+        // Update the favorite button to include the initial state from the API
+        const isFavorited = item.favorite === true;
+        card.innerHTML = `
+            <div class="document-preview">
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
@@ -2283,25 +2275,27 @@ function renderDocuments(files) {
                 <div class="rating-badge">
                     <div class="rating-stars">${stars}</div>
                     <span class="rating-count">(${reviewCount})</span>
-                            </div>
-                        </div>
+                </div>
+            </div>
             
-            <button class="favorite-button" onclick="event.stopPropagation(); toggleFavorite(this)" title="Aggiungi ai preferiti">
+            <button class="favorite-button ${isFavorited ? 'active' : ''}" 
+                    onclick="toggleFavorite(this, event)" 
+                    title="${isFavorited ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">
                 <span class="material-symbols-outlined">favorite</span>
             </button>
             
-                    <div class="document-content">
-                        <div class="document-header">
-                            <div class="document-title-section">
+            <div class="document-content">
+                <div class="document-header">
+                    <div class="document-title-section">
                         <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
                         <div class="document-description" title="${description}">${description}</div>
-                            </div>
-                        </div>
-                        <div class="document-info">
+                    </div>
+                </div>
+                <div class="document-info">
                     <div class="document-info-item" title="Corso: ${item.course_name || 'N/A'}">
                         <span class="info-icon">📚</span>
                         <span class="info-text">${item.course_name || 'N/A'}</span>
-                            </div>
+                    </div>
                     <div class="document-info-item" title="Facoltà: ${item.faculty_name || 'N/A'}">
                         <span class="info-icon">🏛️</span>
                         <span class="info-text">${item.faculty_name || 'N/A'}</span>
@@ -2309,22 +2303,22 @@ function renderDocuments(files) {
                     <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}">
                         <span class="info-icon">📝</span>
                         <span class="info-text">${item.language || 'N/A'}</span>
-                            </div>
-                        </div>
-                        <div class="document-footer">
-                            <div class="document-footer-left">
+                    </div>
+                </div>
+                <div class="document-footer">
+                    <div class="document-footer-left">
                         <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
-                            </div>
+                        </div>
                         <div class="document-meta">${formatFileSize(item.size || 0)}</div>
                     </div>
                     <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
                         ${price === 0 ? 'Gratis' : `€${price}`}
                     </div>
-                        </div>
-                    </div>
-                `;
-                
+                </div>
+            </div>
+        `;
+        
         if (item.isVetrina) {
             card.querySelector('.view-files-button').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -2335,11 +2329,7 @@ function renderDocuments(files) {
         grid.appendChild(card);
     });
 
-    // Initialize carousels IMMEDIATELY. This sets the initial scroll position
-    // before the element is visible, preventing the slide-in effect from the side.
-    // initializeCarousels(); // REMOVED
-
-    // Animate document cards into view after a short delay for a staggered effect.
+    // Animate document cards into view
     setTimeout(() => {
         const cards = document.querySelectorAll('.document-card');
         cards.forEach((card, index) => {
@@ -2421,10 +2411,43 @@ function showError(message) {
     showStatus(message, 'error');
 }
 
-function toggleFavorite(button) {
-    button.classList.toggle('active');
+async function toggleFavorite(button, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+
+    // Get the vetrina ID from the parent card
+    const card = button.closest('.document-card');
+    const vetrinaId = card.getAttribute('data-vetrina-id');
+    
+    // Determine if it's currently favorited
     const isFavorited = button.classList.contains('active');
-    showStatus(isFavorited ? 'Aggiunto ai preferiti! ❤️' : 'Rimosso dai preferiti 💔');
+    
+    try {
+        const response = await fetch(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
+            method: isFavorited ? 'DELETE' : 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Toggle the favorite state in the UI
+        if (isFavorited) {
+            button.classList.remove('active');
+            showStatus('Rimosso dai preferiti 💔');
+        } else {
+            button.classList.add('active');
+            showStatus('Aggiunto ai preferiti! ❤️');
+        }
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        showError('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.');
+    }
 }
 
 function previewDocument(fileId) {

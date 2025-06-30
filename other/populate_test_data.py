@@ -50,29 +50,41 @@ def populate_database():
     print(f"Creating test vetrine and files for user ID: {user_id}")
     
     # Create test vetrine and files
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     vetrine_data = [
+        # Single file vetrine
         {
-            "name": "Appunti Completi Analisi Matematica I",
-            "description": "Appunti dettagliati del corso di Analisi Matematica I, con tutti i teoremi, dimostrazioni ed esercizi svolti. Include limiti, derivate, integrali e serie numeriche.",
+            "name": f"Formulario Chimica Organica ({timestamp})",
+            "description": "Formulario essenziale di chimica organica con tutte le reazioni principali e i meccanismi di reazione.",
             "files": [
-                ("appunti_analisi_1.pdf", "# Appunti Analisi Matematica I\n\n## Capitolo 1: Limiti\n\nDefinizione di limite...\n\n## Capitolo 2: Derivate\n\nLa derivata di una funzione...", 0),
-                ("formulario_analisi.pdf", "# Formulario Analisi Matematica\n\n∫ x dx = x²/2 + C\n∫ sin(x) dx = -cos(x) + C\n...", 5)
+                ("formulario_chimica.pdf", "# Formulario Chimica Organica\n\nAlcani + Br2 → Bromoalcani\nAlcheni + H2O → Alcoli\n...", 2)
             ]
         },
         {
-            "name": "Slides Fisica Generale",
-            "description": "Raccolta completa delle slides utilizzate durante le lezioni di Fisica Generale. Coprono meccanica, termodinamica, elettromagnetismo e ottica.",
+            "name": f"Riassunto Storia Contemporanea ({timestamp})",
+            "description": "Riassunto delle lezioni di Storia Contemporanea, focalizzato sul periodo tra le due guerre mondiali.",
             "files": [
-                ("slides_meccanica.pdf", "# Fisica Generale - Meccanica\n\n## Cinematica\nMoto rettilineo uniforme: s = vt\n\n## Dinamica\nF = ma\n...", 3),
-                ("esercizi_fisica.pdf", "# Esercizi Fisica Generale\n\n1. Un corpo di massa m = 5kg...\n2. Calcolare la forza necessaria...", 0)
+                ("storia_contemporanea.pdf", "# Storia Contemporanea\n\n## Il primo dopoguerra\nLe conseguenze della Grande Guerra...", 0)
+            ]
+        },
+        # Multi-file vetrine (3+ files)
+        {
+            "name": f"Corso Completo Python Programming ({timestamp})",
+            "description": "Corso completo di programmazione Python, dal livello base all'avanzato. Include esercizi, progetti e soluzioni.",
+            "files": [
+                ("python_basics.pdf", "# Python Basics\n\n## Variables and Types\nPython is a dynamically typed language...", 5),
+                ("python_advanced.pdf", "# Advanced Python\n\n## Decorators\nDecorators are a powerful way to modify functions...", 5),
+                ("python_exercises.pdf", "# Python Exercises\n\n1. Write a function to calculate Fibonacci numbers...", 3),
+                ("python_solutions.pdf", "# Exercise Solutions\n\ndef fibonacci(n):\n    if n <= 1: return n\n    return fibonacci(n-1) + fibonacci(n-2)", 2)
             ]
         },
         {
-            "name": "Riassunto Programmazione Java",
-            "description": "Riassunto completo del corso di Programmazione in Java. Include sintassi, OOP, collections, thread e design patterns con esempi pratici.",
+            "name": f"Bundle Matematica Discreta ({timestamp})",
+            "description": "Raccolta completa di materiale per Matematica Discreta: teoria, esercizi, prove d'esame e soluzioni.",
             "files": [
-                ("riassunto_java.pdf", "# Programmazione Java - Riassunto\n\n## Tipi di dati\nint, double, String...\n\n## Classi e Oggetti\npublic class Persona { ... }", 0),
-                ("esempi_codice.pdf", "# Esempi di Codice Java\n\n```java\npublic class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println(\"Hello World!\");\n    }\n}\n```", 2)
+                ("teoria_insiemi.pdf", "# Teoria degli Insiemi\n\n## Operazioni fondamentali\nUnione, intersezione, differenza...", 4),
+                ("logica_proposizionale.pdf", "# Logica Proposizionale\n\n## Connettivi logici\nAND, OR, NOT, implicazione...", 3),
+                ("grafi_alberi.pdf", "# Grafi e Alberi\n\n## Definizioni base\nUn grafo G è una coppia (V,E)...", 3)
             ]
         }
     ]

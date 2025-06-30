@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
 from common import CourseInstance, File, Transaction, User, Vetrina, VetrinaSubscription
@@ -13,15 +13,6 @@ load_dotenv()
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-
-
-class DictRowFactory:
-    def __init__(self, cursor: psycopg.Cursor[Any]):
-        self.fields = [c.name for c in cursor.description]
-
-    def __call__(self, values: Sequence[Any]) -> dict[str, Any]:
-        return dict(zip(self.fields, values))
-
 
 def connect(autocommit: bool = False, no_dict_row_factory: bool = False) -> psycopg.Connection:
     return psycopg.connect(f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}", autocommit=autocommit, row_factory=psycopg.rows.dict_row if not no_dict_row_factory else None)

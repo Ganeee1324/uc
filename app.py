@@ -183,6 +183,14 @@ def search_vetrine():
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
 
 
+@app.route("/vetrine/<int:vetrina_id>", methods=["GET"])
+@jwt_required(optional=True)
+def get_vetrina(vetrina_id):
+    user_id = get_jwt_identity()
+    vetrina = database.get_vetrina_by_id(vetrina_id, user_id)
+    return jsonify(vetrina.to_dict()), 200
+
+
 # ---------------------------------------------
 # File routes
 # ---------------------------------------------

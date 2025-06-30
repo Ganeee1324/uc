@@ -153,13 +153,14 @@ function renderDocumentInfo(docData) {
     
     // Update document title
     const title = vetrinaData?.name || fileData.filename || 'Documento Senza Titolo';
-    document.querySelector('.doc-title').textContent = title;
+    const titleElement = document.querySelector('.doc-title');
+    if (titleElement) titleElement.textContent = title;
     document.title = `${title} - StudyHub`;
 
     // Determine document type from filename
     const documentType = getDocumentTypeFromFilename(fileData.filename);
     
-    // Update rating and price (mock data for now)
+    // Update rating and price (mock data for now since no rating system exists yet)
     const rating = 4.2; // Mock rating
     const reviewCount = 127; // Mock review count
     const price = fileData.price || 0;
@@ -184,22 +185,20 @@ function renderDocumentInfo(docData) {
         }
     }
     
-    // Update essential details (always visible)
+    // Update all details (no longer expandable - all visible)
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Canale', courseInfo.canale || 'Non specificato');
     updateDetailValue('Tipo Documento', documentType);
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
-    updateDetailValue('Autore', vetrinaData?.owner?.username || 'Non specificato');
-    
-    // Update additional details (expandable)
-    updateAdditionalDetailValue('Lingua', courseInfo.language || 'Non specificata');
-    updateAdditionalDetailValue('Semestre', courseInfo.course_semester || 'Non specificato');
-    updateAdditionalDetailValue('Pagine', `${totalPages} pagine`);
-    updateAdditionalDetailValue('Formato', getFileExtension(fileData.filename));
-    updateAdditionalDetailValue('Dimensione', formatFileSize(fileData.size || 0));
-    updateAdditionalDetailValue('Download', `${fileData.download_count || 0} volte`);
-    updateAdditionalDetailValue('Data Pubblicazione', formatDate(fileData.created_at));
+    updateDetailValue('Autore', vetrinaData?.author?.username || 'Non specificato');
+    updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
+    updateDetailValue('Semestre', courseInfo.course_semester || 'Non specificato');
+    updateDetailValue('Pagine', `${totalPages} pagine`);
+    updateDetailValue('Formato', getFileExtension(fileData.filename));
+    updateDetailValue('Dimensione', formatFileSize(fileData.size || 0));
+    updateDetailValue('Download', `${fileData.download_count || 0} volte`);
+    updateDetailValue('Data Pubblicazione', formatDate(fileData.created_at));
 
     // Update description
     const description = vetrinaData?.description || 'Nessuna descrizione disponibile per questo documento.';
@@ -207,17 +206,14 @@ function renderDocumentInfo(docData) {
     if(descriptionContainer) {
         descriptionContainer.innerHTML = `<p>${description}</p>`;
     }
-
-    // Initialize expandable functionality
-
     
     // Set up action buttons with proper data
     setupActionButtons(fileData);
 }
 
-// Helper function to update detail values in essential section
+// Helper function to update detail values
 function updateDetailValue(label, value) {
-    const detailItems = document.querySelectorAll('.essential-details .detail-item-vertical');
+    const detailItems = document.querySelectorAll('.doc-details .detail-item-vertical');
     detailItems.forEach(item => {
         const labelElement = item.querySelector('.detail-label');
         if (labelElement && labelElement.textContent === label) {
@@ -229,19 +225,7 @@ function updateDetailValue(label, value) {
     });
 }
 
-// Helper function to update detail values in additional section
-function updateAdditionalDetailValue(label, value) {
-    const detailItems = document.querySelectorAll('.additional-details .detail-item-vertical');
-    detailItems.forEach(item => {
-        const labelElement = item.querySelector('.detail-label');
-        if (labelElement && labelElement.textContent === label) {
-            const valueElement = item.querySelector('.detail-value');
-            if (valueElement) {
-                valueElement.textContent = value;
-            }
-        }
-    });
-}
+
 
 
 
@@ -282,16 +266,19 @@ function generateDocumentPages(docData) {
     // For now, we'll generate placeholder pages based on document type
     // In a real implementation, this would extract actual pages from the PDF/document
     
-    const documentType = docData.files && docData.files[0] ? getFileExtension(docData.files[0].filename) : 'PDF';
-    const courseInfo = {
-        title: docData.name || docData.title || docData.course_name || 'Documento',
-        course: docData.course_name || docData.name || 'Corso',
-        professor: docData.main_professor || docData.professor || 'Professore',
-        university: docData.faculty || docData.faculty_name || 'Università'
+    const { document: fileData, vetrina: vetrinaData } = docData;
+    const courseInfo = vetrinaData?.course_instance || {};
+    
+    const documentType = getFileExtension(fileData.filename);
+    const courseDetails = {
+        title: vetrinaData?.name || fileData.filename || 'Documento',
+        course: courseInfo.course_name || 'Corso',
+        professor: courseInfo.professors || 'Professore', 
+        university: courseInfo.faculty_name || 'Università'
     };
     
     // Generate realistic content based on document type and course
-    const pages = generateRealisticContent(courseInfo, documentType);
+    const pages = generateRealisticContent(courseDetails, documentType);
     totalPages = pages.length;
     
     return pages;

@@ -211,7 +211,7 @@ function renderDocumentInfo(docData) {
     // Initialize expandable functionality
     initializeExpandableDetails();
     
-    // Set up action buttons
+    // Set up action buttons with proper data
     setupActionButtons(fileData);
 }
 
@@ -249,6 +249,9 @@ function initializeExpandableDetails() {
     const additionalDetails = document.getElementById('additionalDetails');
     
     if (moreInfoBtn && additionalDetails) {
+        // Ensure the button is visible
+        moreInfoBtn.style.display = 'flex';
+        
         moreInfoBtn.addEventListener('click', () => {
             const isExpanded = additionalDetails.classList.contains('expanded');
             
@@ -270,6 +273,8 @@ function initializeExpandableDetails() {
                 `;
             }
         });
+    } else {
+        console.warn('More info button or additional details not found');
     }
 }
 
@@ -711,16 +716,16 @@ function initializeBackButton() {
     }
 }
 
-// Initialize Fullscreen
+// Enhanced Fullscreen with smooth transitions
 function initializeFullscreen() {
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     
     if (fullscreenBtn) {
         fullscreenBtn.addEventListener('click', () => {
-            const documentViewer = document.getElementById('documentViewer');
+            const documentViewer = document.querySelector('.document-viewer-section');
             
             if (!document.fullscreenElement) {
-                // Enter fullscreen
+                // Enter fullscreen with animation
                 if (documentViewer.requestFullscreen) {
                     documentViewer.requestFullscreen();
                 } else if (documentViewer.webkitRequestFullscreen) {
@@ -729,32 +734,50 @@ function initializeFullscreen() {
                     documentViewer.msRequestFullscreen();
                 }
                 
+                // Add smooth transition class
+                setTimeout(() => {
+                    documentViewer.classList.add('fullscreen-active');
+                }, 100);
+                
                 fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
             } else {
-                // Exit fullscreen
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
+                // Exit fullscreen with animation
+                documentViewer.classList.remove('fullscreen-active');
+                
+                setTimeout(() => {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }, 200);
                 
                 fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
             }
         });
         
-        // Listen for fullscreen changes
-        document.addEventListener('fullscreenchange', () => {
+        // Listen for fullscreen changes with smooth transitions
+        const handleFullscreenChange = () => {
             const fullscreenBtn = document.getElementById('fullscreenBtn');
-            if (fullscreenBtn) {
+            const documentViewer = document.querySelector('.document-viewer-section');
+            
+            if (fullscreenBtn && documentViewer) {
                 if (document.fullscreenElement) {
                     fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+                    documentViewer.classList.add('fullscreen-active');
                 } else {
                     fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                    documentViewer.classList.remove('fullscreen-active');
                 }
             }
-        });
+        };
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
     }
 }
 
@@ -856,76 +879,61 @@ function loadReadingPosition() {
     }
 }
 
-// Action Handlers
-function handlePurchase() {
-    if (!currentDocument) return;
-    
-    if (currentDocument.price === 0) {
-        // Free document - direct download
-        downloadDocument();
+// Enhanced Action Buttons Setup with proper file handling
+function setupActionButtons(fileData) {
+    const purchaseBtn = document.getElementById('purchaseBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    const shareBtn = document.getElementById('shareBtn');
+
+    if (!fileData) return;
+
+    const isFree = (parseFloat(fileData.price) || 0) === 0;
+
+    // Purchase/Download button logic
+    if (isFree) {
+        if (purchaseBtn) {
+            purchaseBtn.innerHTML = `
+                <span class="material-symbols-outlined">download</span>
+                Download Gratuito
+            `;
+            purchaseBtn.onclick = () => downloadDocument(fileData.id);
+        }
     } else {
-        // Paid document - payment flow
-        window.location.href = `payment.html?file=${currentDocument.id}&price=${currentDocument.price}`;
+        if (purchaseBtn) {
+            purchaseBtn.innerHTML = `
+                <span class="material-symbols-outlined">shopping_cart</span>
+                Acquista per €${fileData.price.toFixed(2)}
+            `;
+            purchaseBtn.onclick = () => handlePurchase(fileData.id);
+        }
     }
+
+    // Setup other action buttons
+    if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
+    if (shareBtn) shareBtn.onclick = handleShare;
+    if (downloadBtn) downloadBtn.onclick = () => downloadDocument(fileData.id);
 }
 
-function handleFavorite() {
-    // Toggle favorite status
-    const btn = document.querySelector('.action-btn:nth-child(2)');
-    const icon = btn.querySelector('.material-symbols-outlined');
-    const text = btn.querySelector('span:last-child');
-    
-    if (icon.textContent === 'favorite_border') {
-        icon.textContent = 'favorite';
-        text.textContent = 'Rimosso dai Preferiti';
-        btn.style.background = 'var(--danger-50)';
-        btn.style.borderColor = 'var(--danger-200)';
-        btn.style.color = 'var(--danger-700)';
-    } else {
-        icon.textContent = 'favorite_border';
-        text.textContent = 'Salva nei Preferiti';
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        btn.style.color = '';
-    }
-}
-
-function handleShare() {
-    if (navigator.share) {
-        navigator.share({
-            title: currentDocument?.title || 'Documento StudyHub',
-            text: 'Guarda questo documento su StudyHub',
-            url: window.location.href
-        });
-    } else {
-        // Fallback - copy to clipboard
-        navigator.clipboard.writeText(window.location.href).then(() => {
-            showNotification('Link copiato negli appunti!', 'success');
-        });
-    }
-}
-
-async function downloadDocument() {
-    if (!currentDocument || !currentDocument.files || currentDocument.files.length === 0) {
-        showNotification('Nessun file disponibile per il download', 'error');
+// Enhanced Purchase Handler
+function handlePurchase(fileId) {
+    if (!fileId) {
+        showNotification('Errore: ID file non trovato', 'error');
         return;
     }
     
-    try {
-        // Get the first file from the vetrina (or you could let user choose)
-        const firstFile = currentDocument.files[0];
-        const response = await makeRequest(`${API_BASE}/files/${firstFile.id}/download`, {
-            method: 'GET'
-        });
-        
-        if (response.download_url) {
-            window.open(response.download_url, '_blank');
-        } else {
-            // If no download_url, the response might be the file itself
-            showNotification('Download avviato', 'success');
+    const currentData = currentDocument || { id: fileId };
+    
+    if (currentData.price === 0) {
+        // Free document - direct download
+        downloadDocument(fileId);
+    } else {
+        // Paid document - show purchase confirmation
+        if (confirm(`Confermi l'acquisto di questo documento per €${currentData.price?.toFixed(2) || 'N/A'}?`)) {
+            // In a real implementation, this would redirect to payment processor
+            showNotification('Funzionalità di pagamento non ancora implementata', 'info');
+            // window.location.href = `payment.html?file=${fileId}&price=${currentData.price}`;
         }
-    } catch (error) {
-        showNotification('Errore nel download del documento', 'error');
     }
 }
 
@@ -1083,41 +1091,6 @@ async function initializeDocumentPreview() {
 // Initialize when the page loads
 window.onload = initializeDocumentPreview;
 
-// Action Buttons Setup
-function setupActionButtons(docData) {
-    const purchaseBtn = document.getElementById('purchaseBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-
-    if (!docData) return;
-
-    const isFree = (parseFloat(docData.price) || 0) === 0;
-
-    if (isFree) {
-        if (purchaseBtn) purchaseBtn.style.display = 'none';
-        if (downloadBtn) {
-            downloadBtn.style.display = 'flex';
-            downloadBtn.onclick = () => downloadDocument(docData.id);
-        }
-    } else {
-        if (downloadBtn) downloadBtn.style.display = 'none';
-        if (purchaseBtn) {
-            purchaseBtn.style.display = 'flex';
-            purchaseBtn.onclick = () => handlePurchase(docData.id);
-            // Update text to show price
-            purchaseBtn.innerHTML = `
-                <span class="material-symbols-outlined">shopping_cart</span>
-                Acquista per €${docData.price.toFixed(2)}
-            `;
-        }
-    }
-
-    const favoriteBtn = document.getElementById('favoriteBtn');
-    if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
-    
-    const shareBtn = document.getElementById('shareBtn');
-    if (shareBtn) shareBtn.onclick = handleShare;
-}
-
 function initializeTabs() {
     const tabNav = document.querySelector('.tab-nav');
     if (!tabNav) return;
@@ -1152,4 +1125,64 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-console.log('Document Preview System - World Class Edition - Loaded Successfully'); 
+console.log('Document Preview System - World Class Edition - Loaded Successfully');
+
+// Action Handlers
+function handleFavorite() {
+    // Toggle favorite status
+    const btn = document.getElementById('favoriteBtn');
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const text = btn.querySelector('span:last-child');
+    
+    if (icon.textContent === 'favorite_border') {
+        icon.textContent = 'favorite';
+        text.textContent = 'Rimosso dai Preferiti';
+        btn.style.background = 'var(--danger-50)';
+        btn.style.borderColor = 'var(--danger-200)';
+        btn.style.color = 'var(--danger-700)';
+    } else {
+        icon.textContent = 'favorite_border';
+        text.textContent = 'Salva nei Preferiti';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+    }
+}
+
+function handleShare() {
+    if (navigator.share) {
+        navigator.share({
+            title: currentDocument?.title || 'Documento StudyHub',
+            text: 'Guarda questo documento su StudyHub',
+            url: window.location.href
+        });
+    } else {
+        // Fallback - copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showNotification('Link copiato negli appunti!', 'success');
+        });
+    }
+}
+
+async function downloadDocument(fileId) {
+    if (!fileId) {
+        showNotification('Nessun file disponibile per il download', 'error');
+        return;
+    }
+    
+    try {
+        const response = await makeRequest(`${API_BASE}/files/${fileId}/download`, {
+            method: 'GET'
+        });
+        
+        if (response.download_url) {
+            window.open(response.download_url, '_blank');
+            showNotification('Download avviato', 'success');
+        } else {
+            showNotification('Download avviato', 'success');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showNotification('Errore nel download del documento', 'error');
+    }
+} 

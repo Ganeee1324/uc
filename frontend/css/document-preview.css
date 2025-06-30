@@ -563,17 +563,16 @@ body::before {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-6); /* Space for sections outside details */
+    gap: var(--space-6); /* Space between sections */
 }
 
-/* Document Details Section - Contains all document information */
+/* Document Details Section - Contains document metadata only */
 .doc-details-section {
     background: var(--neutral-25);
     border-radius: var(--radius-xl);
     padding: var(--space-6);
     border: 1px solid var(--neutral-100);
-    min-height: auto; /* Auto height to accommodate all content */
-    flex: 1; /* Take remaining space */
+    min-height: 320px; /* Fixed minimum height */
 }
 
 /* Details Section Header with Più info button */
@@ -596,18 +595,17 @@ body::before {
     margin: 0;
 }
 
-/* Main Info and Actions - Spacing within details section */
-.doc-details .doc-main-info {
+/* Main Document Info - Back outside details section */
+.doc-main-info {
     margin-bottom: var(--space-6);
 }
 
-.doc-details .doc-actions {
+/* Action Buttons - Back outside details section */
+.doc-actions {
     margin-bottom: var(--space-6);
-    padding-bottom: var(--space-6);
-    border-bottom: 1px solid var(--neutral-200);
 }
 
-/* Essential Details - Spacing from actions */
+/* Essential Details */
 .essential-details {
     margin-bottom: 0;
 }
@@ -761,15 +759,7 @@ body::before {
     border-bottom: 2px solid var(--neutral-100);
 }
 
-/* Title within details section - smaller and compact */
-.doc-details .doc-title {
-    font-size: var(--text-lg);
-    font-weight: 700;
-    line-height: 1.3;
-    color: var(--neutral-900);
-    margin-bottom: var(--space-3);
-    letter-spacing: -0.02em;
-}
+
 
 .doc-title {
     font-size: var(--text-2xl);
@@ -822,20 +812,7 @@ body::before {
     letter-spacing: -0.025em;
 }
 
-/* Compact styles within details section */
-.doc-details .rating-score {
-    font-size: var(--text-sm);
-    font-weight: 600;
-}
 
-.doc-details .rating-count {
-    font-size: var(--text-xs);
-}
-
-.doc-details .price-value {
-    font-size: var(--text-base);
-    font-weight: 700;
-}
 
 .doc-price .paid {
     color: var(--neutral-800);

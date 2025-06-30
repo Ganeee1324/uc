@@ -217,11 +217,11 @@ function renderDocumentInfo(docData) {
 
 // Helper function to update detail values in essential section
 function updateDetailValue(label, value) {
-    const detailRows = document.querySelectorAll('.essential-details .detail-row');
-    detailRows.forEach(row => {
-        const labelElement = row.querySelector('.detail-label');
+    const detailItems = document.querySelectorAll('.essential-details .detail-item-vertical');
+    detailItems.forEach(item => {
+        const labelElement = item.querySelector('.detail-label');
         if (labelElement && labelElement.textContent === label) {
-            const valueElement = row.querySelector('.detail-value');
+            const valueElement = item.querySelector('.detail-value');
             if (valueElement) {
                 valueElement.textContent = value;
             }
@@ -231,11 +231,11 @@ function updateDetailValue(label, value) {
 
 // Helper function to update detail values in additional section
 function updateAdditionalDetailValue(label, value) {
-    const detailRows = document.querySelectorAll('.additional-details .detail-row');
-    detailRows.forEach(row => {
-        const labelElement = row.querySelector('.detail-label');
+    const detailItems = document.querySelectorAll('.additional-details .detail-item-vertical');
+    detailItems.forEach(item => {
+        const labelElement = item.querySelector('.detail-label');
         if (labelElement && labelElement.textContent === label) {
-            const valueElement = row.querySelector('.detail-value');
+            const valueElement = item.querySelector('.detail-value');
             if (valueElement) {
                 valueElement.textContent = value;
             }
@@ -245,33 +245,29 @@ function updateAdditionalDetailValue(label, value) {
 
 // Initialize expandable details functionality
 function initializeExpandableDetails() {
-    const expandBtn = document.getElementById('moreInfoBtn');
+    const moreInfoBtn = document.getElementById('moreInfoBtn');
     const additionalDetails = document.getElementById('additionalDetails');
     
-    if (expandBtn && additionalDetails) {
-        expandBtn.addEventListener('click', () => {
+    if (moreInfoBtn && additionalDetails) {
+        moreInfoBtn.addEventListener('click', () => {
             const isExpanded = additionalDetails.classList.contains('expanded');
             
             if (isExpanded) {
                 // Collapse
                 additionalDetails.classList.remove('expanded');
-                expandBtn.classList.remove('expanded');
-                
-                const expandText = expandBtn.querySelector('.expand-text');
-                const expandIcon = expandBtn.querySelector('.expand-icon');
-                
-                if (expandText) expandText.textContent = 'Più informazioni';
-                if (expandIcon) expandIcon.textContent = 'expand_more';
+                moreInfoBtn.classList.remove('expanded');
+                moreInfoBtn.innerHTML = `
+                    <span class="material-symbols-outlined">expand_more</span>
+                    Più info
+                `;
             } else {
                 // Expand
                 additionalDetails.classList.add('expanded');
-                expandBtn.classList.add('expanded');
-                
-                const expandText = expandBtn.querySelector('.expand-text');
-                const expandIcon = expandBtn.querySelector('.expand-icon');
-                
-                if (expandText) expandText.textContent = 'Meno informazioni';
-                if (expandIcon) expandIcon.textContent = 'expand_less';
+                moreInfoBtn.classList.add('expanded');
+                moreInfoBtn.innerHTML = `
+                    <span class="material-symbols-outlined">expand_less</span>
+                    Meno info
+                `;
             }
         });
     }
@@ -504,8 +500,9 @@ function renderDocumentPages(pages) {
         const pageContent = document.createElement('div');
         pageContent.className = 'page-content';
         
-        // Insert the content HTML
-        pageContent.innerHTML = page.content;
+        // Handle both object format (with content property) and string format
+        const content = typeof page === 'object' ? page.content : page;
+        pageContent.innerHTML = content;
         
         pageElement.appendChild(pageContent);
         viewerContainer.appendChild(pageElement);

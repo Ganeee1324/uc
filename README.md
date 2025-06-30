@@ -10,7 +10,7 @@
    DB_USER=postgres
    DB_PASSWORD=your_password
    ```
-3. Install dependencies
+3. Run `pip install -r requirements.txt` to install the dependencies
 4. Run `python setup_database.py` to create the database tables
 5. Run `python app.py` to start the Flask server
 

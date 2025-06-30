@@ -349,8 +349,9 @@ def get_owned_vetrine():
 # get faculties and courses
 @app.route("/hierarchy", methods=["GET"])
 def get_hierarchy():
-    # TODO: if database.faculties_courses_cache is None:
-    database.faculties_courses_cache = database.scrape_faculties_courses()
+    if database.faculties_courses_cache is None:
+        database.faculties_courses_cache = database.scrape_faculties_courses()
+        logging.info("Added faculties and courses to cache")
     return jsonify(database.faculties_courses_cache), 200
 
 

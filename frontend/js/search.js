@@ -32,7 +32,6 @@ window.onload = function() {
     loadAllFiles();
     initializeAnimations();
     initializeFilters();
-    initializeCompactSearch();
 };
 
 async function initializeUserInfo() {
@@ -89,123 +88,6 @@ function initializeAnimations() {
             card.style.transform = 'translateY(0)';
         });
     }, 500);
-}
-
-// ===========================
-// COMPACT SEARCH BAR IN HEADER
-// ===========================
-
-function initializeCompactSearch() {
-    const mainSearchInput = document.getElementById('searchInput');
-    const compactSearchInput = document.getElementById('compactSearchInput');
-    const mainSearchBtn = document.getElementById('searchBtn');
-    const compactSearchBtn = document.getElementById('compactSearchBtn');
-    const mainFiltersBtn = document.getElementById('filtersBtn');
-    const compactFiltersBtn = document.getElementById('compactFiltersBtn');
-    const compactSearchContainer = document.getElementById('compactSearchContainer');
-    const searchSection = document.querySelector('.search-section');
-    
-    let isCompactVisible = false;
-    
-    // Synchronize search inputs
-    if (mainSearchInput && compactSearchInput) {
-        mainSearchInput.addEventListener('input', () => {
-            compactSearchInput.value = mainSearchInput.value;
-        });
-        
-        compactSearchInput.addEventListener('input', () => {
-            mainSearchInput.value = compactSearchInput.value;
-        });
-        
-        // Handle Enter key on compact search
-        compactSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch(compactSearchInput.value);
-            }
-        });
-    }
-    
-    // Synchronize search buttons
-    if (compactSearchBtn) {
-        compactSearchBtn.addEventListener('click', () => {
-            performSearch(compactSearchInput.value);
-        });
-    }
-    
-    // Synchronize filters buttons
-    if (compactFiltersBtn) {
-        compactFiltersBtn.addEventListener('click', toggleFiltersPanel);
-    }
-    
-    // Scroll handler to show/hide compact search
-    function handleScroll() {
-        if (!searchSection || !compactSearchContainer) return;
-        
-        const searchSectionRect = searchSection.getBoundingClientRect();
-        const searchBarRect = document.querySelector('.search-bar')?.getBoundingClientRect();
-        
-        // Show compact search when the main search bar goes out of view
-        const shouldShowCompact = searchBarRect ? searchBarRect.bottom < 0 : searchSectionRect.bottom < 100;
-        
-        if (shouldShowCompact && !isCompactVisible) {
-            showCompactSearch();
-        } else if (!shouldShowCompact && isCompactVisible) {
-            hideCompactSearch();
-        }
-    }
-    
-    function showCompactSearch() {
-        if (compactSearchContainer && !isCompactVisible) {
-            compactSearchContainer.classList.add('visible');
-            isCompactVisible = true;
-            
-            // Sync the current search value
-            if (mainSearchInput && compactSearchInput) {
-                compactSearchInput.value = mainSearchInput.value;
-            }
-            
-            // Sync filter count
-            syncFilterCounts();
-        }
-    }
-    
-    function hideCompactSearch() {
-        if (compactSearchContainer && isCompactVisible) {
-            compactSearchContainer.classList.remove('visible');
-            isCompactVisible = false;
-        }
-    }
-    
-    function syncFilterCounts() {
-        const mainFilterCount = document.getElementById('filterCount');
-        const compactFilterCount = document.getElementById('compactFilterCount');
-        
-        if (mainFilterCount && compactFilterCount) {
-            compactFilterCount.textContent = mainFilterCount.textContent;
-            compactFilterCount.className = mainFilterCount.className;
-        }
-    }
-    
-    // Add scroll event listener with throttling for performance
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        if (scrollTimeout) {
-            clearTimeout(scrollTimeout);
-        }
-        scrollTimeout = setTimeout(handleScroll, 10);
-    });
-    
-    // Also sync filter counts whenever filters change
-    const originalUpdateFilterCount = window.updateFilterCount;
-    if (originalUpdateFilterCount) {
-        window.updateFilterCount = function() {
-            originalUpdateFilterCount();
-            syncFilterCounts();
-        };
-    }
-    
-    // Initial sync
-    syncFilterCounts();
 }
 
 // ===========================
@@ -287,7 +169,7 @@ function initializeAuthorFilter() {
         if (query.length === 0) {
             hideSuggestions();
             delete activeFilters.author;
-            applyFiltersAndRender();
+            triggerFilterUpdate();
             return;
         }
         
@@ -401,7 +283,7 @@ function initializeAuthorFilter() {
         authorInput.value = author;
         activeFilters.author = author;
         hideSuggestions();
-        applyFiltersAndRender();
+        triggerFilterUpdate();
     }
 }
 
@@ -441,7 +323,7 @@ function initializeCourseFilter() {
         if (query.length === 0) {
             hideSuggestions();
             delete activeFilters.course;
-            applyFiltersAndRender();
+            triggerFilterUpdate();
             return;
         }
         
@@ -1341,17 +1223,34 @@ function updatePriceSliderFill() {
     }
 }
 
-function applyFiltersAndRender() {
-    const filteredFiles = applyFiltersToFiles(originalFiles);
-    renderDocuments(filteredFiles);
-    updateActiveFiltersDisplay();
-    updateFilterCount();
-    updateBottomFilterCount();
+async function applyFiltersAndRender() {
+    // Check if we have backend-searchable filters (course_name, faculty_name) 
+    // or if there's an active search query
+    const searchInput = document.getElementById('searchInput');
+    const currentQuery = searchInput?.value?.trim() || '';
     
-    // Show filter status
-    const filterCount = Object.keys(activeFilters).length;
-    if (filterCount > 0) {
-        showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtri attivi 🎯`);
+    const hasBackendFilters = activeFilters.course_name || activeFilters.faculty_name;
+    
+    if (hasBackendFilters || currentQuery) {
+        // Use backend search with filters
+        await performSearch(currentQuery);
+    } else if (Object.keys(activeFilters).length === 0) {
+        // No filters active, show all original files
+        await loadAllFiles();
+    } else {
+        // Apply only client-side filters to original data
+        const filteredFiles = applyFiltersToFiles(originalFiles);
+        currentFiles = filteredFiles;
+        renderDocuments(filteredFiles);
+        updateActiveFiltersDisplay();
+        updateFilterCount();
+        updateBottomFilterCount();
+        
+        // Show filter status
+        const filterCount = Object.keys(activeFilters).length;
+        if (filterCount > 0) {
+            showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtri attivi 🎯`);
+        }
     }
 }
 
@@ -1572,7 +1471,6 @@ function populateSelect(selectId, options) {
 
 function updateFilterCount() {
     const filterCount = document.getElementById('filterCount');
-    const compactFilterCount = document.getElementById('compactFilterCount');
     const filtersBtn = document.getElementById('filtersBtn');
     
     // Count active filters properly
@@ -1590,13 +1488,10 @@ function updateFilterCount() {
         }
     });
     
-    // Update both filter count badges
-    [filterCount, compactFilterCount].forEach(element => {
-        if (element) {
-            element.textContent = activeCount;
-            element.classList.toggle('active', activeCount > 0);
-        }
-    });
+    if (filterCount) {
+        filterCount.textContent = activeCount;
+        filterCount.classList.toggle('active', activeCount > 0);
+    }
     
     // Make button responsive based on filter count
     if (filtersBtn) {
@@ -2746,97 +2641,184 @@ async function purchaseDocument(fileId) {
     }
 }
 
-function performSearch(query) {
-    let filesToSearch = originalFiles;
-    
-    // Apply current filters first
-    if (Object.keys(activeFilters).length > 0) {
-        filesToSearch = applyFiltersToFiles(originalFiles);
-    }
-    
-    if (!query.trim()) {
-        renderDocuments(filesToSearch);
-        return;
-    }
-    
-    // Split search query into individual terms and clean them
-    const searchTerms = query.toLowerCase()
-        .split(/\s+/)
-        .map(term => term.trim())
-        .filter(term => term.length > 0);
-    
-    // Calculate relevance score for each file
-    const scoredFiles = filesToSearch.map(file => {
-        let score = 0;
-        let hasMatch = false;
+// Replace the performSearch function to use backend search instead of client-side
+async function performSearch(query) {
+    try {
+        // Show loading state
+        showStatus('Ricerca in corso... 🔍');
         
-        // Helper function to check if terms match in a field
-        const checkFieldMatch = (fieldValue, multiplier) => {
-            if (!fieldValue) return false;
-            
-            const fieldText = fieldValue.toLowerCase()
-                .replace(/[^\w\s]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-            
-            let fieldMatches = 0;
-            searchTerms.forEach(term => {
-                if (fieldText.includes(term) || 
-                    fieldText.split(' ').some(word => 
-                        word.startsWith(term) || word.includes(term)
-                    )) {
-                    fieldMatches++;
-                }
-            });
-            
-            if (fieldMatches === searchTerms.length) {
-                score += multiplier * fieldMatches;
-                return true;
+        // If no query, load all files with current filters
+        if (!query || !query.trim()) {
+            await loadAllFiles();
+            return;
+        }
+        
+        // Build search parameters
+        const searchParams = new URLSearchParams();
+        searchParams.append('text', query.trim());
+        
+        // Add any active filters to the search
+        if (activeFilters.course_name) {
+            searchParams.append('course_name', activeFilters.course_name);
+        }
+        if (activeFilters.faculty_name) {
+            searchParams.append('faculty', activeFilters.faculty_name);
+        }
+        
+        // Make backend search request
+        const response = await makeRequest(`/vetrine?${searchParams.toString()}`);
+        if (!response) {
+            throw new Error('Search request failed');
+        }
+        
+        const searchResults = response.vetrine || [];
+        console.log('Backend search results:', searchResults);
+        
+        // Transform search results into display format
+        const transformedResults = await transformSearchResults(searchResults);
+        
+        // Apply any remaining client-side filters (except course/faculty which are handled by backend)
+        const filteredResults = applyClientSideFilters(transformedResults);
+        
+        // Update current files and render
+        currentFiles = filteredResults;
+        renderDocuments(filteredResults);
+        
+        // Show search results status
+        const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+        const searchSummary = searchTerms.length > 1 
+            ? `"${searchTerms.join('" + "')}"` 
+            : `"${query}"`;
+        
+        showStatus(`Trovati ${filteredResults.length} documenti per ${searchSummary} 🎉`);
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        showError('Errore durante la ricerca. Riprova più tardi.');
+        // Fallback to current files if search fails
+        renderDocuments(currentFiles);
+    }
+}
+
+// New function to transform backend search results into frontend display format
+async function transformSearchResults(vetrine) {
+    const transformedResults = [];
+    
+    for (const vetrina of vetrine) {
+        try {
+            // Load files for this vetrina
+            const filesResponse = await makeRequest(`/vetrine/${vetrina.id}/files`);
+            if (!filesResponse || !filesResponse.files || filesResponse.files.length === 0) {
+                continue; // Skip vetrine with no files
             }
-            return false;
-        };
+            
+            const files = filesResponse.files;
+            
+            // Calculate totals for the vetrina
+            const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
+            const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
+            
+            // Transform the vetrina into a card item (same format as loadAllFiles)
+            const vetrineCard = {
+                id: vetrina.id,
+                isVetrina: true,
+                fileCount: files.length,
+                files: files.map(file => ({
+                    id: file.id,
+                    filename: file.filename,
+                    title: getOriginalFilename(file.filename),
+                    size: file.size || 0,
+                    price: file.price || 0,
+                    document_type: getFileTypeFromFilename(file.filename),
+                    created_at: file.created_at,
+                    download_count: file.download_count || 0,
+                    owned: file.owned || false
+                })),
+                // Use vetrina info for the card
+                filename: files.length > 1 ? `${files.length} files` : files[0].filename,
+                title: vetrina.name || 'Vetrina Senza Nome',
+                description: vetrina.description || 'No description available',
+                size: totalSize,
+                price: totalPrice,
+                created_at: vetrina.created_at,
+                download_count: files.reduce((sum, file) => sum + (file.download_count || 0), 0),
+                rating: Math.random() * 2 + 3, // Generate random rating between 3-5
+                review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
+                course_name: vetrina.course_instance?.course_name || 'Corso Generale',
+                faculty_name: vetrina.course_instance?.faculty_name || 'Facoltà Generale',
+                language: vetrina.course_instance?.language || 'Italiano',
+                canale: vetrina.course_instance?.canale || 'A',
+                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                document_types: files.length > 1 ? 
+                    Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
+                    : [getDocumentCategory(getOriginalFilename(files[0].filename), '')],
+                document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
+                author_username: vetrina.owner?.username || 'Unknown',
+                owned: files.every(file => file.owned),
+                favorite: vetrina.favorite || false,
+                vetrina_info: {
+                    id: vetrina.id,
+                    name: vetrina.name,
+                    description: vetrina.description,
+                    course_instance_id: vetrina.course_instance?.instance_id,
+                    owner_id: vetrina.owner?.id,
+                    owner_username: vetrina.owner?.username || 'Unknown'
+                }
+            };
+            transformedResults.push(vetrineCard);
+            
+        } catch (error) {
+            console.error(`Error loading files for vetrina ${vetrina.id}:`, error);
+        }
+    }
+    
+    return transformedResults;
+}
+
+// New function to apply remaining client-side filters (excluding course/faculty which backend handles)
+function applyClientSideFilters(files) {
+    let filtered = [...files];
+    
+    // Apply filters that aren't handled by backend
+    Object.entries(activeFilters).forEach(([key, value]) => {
+        if (!value || key === 'course_name' || key === 'faculty_name') return; // Skip backend-handled filters
         
-        // Priority scoring (higher multiplier = higher priority)
-        // Tier 1: Highest Priority
-        if (checkFieldMatch(file.title, 100)) hasMatch = true;                    // Title: 100x
-        if (checkFieldMatch(file.course_name, 80)) hasMatch = true;               // Course: 80x
-        
-        // Tier 2: High Priority  
-        if (checkFieldMatch(file.description, 60)) hasMatch = true;               // Description: 60x
-        if (checkFieldMatch(file.faculty_name, 50)) hasMatch = true;              // Faculty: 50x
-        
-        // Tier 3: Medium Priority
-        if (checkFieldMatch(file.author_username, 40)) hasMatch = true;           // Author: 40x
-        if (checkFieldMatch(file.main_professor, 35)) hasMatch = true;            // Professor: 35x
-        if (checkFieldMatch(file.vetrina_info?.name, 30)) hasMatch = true;        // Vetrina name: 30x
-        
-        // Tier 4: Lower Priority
-        if (checkFieldMatch(file.vetrina_info?.description, 20)) hasMatch = true; // Vetrina desc: 20x
-        if (checkFieldMatch(file.document_type, 15)) hasMatch = true;             // Doc type: 15x
-        if (checkFieldMatch(file.language, 10)) hasMatch = true;                  // Language: 10x
-        if (checkFieldMatch(file.vetrina_info?.owner_username, 10)) hasMatch = true; // Owner: 10x
-        
-        return {
-            file,
-            score,
-            hasMatch
-        };
+        filtered = filtered.filter(file => {
+            switch (key) {
+                case 'author':
+                    return file.author_username && file.author_username.toLowerCase().includes(value.toLowerCase());
+                case 'language':
+                    return file.language && file.language.toLowerCase() === value.toLowerCase();
+                case 'canale':
+                    return file.canale && file.canale.toLowerCase() === value.toLowerCase();
+                case 'document_type':
+                    return file.document_type && file.document_type.toLowerCase() === value.toLowerCase();
+                case 'rating_min':
+                    return file.rating >= parseInt(value);
+                case 'price_min':
+                    return file.price >= parseInt(value);
+                case 'price_max':
+                    return file.price <= parseInt(value);
+                case 'owned':
+                    return value === 'true' ? file.owned : !file.owned;
+                case 'free':
+                    return value === 'true' ? file.price === 0 : file.price > 0;
+                default:
+                    return true;
+            }
+        });
     });
     
-    // Filter files that have matches and sort by score (descending)
-    const filtered = scoredFiles
-        .filter(item => item.hasMatch)
-        .sort((a, b) => b.score - a.score)
-        .map(item => item.file);
-    
-    renderDocuments(filtered);
-    
-    // Enhanced status message with more context
-    const searchSummary = searchTerms.length > 1 
-        ? `"${searchTerms.join('" + "')}"` 
-        : `"${query}"`;
-    
-    showStatus(`Trovati ${filtered.length} documenti per ${searchSummary} 🔍`);
+    return filtered;
+}
+
+// Wrapper function to safely call async applyFiltersAndRender from non-async contexts
+function triggerFilterUpdate() {
+    applyFiltersAndRender().catch(error => {
+        console.error('Filter update error:', error);
+        showError('Errore nell\'aggiornamento dei filtri');
+    });
 }
 
 function logout() {
@@ -2859,15 +2841,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const userIcon = document.getElementById('userIcon');
 
     if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
-            performSearch(searchInput.value);
+        searchBtn.addEventListener('click', async function() {
+            await performSearch(searchInput.value);
         });
     }
 
     if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
+        searchInput.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
-                performSearch(searchInput.value);
+                await performSearch(searchInput.value);
             }
         });
 
@@ -2875,18 +2857,17 @@ document.addEventListener('DOMContentLoaded', function() {
         let searchTimeout;
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
+            searchTimeout = setTimeout(async () => {
                 if (!this.value.trim()) {
                     // If search is cleared, apply current filters or show all
                     if (Object.keys(activeFilters).length > 0) {
-                        const filtered = applyFiltersToFiles(originalFiles);
-                        renderDocuments(filtered);
-                } else {
-                        renderDocuments(originalFiles);
+                        await applyFiltersAndRender();
+                    } else {
+                        await loadAllFiles();
                     }
                 } else if (this.value.length >= 2) {
                     // Only search when at least 2 characters
-                    performSearch(this.value);
+                    await performSearch(this.value);
                 }
             }, 300);
         });

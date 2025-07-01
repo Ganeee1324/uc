@@ -559,7 +559,7 @@ html {
 .documents-grid {
     margin-top: calc(var(--space-8) + 70px);
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-5);
     max-width: none;
     position: relative;
@@ -594,6 +594,8 @@ html {
     flex-direction: column;
     contain: layout style paint;
     isolation: isolate;
+    min-width: 0;
+    width: 100%;
 }
 
 .document-card::before {
@@ -2369,7 +2371,7 @@ html {
    }
    
    .documents-grid {
-       grid-template-columns: repeat(4, 1fr);
+       grid-template-columns: repeat(4, minmax(0, 1fr));
        gap: var(--space-4);
    }
    
@@ -2414,7 +2416,7 @@ html {
    }
    
    .documents-grid {
-       grid-template-columns: repeat(3, 1fr);
+       grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
    }
    
@@ -2456,7 +2458,7 @@ html {
    }
    
    .documents-grid {
-       grid-template-columns: repeat(3, 1fr);
+       grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
    }
    
@@ -2717,7 +2719,7 @@ html {
    
    /* Professional Mobile Document Grid */
    .documents-grid {
-       grid-template-columns: repeat(2, 1fr);
+       grid-template-columns: repeat(2, minmax(0, 1fr));
        gap: var(--space-4);
        margin-top: var(--space-6);
        padding: 0 var(--space-1);
@@ -2952,7 +2954,7 @@ html {
    
    /* Single Column Layout for Small Screens */
    .documents-grid {
-       grid-template-columns: 1fr;
+       grid-template-columns: minmax(0, 1fr);
        gap: var(--space-5);
        padding: 0 var(--space-2);
    }
@@ -3170,7 +3172,7 @@ html {
    }
    
    .documents-grid {
-       grid-template-columns: repeat(2, 1fr);
+       grid-template-columns: repeat(2, minmax(0, 1fr));
        gap: var(--space-4);
    }
    
@@ -3873,6 +3875,8 @@ html {
     cursor: default;
     transform: none;
     transition: none;
+    min-width: 0;
+    width: 100%;
 }
 
 .document-card.loading:hover {

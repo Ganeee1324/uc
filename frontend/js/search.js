@@ -1238,6 +1238,9 @@ async function applyFiltersAndRender() {
         // No filters active, show all original files
         await loadAllFiles();
     } else {
+        // Show loading cards for client-side filtering
+        showLoadingCards(4);
+        
         // Apply only client-side filters to original data
         const filteredFiles = applyFiltersToFiles(originalFiles);
         currentFiles = filteredFiles;
@@ -1969,8 +1972,64 @@ async function makeRequest(url, options = {}) {
     }
 }
 
+// Function to create and display loading cards
+function showLoadingCards(count = 8) {
+    const grid = document.getElementById('documentsGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    for (let i = 0; i < count; i++) {
+        const loadingCard = document.createElement('div');
+        loadingCard.className = 'document-card loading';
+        
+        loadingCard.innerHTML = `
+            <div class="loading-preview"></div>
+            <div class="loading-content">
+                <div class="loading-header">
+                    <div class="loading-title-section">
+                        <div class="skeleton-title"></div>
+                        <div class="skeleton-subtitle"></div>
+                    </div>
+                </div>
+                <div class="skeleton-description"></div>
+                <div class="skeleton-description"></div>
+                <div class="loading-info">
+                    <div class="skeleton-info-item">
+                        <div class="skeleton-info-icon"></div>
+                        <div class="skeleton-info-text"></div>
+                    </div>
+                    <div class="skeleton-info-item">
+                        <div class="skeleton-info-icon"></div>
+                        <div class="skeleton-info-text"></div>
+                    </div>
+                    <div class="skeleton-info-item">
+                        <div class="skeleton-info-icon"></div>
+                        <div class="skeleton-info-text"></div>
+                    </div>
+                    <div class="skeleton-info-item">
+                        <div class="skeleton-info-icon"></div>
+                        <div class="skeleton-info-text"></div>
+                    </div>
+                </div>
+                <div class="loading-footer">
+                    <div class="loading-footer-left">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-meta"></div>
+                    </div>
+                    <div class="skeleton-price"></div>
+                </div>
+            </div>
+        `;
+        
+        grid.appendChild(loadingCard);
+    }
+}
+
 async function loadAllFiles() {
     try {
+        // Show loading cards immediately
+        showLoadingCards(8);
         showStatus('Caricamento documenti... 📚');
         
         // First get all vetrines
@@ -2317,10 +2376,11 @@ function renderDocuments(files) {
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
-                    <div class="document-type-badge">${item.document_types[0]}</div>
-                    ${item.document_types.length > 1 ? 
-                        `<div class="document-type-badge more-types">+${item.document_types.length - 1}</div>` : 
-                        ''}
+                    ${item.tags && item.tags.length > 0 ?
+                        `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
+                        (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
+                        : ''
+                    }
                 </div>
                 <div class="rating-badge">
                     <div class="rating-stars">${stars}</div>
@@ -2339,10 +2399,6 @@ function renderDocuments(files) {
                     <div class="document-title-section">
                         <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
                         <div class="document-description" title="${description}">${description}</div>
-                        ${item.primary_tag ? `<div class="document-tag-badge">
-                            <span class="tag-icon">${getTagIcon(item.primary_tag)}</span>
-                            <span class="tag-text">${getTagDisplayName(item.primary_tag)}</span>
-                        </div>` : ''}
                     </div>
                 </div>
                 <div class="document-info">
@@ -2672,7 +2728,8 @@ async function purchaseDocument(fileId) {
 // Replace the performSearch function to use backend search instead of client-side
 async function performSearch(query) {
     try {
-        // Show loading state
+        // Show loading cards immediately
+        showLoadingCards(6);
         showStatus('Ricerca in corso... 🔍');
         
         // If no query, load all files with current filters
@@ -2701,9 +2758,9 @@ async function performSearch(query) {
             console.warn('Backend search failed, falling back to client-side search:', error);
             // Fallback to client-side search if backend fails
             await performClientSideSearch(query);
-            return;
-        }
-        
+        return;
+    }
+    
         if (!response) {
             console.warn('Empty response from backend, falling back to client-side search');
             await performClientSideSearch(query);
@@ -2907,7 +2964,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // If search is cleared, apply current filters or show all
                     if (Object.keys(activeFilters).length > 0) {
                         await applyFiltersAndRender();
-                    } else {
+                } else {
                         await loadAllFiles();
                     }
                 } else if (this.value.length >= 2) {

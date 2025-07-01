@@ -32,6 +32,7 @@ window.onload = function() {
     loadAllFiles();
     initializeAnimations();
     initializeFilters();
+    initializeCompactSearch();
 };
 
 async function initializeUserInfo() {
@@ -88,6 +89,123 @@ function initializeAnimations() {
             card.style.transform = 'translateY(0)';
         });
     }, 500);
+}
+
+// ===========================
+// COMPACT SEARCH BAR IN HEADER
+// ===========================
+
+function initializeCompactSearch() {
+    const mainSearchInput = document.getElementById('searchInput');
+    const compactSearchInput = document.getElementById('compactSearchInput');
+    const mainSearchBtn = document.getElementById('searchBtn');
+    const compactSearchBtn = document.getElementById('compactSearchBtn');
+    const mainFiltersBtn = document.getElementById('filtersBtn');
+    const compactFiltersBtn = document.getElementById('compactFiltersBtn');
+    const compactSearchContainer = document.getElementById('compactSearchContainer');
+    const searchSection = document.querySelector('.search-section');
+    
+    let isCompactVisible = false;
+    
+    // Synchronize search inputs
+    if (mainSearchInput && compactSearchInput) {
+        mainSearchInput.addEventListener('input', () => {
+            compactSearchInput.value = mainSearchInput.value;
+        });
+        
+        compactSearchInput.addEventListener('input', () => {
+            mainSearchInput.value = compactSearchInput.value;
+        });
+        
+        // Handle Enter key on compact search
+        compactSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch(compactSearchInput.value);
+            }
+        });
+    }
+    
+    // Synchronize search buttons
+    if (compactSearchBtn) {
+        compactSearchBtn.addEventListener('click', () => {
+            performSearch(compactSearchInput.value);
+        });
+    }
+    
+    // Synchronize filters buttons
+    if (compactFiltersBtn) {
+        compactFiltersBtn.addEventListener('click', toggleFiltersPanel);
+    }
+    
+    // Scroll handler to show/hide compact search
+    function handleScroll() {
+        if (!searchSection || !compactSearchContainer) return;
+        
+        const searchSectionRect = searchSection.getBoundingClientRect();
+        const searchBarRect = document.querySelector('.search-bar')?.getBoundingClientRect();
+        
+        // Show compact search when the main search bar goes out of view
+        const shouldShowCompact = searchBarRect ? searchBarRect.bottom < 0 : searchSectionRect.bottom < 100;
+        
+        if (shouldShowCompact && !isCompactVisible) {
+            showCompactSearch();
+        } else if (!shouldShowCompact && isCompactVisible) {
+            hideCompactSearch();
+        }
+    }
+    
+    function showCompactSearch() {
+        if (compactSearchContainer && !isCompactVisible) {
+            compactSearchContainer.classList.add('visible');
+            isCompactVisible = true;
+            
+            // Sync the current search value
+            if (mainSearchInput && compactSearchInput) {
+                compactSearchInput.value = mainSearchInput.value;
+            }
+            
+            // Sync filter count
+            syncFilterCounts();
+        }
+    }
+    
+    function hideCompactSearch() {
+        if (compactSearchContainer && isCompactVisible) {
+            compactSearchContainer.classList.remove('visible');
+            isCompactVisible = false;
+        }
+    }
+    
+    function syncFilterCounts() {
+        const mainFilterCount = document.getElementById('filterCount');
+        const compactFilterCount = document.getElementById('compactFilterCount');
+        
+        if (mainFilterCount && compactFilterCount) {
+            compactFilterCount.textContent = mainFilterCount.textContent;
+            compactFilterCount.className = mainFilterCount.className;
+        }
+    }
+    
+    // Add scroll event listener with throttling for performance
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        scrollTimeout = setTimeout(handleScroll, 10);
+    });
+    
+    // Also sync filter counts whenever filters change
+    const originalUpdateFilterCount = window.updateFilterCount;
+    if (originalUpdateFilterCount) {
+        window.updateFilterCount = function() {
+            originalUpdateFilterCount();
+            syncFilterCounts();
+        };
+    }
+    
+    // Initial sync
+    syncFilterCounts();
 }
 
 // ===========================
@@ -1454,6 +1572,7 @@ function populateSelect(selectId, options) {
 
 function updateFilterCount() {
     const filterCount = document.getElementById('filterCount');
+    const compactFilterCount = document.getElementById('compactFilterCount');
     const filtersBtn = document.getElementById('filtersBtn');
     
     // Count active filters properly
@@ -1471,10 +1590,13 @@ function updateFilterCount() {
         }
     });
     
-    if (filterCount) {
-        filterCount.textContent = activeCount;
-        filterCount.classList.toggle('active', activeCount > 0);
-    }
+    // Update both filter count badges
+    [filterCount, compactFilterCount].forEach(element => {
+        if (element) {
+            element.textContent = activeCount;
+            element.classList.toggle('active', activeCount > 0);
+        }
+    });
     
     // Make button responsive based on filter count
     if (filtersBtn) {

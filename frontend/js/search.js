@@ -2005,17 +2005,29 @@ function showLoadingCards(count = 8) {
         loadingCard.style.animationDelay = `${i * 0.1}s`;
         
         loadingCard.innerHTML = `
-            <div class="loading-preview"></div>
-            <div class="loading-content">
-                <div class="loading-header">
-                    <div class="loading-title-section">
+            <div class="document-preview">
+                <div class="loading-preview"></div>
+                <div class="document-type-badges">
+                    <div class="skeleton-badge"></div>
+                </div>
+                <div class="rating-badge">
+                    <div class="skeleton-rating-stars"></div>
+                    <div class="skeleton-rating-count"></div>
+                </div>
+            </div>
+            
+            <button class="favorite-button">
+                <div class="skeleton-favorite-icon"></div>
+            </button>
+            
+            <div class="document-content">
+                <div class="document-header">
+                    <div class="document-title-section">
                         <div class="skeleton-title"></div>
-                        <div class="skeleton-subtitle"></div>
+                        <div class="skeleton-description"></div>
                     </div>
                 </div>
-                <div class="skeleton-description"></div>
-                <div class="skeleton-description"></div>
-                <div class="loading-info">
+                <div class="document-info">
                     <div class="skeleton-info-item">
                         <div class="skeleton-info-icon"></div>
                         <div class="skeleton-info-text"></div>
@@ -2033,8 +2045,8 @@ function showLoadingCards(count = 8) {
                         <div class="skeleton-info-text"></div>
                     </div>
                 </div>
-                <div class="loading-footer">
-                    <div class="loading-footer-left">
+                <div class="document-footer">
+                    <div class="document-footer-left">
                         <div class="skeleton-avatar"></div>
                         <div class="skeleton-meta"></div>
                     </div>

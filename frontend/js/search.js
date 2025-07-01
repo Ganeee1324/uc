@@ -19,19 +19,34 @@ let isFiltersOpen = false;
 
 // Initialize the page
 window.onload = function() {
+    console.log('🚀 Page loading started...');
+    
     // Check authentication first
     if (!checkAuthentication()) {
+        console.log('❌ Authentication failed, redirecting...');
         return; // Stop execution if not authenticated
     }
     
-    console.log('Loading page with valid auth token');
+    console.log('✅ Authentication passed, initializing page...');
     
     // Initialize user info and logout button
     initializeUserInfo();
     
+    console.log('📱 Loading files and initializing components...');
     loadAllFiles();
     initializeAnimations();
     initializeFilters();
+    
+    // Add keyboard shortcut to test loading animation (Ctrl/Cmd + L)
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+            e.preventDefault();
+            console.log('🧪 Manual loading test triggered!');
+            testLoadingAnimation();
+        }
+    });
+    
+    console.log('✅ Page initialization complete!');
 };
 
 async function initializeUserInfo() {
@@ -1974,14 +1989,20 @@ async function makeRequest(url, options = {}) {
 
 // Function to create and display loading cards
 function showLoadingCards(count = 8) {
+    console.log('🔄 Creating loading cards...', count);
     const grid = document.getElementById('documentsGrid');
-    if (!grid) return;
+    if (!grid) {
+        console.error('❌ Grid element not found!');
+        return;
+    }
     
+    console.log('✅ Grid element found, clearing content...');
     grid.innerHTML = '';
     
     for (let i = 0; i < count; i++) {
         const loadingCard = document.createElement('div');
         loadingCard.className = 'document-card loading';
+        loadingCard.style.animationDelay = `${i * 0.1}s`;
         
         loadingCard.innerHTML = `
             <div class="loading-preview"></div>
@@ -2024,6 +2045,22 @@ function showLoadingCards(count = 8) {
         
         grid.appendChild(loadingCard);
     }
+    
+    console.log(`✅ Added ${count} loading cards to grid`);
+}
+
+// Test function - you can call this in console to test loading animation
+function testLoadingAnimation() {
+    console.log('🧪 Testing loading animation...');
+    showLoadingCards(6);
+    
+    // Auto-remove after 5 seconds for testing
+    setTimeout(() => {
+        const grid = document.getElementById('documentsGrid');
+        if (grid) {
+            grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">Loading animation test completed!</div>';
+        }
+    }, 5000);
 }
 
 async function loadAllFiles() {

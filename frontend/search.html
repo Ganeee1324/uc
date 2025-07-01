@@ -27,7 +27,8 @@
         </nav>
         
         <div class="auth-buttons">
-            <button class="carica-btn">Carica</button>
+            <div class="divider"></div>
+            <a href="upload.html" class="nav-link">Carica</a>
             <div class="user-info">
                 <div class="user-avatar" id="userAvatar"></div>
             </div>
@@ -52,6 +53,13 @@
                     <i class="material-symbols-outlined">tune</i>
                     <span class="filters-text">Filtri</span>
                     <span class="filter-count" id="filterCount">0</span>
+                </button>
+            </div>
+            
+            <!-- Temporary test button for loading animation -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="testLoadingAnimation()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                    🧪 Test Loading Animation
                 </button>
             </div>
 

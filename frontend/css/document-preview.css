@@ -52,6 +52,8 @@
     --danger-500: #ef4444;
     --danger-600: #dc2626;
     
+    --red-500: #ef4444;
+    
     /* Typography Scale - Perfect Hierarchy */
     --text-xs: 0.75rem;
     --text-sm: 0.875rem;
@@ -112,6 +114,7 @@
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-3: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 /* Global Reset - Modern Standards */
@@ -309,9 +312,6 @@ body {
     background: transparent;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-    position: relative;
-    display: flex;
-    flex-direction: column;
 }
 
 .viewer-container {
@@ -320,10 +320,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
-    transition: transform 0.3s ease-out;
-    transform-origin: top center;
-    flex-shrink: 0;
-    min-height: fit-content;
 }
 
 /* Overlay Controls - Floating over document viewer (moved up) */
@@ -793,7 +789,7 @@ body {
 /* Favorite Button - Match Search Page Styling Exactly */
 .action-btn.secondary#favoriteBtn {
     position: relative;
-    transition: transform 0.25s var(--ease-spring);
+    transition: transform 0.25s var(--ease-3);
 }
 
 .action-btn.secondary#favoriteBtn:hover {
@@ -803,20 +799,20 @@ body {
 .action-btn.secondary#favoriteBtn .material-symbols-outlined {
     font-size: 20px;
     color: rgba(0, 0, 0, 0.4);
-    transition: all 0.25s var(--ease-spring);
+    transition: all 0.25s var(--ease-3);
     font-variation-settings: 'FILL' 1, 'wght' 400;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.8);
-    text-stroke: 1px rgba(255, 255, 255, 0.8);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 1);
+    text-stroke: 2px rgba(255, 255, 255, 1);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
     will-change: transform, color;
 }
 
 .action-btn.secondary#favoriteBtn.active .material-symbols-outlined {
-    color: #ef4444; /* Red color when active - matches --red-500 */
+    color: var(--red-500);
     font-variation-settings: 'FILL' 1, 'wght' 600;
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.8);
-    text-stroke: 1px rgba(255, 255, 255, 0.8);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+    -webkit-text-stroke: 2px rgba(255, 255, 255, 1);
+    text-stroke: 2px rgba(255, 255, 255, 1);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
 }
 
 .action-btn.secondary#favoriteBtn.active:hover {

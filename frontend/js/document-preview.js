@@ -661,7 +661,6 @@ function adjustZoom(delta) {
 function updateZoomDisplay() {
     const zoomLevelSpan = document.querySelector('.zoom-level');
     const viewerContainer = document.querySelector('.viewer-container');
-    const documentViewer = document.querySelector('.document-viewer');
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
     
@@ -669,39 +668,10 @@ function updateZoomDisplay() {
         zoomLevelSpan.textContent = `${currentZoom}%`;
     }
     
-    if (viewerContainer && documentViewer) {
-        const scale = currentZoom / 100;
-        
-        // Apply the zoom transformation
-        viewerContainer.style.transform = `scale(${scale})`;
-        
-        // Force a reflow to get accurate measurements
-        requestAnimationFrame(() => {
-            // Get the actual content height after scaling
-            const contentRect = viewerContainer.getBoundingClientRect();
-            const scaledHeight = contentRect.height;
-            
-            // Set a reasonable min-height for the scroll container
-            // This prevents over-scrolling when zoomed out
-            const paddingOffset = 64; // Account for container padding
-            const minHeight = Math.max(scaledHeight + paddingOffset, documentViewer.clientHeight);
-            
-            if (scale < 1) {
-                // When zoomed out, constrain the scroll area
-                documentViewer.style.minHeight = `${minHeight}px`;
-                documentViewer.style.maxHeight = `${minHeight + 200}px`;
-            } else {
-                // When zoomed in or at 100%, allow natural scrolling
-                documentViewer.style.minHeight = 'auto';
-                documentViewer.style.maxHeight = 'none';
-            }
-            
-            // Reset scroll position if it's now beyond the content
-            const maxScroll = documentViewer.scrollHeight - documentViewer.clientHeight;
-            if (documentViewer.scrollTop > maxScroll) {
-                documentViewer.scrollTop = Math.max(0, maxScroll);
-            }
-        });
+    if (viewerContainer) {
+        viewerContainer.style.transform = `scale(${currentZoom / 100})`;
+        viewerContainer.style.transformOrigin = 'top center';
+        viewerContainer.style.transition = 'transform 0.3s ease-out';
     }
     
     if (zoomInBtn) {

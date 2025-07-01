@@ -669,31 +669,47 @@ function updateZoomDisplay() {
         zoomLevelSpan.textContent = `${currentZoom}%`;
     }
     
-    if (viewerContainer) {
+    if (viewerContainer && documentViewer) {
         const scale = currentZoom / 100;
+        
+        // Apply zoom transform
         viewerContainer.style.transform = `scale(${scale})`;
         viewerContainer.style.transformOrigin = 'top center';
         viewerContainer.style.transition = 'transform 0.3s ease-out';
         
-        // Adjust scroll container height for professional zoom out behavior
-        if (documentViewer && scale < 1) {
-            // When zoomed out, constrain the scrollable area to prevent over-scrolling
+        // Professional zoom out behavior - prevent over-scrolling
+        if (scale < 1) {
             requestAnimationFrame(() => {
-                const containerRect = viewerContainer.getBoundingClientRect();
-                const effectiveHeight = containerRect.height;
+                // Temporarily remove transform to get accurate measurements
+                const originalTransform = viewerContainer.style.transform;
+                viewerContainer.style.transform = 'none';
+                
+                // Get the true content height without transform
+                const naturalContentHeight = viewerContainer.scrollHeight;
+                
+                // Restore transform
+                viewerContainer.style.transform = originalTransform;
+                
+                // Calculate scaled height and set container constraint
+                const scaledContentHeight = naturalContentHeight * scale;
                 const padding = 64; // Account for container padding
                 
-                // Set max-height to prevent scrolling beyond the scaled content
-                documentViewer.style.maxHeight = `${effectiveHeight + padding}px`;
+                // Set a precise height that matches the scaled content
+                documentViewer.style.height = `${scaledContentHeight + padding}px`;
+                documentViewer.style.overflowY = 'auto';
                 
-                // Ensure we don't scroll past the new boundary
-                if (documentViewer.scrollTop > documentViewer.scrollHeight - documentViewer.clientHeight) {
-                    documentViewer.scrollTop = Math.max(0, documentViewer.scrollHeight - documentViewer.clientHeight);
-                }
+                // Adjust scroll position if necessary
+                setTimeout(() => {
+                    const maxScroll = Math.max(0, documentViewer.scrollHeight - documentViewer.clientHeight);
+                    if (documentViewer.scrollTop > maxScroll) {
+                        documentViewer.scrollTop = maxScroll;
+                    }
+                }, 50);
             });
-        } else if (documentViewer) {
-            // Reset for normal and zoom in behavior
-            documentViewer.style.maxHeight = 'none';
+        } else {
+            // Reset for normal/zoom in behavior
+            documentViewer.style.height = '100%';
+            documentViewer.style.overflowY = 'auto';
         }
     }
     

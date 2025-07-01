@@ -801,11 +801,10 @@
             }
         }
 
-        // Secure API Request Function (uses HTTP-only cookies)
+        // API Request Function
         async function makeRequest(url, options = {}) {
             try {
                 const response = await fetch(API_BASE + url, {
-                    credentials: 'include', // Enables HTTP-only cookies
                     ...options,
                     headers: {
                         'Content-Type': 'application/json',
@@ -813,24 +812,17 @@
                     }
                 });
 
-                if (!response.ok) {
-                    const data = await response.json();
-                    const errorMessage = data.msg || 'Request failed. Please try again.';
-                    throw new Error(errorMessage);
-                }
-
                 const data = await response.json();
-                
-                // On successful login/register, server sets HTTP-only cookie
-                // No localStorage needed - redirect directly
-                if (url === '/login' || url === '/register') {
-                    showMessage('success', 'Login successful! Redirecting...');
-                    setTimeout(() => {
-                        window.location.href = 'search.html';
-                    }, 1000);
+
+                if (response.ok) {
+                    localStorage.setItem('authToken', data.access_token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    // Redirect to search page after successful login
+                    window.location.href = 'search.html';
+                } else {
+                    const errorMessage = data.msg || 'Login failed. Please try again.';
+                    showMessage('error', errorMessage);
                 }
-                
-                return data;
             } catch (error) {
                 console.error('Request failed:', error);
                 throw error;
@@ -897,25 +889,10 @@
             }
         });
 
-        // Secure auto-redirect check - verify with server instead of localStorage
-        async function checkExistingSession() {
-            try {
-                const response = await fetch(API_BASE + '/me', {
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    // User is already authenticated - redirect to search
-                    window.location.href = 'search.html';
-                }
-            } catch (error) {
-                // No valid session - stay on login page
-                console.log('No existing session found');
-            }
+        // Auto-redirect if already logged in
+        if (localStorage.getItem('authToken')) {
+            window.location.href = 'search.html';
         }
-        
-        // Check for existing session on page load
-        checkExistingSession();
 
         // Enhanced input focus effects
         document.querySelectorAll('.form-input').forEach(input => {

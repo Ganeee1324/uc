@@ -2010,7 +2010,8 @@ async function loadAllFiles() {
                             document_type: getFileTypeFromFilename(file.filename),
                             created_at: file.created_at,
                             download_count: file.download_count || 0,
-                            owned: file.owned || false
+                            owned: file.owned || false,
+                            tag: file.tag || null
                         })),
                         // Use vetrina info for the card
                         filename: files.length > 1 ? `${files.length} files` : files[0].filename,
@@ -2034,6 +2035,9 @@ async function loadAllFiles() {
                         document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
                         author_username: vetrina.owner?.username || 'Unknown',
                         owned: files.every(file => file.owned),
+                        // Add tags from files
+                        tags: files.map(file => file.tag).filter(tag => tag !== null),
+                        primary_tag: files.find(file => file.tag)?.tag || null,
                         vetrina_info: {
                             id: vetrina.id,
                             name: vetrina.name,
@@ -2165,6 +2169,26 @@ function getDocumentCategory(title, description) {
     
     // Default fallback
     return 'Documento';
+}
+
+// Helper function to get tag icon
+function getTagIcon(tag) {
+    const tagIcons = {
+        'appunti': '📝',
+        'dispense': '📄',
+        'esercizi': '🎯'
+    };
+    return tagIcons[tag] || '🏷️';
+}
+
+// Helper function to get tag display name
+function getTagDisplayName(tag) {
+    const tagNames = {
+        'appunti': 'Appunti',
+        'dispense': 'Dispense',
+        'esercizi': 'Esercizi'
+    };
+    return tagNames[tag] || tag;
 }
 
 function renderDocuments(files) {
@@ -2315,6 +2339,10 @@ function renderDocuments(files) {
                     <div class="document-title-section">
                         <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
                         <div class="document-description" title="${description}">${description}</div>
+                        ${item.primary_tag ? `<div class="document-tag-badge">
+                            <span class="tag-icon">${getTagIcon(item.primary_tag)}</span>
+                            <span class="tag-text">${getTagDisplayName(item.primary_tag)}</span>
+                        </div>` : ''}
                     </div>
                 </div>
                 <div class="document-info">
@@ -2729,54 +2757,58 @@ async function transformSearchResults(vetrine) {
             const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
             const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
             
-            // Transform the vetrina into a card item (same format as loadAllFiles)
-            const vetrineCard = {
-                id: vetrina.id,
-                isVetrina: true,
-                fileCount: files.length,
-                files: files.map(file => ({
-                    id: file.id,
-                    filename: file.filename,
-                    title: getOriginalFilename(file.filename),
-                    size: file.size || 0,
-                    price: file.price || 0,
-                    document_type: getFileTypeFromFilename(file.filename),
-                    created_at: file.created_at,
-                    download_count: file.download_count || 0,
-                    owned: file.owned || false
-                })),
-                // Use vetrina info for the card
-                filename: files.length > 1 ? `${files.length} files` : files[0].filename,
-                title: vetrina.name || 'Vetrina Senza Nome',
-                description: vetrina.description || 'No description available',
-                size: totalSize,
-                price: totalPrice,
-                created_at: vetrina.created_at,
-                download_count: files.reduce((sum, file) => sum + (file.download_count || 0), 0),
-                rating: Math.random() * 2 + 3, // Generate random rating between 3-5
-                review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
-                course_name: vetrina.course_instance?.course_name || 'Corso Generale',
-                faculty_name: vetrina.course_instance?.faculty_name || 'Facoltà Generale',
-                language: vetrina.course_instance?.language || 'Italiano',
-                canale: vetrina.course_instance?.canale || 'A',
-                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                document_types: files.length > 1 ? 
-                    Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
-                    : [getDocumentCategory(getOriginalFilename(files[0].filename), '')],
-                document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
-                author_username: vetrina.owner?.username || 'Unknown',
-                owned: files.every(file => file.owned),
-                favorite: vetrina.favorite || false,
-                vetrina_info: {
-                    id: vetrina.id,
-                    name: vetrina.name,
-                    description: vetrina.description,
-                    course_instance_id: vetrina.course_instance?.instance_id,
-                    owner_id: vetrina.owner?.id,
-                    owner_username: vetrina.owner?.username || 'Unknown'
-                }
-            };
+                                // Transform the vetrina into a card item (same format as loadAllFiles)
+                    const vetrineCard = {
+                        id: vetrina.id,
+                        isVetrina: true,
+                        fileCount: files.length,
+                        files: files.map(file => ({
+                            id: file.id,
+                            filename: file.filename,
+                            title: getOriginalFilename(file.filename),
+                            size: file.size || 0,
+                            price: file.price || 0,
+                            document_type: getFileTypeFromFilename(file.filename),
+                            created_at: file.created_at,
+                            download_count: file.download_count || 0,
+                            owned: file.owned || false,
+                            tag: file.tag || null
+                        })),
+                        // Use vetrina info for the card
+                        filename: files.length > 1 ? `${files.length} files` : files[0].filename,
+                        title: vetrina.name || 'Vetrina Senza Nome',
+                        description: vetrina.description || 'No description available',
+                        size: totalSize,
+                        price: totalPrice,
+                        created_at: vetrina.created_at,
+                        download_count: files.reduce((sum, file) => sum + (file.download_count || 0), 0),
+                        rating: Math.random() * 2 + 3, // Generate random rating between 3-5
+                        review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
+                        course_name: vetrina.course_instance?.course_name || 'Corso Generale',
+                        faculty_name: vetrina.course_instance?.faculty_name || 'Facoltà Generale',
+                        language: vetrina.course_instance?.language || 'Italiano',
+                        canale: vetrina.course_instance?.canale || 'A',
+                        course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                        academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                        document_types: files.length > 1 ? 
+                            Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
+                            : [getDocumentCategory(getOriginalFilename(files[0].filename), '')],
+                        document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
+                        author_username: vetrina.owner?.username || 'Unknown',
+                        owned: files.every(file => file.owned),
+                        favorite: vetrina.favorite || false,
+                        // Add tags from files
+                        tags: files.map(file => file.tag).filter(tag => tag !== null),
+                        primary_tag: files.find(file => file.tag)?.tag || null,
+                        vetrina_info: {
+                            id: vetrina.id,
+                            name: vetrina.name,
+                            description: vetrina.description,
+                            course_instance_id: vetrina.course_instance?.instance_id,
+                            owner_id: vetrina.owner?.id,
+                            owner_username: vetrina.owner?.username || 'Unknown'
+                        }
+                    };
             transformedResults.push(vetrineCard);
             
         } catch (error) {
@@ -2805,6 +2837,8 @@ function applyClientSideFilters(files) {
                     return file.canale && file.canale.toLowerCase() === value.toLowerCase();
                 case 'document_type':
                     return file.document_type && file.document_type.toLowerCase() === value.toLowerCase();
+                case 'tag':
+                    return file.tag && file.tag.toLowerCase() === value.toLowerCase();
                 case 'rating_min':
                     return file.rating >= parseInt(value);
                 case 'price_min':

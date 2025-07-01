@@ -126,6 +126,40 @@
             color: #6b7280;
         }
 
+        /* Tag Selector */
+        .tag-selector {
+            margin-bottom: 32px;
+        }
+
+        .tag-selector label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .tag-selector select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .tag-selector select:focus {
+            outline: none;
+            border-color: #49c5eb;
+            box-shadow: 0 0 0 3px rgba(73, 197, 235, 0.1);
+        }
+
+        .tag-help {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
         /* Upload Area */
         .upload-area {
             border: 2px dashed #d1d5db;
@@ -365,6 +399,19 @@
                 </div>
             </div>
 
+            <div class="tag-selector">
+                <label for="tagSelect">Document Type (Tag):</label>
+                <select id="tagSelect">
+                    <option value="">No tag (optional)</option>
+                    <option value="appunti">📝 Appunti (Notes)</option>
+                    <option value="dispense">📄 Dispense (Handouts)</option>
+                    <option value="esercizi">🎯 Esercizi (Exercises)</option>
+                </select>
+                <div class="tag-help">
+                    <p>Select the type of document to help others find your content more easily.</p>
+                </div>
+            </div>
+
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">
                     <span class="material-symbols-outlined">cloud_upload</span>
@@ -525,7 +572,9 @@
         // Upload files using our existing backend logic
         async function uploadFiles() {
             const vetrinaSelect = document.getElementById('vetrinaSelect');
+            const tagSelect = document.getElementById('tagSelect');
             const vetrinaId = vetrinaSelect.value;
+            const selectedTag = tagSelect.value;
             
             if (!vetrinaId || selectedFiles.length === 0) {
                 showError('Please select a vetrina and files to upload');
@@ -545,13 +594,18 @@
                     const progressItem = document.createElement('div');
                     progressItem.className = 'progress-item';
                     progressItem.innerHTML = `
-                        <span>${file.name}</span>
+                        <span>${file.name} ${selectedTag ? `(${selectedTag})` : ''}</span>
                         <span class="status">Uploading...</span>
                     `;
                     statusDiv.appendChild(progressItem);
 
                     const formData = new FormData();
                     formData.append('file', file);
+                    
+                    // Add tag if selected
+                    if (selectedTag) {
+                        formData.append('tag', selectedTag);
+                    }
 
                     // Use our existing backend endpoint pattern
                     const response = await fetch(`${API_BASE}/vetrine/${vetrinaId}/files`, {

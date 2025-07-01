@@ -350,30 +350,11 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
     # Handle text search with optimized ordering
     if "text" in params and params["text"]:
         text_search = f"%{params['text']}%"
-        where_parts.append(
-            """
-            (v.name ILIKE %s OR 
-             v.description ILIKE %s OR 
-             ci.course_name ILIKE %s OR 
-             ci.faculty_name ILIKE %s OR
-             u.username ILIKE %s OR
-             CONCAT(u.name, ' ', u.surname) ILIKE %s)
-        """
-        )
+        where_parts.append("(v.name ILIKE %s OR v.description ILIKE %s OR ci.course_name ILIKE %s OR ci.faculty_name ILIKE %s OR u.username ILIKE %s OR CONCAT(u.name, ' ', u.surname) ILIKE %s)")
         query_params.extend([text_search] * 6)
 
         # Optimized ORDER BY using a single CASE statement
-        order_by_clause = f"""
-            ORDER BY CASE 
-                WHEN v.name ILIKE %s THEN 1
-                WHEN v.description ILIKE %s THEN 2
-                WHEN ci.course_name ILIKE %s THEN 3
-                WHEN ci.faculty_name ILIKE %s THEN 4
-                WHEN u.username ILIKE %s THEN 5
-                WHEN CONCAT(u.name, ' ', u.surname) ILIKE %s THEN 6
-                ELSE 7
-            END
-        """
+        order_by_clause = "ORDER BY CASE WHEN v.name ILIKE %s THEN 1 WHEN v.description ILIKE %s THEN 2 WHEN ci.course_name ILIKE %s THEN 3 WHEN ci.faculty_name ILIKE %s THEN 4 WHEN u.username ILIKE %s THEN 5 WHEN CONCAT(u.name, ' ', u.surname) ILIKE %s THEN 6 ELSE 7 END"
         query_params.extend([text_search] * 6)
 
     # Add filters - only build filter strings for non-empty values
@@ -384,11 +365,12 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
 
     for param_name, field_name, value in filters:
         if value:
-            where_parts.append(f"AND {field_name} ILIKE %s")
+            where_parts.append(f"{field_name} ILIKE %s")
             query_params.append(f"%{value}%")
 
     # Build final query
-    final_query = f"{base_query} WHERE {' '.join(where_parts)} {order_by_clause} LIMIT 100"
+    where_clause = " AND ".join(where_parts)
+    final_query = f"{base_query} WHERE {where_clause} {order_by_clause} LIMIT 100"
 
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -665,7 +647,7 @@ faculties_courses_cache = None
 # ---------------------------------------------
 
 
-def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str, price: int = 0, size: int = 0) -> File:
+def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str, price: int = 0, size: int = 0, tag: str | None = None) -> File:
     """
     Add a file to a vetrina.
 
@@ -676,6 +658,7 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
         sha256: SHA256 hash of the file
         price: Price of the file
         size: Size of the file in bytes
+        tag: Tag for the file
     Raises:
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
@@ -697,8 +680,8 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
 
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256, price, size) VALUES (%s, %s, %s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price",
-                    (vetrina_id, file_name, sha256, price, size),
+                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag",
+                    (vetrina_id, file_name, sha256, price, size, tag),
                 )
                 file_data = cursor.fetchone()
 
@@ -713,6 +696,7 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
                 fact_mark=file_data["fact_mark"],
                 fact_mark_updated_at=file_data["fact_mark_updated_at"],
                 price=file_data["price"],
+                tag=file_data["tag"],
             )
 
 
@@ -735,7 +719,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 cursor.execute(
                     """
                     SELECT f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
-                           f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price,
+                           f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price, f.tag,
                            (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.id AND owner_id = %s) OR
                             EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = %s AND user_id = %s)) AS owned,
                            EXISTS(SELECT 1 FROM favourite_file WHERE file_id = f.id AND user_id = %s) AS favorite
@@ -759,6 +743,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                         price=data["price"],
                         owned=data["owned"],
                         favorite=data["favorite"],
+                        tag=data["tag"],
                     )
                     for data in files_data
                 ]
@@ -766,7 +751,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 cursor.execute(
                     """
                     SELECT id, filename, created_at, size, vetrina_id, sha256, 
-                           download_count, fact_mark, fact_mark_updated_at, price
+                           download_count, fact_mark, fact_mark_updated_at, price, tag
                     FROM files 
                     WHERE vetrina_id = %s
                     """,
@@ -785,6 +770,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                         fact_mark=data["fact_mark"],
                         fact_mark_updated_at=data["fact_mark_updated_at"],
                         price=data["price"],
+                        tag=data["tag"],
                     )
                     for data in files_data
                 ]
@@ -815,7 +801,7 @@ def delete_file(requester_id: int, file_id: int) -> File:
                     FROM vetrina v 
                     WHERE v.author_id = %s
                 )
-                RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price
+                RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag
             """,
                 (file_id, requester_id),
             )
@@ -836,6 +822,7 @@ def delete_file(requester_id: int, file_id: int) -> File:
                 fact_mark=file_data["fact_mark"],
                 fact_mark_updated_at=file_data["fact_mark_updated_at"],
                 price=file_data["price"],
+                tag=file_data["tag"],
             )
 
 
@@ -855,7 +842,7 @@ def get_file(file_id: int) -> File:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price FROM files WHERE id = %s",
+                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag FROM files WHERE id = %s",
                 (file_id,),
             )
             file_data = cursor.fetchone()
@@ -874,6 +861,7 @@ def get_file(file_id: int) -> File:
                 fact_mark=file_data["fact_mark"],
                 fact_mark_updated_at=file_data["fact_mark_updated_at"],
                 price=file_data["price"],
+                tag=file_data["tag"],
             )
 
 
@@ -906,7 +894,7 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
                 raise ForbiddenError("You do not have access to this file")
 
             cursor.execute(
-                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price FROM files WHERE id = %s",
+                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag FROM files WHERE id = %s",
                 (file_id,),
             )
             file_data = cursor.fetchone()
@@ -921,6 +909,7 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
                 fact_mark=file_data["fact_mark"],
                 fact_mark_updated_at=file_data["fact_mark_updated_at"],
                 price=file_data["price"],
+                tag=file_data["tag"],
             )
             file.owned = True
             return file
@@ -989,7 +978,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                     raise AlreadyOwnedError("You already own this file")
 
                 cursor.execute(
-                    "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price FROM files WHERE id = %s",
+                    "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag FROM files WHERE id = %s",
                     (file_id,),
                 )
                 file_data = cursor.fetchone()
@@ -1008,6 +997,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                     fact_mark=file_data["fact_mark"],
                     fact_mark_updated_at=file_data["fact_mark_updated_at"],
                     price=file_data["price"],
+                    tag=file_data["tag"],
                 )
 
                 cursor.execute(

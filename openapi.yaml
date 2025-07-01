@@ -342,6 +342,33 @@ paths:
                   "Engineering": [["ENG303", "Technical Writing"]]
                   "Mathematics": [["MATH201", "Linear Algebra"]]
 
+  /tags:
+    get:
+      tags:
+        - Files
+      summary: Get valid file tags
+      description: |
+        Retrieve the list of valid tags that can be assigned to files.
+        
+        **Available tags:**
+        - **dispense**: Course handouts or lecture materials
+        - **appunti**: Student notes
+        - **esercizi**: Exercises or practice problems
+      responses:
+        "200":
+          description: Valid tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    example: ["dispense", "appunti", "esercizi"]
+                    description: List of valid file tags
+
   /vetrine/{vetrina_id}/files:
     post:
       tags:
@@ -368,6 +395,16 @@ paths:
                   type: string
                   format: binary
                   description: File to upload
+                tag:
+                  type: string
+                  enum: ["dispense", "appunti", "esercizi"]
+                  description: |
+                    Optional tag to categorize the file. Valid options are:
+                    - **dispense**: Course handouts or lecture materials
+                    - **appunti**: Student notes
+                    - **esercizi**: Exercises or practice problems
+              required:
+                - file
       responses:
         "200":
           description: File uploaded successfully
@@ -379,6 +416,25 @@ paths:
                   msg:
                     type: string
                     example: File uploaded
+        "400":
+          description: Invalid request or invalid tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                no_file:
+                  value:
+                    error: no_file
+                    msg: No file provided
+                no_filename:
+                  value:
+                    error: no_filename
+                    msg: No filename provided
+                invalid_tag:
+                  value:
+                    error: invalid_tag
+                    msg: "Invalid tag. Valid tags are: dispense, appunti, esercizi"
         "404":
           description: Vetrina not found
           content:
@@ -914,6 +970,15 @@ components:
         favorite:
           type: boolean
           description: Whether the current user has marked this file as favorite
+        tag:
+          type: string
+          nullable: true
+          enum: ["dispense", "appunti", "esercizi"]
+          description: |
+            Tag categorizing the type of file content. Valid options are:
+            - **dispense**: Course handouts or lecture materials
+            - **appunti**: Student notes  
+            - **esercizi**: Exercises or practice problems
 
     Transaction:
       type: object

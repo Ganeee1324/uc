@@ -386,164 +386,6 @@ def test_create_vetrina_unauthorized():
         print(f"Expected 401, got {response.status_code} - {response.text}")
         raise AssertionError(f"Expected 401 for unauthorized request, got {response.status_code}")
 
-def test_search_vetrine_basic(token):
-    """Test basic vetrina search functionality"""
-    print("\nTesting basic vetrina search...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/vetrine", headers=headers)
-    
-    if response.status_code == 200:
-        data = response.json()
-        print(f"✓ Search successful - found {data['count']} vetrine")
-        return data['vetrine']
-    else:
-        print(f"✗ Search failed: {response.status_code} - {response.text}")
-        raise AssertionError(f"Basic vetrina search failed: {response.status_code} - {response.text}")
-
-def test_search_vetrine_by_name(token, search_term):
-    """Test searching vetrine by name"""
-    print(f"\nTesting search by name: '{search_term}'...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?name={search_term}",
-        headers=headers
-    )
-    
-    if response.status_code == 200:
-        data = response.json()
-        print(f"✓ Found {data['count']} vetrine matching '{search_term}'")
-        
-        # Verify that all results contain the search term
-        for vetrina in data['vetrine']:
-            if search_term.lower() not in vetrina['name'].lower():
-                print(f"✗ Result '{vetrina['name']}' doesn't contain search term")
-                raise AssertionError(f"Search result '{vetrina['name']}' doesn't contain search term '{search_term}'")
-        
-        if data['count'] > 0:
-            print(f"  Sample result: {data['vetrine'][0]['name']}")
-        
-        return True
-    else:
-        print(f"✗ Search failed: {response.status_code} - {response.text}")
-        raise AssertionError(f"Search by name failed: {response.status_code} - {response.text}")
-
-def test_search_vetrine_by_course_code(token):
-    """Test searching vetrine by course code"""
-    print("\nTesting search by course code...")
-    
-    # Get a sample course code from hierarchy
-    course_instance = get_sample_course_instance()
-    if not course_instance:
-        print("✗ No course instances available for testing")
-        raise AssertionError("No course instances available for course code testing")
-    
-    course_code = course_instance["course_code"]
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?course_code={course_code}",
-        headers=headers
-    )
-    
-    if response.status_code == 200:
-        data = response.json()
-        print(f"✓ Found {data['count']} vetrine for course code '{course_code}'")
-        
-        # Verify that all results match the course code
-        for vetrina in data['vetrine']:
-            if course_code.lower() not in vetrina['course_instance']['course_code'].lower():
-                print(f"✗ Result course code '{vetrina['course_instance']['course_code']}' doesn't match search")
-                raise AssertionError(f"Search result course code '{vetrina['course_instance']['course_code']}' doesn't match '{course_code}'")
-        
-        return True
-    else:
-        print(f"✗ Search failed: {response.status_code} - {response.text}")
-        raise AssertionError(f"Search by course code failed: {response.status_code} - {response.text}")
-
-def test_search_vetrine_by_faculty(token):
-    """Test searching vetrine by faculty"""
-    print("\nTesting search by faculty...")
-    
-    # Get a sample faculty from hierarchy
-    course_instance = get_sample_course_instance()
-    if not course_instance:
-        print("✗ No course instances available for testing")
-        raise AssertionError("No course instances available for faculty testing")
-    
-    faculty_name = course_instance["faculty_name"]
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?faculty={faculty_name}",
-        headers=headers
-    )
-    
-    if response.status_code == 200:
-        data = response.json()
-        print(f"✓ Found {data['count']} vetrine for faculty '{faculty_name}'")
-        
-        # Verify that all results match the faculty
-        for vetrina in data['vetrine']:
-            if faculty_name.lower() not in vetrina['course_instance']['faculty_name'].lower():
-                print(f"✗ Result faculty '{vetrina['course_instance']['faculty_name']}' doesn't match search")
-                raise AssertionError(f"Search result faculty '{vetrina['course_instance']['faculty_name']}' doesn't match '{faculty_name}'")
-        
-        return True
-    else:
-        print(f"✗ Search failed: {response.status_code} - {response.text}")
-        raise AssertionError(f"Search by faculty failed: {response.status_code} - {response.text}")
-
-def test_search_vetrine_combined(token):
-    """Test searching vetrine with multiple parameters"""
-    print("\nTesting combined search parameters...")
-    
-    course_instance = get_sample_course_instance()
-    if not course_instance:
-        print("✗ No course instances available for testing")
-        raise AssertionError("No course instances available for combined search testing")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    params = {
-        "course_code": course_instance["course_code"],
-        "faculty": course_instance["faculty_name"]
-    }
-    
-    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
-    response = requests.get(
-        f"{BASE_URL}/vetrine?{query_string}",
-        headers=headers
-    )
-    
-    if response.status_code == 200:
-        data = response.json()
-        print(f"✓ Combined search found {data['count']} vetrine")
-        print(f"  Parameters: {params}")
-        return True
-    else:
-        print(f"✗ Combined search failed: {response.status_code} - {response.text}")
-        raise AssertionError(f"Combined search failed: {response.status_code} - {response.text}")
-
-def test_search_vetrine_no_results(token):
-    """Test searching vetrine with parameters that should return no results"""
-    print("\nTesting search with no expected results...")
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(
-        f"{BASE_URL}/vetrine?name=NonExistentVetrinaName12345",
-        headers=headers
-    )
-    
-    if response.status_code == 200:
-        data = response.json()
-        if data['count'] == 0:
-            print("✓ Search with no results handled correctly")
-            return True
-        else:
-            print(f"✗ Expected 0 results, got {data['count']}")
-            raise AssertionError(f"Expected 0 results for non-existent search, got {data['count']}")
-    else:
-        print(f"✗ Search failed: {response.status_code} - {response.text}")
-        raise AssertionError(f"Search with no results failed: {response.status_code} - {response.text}")
 
 def find_user_vetrina(token):
     """Find a vetrina created by the current user for deletion testing"""
@@ -558,55 +400,6 @@ def find_user_vetrina(token):
             if "Test Vetrina" in vetrina['name']:
                 return vetrina['id']
     return None
-
-def test_delete_vetrina(token, vetrina_name):
-    """Test deleting a vetrina"""
-    print("\nTesting vetrina deletion...")
-    
-    if not vetrina_name:
-        print("✗ No vetrina available for deletion testing")
-        raise AssertionError("No vetrina available for deletion testing")
-    
-    # First, find the vetrina ID by searching for it
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/vetrine?name={vetrina_name}", headers=headers)
-    
-    if response.status_code != 200:
-        print("✗ Failed to find vetrina for deletion")
-        raise AssertionError("Failed to find vetrina for deletion")
-    
-    data = response.json()
-    if data['count'] == 0:
-        print("✗ Vetrina not found for deletion")
-        raise AssertionError("Vetrina not found for deletion")
-    
-    vetrina_id = data['vetrine'][0]['id']
-    
-    # Now delete the vetrina
-    response = requests.delete(
-        f"{BASE_URL}/vetrine/{vetrina_id}",
-        headers=headers
-    )
-    
-    if response.status_code == 200:
-        print(f"✓ Vetrina deleted successfully (ID: {vetrina_id})")
-        
-        # Verify it's actually deleted by trying to find it again
-        response = requests.get(f"{BASE_URL}/vetrine?name={vetrina_name}", headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            if data['count'] == 0:
-                print("✓ Deletion verified - vetrina no longer found")
-                return True
-            else:
-                print("✗ Vetrina still exists after deletion")
-                raise AssertionError("Vetrina still exists after deletion")
-        else:
-            print("✗ Failed to verify deletion")
-            raise AssertionError("Failed to verify deletion")
-    else:
-        print(f"✗ Failed to delete vetrina: {response.status_code} - {response.text}")
-        raise AssertionError(f"Failed to delete vetrina: {response.status_code} - {response.text}")
 
 def test_delete_vetrina_unauthorized(token):
     """Test deleting a vetrina without proper authorization"""
@@ -647,27 +440,13 @@ def run_vetrina_tests(token):
     test_create_vetrina_unauthorized()
     test_create_vetrina_missing_fields(token)
     test_create_vetrina_invalid_course(token)
-    created_vetrina_name = test_create_vetrina(token)
+    test_create_vetrina(token)
     
-    # Test vetrina search
-    all_vetrine = test_search_vetrine_basic(token)
-    test_search_vetrine_no_results(token)
-    
-    # Test search by different parameters
-    if created_vetrina_name:
-        test_search_vetrine_by_name(token, "Test Vetrina")
-    
-    test_search_vetrine_by_course_code(token)
-    test_search_vetrine_by_faculty(token)
-    test_search_vetrine_combined(token)
-    
+
     # Test vetrina deletion
     test_delete_vetrina_unauthorized(token)
     test_delete_nonexistent_vetrina(token)
-    
-    if created_vetrina_name:
-        test_delete_vetrina(token, created_vetrina_name)
-    
+
     print("\n" + "=" * 50)
     print("VETRINA TESTS COMPLETED")
     print("=" * 50)

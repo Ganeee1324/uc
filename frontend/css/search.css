@@ -3870,16 +3870,7 @@ html {
 
 /* Loading Card Container */
 .document-card.loading {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-3xl);
-    overflow: hidden;
-    position: relative;
-    height: 560px;
-    display: flex;
-    flex-direction: column;
     cursor: default;
-    box-shadow: var(--shadow-md);
     transform: none;
     transition: none;
 }

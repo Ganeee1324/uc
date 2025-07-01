@@ -979,13 +979,13 @@ function setupActionButtons(fileData) {
 
     const isFree = (parseFloat(fileData.price) || 0) === 0;
 
-    // Purchase/Download button logic - Fix duplicate download buttons
+    // Purchase/Download button logic - Simplified text
     if (isFree) {
         // For free documents: show primary button as download, hide secondary download
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
                 <span class="material-symbols-outlined">download</span>
-                Download Gratuito
+                Download
             `;
             purchaseBtn.onclick = () => downloadDocument(fileData.id);
         }
@@ -998,7 +998,7 @@ function setupActionButtons(fileData) {
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
                 <span class="material-symbols-outlined">shopping_cart</span>
-                Acquista per €${fileData.price.toFixed(2)}
+                Acquista
             `;
             purchaseBtn.onclick = () => handlePurchase(fileData.id);
         }
@@ -1010,7 +1010,21 @@ function setupActionButtons(fileData) {
     }
 
     // Setup other action buttons
-    if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
+    if (favoriteBtn) {
+        favoriteBtn.onclick = handleFavorite;
+        
+        // Initialize favorite button state based on file data
+        if (fileData.favorite) {
+            favoriteBtn.classList.add('active');
+            const icon = favoriteBtn.querySelector('.material-symbols-outlined');
+            const text = favoriteBtn.querySelector('span:last-child');
+            if (icon) icon.textContent = 'favorite';
+            if (text) text.textContent = 'Rimosso dai Preferiti';
+            favoriteBtn.style.background = 'var(--danger-50)';
+            favoriteBtn.style.borderColor = 'var(--danger-200)';
+            favoriteBtn.style.color = 'var(--danger-700)';
+        }
+    }
     if (shareBtn) shareBtn.onclick = handleShare;
 }
 
@@ -1028,7 +1042,8 @@ function handlePurchase(fileId) {
         downloadDocument(fileId);
     } else {
         // Paid document - show purchase confirmation
-        if (confirm(`Confermi l'acquisto di questo documento per €${currentData.price?.toFixed(2) || 'N/A'}?`)) {
+        const price = currentData.price?.toFixed(2) || 'N/A';
+        if (confirm(`Confermi l'acquisto di questo documento per €${price}?`)) {
             // In a real implementation, this would redirect to payment processor
             showNotification('Funzionalità di pagamento non ancora implementata', 'info');
             // window.location.href = `payment.html?file=${fileId}&price=${currentData.price}`;
@@ -1239,24 +1254,46 @@ document.addEventListener('visibilitychange', () => {
 console.log('Document Preview System - World Class Edition - Loaded Successfully');
 
 // Action Handlers
-function handleFavorite() {
-    // Toggle favorite status
+async function handleFavorite() {
+    if (!currentDocument) {
+        showNotification('Errore: documento non trovato', 'error');
+        return;
+    }
+
     const btn = document.getElementById('favoriteBtn');
     const icon = btn.querySelector('.material-symbols-outlined');
     const text = btn.querySelector('span:last-child');
     
-    if (icon.textContent === 'favorite_border') {
-        icon.textContent = 'favorite';
-        text.textContent = 'Rimosso dai Preferiti';
-        btn.style.background = 'var(--danger-50)';
-        btn.style.borderColor = 'var(--danger-200)';
-        btn.style.color = 'var(--danger-700)';
-    } else {
-        icon.textContent = 'favorite_border';
-        text.textContent = 'Salva nei Preferiti';
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        btn.style.color = '';
+    // Determine if it's currently favorited (using same logic as search page)
+    const isFavorited = btn.classList.contains('active');
+    
+    try {
+        // Call the favorites API endpoint (same as search page)
+        const response = await makeRequest(`/user/favorites/files/${currentDocument.id}`, {
+            method: isFavorited ? 'DELETE' : 'POST'
+        });
+
+        // Toggle the favorite state in the UI (same as search page)
+        if (isFavorited) {
+            btn.classList.remove('active');
+            icon.textContent = 'favorite_border';
+            text.textContent = 'Salva nei Preferiti';
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            showNotification('Rimosso dai preferiti 💔', 'success');
+        } else {
+            btn.classList.add('active');
+            icon.textContent = 'favorite';
+            text.textContent = 'Rimosso dai Preferiti';
+            btn.style.background = 'var(--danger-50)';
+            btn.style.borderColor = 'var(--danger-200)';
+            btn.style.color = 'var(--danger-700)';
+            showNotification('Aggiunto ai preferiti! ❤️', 'success');
+        }
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        showNotification('Errore durante l\'aggiornamento dei preferiti', 'error');
     }
 }
 
@@ -1282,15 +1319,38 @@ async function downloadDocument(fileId) {
     }
     
     try {
-        const response = await makeRequest(`${API_BASE}/files/${fileId}/download`, {
+        showNotification('Download in corso... 📥', 'info');
+        
+        // Call the download endpoint which should add file to owned files
+        const response = await makeRequest(`/files/${fileId}/download`, {
             method: 'GET'
         });
         
-        if (response.download_url) {
+        if (response && response.download_url) {
+            // If response includes download URL, use it
             window.open(response.download_url, '_blank');
-            showNotification('Download avviato', 'success');
+            showNotification('Download completato! File aggiunto ai tuoi documenti 🎉', 'success');
         } else {
-            showNotification('Download avviato', 'success');
+            // Handle direct file download response
+            const downloadResponse = await fetch(`${API_BASE}/files/${fileId}/download`, {
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-Token': await getCSRFToken()
+                }
+            });
+            
+            if (downloadResponse.ok) {
+                const blob = await downloadResponse.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentDocument?.filename || 'documento';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showNotification('Download completato! File aggiunto ai tuoi documenti 🎉', 'success');
+            } else {
+                throw new Error(`HTTP ${downloadResponse.status}: ${downloadResponse.statusText}`);
+            }
         }
     } catch (error) {
         console.error('Download error:', error);

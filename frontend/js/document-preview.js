@@ -3,9 +3,7 @@
 // ============================================
 
 const API_BASE = 'http://localhost:5000';
-
-// Remove localStorage auth completely - now using secure HTTP-only cookies
-// let authToken = localStorage.getItem('authToken'); // REMOVED - SECURITY VULNERABILITY
+let authToken = localStorage.getItem('authToken');
 
 // Document State Management
 let currentDocument = null;
@@ -14,7 +12,6 @@ let totalPages = 1;
 let currentZoom = 100;
 let documentPages = [];
 let isLoading = false;
-let csrfToken = null;
 
 // Configuration
 const ZOOM_CONFIG = {
@@ -64,34 +61,13 @@ class LoadingManager {
     }
 }
 
-// CSRF Token Management
-async function getCSRFToken() {
-    if (!csrfToken) {
-        try {
-            const response = await fetch(`${API_BASE}/csrf-token`, {
-                credentials: 'include'
-            });
-            if (response.ok) {
-                const data = await response.json();
-                csrfToken = data.csrf_token;
-            }
-        } catch (error) {
-            console.warn('Could not fetch CSRF token:', error);
-        }
-    }
-    return csrfToken;
-}
-
-// Professional API Request Handler with Secure Authentication
+// Professional API Request Handler
 async function makeRequest(url, options = {}) {
     try {
-        const token = await getCSRFToken();
-        
         const defaultOptions = {
-            credentials: 'include', // Sends HTTP-only cookies automatically
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && { 'X-CSRF-Token': token }) // CSRF protection
+                'Authorization': authToken ? `Bearer ${authToken}` : ''
             }
         };
 
@@ -101,22 +77,6 @@ async function makeRequest(url, options = {}) {
             if (response.status === 401) {
                 handleAuthError();
                 return null;
-            }
-            if (response.status === 403) {
-                // Likely CSRF token expired, refresh and retry once
-                csrfToken = null;
-                const newToken = await getCSRFToken();
-                if (newToken && options.retryCount !== 1) {
-                    const retryOptions = {
-                        ...options,
-                        retryCount: 1,
-                        headers: {
-                            ...options.headers,
-                            'X-CSRF-Token': newToken
-                        }
-                    };
-                    return makeRequest(url, retryOptions);
-                }
             }
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -128,47 +88,23 @@ async function makeRequest(url, options = {}) {
     }
 }
 
-// Authentication Handler - Secure logout
+// Authentication Handler
 function handleAuthError() {
-    // Clear any local session data (not auth tokens - those are HTTP-only)
-    localStorage.removeItem('preferences');
-    localStorage.removeItem('readingPositions');
-    
-    // Perform server-side logout to clear HTTP-only cookies
-    fetch(`${API_BASE}/logout`, {
-        method: 'POST',
-        credentials: 'include'
-    }).finally(() => {
-        window.location.href = 'login.html';
-    });
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
 }
 
-// User Data Management - Always fetch fresh from server
+// User Data Management
 async function fetchCurrentUserData() {
-    try {
-        // Always fetch fresh user data from server - no caching
-        const userData = await makeRequest(`${API_BASE}/me`);
-        return userData;
-    } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        handleAuthError();
-        return null;
+    const cachedUser = localStorage.getItem('currentUser');
+    if (cachedUser) {
+        return JSON.parse(cachedUser);
     }
-}
 
-// Session Validation
-async function validateSession() {
-    try {
-        const user = await fetchCurrentUserData();
-        if (!user) {
-            throw new Error('Invalid session');
-        }
-        return user;
-    } catch (error) {
-        console.error('Session validation failed:', error);
-        handleAuthError();
-        return null;
-    }
+    // If cache is empty, handle as an auth error because user should be logged in
+    handleAuthError();
+    return null;
 }
 
 function updateHeaderUserInfo(user) {
@@ -188,25 +124,7 @@ function updateHeaderUserInfo(user) {
 
     const logoutBtn = document.querySelector('.logout-btn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleSecureLogout);
-    }
-}
-
-// Secure Logout Handler
-function handleSecureLogout() {
-    if (confirm('Sei sicuro di voler effettuare il logout?')) {
-        fetch(`${API_BASE}/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        }).then(() => {
-            // Clear local preferences (not auth data)
-            localStorage.removeItem('preferences');
-            localStorage.removeItem('readingPositions');
-            window.location.href = 'login.html';
-        }).catch(() => {
-            // Even if logout fails, redirect to login
-            window.location.href = 'login.html';
-        });
+        logoutBtn.addEventListener('click', handleAuthError);
     }
 }
 
@@ -909,60 +827,36 @@ function formatDate(dateString) {
     });
 }
 
-// Secure Reading Position Management (only UI preferences, no auth data)
+// Reading Position Management
 function saveReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.id;
         const scrollable = document.querySelector('.document-viewer-section');
-        
-        // Get existing reading positions or create new object
-        const readingPositions = JSON.parse(localStorage.getItem('readingPositions') || '{}');
-        
-        // Update position for this file
-        readingPositions[fileId] = {
-            scroll: scrollable ? scrollable.scrollTop : 0,
-            zoom: currentZoom,
-            page: currentPage,
-            timestamp: new Date().toISOString()
-        };
-        
-        // Clean old positions (keep only last 10 files to prevent storage bloat)
-        const positions = Object.entries(readingPositions)
-            .sort((a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp))
-            .slice(0, 10);
-        
-        localStorage.setItem('readingPositions', JSON.stringify(Object.fromEntries(positions)));
+        if (scrollable) {
+            localStorage.setItem(`file-${fileId}-scroll`, scrollable.scrollTop);
+        }
+        localStorage.setItem(`file-${fileId}-zoom`, currentZoom);
     }
 }
 
 function loadReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.id;
-        const readingPositions = JSON.parse(localStorage.getItem('readingPositions') || '{}');
-        const position = readingPositions[fileId];
+        const savedScroll = localStorage.getItem(`file-${fileId}-scroll`);
+        const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
         
-        if (position) {
-            // Restore zoom
-            if (position.zoom && position.zoom !== currentZoom) {
-                currentZoom = parseInt(position.zoom);
-                adjustZoom(0); // Apply zoom
-            }
-            
-            // Restore page
-            if (position.page && position.page !== currentPage) {
-                currentPage = parseInt(position.page);
-                updatePageDisplay();
-            }
+        if (savedZoom) {
+            currentZoom = parseInt(savedZoom);
+            adjustZoom(0); // Apply zoom
+        }
 
-            // Restore scroll position
-            if (position.scroll) {
-                const scrollable = document.querySelector('.document-viewer-section');
-                if (scrollable) {
-                    // Use a timeout to ensure content is rendered before scrolling
-                    setTimeout(() => {
-                        scrollable.scrollTop = parseInt(position.scroll);
-                    }, 100);
-                }
+        if (savedScroll) {
+            const scrollable = document.querySelector('.document-viewer-section');
+            if (scrollable) {
+                // Use a timeout to ensure content is rendered before scrolling
+                setTimeout(() => {
+                    scrollable.scrollTop = parseInt(savedScroll);
+                }, 100);
             }
         }
     }
@@ -979,7 +873,7 @@ function setupActionButtons(fileData) {
 
     const isFree = (parseFloat(fileData.price) || 0) === 0;
 
-    // Purchase/Download button logic - Simplified text
+    // Purchase/Download button logic - Fix duplicate download buttons
     if (isFree) {
         // For free documents: show primary button as download, hide secondary download
         if (purchaseBtn) {
@@ -1010,21 +904,7 @@ function setupActionButtons(fileData) {
     }
 
     // Setup other action buttons
-    if (favoriteBtn) {
-        favoriteBtn.onclick = handleFavorite;
-        
-        // Initialize favorite button state based on file data
-        if (fileData.favorite) {
-            favoriteBtn.classList.add('active');
-            const icon = favoriteBtn.querySelector('.material-symbols-outlined');
-            const text = favoriteBtn.querySelector('span:last-child');
-            if (icon) icon.textContent = 'favorite';
-            if (text) text.textContent = 'Rimosso dai Preferiti';
-            favoriteBtn.style.background = 'var(--danger-50)';
-            favoriteBtn.style.borderColor = 'var(--danger-200)';
-            favoriteBtn.style.color = 'var(--danger-700)';
-        }
-    }
+    if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
     if (shareBtn) shareBtn.onclick = handleShare;
 }
 
@@ -1042,8 +922,7 @@ function handlePurchase(fileId) {
         downloadDocument(fileId);
     } else {
         // Paid document - show purchase confirmation
-        const price = currentData.price?.toFixed(2) || 'N/A';
-        if (confirm(`Confermi l'acquisto di questo documento per €${price}?`)) {
+        if (confirm(`Confermi l'acquisto di questo documento per €${currentData.price?.toFixed(2) || 'N/A'}?`)) {
             // In a real implementation, this would redirect to payment processor
             showNotification('Funzionalità di pagamento non ancora implementata', 'info');
             // window.location.href = `payment.html?file=${fileId}&price=${currentData.price}`;
@@ -1136,26 +1015,11 @@ function initializeTouchNavigation() {
     }
 }
 
-// Automatic Session Refresh (every 15 minutes)
-function initializeSessionRefresh() {
-    setInterval(async () => {
-        try {
-            await fetch(`${API_BASE}/refresh-session`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } catch (error) {
-            console.warn('Session refresh failed:', error);
-        }
-    }, 15 * 60 * 1000); // 15 minutes
-}
-
 // Main Initialization
 async function initializeDocumentPreview() {
-    // Validate session first
-    const user = await validateSession();
-    if (!user) {
-        return; // validateSession handles redirect
+    if (!authToken) {
+        handleAuthError();
+        return;
     }
 
     const fileId = getFileIdFromUrl();
@@ -1197,7 +1061,6 @@ async function initializeDocumentPreview() {
         // Initialize other systems
         initializeKeyboardNavigation();
         initializeTouchNavigation();
-        initializeSessionRefresh(); // Start automatic session refresh
         
         // Load reading position
         loadReadingPosition();
@@ -1254,46 +1117,17 @@ document.addEventListener('visibilitychange', () => {
 console.log('Document Preview System - World Class Edition - Loaded Successfully');
 
 // Action Handlers
-async function handleFavorite() {
-    if (!currentDocument) {
-        showNotification('Errore: documento non trovato', 'error');
-        return;
-    }
-
+function handleFavorite() {
+    // Toggle favorite status
     const btn = document.getElementById('favoriteBtn');
-    const icon = btn.querySelector('.material-symbols-outlined');
-    const text = btn.querySelector('span:last-child');
     
-    // Determine if it's currently favorited (using same logic as search page)
-    const isFavorited = btn.classList.contains('active');
-    
-    try {
-        // Call the favorites API endpoint (same as search page)
-        const response = await makeRequest(`/user/favorites/files/${currentDocument.id}`, {
-            method: isFavorited ? 'DELETE' : 'POST'
-        });
-
-        // Toggle the favorite state in the UI (same as search page)
-        if (isFavorited) {
-            btn.classList.remove('active');
-            icon.textContent = 'favorite_border';
-            text.textContent = 'Salva nei Preferiti';
-            btn.style.background = '';
-            btn.style.borderColor = '';
-            btn.style.color = '';
-            showNotification('Rimosso dai preferiti 💔', 'success');
-        } else {
-            btn.classList.add('active');
-            icon.textContent = 'favorite';
-            text.textContent = 'Rimosso dai Preferiti';
-            btn.style.background = 'var(--danger-50)';
-            btn.style.borderColor = 'var(--danger-200)';
-            btn.style.color = 'var(--danger-700)';
-            showNotification('Aggiunto ai preferiti! ❤️', 'success');
-        }
-    } catch (error) {
-        console.error('Error toggling favorite:', error);
-        showNotification('Errore durante l\'aggiornamento dei preferiti', 'error');
+    // Just toggle the active class - text stays the same, icon stays the same
+    if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        showNotification('Rimosso dai preferiti 💔', 'success');
+    } else {
+        btn.classList.add('active');
+        showNotification('Aggiunto ai preferiti! ❤️', 'success');
     }
 }
 
@@ -1319,38 +1153,15 @@ async function downloadDocument(fileId) {
     }
     
     try {
-        showNotification('Download in corso... 📥', 'info');
-        
-        // Call the download endpoint which should add file to owned files
-        const response = await makeRequest(`/files/${fileId}/download`, {
+        const response = await makeRequest(`${API_BASE}/files/${fileId}/download`, {
             method: 'GET'
         });
         
-        if (response && response.download_url) {
-            // If response includes download URL, use it
+        if (response.download_url) {
             window.open(response.download_url, '_blank');
-            showNotification('Download completato! File aggiunto ai tuoi documenti 🎉', 'success');
+            showNotification('Download avviato', 'success');
         } else {
-            // Handle direct file download response
-            const downloadResponse = await fetch(`${API_BASE}/files/${fileId}/download`, {
-                credentials: 'include',
-                headers: {
-                    'X-CSRF-Token': await getCSRFToken()
-                }
-            });
-            
-            if (downloadResponse.ok) {
-                const blob = await downloadResponse.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = currentDocument?.filename || 'documento';
-                a.click();
-                window.URL.revokeObjectURL(url);
-                showNotification('Download completato! File aggiunto ai tuoi documenti 🎉', 'success');
-            } else {
-                throw new Error(`HTTP ${downloadResponse.status}: ${downloadResponse.statusText}`);
-            }
+            showNotification('Download avviato', 'success');
         }
     } catch (error) {
         console.error('Download error:', error);

@@ -146,8 +146,6 @@ body {
     position: relative;
 }
 
-
-
 /* Professional Header - Restored Original Design */
 .header {
     position: fixed;
@@ -180,29 +178,6 @@ body {
 .logo img {
     height: 32px;
     width: auto;
-}
-
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
-    list-style: none;
-}
-
-.nav-link {
-    color: var(--neutral-700);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: var(--text-sm);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-lg);
-    transition: all 0.2s var(--ease-out);
-    position: relative;
-}
-
-.nav-link:hover {
-    color: var(--primary-600);
-    background: var(--primary-50);
 }
 
 .auth-buttons {
@@ -259,17 +234,15 @@ body {
 }
 
 .logout-btn:hover {
-    color: var(--danger-500);
     background: var(--danger-50);
+    color: var(--danger-600);
 }
 
 /* Main Preview Layout - Full height to bottom of screen */
 .preview-main {
-    display: grid;
-    grid-template-columns: 1fr 420px; /* Document viewer | Sidebar */
-    gap: var(--space-6);
+    display: flex;
+    height: calc(100vh - 72px);
     padding: var(--space-4) var(--space-8) 0; /* No bottom padding */
-    height: calc(100vh - 100px); /* Full height exactly to bottom */
     margin-top: 72px; /* Start directly after header */
     overflow: hidden;
 }
@@ -562,8 +535,6 @@ body {
     max-height: calc(320px - 80px); /* Subtract padding (48px) and header (32px) */
 }
 
-
-
 .doc-details-section h3 {
     display: flex;
     align-items: center;
@@ -585,10 +556,6 @@ body {
 .doc-actions {
     margin-bottom: var(--space-6);
 }
-
-
-
-
 
 /* Vertical Detail Items - Professional Structure */
 .detail-item-vertical {
@@ -689,8 +656,6 @@ body {
     border-bottom: 2px solid var(--neutral-100);
 }
 
-
-
 .doc-title {
     font-size: var(--text-2xl);
     font-weight: 800;
@@ -741,8 +706,6 @@ body {
     color: var(--success-600);
     letter-spacing: -0.025em;
 }
-
-
 
 .doc-price .paid {
     color: var(--neutral-800);
@@ -818,6 +781,32 @@ body {
 
 .action-btn.secondary .material-symbols-outlined {
     font-size: 18px;
+}
+
+/* Favorite Button - Match Search Page Styling */
+.action-btn.secondary#favoriteBtn {
+    position: relative;
+    transition: transform 0.25s var(--ease-spring);
+}
+
+.action-btn.secondary#favoriteBtn:hover {
+    transform: scale(1.1) translateY(-1px);
+}
+
+.action-btn.secondary#favoriteBtn .material-symbols-outlined {
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.4);
+    transition: all 0.25s var(--ease-spring);
+    font-variation-settings: 'FILL' 1, 'wght' 400;
+}
+
+.action-btn.secondary#favoriteBtn.active .material-symbols-outlined {
+    color: #ef4444; /* Red color when active */
+    font-variation-settings: 'FILL' 1, 'wght' 600;
+}
+
+.action-btn.secondary#favoriteBtn.active:hover {
+    transform: scale(1.15) translateY(-1px);
 }
 
 /* Hide download button by default (controlled by JS) */

@@ -661,7 +661,6 @@ function adjustZoom(delta) {
 function updateZoomDisplay() {
     const zoomLevelSpan = document.querySelector('.zoom-level');
     const viewerContainer = document.querySelector('.viewer-container');
-    const documentViewer = document.querySelector('.document-viewer');
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
     
@@ -669,47 +668,23 @@ function updateZoomDisplay() {
         zoomLevelSpan.textContent = `${currentZoom}%`;
     }
     
-    if (viewerContainer && documentViewer) {
-        const scale = currentZoom / 100;
-        
-        // Apply zoom transform
-        viewerContainer.style.transform = `scale(${scale})`;
+    if (viewerContainer) {
+        viewerContainer.style.transform = `scale(${currentZoom / 100})`;
         viewerContainer.style.transformOrigin = 'top center';
         viewerContainer.style.transition = 'transform 0.3s ease-out';
         
-        // Professional zoom out behavior - prevent over-scrolling
-        if (scale < 1) {
-            requestAnimationFrame(() => {
-                // Temporarily remove transform to get accurate measurements
-                const originalTransform = viewerContainer.style.transform;
-                viewerContainer.style.transform = 'none';
-                
-                // Get the true content height without transform
-                const naturalContentHeight = viewerContainer.scrollHeight;
-                
-                // Restore transform
-                viewerContainer.style.transform = originalTransform;
-                
-                // Calculate scaled height and set container constraint
-                const scaledContentHeight = naturalContentHeight * scale;
-                const padding = 64; // Account for container padding
-                
-                // Set a precise height that matches the scaled content
-                documentViewer.style.height = `${scaledContentHeight + padding}px`;
-                documentViewer.style.overflowY = 'auto';
-                
-                // Adjust scroll position if necessary
-                setTimeout(() => {
-                    const maxScroll = Math.max(0, documentViewer.scrollHeight - documentViewer.clientHeight);
-                    if (documentViewer.scrollTop > maxScroll) {
-                        documentViewer.scrollTop = maxScroll;
-                    }
-                }, 50);
-            });
-        } else {
-            // Reset for normal/zoom in behavior
-            documentViewer.style.height = '100%';
-            documentViewer.style.overflowY = 'auto';
+        // Apply zoom-specific classes to prevent over-scrolling
+        const documentViewer = document.querySelector('.document-viewer');
+        if (documentViewer) {
+            // Remove all zoom classes
+            documentViewer.classList.remove('zoomed-out-50', 'zoomed-out-75');
+            
+            // Add appropriate class for zoom out levels
+            if (currentZoom === 50) {
+                documentViewer.classList.add('zoomed-out-50');
+            } else if (currentZoom === 75) {
+                documentViewer.classList.add('zoomed-out-75');
+            }
         }
     }
     

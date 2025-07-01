@@ -2665,10 +2665,21 @@ async function performSearch(query) {
             searchParams.append('faculty', activeFilters.faculty_name);
         }
         
-        // Make backend search request
-        const response = await makeRequest(`/vetrine?${searchParams.toString()}`);
+        // Make backend search request with fallback
+        let response;
+        try {
+            response = await makeRequest(`/vetrine?${searchParams.toString()}`);
+        } catch (error) {
+            console.warn('Backend search failed, falling back to client-side search:', error);
+            // Fallback to client-side search if backend fails
+            await performClientSideSearch(query);
+            return;
+        }
+        
         if (!response) {
-            throw new Error('Search request failed');
+            console.warn('Empty response from backend, falling back to client-side search');
+            await performClientSideSearch(query);
+            return;
         }
         
         const searchResults = response.vetrine || [];
@@ -3061,4 +3072,102 @@ function switchQuickLookPreview(vetrina, index) {
     fileListItems.forEach((item, i) => {
         item.classList.toggle('active', i === index);
     });
+}
+
+// Fallback client-side search function when backend search fails
+async function performClientSideSearch(query) {
+    try {
+        // Load all files if not already loaded
+        if (originalFiles.length === 0) {
+            await loadAllFiles();
+        }
+        
+        let filesToSearch = originalFiles;
+        
+        // Apply current filters first
+        if (Object.keys(activeFilters).length > 0) {
+            filesToSearch = applyFiltersToFiles(originalFiles);
+        }
+        
+        if (!query.trim()) {
+            renderDocuments(filesToSearch);
+            return;
+        }
+        
+        // Split search query into individual terms and clean them
+        const searchTerms = query.toLowerCase()
+            .split(/\s+/)
+            .map(term => term.trim())
+            .filter(term => term.length > 0);
+        
+        // Calculate relevance score for each file
+        const scoredFiles = filesToSearch.map(file => {
+            let score = 0;
+            let hasMatch = false;
+            
+            // Helper function to check if terms match in a field
+            const checkFieldMatch = (fieldValue, multiplier) => {
+                if (!fieldValue) return false;
+                
+                const fieldText = fieldValue.toLowerCase()
+                    .replace(/[^\w\s]/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                
+                let fieldMatches = 0;
+                searchTerms.forEach(term => {
+                    if (fieldText.includes(term) || 
+                        fieldText.split(' ').some(word => 
+                            word.startsWith(term) || word.includes(term)
+                        )) {
+                        fieldMatches++;
+                    }
+                });
+                
+                if (fieldMatches === searchTerms.length) {
+                    score += multiplier * fieldMatches;
+                    return true;
+                }
+                return false;
+            };
+            
+            // Priority scoring (higher multiplier = higher priority)
+            if (checkFieldMatch(file.title, 100)) hasMatch = true;
+            if (checkFieldMatch(file.course_name, 80)) hasMatch = true;
+            if (checkFieldMatch(file.description, 60)) hasMatch = true;
+            if (checkFieldMatch(file.faculty_name, 50)) hasMatch = true;
+            if (checkFieldMatch(file.author_username, 40)) hasMatch = true;
+            if (checkFieldMatch(file.vetrina_info?.name, 30)) hasMatch = true;
+            if (checkFieldMatch(file.vetrina_info?.description, 20)) hasMatch = true;
+            if (checkFieldMatch(file.document_type, 15)) hasMatch = true;
+            if (checkFieldMatch(file.language, 10)) hasMatch = true;
+            
+            return {
+                file,
+                score,
+                hasMatch
+            };
+        });
+        
+        // Filter files that have matches and sort by score (descending)
+        const filtered = scoredFiles
+            .filter(item => item.hasMatch)
+            .sort((a, b) => b.score - a.score)
+            .map(item => item.file);
+        
+        currentFiles = filtered;
+        renderDocuments(filtered);
+        
+        // Show search results status
+        const searchSummary = searchTerms.length > 1 
+            ? `"${searchTerms.join('" + "')}"` 
+            : `"${query}"`;
+        
+        showStatus(`Trovati ${filtered.length} documenti per ${searchSummary} 🔍 (ricerca locale)`);
+        
+    } catch (error) {
+        console.error('Client-side search error:', error);
+        showError('Errore durante la ricerca. Riprova più tardi.');
+        renderDocuments(currentFiles);
+    }
 }

@@ -475,27 +475,39 @@ function generateContentPages(courseInfo) {
 
 // Document Pages Renderer - Fixed
 function renderDocumentPages(pages) {
-    const viewerContainer = document.querySelector('.viewer-container');
-    if (!viewerContainer) return;
+    const documentViewer = document.querySelector('.document-viewer');
+    if (!documentViewer) return;
+
+    // Create a wrapper for zoom scaling and the main container for pages
+    const zoomWrapper = document.createElement('div');
+    zoomWrapper.className = 'zoom-wrapper';
+
+    const viewerContainer = document.createElement('div');
+    viewerContainer.className = 'viewer-container';
     
-    viewerContainer.innerHTML = ''; // Clear previous content
-    
-    pages.forEach((page, index) => {
+    // Clear previous content and append the new structure
+    documentViewer.innerHTML = '';
+    zoomWrapper.appendChild(viewerContainer);
+    documentViewer.appendChild(zoomWrapper);
+
+    if (pages.length === 0) {
+        viewerContainer.innerHTML = '<p class="no-content">Il contenuto del documento non è disponibile.</p>';
+        return;
+    }
+
+    pages.forEach((pageData, index) => {
         const pageElement = document.createElement('div');
         pageElement.className = 'document-page';
         pageElement.setAttribute('data-page', index + 1);
-        
+
         const pageContent = document.createElement('div');
         pageContent.className = 'page-content';
-        
-        // Handle both object format (with content property) and string format
-        const content = typeof page === 'object' ? page.content : page;
-        pageContent.innerHTML = content;
+        pageContent.innerHTML = pageData.content; // Use the 'content' property
         
         pageElement.appendChild(pageContent);
         viewerContainer.appendChild(pageElement);
     });
-    
+
     totalPages = pages.length;
 }
 
@@ -650,43 +662,32 @@ function initializeZoom() {
 }
 
 function adjustZoom(delta) {
-    const newZoom = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, currentZoom + delta));
-    if (newZoom !== currentZoom) {
-        currentZoom = newZoom;
-        updateZoomDisplay();
-        saveReadingPosition();
-    }
+    currentZoom = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, currentZoom + delta));
+    updateZoomDisplay();
 }
 
+// Update zoom level and apply transformations
 function updateZoomDisplay() {
-    const zoomLevelSpan = document.querySelector('.zoom-level');
+    const zoomWrapper = document.querySelector('.zoom-wrapper');
     const viewerContainer = document.querySelector('.viewer-container');
+    const zoomLevelText = document.querySelector('.zoom-level');
+
+    if (!zoomWrapper || !viewerContainer || !zoomLevelText) return;
+
+    const scale = currentZoom / 100;
+    
+    // Apply scale transform to the content container
+    viewerContainer.style.transform = `scale(${scale})`;
+    
+    // Get the natural height of the content and apply scaled height to the wrapper
+    const contentHeight = viewerContainer.scrollHeight;
+    zoomWrapper.style.height = `${contentHeight * scale}px`;
+
+    zoomLevelText.textContent = `${currentZoom}%`;
+    
+    // Update zoom button states using correct selectors
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
-    
-    if (zoomLevelSpan) {
-        zoomLevelSpan.textContent = `${currentZoom}%`;
-    }
-    
-    if (viewerContainer) {
-        viewerContainer.style.transform = `scale(${currentZoom / 100})`;
-        viewerContainer.style.transformOrigin = 'top center';
-        viewerContainer.style.transition = 'transform 0.3s ease-out';
-        
-        // Apply zoom-specific classes to prevent over-scrolling
-        const documentViewer = document.querySelector('.document-viewer');
-        if (documentViewer) {
-            // Remove all zoom classes
-            documentViewer.classList.remove('zoomed-out-50', 'zoomed-out-75');
-            
-            // Add appropriate class for zoom out levels
-            if (currentZoom === 50) {
-                documentViewer.classList.add('zoomed-out-50');
-            } else if (currentZoom === 75) {
-                documentViewer.classList.add('zoomed-out-75');
-            }
-        }
-    }
     
     if (zoomInBtn) {
         zoomInBtn.disabled = currentZoom >= ZOOM_CONFIG.max;
@@ -699,83 +700,106 @@ function updateZoomDisplay() {
 
 // Initialize Back Button
 function initializeBackButton() {
-    const backBtn = document.getElementById('backBtn');
-    
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            // Try to go back in history, fallback to search page
-            if (document.referrer && document.referrer.includes('search.html')) {
-                window.history.back();
-            } else {
-                window.location.href = 'search.html';
-            }
-        });
-    }
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+        const backBtn = document.getElementById('backBtn');
+        console.log('Initializing back button:', backBtn);
+        
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                console.log('Back button clicked!');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Try to go back in history, fallback to search page
+                if (document.referrer && document.referrer.includes('search.html')) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'search.html';
+                }
+            });
+            console.log('Back button event listener added successfully');
+        } else {
+            console.error('Back button not found in DOM');
+        }
+    }, 100);
 }
 
 // Enhanced Fullscreen with smooth transitions
 function initializeFullscreen() {
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-            const documentViewer = document.querySelector('.document-viewer-section');
-            
-            if (!document.fullscreenElement) {
-                // Enter fullscreen with animation
-                if (documentViewer.requestFullscreen) {
-                    documentViewer.requestFullscreen();
-                } else if (documentViewer.webkitRequestFullscreen) {
-                    documentViewer.webkitRequestFullscreen();
-                } else if (documentViewer.msRequestFullscreen) {
-                    documentViewer.msRequestFullscreen();
-                }
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        console.log('Initializing fullscreen button:', fullscreenBtn);
+        
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', (e) => {
+                console.log('Fullscreen button clicked!');
+                e.preventDefault();
+                e.stopPropagation();
                 
-                // Add smooth transition class
-                setTimeout(() => {
-                    documentViewer.classList.add('fullscreen-active');
-                }, 100);
+                const documentViewer = document.querySelector('.document-viewer-section');
                 
-                fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
-            } else {
-                // Exit fullscreen with animation
-                documentViewer.classList.remove('fullscreen-active');
-                
-                setTimeout(() => {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
+                if (!document.fullscreenElement) {
+                    // Enter fullscreen with animation
+                    if (documentViewer.requestFullscreen) {
+                        documentViewer.requestFullscreen();
+                    } else if (documentViewer.webkitRequestFullscreen) {
+                        documentViewer.webkitRequestFullscreen();
+                    } else if (documentViewer.msRequestFullscreen) {
+                        documentViewer.msRequestFullscreen();
                     }
-                }, 200);
-                
-                fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
-            }
-        });
-        
-        // Listen for fullscreen changes with smooth transitions
-        const handleFullscreenChange = () => {
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            const documentViewer = document.querySelector('.document-viewer-section');
-            
-            if (fullscreenBtn && documentViewer) {
-                if (document.fullscreenElement) {
+                    
+                    // Add smooth transition class
+                    setTimeout(() => {
+                        documentViewer.classList.add('fullscreen-active');
+                    }, 100);
+                    
                     fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
-                    documentViewer.classList.add('fullscreen-active');
                 } else {
-                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                    // Exit fullscreen with animation
                     documentViewer.classList.remove('fullscreen-active');
+                    
+                    setTimeout(() => {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) {
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) {
+                            document.msExitFullscreen();
+                        }
+                    }, 200);
+                    
+                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
                 }
-            }
-        };
-        
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-    }
+            });
+            
+            console.log('Fullscreen button event listener added successfully');
+            
+            // Listen for fullscreen changes with smooth transitions
+            const handleFullscreenChange = () => {
+                const fullscreenBtn = document.getElementById('fullscreenBtn');
+                const documentViewer = document.querySelector('.document-viewer-section');
+                
+                if (fullscreenBtn && documentViewer) {
+                    if (document.fullscreenElement) {
+                        fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+                        documentViewer.classList.add('fullscreen-active');
+                    } else {
+                        fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                        documentViewer.classList.remove('fullscreen-active');
+                    }
+                }
+            };
+            
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        } else {
+            console.error('Fullscreen button not found in DOM');
+        }
+    }, 100);
 }
 
 // Utility Functions

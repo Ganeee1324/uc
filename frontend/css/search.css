@@ -243,121 +243,6 @@ html {
     background: var(--blue-50);
 }
 
-/* Compact Search Bar in Header */
-.compact-search-container {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.4s var(--ease-3);
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.compact-search-container.visible {
-    opacity: 1;
-    transform: translateY(0);
-    visibility: visible;
-    pointer-events: all;
-}
-
-.compact-search-bar {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 350px;
-    height: 40px;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-2xl);
-    padding: 0 var(--space-4);
-    transition: all 0.25s var(--ease-2);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-}
-
-.compact-search-bar:hover {
-    border-color: var(--gray-300);
-    box-shadow: var(--shadow-md);
-}
-
-.compact-search-bar:focus-within {
-    border-color: var(--blue-500);
-    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1), var(--shadow-md);
-}
-
-.compact-search-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--gray-900);
-    background: transparent;
-    letter-spacing: -0.011em;
-}
-
-.compact-search-input::placeholder {
-    color: var(--gray-500);
-    font-weight: 400;
-}
-
-.compact-search-btn {
-    background: transparent;
-    border: none;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gray-500);
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    transition: all 0.2s var(--ease-2);
-    margin-left: var(--space-2);
-}
-
-.compact-search-btn:hover {
-    background: var(--gray-100);
-    color: var(--gray-700);
-}
-
-.compact-filters-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-2xl);
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gray-700);
-    cursor: pointer;
-    transition: all 0.25s var(--ease-2);
-    box-shadow: var(--shadow-sm);
-    height: 40px;
-    min-width: 80px;
-    white-space: nowrap;
-}
-
-.compact-filters-btn:hover {
-    border-color: var(--gray-300);
-    box-shadow: var(--shadow-md);
-}
-
-.compact-filters-btn .material-symbols-outlined {
-    font-size: 18px;
-    color: var(--gray-700);
-}
-
-.compact-filters-text {
-    color: var(--gray-700);
-    font-weight: 600;
-}
-
 /* Auth Buttons & User Info */
 .auth-buttons {
     display: flex;
@@ -2602,32 +2487,6 @@ html {
        --bg-offset-top: -1235px; /* Adjust for mobile layout changes */
    }
 
-   /* Compact Search Bar Responsive Styling */
-   .compact-search-container {
-       flex-direction: column;
-       gap: var(--space-2);
-       position: absolute;
-       left: 50%;
-       transform: translateX(-50%);
-       top: 80px;
-       width: calc(100% - var(--space-8));
-       max-width: 400px;
-   }
-   
-   .compact-search-container.visible {
-       transform: translateX(-50%) translateY(0);
-   }
-   
-   .compact-search-bar {
-       width: 100%;
-       max-width: none;
-   }
-   
-   .compact-filters-btn {
-       width: 100%;
-       justify-content: center;
-   }
-
    /* Ensure filters panel stays fixed on mobile too */
    body .filters-panel,
    body .filters-panel.active {
@@ -2664,12 +2523,6 @@ html {
        background: rgba(255, 255, 255, 0.95);
        backdrop-filter: blur(20px);
        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-       transition: height 0.3s var(--ease-2);
-   }
-   
-   /* Expand header when compact search is visible */
-   .header:has(.compact-search-container.visible) {
-       min-height: 160px;
    }
    
    .logo {

@@ -3,7 +3,9 @@
 // ============================================
 
 const API_BASE = 'http://localhost:5000';
-let authToken = localStorage.getItem('authToken');
+
+// Remove localStorage auth completely - now using secure HTTP-only cookies
+// let authToken = localStorage.getItem('authToken'); // REMOVED - SECURITY VULNERABILITY
 
 // Document State Management
 let currentDocument = null;
@@ -12,6 +14,7 @@ let totalPages = 1;
 let currentZoom = 100;
 let documentPages = [];
 let isLoading = false;
+let csrfToken = null;
 
 // Configuration
 const ZOOM_CONFIG = {
@@ -61,13 +64,34 @@ class LoadingManager {
     }
 }
 
-// Professional API Request Handler
+// CSRF Token Management
+async function getCSRFToken() {
+    if (!csrfToken) {
+        try {
+            const response = await fetch(`${API_BASE}/csrf-token`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                csrfToken = data.csrf_token;
+            }
+        } catch (error) {
+            console.warn('Could not fetch CSRF token:', error);
+        }
+    }
+    return csrfToken;
+}
+
+// Professional API Request Handler with Secure Authentication
 async function makeRequest(url, options = {}) {
     try {
+        const token = await getCSRFToken();
+        
         const defaultOptions = {
+            credentials: 'include', // Sends HTTP-only cookies automatically
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': authToken ? `Bearer ${authToken}` : ''
+                ...(token && { 'X-CSRF-Token': token }) // CSRF protection
             }
         };
 
@@ -77,6 +101,22 @@ async function makeRequest(url, options = {}) {
             if (response.status === 401) {
                 handleAuthError();
                 return null;
+            }
+            if (response.status === 403) {
+                // Likely CSRF token expired, refresh and retry once
+                csrfToken = null;
+                const newToken = await getCSRFToken();
+                if (newToken && options.retryCount !== 1) {
+                    const retryOptions = {
+                        ...options,
+                        retryCount: 1,
+                        headers: {
+                            ...options.headers,
+                            'X-CSRF-Token': newToken
+                        }
+                    };
+                    return makeRequest(url, retryOptions);
+                }
             }
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -88,11 +128,86 @@ async function makeRequest(url, options = {}) {
     }
 }
 
-// Authentication Handler
+// Authentication Handler - Secure logout
 function handleAuthError() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    // Clear any local session data (not auth tokens - those are HTTP-only)
+    localStorage.removeItem('preferences');
+    localStorage.removeItem('readingPositions');
+    
+    // Perform server-side logout to clear HTTP-only cookies
+    fetch(`${API_BASE}/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    }).finally(() => {
+        window.location.href = 'login.html';
+    });
+}
+
+// User Data Management - Always fetch fresh from server
+async function fetchCurrentUserData() {
+    try {
+        // Always fetch fresh user data from server - no caching
+        const userData = await makeRequest(`${API_BASE}/me`);
+        return userData;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        handleAuthError();
+        return null;
+    }
+}
+
+// Session Validation
+async function validateSession() {
+    try {
+        const user = await fetchCurrentUserData();
+        if (!user) {
+            throw new Error('Invalid session');
+        }
+        return user;
+    } catch (error) {
+        console.error('Session validation failed:', error);
+        handleAuthError();
+        return null;
+    }
+}
+
+function updateHeaderUserInfo(user) {
+    if (!user) return;
+
+    const userNameElem = document.querySelector('.user-name');
+    const userAvatarElem = document.querySelector('.user-avatar');
+
+    if (userNameElem) {
+        userNameElem.textContent = user.username || 'User';
+    }
+
+    if (userAvatarElem) {
+        const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
+        userAvatarElem.textContent = initial;
+    }
+
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleSecureLogout);
+    }
+}
+
+// Secure Logout Handler
+function handleSecureLogout() {
+    if (confirm('Sei sicuro di voler effettuare il logout?')) {
+        fetch(`${API_BASE}/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        }).then(() => {
+            // Clear local preferences (not auth data)
+            localStorage.removeItem('preferences');
+            localStorage.removeItem('readingPositions');
+            window.location.href = 'login.html';
+        }).catch(() => {
+            // Even if logout fails, redirect to login
+            window.location.href = 'login.html';
+        });
+    }
 }
 
 // URL Parameter Handler
@@ -224,10 +339,6 @@ function updateDetailValue(label, value) {
         }
     });
 }
-
-
-
-
 
 // Get document type from filename
 function getDocumentTypeFromFilename(filename) {
@@ -798,36 +909,60 @@ function formatDate(dateString) {
     });
 }
 
-// Reading Position Management
+// Secure Reading Position Management (only UI preferences, no auth data)
 function saveReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.id;
         const scrollable = document.querySelector('.document-viewer-section');
-        if (scrollable) {
-            localStorage.setItem(`file-${fileId}-scroll`, scrollable.scrollTop);
-        }
-        localStorage.setItem(`file-${fileId}-zoom`, currentZoom);
+        
+        // Get existing reading positions or create new object
+        const readingPositions = JSON.parse(localStorage.getItem('readingPositions') || '{}');
+        
+        // Update position for this file
+        readingPositions[fileId] = {
+            scroll: scrollable ? scrollable.scrollTop : 0,
+            zoom: currentZoom,
+            page: currentPage,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Clean old positions (keep only last 10 files to prevent storage bloat)
+        const positions = Object.entries(readingPositions)
+            .sort((a, b) => new Date(b[1].timestamp) - new Date(a[1].timestamp))
+            .slice(0, 10);
+        
+        localStorage.setItem('readingPositions', JSON.stringify(Object.fromEntries(positions)));
     }
 }
 
 function loadReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.id;
-        const savedScroll = localStorage.getItem(`file-${fileId}-scroll`);
-        const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
+        const readingPositions = JSON.parse(localStorage.getItem('readingPositions') || '{}');
+        const position = readingPositions[fileId];
         
-        if (savedZoom) {
-            currentZoom = parseInt(savedZoom);
-            adjustZoom(0); // Apply zoom
-        }
+        if (position) {
+            // Restore zoom
+            if (position.zoom && position.zoom !== currentZoom) {
+                currentZoom = parseInt(position.zoom);
+                adjustZoom(0); // Apply zoom
+            }
+            
+            // Restore page
+            if (position.page && position.page !== currentPage) {
+                currentPage = parseInt(position.page);
+                updatePageDisplay();
+            }
 
-        if (savedScroll) {
-            const scrollable = document.querySelector('.document-viewer-section');
-            if (scrollable) {
-                // Use a timeout to ensure content is rendered before scrolling
-                setTimeout(() => {
-                    scrollable.scrollTop = parseInt(savedScroll);
-                }, 100);
+            // Restore scroll position
+            if (position.scroll) {
+                const scrollable = document.querySelector('.document-viewer-section');
+                if (scrollable) {
+                    // Use a timeout to ensure content is rendered before scrolling
+                    setTimeout(() => {
+                        scrollable.scrollTop = parseInt(position.scroll);
+                    }, 100);
+                }
             }
         }
     }
@@ -986,69 +1121,81 @@ function initializeTouchNavigation() {
     }
 }
 
+// Automatic Session Refresh (every 15 minutes)
+function initializeSessionRefresh() {
+    setInterval(async () => {
+        try {
+            await fetch(`${API_BASE}/refresh-session`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.warn('Session refresh failed:', error);
+        }
+    }, 15 * 60 * 1000); // 15 minutes
+}
+
 // Main Initialization
 async function initializeDocumentPreview() {
+    // Validate session first
+    const user = await validateSession();
+    if (!user) {
+        return; // validateSession handles redirect
+    }
+
+    const fileId = getFileIdFromUrl();
+    if (!fileId) return;
+
+    const viewerContainer = document.querySelector('.viewer-container');
+    const loader = LoadingManager.show(viewerContainer, 'Caricamento anteprima...');
+
     try {
-        // Check authentication first
-        if (!authToken) {
-            window.location.href = 'login.html';
-            return;
+        // Fetch user and document data in parallel for faster loading
+        const [userData, docData] = await Promise.all([
+            fetchCurrentUserData(),
+            fetchDocumentData(fileId)
+        ]);
+
+        updateHeaderUserInfo(userData);
+
+        if (!docData) {
+            throw new Error('Impossibile caricare i dati del documento.');
         }
+
+        currentDocument = docData.document;
+
+        // Hide loader
+        LoadingManager.hide(loader);
+
+        // Generate and render document pages
+        const pages = generateDocumentPages(docData);
+        renderDocumentPages(pages);
         
-        isLoading = true;
+        // Render document information
+        renderDocumentInfo(docData);
+
+        // Initialize controls
+        initializeZoom();
+        initializeBackButton();
+        initializeFullscreen();
         
-        // Get file ID from URL
-        const fileId = getFileIdFromUrl();
-        if (!fileId) return;
-
-        // Show loading state
-        const documentViewer = document.getElementById('documentViewer');
-        const loader = LoadingManager.show(documentViewer, 'Caricamento documento...');
-
-        try {
-            // Fetch document data
-            const data = await fetchDocumentData(fileId);
-            currentDocument = data.document;
-
-            // Hide loader
-            LoadingManager.hide(loader);
-
-            // Generate and render document pages
-            const pages = generateDocumentPages(data);
-            renderDocumentPages(pages);
-            
-            // Render document information
-            renderDocumentInfo(data);
-
-            // Initialize controls
-            initializeZoom();
-            initializeBackButton();
-            initializeFullscreen();
-            
-            // Initialize other systems
-            initializeKeyboardNavigation();
-            initializeTouchNavigation();
-            
-            // Load reading position
-            loadReadingPosition();
-            
-            isLoading = false;
-
-        } catch (error) {
-            console.error('Error loading document:', error);
-            LoadingManager.hide(loader);
-            LoadingManager.showError(
-                documentViewer,
-                'Impossibile caricare il documento. Verifica la tua connessione e riprova.',
-                'Riprova',
-                'initializeDocumentPreview'
-            );
-            isLoading = false;
-        }
+        // Initialize other systems
+        initializeKeyboardNavigation();
+        initializeTouchNavigation();
+        initializeSessionRefresh(); // Start automatic session refresh
+        
+        // Load reading position
+        loadReadingPosition();
 
     } catch (error) {
-        console.error('Critical error in document preview:', error);
-        isLoading = false;
+        console.error('Error loading document:', error);
+        LoadingManager.hide(loader);
+        LoadingManager.showError(
+            viewerContainer,
+            'Impossibile caricare il documento. Verifica la tua connessione e riprova.',
+            'Riprova',
+            'initializeDocumentPreview'
+        );
     }
 }
 

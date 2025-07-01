@@ -1,66 +1,132 @@
 const API_BASE = 'http://localhost:5000';
-let authToken = localStorage.getItem('authToken');
 
-// Check if user is authenticated, redirect to login if not
-function checkAuthentication() {
-    if (!authToken) {
-        console.log('No auth token found, redirecting to login');
-        window.location.href = 'login.html';
-        return false;
-    }
-    return true;
-}
+// Remove localStorage auth completely - now using secure HTTP-only cookies
+// let authToken = localStorage.getItem('authToken'); // REMOVED - SECURITY VULNERABILITY
 
 let currentVetrine = [];
 let currentFiles = [];
 let originalFiles = []; // Keep original unfiltered data
 let activeFilters = {};
 let isFiltersOpen = false;
+let csrfToken = null;
 
-// Initialize the page
-window.onload = function() {
-    // Check authentication first
-    if (!checkAuthentication()) {
+// CSRF Token Management
+async function getCSRFToken() {
+    if (!csrfToken) {
+        try {
+            const response = await fetch(`${API_BASE}/csrf-token`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                csrfToken = data.csrf_token;
+            }
+        } catch (error) {
+            console.warn('Could not fetch CSRF token:', error);
+        }
+    }
+    return csrfToken;
+}
+
+// Secure Session Validation
+async function validateSession() {
+    try {
+        const userData = await makeRequest(`${API_BASE}/me`);
+        if (!userData) {
+            throw new Error('Invalid session');
+        }
+        return userData;
+    } catch (error) {
+        console.error('Session validation failed:', error);
+        logout();
+        return null;
+    }
+}
+
+// Secure Authentication Check
+async function checkAuthentication() {
+    try {
+        const user = await validateSession();
+        return !!user;
+    } catch (error) {
+        console.log('Authentication failed, redirecting to login');
+        logout();
+        return false;
+    }
+}
+
+// Initialize the page with secure authentication
+window.onload = async function() {
+    // Check authentication first with server validation
+    const isAuthenticated = await checkAuthentication();
+    if (!isAuthenticated) {
         return; // Stop execution if not authenticated
     }
     
-    console.log('Loading page with valid auth token');
+    console.log('Loading page with valid session');
+    
+    // Initialize session refresh
+    initializeSessionRefresh();
     
     // Initialize user info and logout button
-    initializeUserInfo();
+    await initializeUserInfo();
     
     loadAllFiles();
     initializeAnimations();
     initializeFilters();
 };
 
-function initializeUserInfo() {
-    // Get user info from localStorage or set defaults
-    const userInfo = localStorage.getItem('currentUser');
-    let userData = { username: 'User', email: 'user@example.com' };
-    
-    if (userInfo) {
+// Automatic Session Refresh (every 15 minutes)
+function initializeSessionRefresh() {
+    setInterval(async () => {
         try {
-            userData = JSON.parse(userInfo);
-        } catch (e) {
-            console.warn('Invalid user data in localStorage');
+            await fetch(`${API_BASE}/refresh-session`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.warn('Session refresh failed:', error);
         }
+    }, 15 * 60 * 1000); // 15 minutes
+}
+
+async function initializeUserInfo() {
+    const user = await fetchCurrentUserData();
+    if (user) {
+        updateHeaderUserInfo(user);
     }
-    
-    // Populate user info
-    const userAvatar = document.getElementById('userAvatar');
-    const userName = document.getElementById('userName');
-    const logoutBtn = document.getElementById('logoutBtn');
-    
+}
+
+// Always fetch fresh user data from server - no caching
+async function fetchCurrentUserData() {
+    try {
+        const userData = await makeRequest(`${API_BASE}/me`);
+        return userData;
+    } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        logout();
+        return null;
+    }
+}
+
+function updateHeaderUserInfo(user) {
+    if (!user) return;
+    const userInfo = document.querySelector('.user-info');
+    if (!userInfo) return;
+
+    const userAvatar = userInfo.querySelector('.user-avatar');
+    const userName = userInfo.querySelector('.user-name');
+    const logoutBtn = userInfo.querySelector('.logout-btn');
+
     if (userAvatar) {
-        userAvatar.textContent = userData.username.charAt(0).toUpperCase();
+        const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
+        userAvatar.textContent = initial;
     }
     
     if (userName) {
-        userName.textContent = userData.username;
+        userName.textContent = user.username || 'User';
     }
     
-    // Wire up logout button
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
             if (confirm('Sei sicuro di voler effettuare il logout?')) {
@@ -1914,24 +1980,43 @@ function getAvatarVariant(username) {
 
 async function makeRequest(url, options = {}) {
     try {
+        const token = await getCSRFToken();
+        
         const response = await fetch(API_BASE + url, {
+            credentials: 'include', // Sends HTTP-only cookies automatically
             ...options,
             headers: {
                 'Content-Type': 'application/json',
-                ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+                ...(token && { 'X-CSRF-Token': token }),
                 ...options.headers
             }
         });
 
         if (!response.ok) {
             // Handle authentication errors
-            if (response.status === 401 || response.status === 422) {
+            if (response.status === 401) {
                 console.log('Authentication failed, redirecting to login');
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('currentUser');
-                window.location.href = 'login.html';
-                return;
+                logout();
+                return null;
             }
+            
+            if (response.status === 403) {
+                // Likely CSRF token expired, refresh and retry once
+                csrfToken = null;
+                const newToken = await getCSRFToken();
+                if (newToken && options.retryCount !== 1) {
+                    const retryOptions = {
+                        ...options,
+                        retryCount: 1,
+                        headers: {
+                            ...options.headers,
+                            'X-CSRF-Token': newToken
+                        }
+                    };
+                    return makeRequest(url, retryOptions);
+                }
+            }
+            
             const data = await response.json();
             throw new Error(data.msg || `HTTP error! status: ${response.status}`);
         }
@@ -2300,9 +2385,13 @@ function renderDocuments(files) {
                         <span class="info-icon">🏛️</span>
                         <span class="info-text">${item.faculty_name || 'N/A'}</span>
                     </div>
-                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}">
+                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'} - Canale: ${item.canale_name || 'N/A'}">
                         <span class="info-icon">📝</span>
-                        <span class="info-text">${item.language || 'N/A'}</span>
+                        <span class="info-text">${item.language || 'N/A'} - ${item.canale_name || 'N/A'}</span>
+                    </div>
+                    <div class="document-info-item" title="Anno Accademico: ${item.academic_year || 'N/A'}">
+                        <span class="info-icon">📅</span>
+                        <span class="info-text">${item.academic_year || 'N/A'}</span>
                     </div>
                 </div>
                 <div class="document-footer">
@@ -2427,7 +2516,7 @@ async function toggleFavorite(button, event) {
         const response = await fetch(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
             method: isFavorited ? 'DELETE' : 'POST',
             headers: {
-                'Authorization': `Bearer ${authToken}`,
+                'Authorization': `Bearer ${csrfToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -2578,7 +2667,7 @@ async function downloadDocument(fileId) {
         showStatus('Download in corso... 📥');
         const response = await fetch(`${API_BASE}/files/${fileId}/download`, {
             headers: {
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${csrfToken}`
             }
         });
         
@@ -2705,12 +2794,28 @@ function performSearch(query) {
 }
 
 function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    showStatus('Logout effettuato con successo');
-    setTimeout(() => {
-        window.location.href = 'login.html';
-    }, 1000);
+    // Clear any local preferences (not auth tokens - those are HTTP-only)
+    localStorage.removeItem('preferences');
+    localStorage.removeItem('readingPositions');
+    
+    showStatus('Logout in corso...');
+    
+    // Perform server-side logout to clear HTTP-only cookies
+    fetch(`${API_BASE}/logout`, {
+        method: 'POST',
+        credentials: 'include'
+    }).then(() => {
+        showStatus('Logout effettuato con successo');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    }).catch(() => {
+        // Even if logout fails server-side, redirect to login
+        showStatus('Logout completato');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
+    });
 }
 
 // ===========================

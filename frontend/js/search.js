@@ -3255,17 +3255,25 @@ function saveFiltersToStorage() {
 }
 
 function restoreFiltersFromStorage() {
+    console.log('restoreFiltersFromStorage called');
     try {
         const savedFilters = localStorage.getItem('searchFilters');
         if (savedFilters) {
             const parsedFilters = JSON.parse(savedFilters);
-            activeFilters = { ...activeFilters, ...parsedFilters };
+            console.log('Restoring filters from storage:', parsedFilters);
+            
+            // Completely replace activeFilters instead of merging
+            activeFilters = { ...parsedFilters };
+            
+            console.log('ActiveFilters after restoration:', { ...activeFilters });
             
             // Update UI to reflect restored filters
             updateFilterInputs();
             updateActiveFilterIndicators();
             updateFilterCount();
             updateActiveFiltersDisplay();
+        } else {
+            console.log('No saved filters found in localStorage');
         }
     } catch (e) {
         console.warn('Could not restore filters from localStorage:', e);

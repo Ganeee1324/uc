@@ -1326,6 +1326,28 @@ function initializeToggleFilters() {
             saveFiltersToStorage();
         });
     });
+
+    // Vetrina toggles
+    const vetrinaToggles = document.querySelectorAll('.vetrina-toggle');
+    
+    vetrinaToggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            vetrinaToggles.forEach(t => t.classList.remove('active'));
+            toggle.classList.add('active');
+            
+            const vetrinaType = toggle.dataset.vetrina;
+            
+            if (vetrinaType === 'all') {
+                delete activeFilters.vetrinaType;
+            } else {
+                activeFilters.vetrinaType = vetrinaType;
+            }
+            
+            // Apply filters immediately
+            applyFiltersAndRender();
+            saveFiltersToStorage();
+        });
+    });
 }
 
 function initializePriceRangeFilter() {
@@ -1766,12 +1788,12 @@ function clearAllFiltersAction() {
     if (ratingText) ratingText.textContent = 'Qualsiasi rating';
     
     // Reset toggle groups
-    document.querySelectorAll('.price-toggle, .size-toggle, .time-toggle').forEach(toggle => {
+    document.querySelectorAll('.price-toggle, .size-toggle, .time-toggle, .vetrina-toggle').forEach(toggle => {
         toggle.classList.remove('active');
     });
     
     // Activate "all" toggles
-    const allToggles = document.querySelectorAll('[data-price="all"], [data-size="all"], [data-time="all"]');
+    const allToggles = document.querySelectorAll('[data-price="all"], [data-size="all"], [data-time="all"], [data-vetrina="all"]');
     allToggles.forEach(toggle => toggle.classList.add('active'));
     
     // Reset price range and show it (since "All" is now active)
@@ -1929,6 +1951,20 @@ function applyFiltersToFiles(files) {
             }
         }
         
+        // Vetrina type filter - single vs multiple files
+        if (activeFilters.vetrinaType && activeFilters.vetrinaType !== 'all') {
+            const fileCount = file.vetrina_info?.file_count || 1;
+            
+            switch (activeFilters.vetrinaType) {
+                case 'single':
+                    if (fileCount > 1) return false;
+                    break;
+                case 'multiple':
+                    if (fileCount <= 1) return false;
+                    break;
+            }
+        }
+        
         return true;
     });
 }
@@ -2014,6 +2050,14 @@ function updateActiveFiltersDisplay() {
                 };
                 label = 'Periodo';
                 displayValue = timeLabels[value];
+                break;
+            case 'vetrinaType':
+                const vetrinaLabels = {
+                    'single': 'Singolo File',
+                    'multiple': 'Multi File'
+                };
+                label = 'Tipo Vetrina';
+                displayValue = vetrinaLabels[value];
                 break;
             case 'tag':
                 label = 'Tag';
@@ -2191,6 +2235,14 @@ function removeFilter(filterKey) {
             });
             const allTimeToggle = document.querySelector('.time-toggle[data-time="all"]');
             if (allTimeToggle) allTimeToggle.classList.add('active');
+        }
+        
+        if (filterKey === 'vetrinaType') {
+            document.querySelectorAll('.vetrina-toggle').forEach(toggle => {
+                toggle.classList.remove('active');
+            });
+            const allVetrinaToggle = document.querySelector('.vetrina-toggle[data-vetrina="all"]');
+            if (allVetrinaToggle) allVetrinaToggle.classList.add('active');
         }
     }
     
@@ -3307,6 +3359,25 @@ function updateFilterInputs() {
             }
             
             input.value = displayValue;
+        }
+    });
+    
+    // Update toggle states
+    const toggleTypes = ['priceType', 'sizeType', 'timeType', 'vetrinaType'];
+    toggleTypes.forEach(type => {
+        if (activeFilters[type]) {
+            // Remove active class from all toggles of this type
+            const toggleClass = type.replace('Type', '-toggle');
+            document.querySelectorAll(`.${toggleClass}`).forEach(toggle => {
+                toggle.classList.remove('active');
+            });
+            
+            // Add active class to the correct toggle
+            const dataAttr = type.replace('Type', '');
+            const activeToggle = document.querySelector(`[data-${dataAttr}="${activeFilters[type]}"]`);
+            if (activeToggle) {
+                activeToggle.classList.add('active');
+            }
         }
     });
 }

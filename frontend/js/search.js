@@ -725,6 +725,13 @@ function toggleDropdown(container, type) {
         // Update input styling for multi-select
         if (isMultiSelect && activeFilters[type] && Array.isArray(activeFilters[type]) && activeFilters[type].length > 0) {
             input.setAttribute('data-multi-selected', 'true');
+            
+            // Keep academic context filters searchable when reopening
+            const academicContextFilters = ['faculty', 'course', 'canale'];
+            if (academicContextFilters.includes(type) && activeFilters[type].length > 1) {
+                input.value = '';
+                input.setAttribute('placeholder', `${activeFilters[type].length} selezionati - scrivi per cercarne altri...`);
+            }
         }
         
         filterDropdownOptions(type, input.value || '');
@@ -890,14 +897,13 @@ function populateOptions(type, items) {
         
         optionsHTML += selectedOptionsHTML;
         
-        // Add separator if there are unselected options
-        const unselectedItems = items.filter(item => !activeFilterValues.includes(item));
-        if (unselectedItems.length > 0) {
+        // Add separator if there are other options
+        if (items.length > activeFilterValues.length) {
             optionsHTML += '<div class="dropdown-separator"></div>';
         }
         
-        // Show remaining unselected options
-        const unselectedOptionsHTML = unselectedItems.map(item => {
+        // Show ALL other options (not just unselected ones)
+        const otherOptionsHTML = items.filter(item => !activeFilterValues.includes(item)).map(item => {
             let displayText = item;
             if (type === 'language' && languageDisplayMap[item]) {
                 displayText = languageDisplayMap[item];
@@ -913,7 +919,7 @@ function populateOptions(type, items) {
             `;
         }).join('');
         
-        optionsHTML += unselectedOptionsHTML;
+        optionsHTML += otherOptionsHTML;
         
     } else if (!isMultiSelect && activeFilterValues && activeFilterValues !== '') {
         // Single-select behavior (for faculty, course, canale, author)
@@ -1088,12 +1094,26 @@ function selectDropdownOption(type, value, displayText = null) {
             activeFilters[filterKey].push(value);
         }
         
-        // Update input display to show count of selected items
+        // Update input display
         const selectedCount = activeFilters[filterKey].length;
-        if (selectedCount === 1) {
-            input.value = displayText || value;
+        const academicContextFilters = ['faculty', 'course', 'canale'];
+        
+        if (academicContextFilters.includes(type)) {
+            // Keep academic context filters searchable - don't show "N selected"
+            if (selectedCount === 1) {
+                input.value = displayText || value;
+            } else {
+                // Clear input to allow searching for more options
+                input.value = '';
+                input.setAttribute('placeholder', `${selectedCount} selezionati - scrivi per cercarne altri...`);
+            }
         } else {
-            input.value = `${selectedCount} selected`;
+            // For other filters, show count when multiple selected
+            if (selectedCount === 1) {
+                input.value = displayText || value;
+            } else {
+                input.value = `${selectedCount} selected`;
+            }
         }
         
         // Keep dropdown open for multi-select
@@ -1158,9 +1178,20 @@ function removeSpecificFilterValue(type, value) {
         activeFilters[filterKey] = activeFilters[filterKey].filter(v => v !== value);
         
         // Update input display
+        const academicContextFilters = ['faculty', 'course', 'canale'];
+        
         if (activeFilters[filterKey].length === 0) {
             delete activeFilters[filterKey];
             input.value = '';
+            // Reset placeholder to default
+            if (academicContextFilters.includes(type)) {
+                const defaultPlaceholders = {
+                    'faculty': 'Scrivi o scegli una facoltà...',
+                    'course': 'Scrivi o scegli un corso...',
+                    'canale': 'Scrivi o scegli un canale...'
+                };
+                input.setAttribute('placeholder', defaultPlaceholders[type] || '');
+            }
         } else if (activeFilters[filterKey].length === 1) {
             // Show the single remaining item
             const remainingValue = activeFilters[filterKey][0];
@@ -1184,8 +1215,25 @@ function removeSpecificFilterValue(type, value) {
             }
             
             input.value = displayText;
+            // Reset placeholder to default
+            if (academicContextFilters.includes(type)) {
+                const defaultPlaceholders = {
+                    'faculty': 'Scrivi o scegli una facoltà...',
+                    'course': 'Scrivi o scegli un corso...',
+                    'canale': 'Scrivi o scegli un canale...'
+                };
+                input.setAttribute('placeholder', defaultPlaceholders[type] || '');
+            }
         } else {
-            input.value = `${activeFilters[filterKey].length} selected`;
+            // Multiple items remaining
+            if (academicContextFilters.includes(type)) {
+                // Keep academic context filters searchable
+                input.value = '';
+                input.setAttribute('placeholder', `${activeFilters[filterKey].length} selezionati - scrivi per cercarne altri...`);
+            } else {
+                // For other filters, show count
+                input.value = `${activeFilters[filterKey].length} selected`;
+            }
         }
         
         // Re-populate options to update the display

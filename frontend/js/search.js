@@ -172,6 +172,19 @@ function initializeAuthorFilter() {
     
     if (!authorInput || !authorSuggestions || !authorOptions) return;
     
+    // Handle author filter label click - close suggestions if open, do nothing if closed
+    const authorLabel = document.querySelector('label[for="autoreFilter"]');
+    if (authorLabel) {
+        authorLabel.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isAuthorOpen) {
+                hideSuggestions();
+            }
+            // Do nothing if suggestions are closed
+        });
+    }
+    
     // Extract authors from files
     function updateAuthors() {
         if (originalFiles.length > 0) {
@@ -580,6 +593,20 @@ function setupDropdowns() {
             
             if (!container || !input || !options) return;
             
+            // Handle filter label click - close dropdown if open, do nothing if closed
+            const label = document.querySelector(`label[for="${type}Filter"]`);
+            if (label) {
+                label.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = container.classList.contains('open');
+                    if (isOpen) {
+                        container.classList.remove('open');
+                    }
+                    // Do nothing if dropdown is closed
+                });
+            }
+            
             // Handle input events (typing to search)
             input.addEventListener('input', (e) => {
                 const value = e.target.value.trim();
@@ -633,22 +660,22 @@ function setupDropdowns() {
                 });
             }
             
-                    // Handle arrow click
-        const arrow = container.querySelector('.dropdown-arrow');
-        if (arrow) {
-            arrow.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = container.classList.contains('open');
-                if (isOpen) {
-                    // Close dropdown if already open
-                    container.classList.remove('open');
-                } else {
-                    // Open dropdown if closed
-                    toggleDropdown(container, type);
-                    input.focus();
-                }
-            });
-        }
+            // Handle arrow click - close dropdown if open, open if closed
+            const arrow = container.querySelector('.dropdown-arrow');
+            if (arrow) {
+                arrow.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = container.classList.contains('open');
+                    if (isOpen) {
+                        // Close dropdown if already open
+                        container.classList.remove('open');
+                    } else {
+                        // Open dropdown if closed
+                        toggleDropdown(container, type);
+                        input.focus();
+                    }
+                });
+            }
             
             // Keyboard navigation
             input.addEventListener('keydown', (e) => {
@@ -663,6 +690,20 @@ function setupDropdowns() {
             const options = document.getElementById(`${type}Options`);
             
             if (!container || !input || !options) return;
+            
+            // Handle filter label click - close dropdown if open, do nothing if closed
+            const label = document.querySelector(`label[for="${type}Filter"]`);
+            if (label) {
+                label.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isOpen = container.classList.contains('open');
+                    if (isOpen) {
+                        container.classList.remove('open');
+                    }
+                    // Do nothing if dropdown is closed
+                });
+            }
             
             // Handle click to open dropdown (readonly inputs)
             input.addEventListener('click', (e) => {
@@ -681,21 +722,21 @@ function setupDropdowns() {
                 });
             }
             
-                    // Handle arrow click
-        const arrow = container.querySelector('.dropdown-arrow');
-        if (arrow) {
-            arrow.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = container.classList.contains('open');
-                if (isOpen) {
-                    // Close dropdown if already open
-                    container.classList.remove('open');
-                } else {
-                    // Open dropdown if closed
-                    toggleDropdown(container, type);
-                }
-            });
-        }
+            // Handle arrow click - close dropdown if open, open if closed
+            const arrow = container.querySelector('.dropdown-arrow');
+            if (arrow) {
+                arrow.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = container.classList.contains('open');
+                    if (isOpen) {
+                        // Close dropdown if already open
+                        container.classList.remove('open');
+                    } else {
+                        // Open dropdown if closed
+                        toggleDropdown(container, type);
+                    }
+                });
+            }
             
             // Keyboard navigation
             input.addEventListener('keydown', (e) => {
@@ -3068,6 +3109,16 @@ function getTagDisplayName(tag) {
 function renderDocuments(files) {
     const grid = document.getElementById('documentsGrid');
     if (!grid) return;
+    
+    // Update search section layout based on results
+    const searchSection = document.querySelector('.search-section');
+    if (searchSection) {
+        if (!files || files.length === 0) {
+            searchSection.classList.remove('has-results');
+        } else {
+            searchSection.classList.add('has-results');
+        }
+    }
     
     // Update document count display
     const documentCountContainer = document.getElementById('documentCountContainer');

@@ -836,9 +836,9 @@ function populateOptions(type, items) {
     
     // Tag display text mapping
     const tagDisplayMap = {
-        'appunti': '📝 Appunti',
-        'dispense': '📄 Dispense',
-        'esercizi': '🎯 Esercizi'
+        'appunti': 'Appunti',
+        'dispense': 'Dispense',
+        'esercizi': 'Esercizi'
     };
     
     // Map dropdown types to filter keys
@@ -3227,6 +3227,19 @@ function restoreFiltersFromStorage() {
 }
 
 function updateFilterInputs() {
+    // Language display text mapping
+    const languageDisplayMap = {
+        'Italian': 'Italiano',
+        'English': 'Inglese'
+    };
+    
+    // Tag display text mapping
+    const tagDisplayMap = {
+        'appunti': 'Appunti',
+        'dispense': 'Dispense',
+        'esercizi': 'Esercizi'
+    };
+    
     // Update author input
     const authorInput = document.getElementById('autoreFilter');
     if (authorInput && activeFilters.author) {
@@ -3234,12 +3247,21 @@ function updateFilterInputs() {
     }
     
     // Update dropdown inputs
-    const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
+    const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     dropdownTypes.forEach(type => {
         const input = document.getElementById(`${type}Filter`);
         const filterKey = type;
         if (input && activeFilters[filterKey]) {
-            input.value = activeFilters[filterKey];
+            let displayValue = activeFilters[filterKey];
+            
+            // Use display text mapping for language and tag
+            if (type === 'language' && languageDisplayMap[activeFilters[filterKey]]) {
+                displayValue = languageDisplayMap[activeFilters[filterKey]];
+            } else if (type === 'tag' && tagDisplayMap[activeFilters[filterKey]]) {
+                displayValue = tagDisplayMap[activeFilters[filterKey]];
+            }
+            
+            input.value = displayValue;
         }
     });
 }

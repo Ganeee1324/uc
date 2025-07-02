@@ -670,7 +670,7 @@ function setupDropdowns() {
                         const currentValue = input.value.trim();
                         
                         // For multi-select filters, don't validate against currentValue
-                        const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+                        const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
                         const isMultiSelect = multiSelectFilters.includes(type);
                         
                         if (!isMultiSelect) {
@@ -710,7 +710,7 @@ function toggleDropdown(container, type) {
     const isOpen = container.classList.contains('open');
     
     // Determine if this is a multi-select filter
-    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     const isMultiSelect = multiSelectFilters.includes(type);
     
     // Close all other dropdowns (except for multi-select if keeping open)
@@ -865,7 +865,7 @@ function populateOptions(type, items) {
     const activeFilterValues = activeFilters[filterKey];
     
     // Determine which filters support multi-selection
-    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     const isMultiSelect = multiSelectFilters.includes(type);
     
     let optionsHTML = '';
@@ -981,10 +981,23 @@ function filterDropdownOptions(type, searchTerm) {
     if (type === 'faculty') {
         items = Object.keys(window.facultyCoursesData || {}).sort();
     } else if (type === 'course') {
-        const selectedFaculty = activeFilters.faculty;
-        if (selectedFaculty && window.facultyCoursesData && window.facultyCoursesData[selectedFaculty]) {
-            items = window.facultyCoursesData[selectedFaculty].map(course => course[1]).sort();
+        const selectedFaculties = activeFilters.faculty;
+        if (selectedFaculties && window.facultyCoursesData) {
+            const courses = [];
+            if (Array.isArray(selectedFaculties)) {
+                // Multiple faculties selected - show courses from all selected faculties
+                selectedFaculties.forEach(faculty => {
+                    if (window.facultyCoursesData[faculty]) {
+                        window.facultyCoursesData[faculty].forEach(course => courses.push(course[1]));
+                    }
+                });
+            } else if (window.facultyCoursesData[selectedFaculties]) {
+                // Single faculty selected
+                window.facultyCoursesData[selectedFaculties].forEach(course => courses.push(course[1]));
+            }
+            items = [...new Set(courses)].sort();
         } else if (window.facultyCoursesData) {
+            // No faculties selected - show all courses
             const courses = [];
             Object.values(window.facultyCoursesData).forEach(facultyCourses => {
                 facultyCourses.forEach(course => courses.push(course[1]));
@@ -1061,7 +1074,7 @@ function selectDropdownOption(type, value, displayText = null) {
     const filterKey = filterKeyMap[type] || type;
     
     // Determine which filters support multi-selection
-    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     const isMultiSelect = multiSelectFilters.includes(type);
     
     if (isMultiSelect) {
@@ -1105,10 +1118,11 @@ function selectDropdownOption(type, value, displayText = null) {
         
         // Update dependent dropdowns
         if (type === 'faculty') {
+            // Clear course filter since faculty selection changed
             const courseInput = document.getElementById('courseFilter');
             courseInput.value = '';
             delete activeFilters.course;
-            // Don't auto-open course dropdown, just update its options
+            // Update course dropdown options based on new faculty selection(s)
             filterDropdownOptions('course', '');
         }
     }
@@ -1136,7 +1150,7 @@ function removeSpecificFilterValue(type, value) {
     const input = document.getElementById(`${type}Filter`);
     
     // Determine which filters support multi-selection
-    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     const isMultiSelect = multiSelectFilters.includes(type);
     
     if (isMultiSelect && activeFilters[filterKey] && Array.isArray(activeFilters[filterKey])) {
@@ -1179,6 +1193,18 @@ function removeSpecificFilterValue(type, value) {
             filterDropdownOptions(type, '');
         }, 10);
         
+        // Handle dependent dropdowns for multi-select faculty changes
+        if (type === 'faculty') {
+            // Clear course filter since faculty selection changed
+            const courseInput = document.getElementById('courseFilter');
+            courseInput.value = '';
+            delete activeFilters.course;
+            // Update course dropdown options based on remaining faculty selection(s)
+            setTimeout(() => {
+                filterDropdownOptions('course', '');
+            }, 15);
+        }
+        
     } else {
         // Single-select removal (existing logic)
         delete activeFilters[filterKey];
@@ -1186,9 +1212,11 @@ function removeSpecificFilterValue(type, value) {
         
         // Handle dependent dropdowns
         if (type === 'faculty') {
+            // Clear course filter since faculty selection changed
             const courseInput = document.getElementById('courseFilter');
             courseInput.value = '';
             delete activeFilters.course;
+            // Update course dropdown options based on remaining faculty selection(s)
             filterDropdownOptions('course', '');
         }
     }
@@ -1997,19 +2025,37 @@ function clearAllFiltersAction() {
 
 function applyFiltersToFiles(files) {
     return files.filter(file => {
-        // Faculty filter - case insensitive partial match
+        // Faculty filter - case insensitive partial match (supports multiple)
         if (activeFilters.faculty) {
             const fileFaculty = file.faculty_name || file.vetrina_info?.faculty_name || '';
-            if (!fileFaculty.toLowerCase().includes(activeFilters.faculty.toLowerCase())) {
-                return false;
+            if (Array.isArray(activeFilters.faculty)) {
+                const hasMatchingFaculty = activeFilters.faculty.some(selectedFaculty => 
+                    fileFaculty.toLowerCase().includes(selectedFaculty.toLowerCase())
+                );
+                if (!hasMatchingFaculty) {
+                    return false;
+                }
+            } else {
+                if (!fileFaculty.toLowerCase().includes(activeFilters.faculty.toLowerCase())) {
+                    return false;
+                }
             }
         }
         
-        // Course filter - case insensitive partial match
+        // Course filter - case insensitive partial match (supports multiple)
         if (activeFilters.course) {
             const fileCourse = file.course_name || file.vetrina_info?.course_name || '';
-            if (!fileCourse.toLowerCase().includes(activeFilters.course.toLowerCase())) {
-                return false;
+            if (Array.isArray(activeFilters.course)) {
+                const hasMatchingCourse = activeFilters.course.some(selectedCourse => 
+                    fileCourse.toLowerCase().includes(selectedCourse.toLowerCase())
+                );
+                if (!hasMatchingCourse) {
+                    return false;
+                }
+            } else {
+                if (!fileCourse.toLowerCase().includes(activeFilters.course.toLowerCase())) {
+                    return false;
+                }
             }
         }
         
@@ -2049,11 +2095,17 @@ function applyFiltersToFiles(files) {
             }
         }
         
-        // Canale filter - exact match
+        // Canale filter - exact match (supports multiple)
         if (activeFilters.canale) {
             const fileCanale = file.canale || file.vetrina_info?.canale || '';
-            if (fileCanale !== activeFilters.canale) {
-                return false;
+            if (Array.isArray(activeFilters.canale)) {
+                if (!activeFilters.canale.includes(fileCanale)) {
+                    return false;
+                }
+            } else {
+                if (fileCanale !== activeFilters.canale) {
+                    return false;
+                }
             }
         }
         
@@ -2211,6 +2263,18 @@ function updateActiveFiltersDisplay() {
                 let itemValue = '';
                 
                 switch (key) {
+                    case 'faculty':
+                        itemLabel = 'Facoltà';
+                        itemValue = item;
+                        break;
+                    case 'course':
+                        itemLabel = 'Corso';
+                        itemValue = item;
+                        break;
+                    case 'canale':
+                        itemLabel = 'Canale';
+                        itemValue = item;
+                        break;
                     case 'documentType':
                         itemLabel = 'Tipo';
                         itemValue = item;

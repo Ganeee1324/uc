@@ -1953,7 +1953,7 @@ function applyFiltersToFiles(files) {
         
         // Vetrina type filter - single vs multiple files
         if (activeFilters.vetrinaType && activeFilters.vetrinaType !== 'all') {
-            const fileCount = file.vetrina_info?.file_count || 1;
+            const fileCount = file.fileCount || 1;
             
             switch (activeFilters.vetrinaType) {
                 case 'single':

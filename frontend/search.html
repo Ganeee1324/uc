@@ -160,6 +160,35 @@
                     </h3>
                     <div class="filter-group">
                         <div class="filter-item">
+                            <label for="tagFilter" class="filter-label">Tag</label>
+                            <div class="dropdown-container" data-dropdown="tag">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="tagFilter" class="dropdown-input" value="Tutti i tag" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="tagDropdown">
+                                    <div class="dropdown-options" id="tagOptions">
+                                        <div class="dropdown-option selected" data-value="">
+                                            <span>Tutti i tag</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="appunti">
+                                            <span>📝 Appunti</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="dispense">
+                                            <span>📄 Dispense</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="esercizi">
+                                            <span>🎯 Esercizi</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
                             <label for="languageFilter" class="filter-label">Lingua</label>
                             <div class="dropdown-container" data-dropdown="language">
                                 <div class="dropdown-input-wrapper">
@@ -185,28 +214,32 @@
                             </div>
                         </div>
                         <div class="filter-item">
-                            <label for="tagFilter" class="filter-label">Tag</label>
-                            <div class="dropdown-container" data-dropdown="tag">
+                            <label for="documentTypeFilter" class="filter-label">Formato file</label>
+                            <div class="dropdown-container" data-dropdown="documentType">
                                 <div class="dropdown-input-wrapper">
-                                    <input type="text" id="tagFilter" class="dropdown-input" value="Tutti i tag" readonly>
+                                    <input type="text" id="documentTypeFilter" class="dropdown-input" value="Tutti i formati" readonly>
                                     <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
                                 </div>
-                                <div class="dropdown-content" id="tagDropdown">
-                                    <div class="dropdown-options" id="tagOptions">
+                                <div class="dropdown-content" id="documentTypeDropdown">
+                                    <div class="dropdown-options" id="documentTypeOptions">
                                         <div class="dropdown-option selected" data-value="">
-                                            <span>Tutti i tag</span>
+                                            <span>Tutti i formati</span>
                                             <span class="dropdown-option-check">✓</span>
                                         </div>
-                                        <div class="dropdown-option" data-value="appunti">
-                                            <span>📝 Appunti</span>
+                                        <div class="dropdown-option" data-value="PDF">
+                                            <span>PDF</span>
                                             <span class="dropdown-option-check">✓</span>
                                         </div>
-                                        <div class="dropdown-option" data-value="dispense">
-                                            <span>📄 Dispense</span>
+                                        <div class="dropdown-option" data-value="DOCX">
+                                            <span>DOCX</span>
                                             <span class="dropdown-option-check">✓</span>
                                         </div>
-                                        <div class="dropdown-option" data-value="esercizi">
-                                            <span>🎯 Esercizi</span>
+                                        <div class="dropdown-option" data-value="PPTX">
+                                            <span>PPTX</span>
+                                            <span class="dropdown-option-check">✓</span>
+                                        </div>
+                                        <div class="dropdown-option" data-value="XLSX">
+                                            <span>XLSX</span>
                                             <span class="dropdown-option-check">✓</span>
                                         </div>
                                     </div>

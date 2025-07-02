@@ -36,6 +36,7 @@ window.onload = function() {
     loadAllFiles();
     initializeAnimations();
     initializeFilters();
+    initializeScrollToTop();
     
     // Restore filters from localStorage
     restoreFiltersFromStorage();
@@ -667,17 +668,24 @@ function setupDropdowns() {
                     const input = document.getElementById(`${type}Filter`);
                     if (input && !input.readOnly) {
                         const currentValue = input.value.trim();
-                        const isValidSelection = activeFilters[type] === currentValue;
                         
-                        if (!isValidSelection && currentValue !== '') {
-                            input.value = '';
-                            delete activeFilters[type];
-                            if (type === 'faculty') {
-                                const courseInput = document.getElementById('courseFilter');
-                                courseInput.value = '';
-                                delete activeFilters.course;
+                        // For multi-select filters, don't validate against currentValue
+                        const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+                        const isMultiSelect = multiSelectFilters.includes(type);
+                        
+                        if (!isMultiSelect) {
+                            const isValidSelection = activeFilters[type] === currentValue;
+                            
+                            if (!isValidSelection && currentValue !== '' && !currentValue.includes(' selected')) {
+                                input.value = '';
+                                delete activeFilters[type];
+                                if (type === 'faculty') {
+                                    const courseInput = document.getElementById('courseFilter');
+                                    courseInput.value = '';
+                                    delete activeFilters.course;
+                                }
+                                applyFiltersAndRender();
                             }
-                            applyFiltersAndRender();
                         }
                     }
                 });
@@ -701,12 +709,23 @@ function setupDropdowns() {
 function toggleDropdown(container, type) {
     const isOpen = container.classList.contains('open');
     
-    // Close all other dropdowns
-    closeAllDropdowns();
+    // Determine if this is a multi-select filter
+    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const isMultiSelect = multiSelectFilters.includes(type);
+    
+    // Close all other dropdowns (except for multi-select if keeping open)
+    if (!isMultiSelect || !isOpen) {
+        closeAllDropdowns();
+    }
     
     if (!isOpen) {
         container.classList.add('open');
         const input = document.getElementById(`${type}Filter`);
+        
+        // Update input styling for multi-select
+        if (isMultiSelect && activeFilters[type] && Array.isArray(activeFilters[type]) && activeFilters[type].length > 0) {
+            input.setAttribute('data-multi-selected', 'true');
+        }
         
         filterDropdownOptions(type, input.value || '');
     }
@@ -843,61 +862,115 @@ function populateOptions(type, items) {
     };
     
     const filterKey = filterKeyMap[type] || type;
-    const activeFilterValue = activeFilters[filterKey];
+    const activeFilterValues = activeFilters[filterKey];
     
-    // If there's an active filter, only show that option with an X to remove it
-    if (activeFilterValue && activeFilterValue !== '') {
-        let displayText = activeFilterValue;
-        if (type === 'language' && languageDisplayMap[activeFilterValue]) {
-            displayText = languageDisplayMap[activeFilterValue];
-        } else if (type === 'tag' && tagDisplayMap[activeFilterValue]) {
-            displayText = tagDisplayMap[activeFilterValue];
+    // Determine which filters support multi-selection
+    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const isMultiSelect = multiSelectFilters.includes(type);
+    
+    let optionsHTML = '';
+    
+    // Show selected options at the top for multi-select filters
+    if (isMultiSelect && activeFilterValues && Array.isArray(activeFilterValues) && activeFilterValues.length > 0) {
+        const selectedOptionsHTML = activeFilterValues.map(value => {
+            let displayText = value;
+            if (type === 'language' && languageDisplayMap[value]) {
+                displayText = languageDisplayMap[value];
+            } else if (type === 'tag' && tagDisplayMap[value]) {
+                displayText = tagDisplayMap[value];
+            }
+            
+            return `
+            <div class="dropdown-option selected has-active-filter" data-value="${value}">
+                <span>${displayText}</span>
+                <i class="material-symbols-outlined dropdown-option-remove">close</i>
+            </div>
+            `;
+        }).join('');
+        
+        optionsHTML += selectedOptionsHTML;
+        
+        // Add separator if there are unselected options
+        const unselectedItems = items.filter(item => !activeFilterValues.includes(item));
+        if (unselectedItems.length > 0) {
+            optionsHTML += '<div class="dropdown-separator"></div>';
         }
         
-        options.innerHTML = `
-        <div class="dropdown-option selected has-active-filter" data-value="${activeFilterValue}">
+        // Show remaining unselected options
+        const unselectedOptionsHTML = unselectedItems.map(item => {
+            let displayText = item;
+            if (type === 'language' && languageDisplayMap[item]) {
+                displayText = languageDisplayMap[item];
+            } else if (type === 'tag' && tagDisplayMap[item]) {
+                displayText = tagDisplayMap[item];
+            }
+            
+            return `
+            <div class="dropdown-option" data-value="${item}">
+                <span>${displayText}</span>
+                <i class="material-symbols-outlined dropdown-option-check">check</i>
+            </div>
+            `;
+        }).join('');
+        
+        optionsHTML += unselectedOptionsHTML;
+        
+    } else if (!isMultiSelect && activeFilterValues && activeFilterValues !== '') {
+        // Single-select behavior (for faculty, course, canale, author)
+        let displayText = activeFilterValues;
+        if (type === 'language' && languageDisplayMap[activeFilterValues]) {
+            displayText = languageDisplayMap[activeFilterValues];
+        } else if (type === 'tag' && tagDisplayMap[activeFilterValues]) {
+            displayText = tagDisplayMap[activeFilterValues];
+        }
+        
+        optionsHTML = `
+        <div class="dropdown-option selected has-active-filter" data-value="${activeFilterValues}">
             <span>${displayText}</span>
             <i class="material-symbols-outlined dropdown-option-remove">close</i>
         </div>
         `;
         
-        // Add click handler to remove the filter
-        const option = options.querySelector('.dropdown-option');
-        option.addEventListener('click', () => {
-            removeFilterFromDropdown(type, filterKey);
-        });
-        
-        return;
+    } else {
+        // Show all options when no selection or for single-select without selection
+        optionsHTML = items.map(item => {
+            let displayText = item;
+            if (type === 'language' && languageDisplayMap[item]) {
+                displayText = languageDisplayMap[item];
+            } else if (type === 'tag' && tagDisplayMap[item]) {
+                displayText = tagDisplayMap[item];
+            }
+            
+            const isSelected = item === currentValue;
+            
+            let classes = 'dropdown-option';
+            if (isSelected) classes += ' selected';
+            
+            return `
+            <div class="${classes}" data-value="${item}">
+                <span>${displayText}</span>
+                <i class="material-symbols-outlined dropdown-option-check">check</i>
+            </div>
+            `;
+        }).join('');
     }
     
-    // Otherwise, show all options as before
-    options.innerHTML = items.map(item => {
-        let displayText = item;
-        if (type === 'language' && languageDisplayMap[item]) {
-            displayText = languageDisplayMap[item];
-        } else if (type === 'tag' && tagDisplayMap[item]) {
-            displayText = tagDisplayMap[item];
-        }
-        
-        const isSelected = item === currentValue;
-        
-        let classes = 'dropdown-option';
-        if (isSelected) classes += ' selected';
-        
-        return `
-        <div class="${classes}" data-value="${item}">
-            <span>${displayText}</span>
-            <i class="material-symbols-outlined dropdown-option-check">check</i>
-        </div>
-        `;
-    }).join('');
+    options.innerHTML = optionsHTML;
     
     // Add click handlers
     options.querySelectorAll('.dropdown-option').forEach(option => {
-        option.addEventListener('click', () => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
             const value = option.dataset.value;
             const displayText = option.querySelector('span').textContent;
-            selectDropdownOption(type, value, displayText);
+            
+            if (option.classList.contains('has-active-filter')) {
+                // Remove this filter value
+                removeSpecificFilterValue(type, value);
+            } else {
+                // Add this filter value
+                selectDropdownOption(type, value, displayText);
+            }
         });
     });
 }
@@ -974,21 +1047,6 @@ function selectDropdownOption(type, value, displayText = null) {
     const input = document.getElementById(`${type}Filter`);
     const container = document.querySelector(`[data-dropdown="${type}"]`);
     
-    // Use displayText if provided, otherwise use value
-    input.value = displayText || value;
-    container.classList.remove('open');
-    
-    // Update visual selection in dropdown
-    const options = document.getElementById(`${type}Options`);
-    if (options) {
-        options.querySelectorAll('.dropdown-option').forEach(option => {
-            option.classList.remove('selected');
-            if (option.dataset.value === value) {
-                option.classList.add('selected');
-            }
-        });
-    }
-    
     // Map dropdown types to filter keys
     const filterKeyMap = {
         'faculty': 'faculty',
@@ -1002,26 +1060,144 @@ function selectDropdownOption(type, value, displayText = null) {
     
     const filterKey = filterKeyMap[type] || type;
     
-    // Update active filters
-    if (value && value.trim()) {
-        activeFilters[filterKey] = value.trim();
-    } else {
-        delete activeFilters[filterKey];
-    }
+    // Determine which filters support multi-selection
+    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const isMultiSelect = multiSelectFilters.includes(type);
     
-    // Update dependent dropdowns
-    if (type === 'faculty') {
-        const courseInput = document.getElementById('courseFilter');
-        courseInput.value = '';
-        delete activeFilters.course;
-        // Don't auto-open course dropdown, just update its options
-        filterDropdownOptions('course', '');
+    if (isMultiSelect) {
+        // Multi-select behavior
+        if (!activeFilters[filterKey]) {
+            activeFilters[filterKey] = [];
+        }
+        
+        // Add value if not already present
+        if (!activeFilters[filterKey].includes(value)) {
+            activeFilters[filterKey].push(value);
+        }
+        
+        // Update input display to show count of selected items
+        const selectedCount = activeFilters[filterKey].length;
+        if (selectedCount === 1) {
+            input.value = displayText || value;
+        } else {
+            input.value = `${selectedCount} selected`;
+        }
+        
+        // Keep dropdown open for multi-select
+        // Don't close the dropdown - let user continue selecting
+        
+        // Re-populate options to move selected item to top
+        setTimeout(() => {
+            filterDropdownOptions(type, '');
+        }, 10);
+        
+    } else {
+        // Single-select behavior (existing logic)
+        input.value = displayText || value;
+        container.classList.remove('open');
+        
+        // Update active filters
+        if (value && value.trim()) {
+            activeFilters[filterKey] = value.trim();
+        } else {
+            delete activeFilters[filterKey];
+        }
+        
+        // Update dependent dropdowns
+        if (type === 'faculty') {
+            const courseInput = document.getElementById('courseFilter');
+            courseInput.value = '';
+            delete activeFilters.course;
+            // Don't auto-open course dropdown, just update its options
+            filterDropdownOptions('course', '');
+        }
     }
     
     // Refresh active filter indicators in all dropdowns
     updateActiveFilterIndicators();
     
     applyFiltersAndRender();
+    saveFiltersToStorage();
+}
+
+function removeSpecificFilterValue(type, value) {
+    // Map dropdown types to filter keys
+    const filterKeyMap = {
+        'faculty': 'faculty',
+        'course': 'course',
+        'canale': 'canale',
+        'documentType': 'documentType',
+        'language': 'language',
+        'academicYear': 'academicYear',
+        'tag': 'tag'
+    };
+    
+    const filterKey = filterKeyMap[type] || type;
+    const input = document.getElementById(`${type}Filter`);
+    
+    // Determine which filters support multi-selection
+    const multiSelectFilters = ['documentType', 'language', 'academicYear', 'tag'];
+    const isMultiSelect = multiSelectFilters.includes(type);
+    
+    if (isMultiSelect && activeFilters[filterKey] && Array.isArray(activeFilters[filterKey])) {
+        // Remove specific value from array
+        activeFilters[filterKey] = activeFilters[filterKey].filter(v => v !== value);
+        
+        // Update input display
+        if (activeFilters[filterKey].length === 0) {
+            delete activeFilters[filterKey];
+            input.value = '';
+        } else if (activeFilters[filterKey].length === 1) {
+            // Show the single remaining item
+            const remainingValue = activeFilters[filterKey][0];
+            let displayText = remainingValue;
+            
+            // Apply display mappings
+            const languageDisplayMap = {
+                'Italian': 'Italiano',
+                'English': 'Inglese'
+            };
+            const tagDisplayMap = {
+                'appunti': 'Appunti',
+                'dispense': 'Dispense',
+                'esercizi': 'Esercizi'
+            };
+            
+            if (type === 'language' && languageDisplayMap[remainingValue]) {
+                displayText = languageDisplayMap[remainingValue];
+            } else if (type === 'tag' && tagDisplayMap[remainingValue]) {
+                displayText = tagDisplayMap[remainingValue];
+            }
+            
+            input.value = displayText;
+        } else {
+            input.value = `${activeFilters[filterKey].length} selected`;
+        }
+        
+        // Re-populate options to update the display
+        setTimeout(() => {
+            filterDropdownOptions(type, '');
+        }, 10);
+        
+    } else {
+        // Single-select removal (existing logic)
+        delete activeFilters[filterKey];
+        input.value = '';
+        
+        // Handle dependent dropdowns
+        if (type === 'faculty') {
+            const courseInput = document.getElementById('courseFilter');
+            courseInput.value = '';
+            delete activeFilters.course;
+            filterDropdownOptions('course', '');
+        }
+    }
+    
+    // Refresh active filter indicators
+    updateActiveFilterIndicators();
+    
+    applyFiltersAndRender();
+    saveFiltersToStorage();
 }
 
 function updateActiveFilterIndicators() {
@@ -1845,19 +2021,31 @@ function applyFiltersToFiles(files) {
             }
         }
         
-        // Document type filter - exact match
+        // Document type filter - exact match (supports multiple)
         if (activeFilters.documentType) {
             const fileType = file.document_type || '';
-            if (fileType !== activeFilters.documentType) {
-                return false;
+            if (Array.isArray(activeFilters.documentType)) {
+                if (!activeFilters.documentType.includes(fileType)) {
+                    return false;
+                }
+            } else {
+                if (fileType !== activeFilters.documentType) {
+                    return false;
+                }
             }
         }
         
-        // Language filter - exact match
+        // Language filter - exact match (supports multiple)
         if (activeFilters.language) {
             const fileLanguage = file.language || '';
-            if (fileLanguage !== activeFilters.language) {
-                return false;
+            if (Array.isArray(activeFilters.language)) {
+                if (!activeFilters.language.includes(fileLanguage)) {
+                    return false;
+                }
+            } else {
+                if (fileLanguage !== activeFilters.language) {
+                    return false;
+                }
             }
         }
         
@@ -1869,11 +2057,36 @@ function applyFiltersToFiles(files) {
             }
         }
         
-        // Academic year filter - exact match
+        // Academic year filter - exact match (supports multiple)
         if (activeFilters.academicYear) {
             const fileYear = file.academic_year || '';
-            if (fileYear !== activeFilters.academicYear) {
-                return false;
+            if (Array.isArray(activeFilters.academicYear)) {
+                if (!activeFilters.academicYear.includes(fileYear)) {
+                    return false;
+                }
+            } else {
+                if (fileYear !== activeFilters.academicYear) {
+                    return false;
+                }
+            }
+        }
+        
+        // Tag filter - supports multiple tags
+        if (activeFilters.tag) {
+            const fileTags = file.tags || [];
+            if (Array.isArray(activeFilters.tag)) {
+                // File must have at least one of the selected tags
+                const hasMatchingTag = activeFilters.tag.some(selectedTag => 
+                    fileTags.includes(selectedTag)
+                );
+                if (!hasMatchingTag) {
+                    return false;
+                }
+            } else {
+                // Single tag filter (backward compatibility)
+                if (!fileTags.includes(activeFilters.tag)) {
+                    return false;
+                }
             }
         }
         
@@ -1991,6 +2204,45 @@ function updateActiveFiltersDisplay() {
         let label = '';
         let displayValue = '';
         
+        // Handle arrays for multi-select filters
+        if (Array.isArray(value)) {
+            value.forEach(item => {
+                let itemLabel = '';
+                let itemValue = '';
+                
+                switch (key) {
+                    case 'documentType':
+                        itemLabel = 'Tipo';
+                        itemValue = item;
+                        break;
+                    case 'language':
+                        itemLabel = 'Lingua';
+                        itemValue = item === 'Italian' ? 'Italiano' : item === 'English' ? 'Inglese' : item;
+                        break;
+                    case 'academicYear':
+                        itemLabel = 'Anno';
+                        itemValue = item;
+                        break;
+                    case 'tag':
+                        itemLabel = 'Tag';
+                        itemValue = item === 'appunti' ? 'Appunti' : item === 'dispense' ? 'Dispense' : item === 'esercizi' ? 'Esercizi' : item;
+                        break;
+                }
+                
+                if (itemLabel && itemValue) {
+                    filterPills.push(`
+                        <div class="filter-pill" data-filter="${key}" data-value="${item}">
+                            <span class="filter-pill-label">${itemLabel}:</span>
+                            <span class="filter-pill-value">${itemValue}</span>
+                            <span class="filter-pill-remove" onclick="removeActiveFilter('${key}', event, '${item}')"></span>
+                        </div>
+                    `);
+                }
+            });
+            return; // Skip the single-value processing below
+        }
+        
+        // Handle single values (existing logic)
         switch (key) {
             case 'faculty':
                 label = 'Facoltà';
@@ -2010,7 +2262,7 @@ function updateActiveFiltersDisplay() {
                 break;
             case 'language':
                 label = 'Lingua';
-                displayValue = value;
+                displayValue = value === 'Italian' ? 'Italiano' : value === 'English' ? 'Inglese' : value;
                 break;
             case 'canale':
                 label = 'Canale';
@@ -2109,19 +2361,72 @@ function updateActiveFiltersDisplay() {
 }
 
 // New function to handle individual filter removal with animation
-function removeActiveFilter(filterKey, event) {
+function removeActiveFilter(filterKey, event, specificValue = null) {
     event?.stopPropagation();
     
     const pill = event?.target.closest('.filter-pill');
     if (pill) {
         pill.style.animation = 'filterPillRemove 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
         setTimeout(() => {
-            removeFilter(filterKey);
+            if (specificValue) {
+                removeSpecificFilterValueFromPill(filterKey, specificValue);
+            } else {
+                removeFilter(filterKey);
+            }
             applyFiltersAndRender();
         }, 250);
     } else {
-        removeFilter(filterKey);
+        if (specificValue) {
+            removeSpecificFilterValueFromPill(filterKey, specificValue);
+        } else {
+            removeFilter(filterKey);
+        }
         applyFiltersAndRender();
+    }
+}
+
+function removeSpecificFilterValueFromPill(filterKey, specificValue) {
+    if (activeFilters[filterKey] && Array.isArray(activeFilters[filterKey])) {
+        activeFilters[filterKey] = activeFilters[filterKey].filter(v => v !== specificValue);
+        
+        if (activeFilters[filterKey].length === 0) {
+            delete activeFilters[filterKey];
+        }
+        
+        // Update the input display
+        const input = document.getElementById(`${filterKey}Filter`);
+        if (input) {
+            if (!activeFilters[filterKey] || activeFilters[filterKey].length === 0) {
+                input.value = '';
+            } else if (activeFilters[filterKey].length === 1) {
+                // Apply display mappings for single remaining item
+                const remainingValue = activeFilters[filterKey][0];
+                let displayText = remainingValue;
+                
+                const languageDisplayMap = {
+                    'Italian': 'Italiano',
+                    'English': 'Inglese'
+                };
+                const tagDisplayMap = {
+                    'appunti': 'Appunti',
+                    'dispense': 'Dispense',
+                    'esercizi': 'Esercizi'
+                };
+                
+                if (filterKey === 'language' && languageDisplayMap[remainingValue]) {
+                    displayText = languageDisplayMap[remainingValue];
+                } else if (filterKey === 'tag' && tagDisplayMap[remainingValue]) {
+                    displayText = tagDisplayMap[remainingValue];
+                }
+                
+                input.value = displayText;
+            } else {
+                input.value = `${activeFilters[filterKey].length} selected`;
+            }
+        }
+        
+        saveFiltersToStorage();
+        showStatus('Filtro rimosso 🗑️');
     }
 }
 
@@ -2767,20 +3072,20 @@ function renderDocuments(files) {
                     </div>
                 </div>
                 <div class="document-info">
-                    <div class="document-info-item" title="Corso: ${item.course_name || 'N/A'}">
-                        <span class="info-icon">📚</span>
-                        <span class="info-text">${item.course_name || 'N/A'}</span>
-                    </div>
                     <div class="document-info-item" title="Facoltà: ${item.faculty_name || 'N/A'}">
-                        <span class="info-icon">🏛️</span>
+                        <span class="info-icon">account_balance</span>
                         <span class="info-text">${item.faculty_name || 'N/A'}</span>
                     </div>
+                    <div class="document-info-item" title="Corso: ${item.course_name || 'N/A'}">
+                        <span class="info-icon">menu_book</span>
+                        <span class="info-text">${item.course_name || 'N/A'}</span>
+                    </div>
                     <div class="document-info-item" title="Lingua: ${item.language || 'N/A'} - Canale: ${item.canale_name || 'N/A'}">
-                        <span class="info-icon">📝</span>
+                        <span class="info-icon">segment</span>
                         <span class="info-text">${item.language || 'N/A'} - ${item.canale_name || 'N/A'}</span>
                     </div>
                     <div class="document-info-item" title="Anno Accademico: ${item.academic_year || 'N/A'}">
-                        <span class="info-icon">📅</span>
+                        <span class="info-icon">calendar_today</span>
                         <span class="info-text">${item.academic_year || 'N/A'}</span>
                     </div>
                 </div>
@@ -3721,3 +4026,130 @@ async function performClientSideSearch(query) {
         renderDocuments(currentFiles);
     }
 }
+
+// ===========================
+// PROFESSIONAL SCROLL TO TOP FUNCTIONALITY
+// ===========================
+
+function initializeScrollToTop() {
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    if (!scrollToTopBtn) return;
+
+    let scrollThreshold = 300; // Show button after scrolling 300px
+    let isScrolling = false;
+    let scrollTimeout;
+
+    // Show/hide button based on scroll position
+    function handleScroll() {
+        if (isScrolling) return;
+        
+        isScrolling = true;
+        requestAnimationFrame(() => {
+            const scrollY = window.scrollY || window.pageYOffset;
+            
+            if (scrollY > scrollThreshold) {
+                if (!scrollToTopBtn.classList.contains('visible')) {
+                    scrollToTopBtn.classList.add('visible');
+                    // Add pulse animation for first appearance
+                    setTimeout(() => {
+                        scrollToTopBtn.classList.add('pulse');
+                        setTimeout(() => {
+                            scrollToTopBtn.classList.remove('pulse');
+                        }, 2000);
+                    }, 100);
+                }
+            } else {
+                scrollToTopBtn.classList.remove('visible');
+            }
+            
+            isScrolling = false;
+        });
+    }
+
+    // Smooth scroll to top
+    function scrollToTop() {
+        // Remove pulse animation if active
+        scrollToTopBtn.classList.remove('pulse');
+        
+        // Smooth scroll to top with easing
+        const startPosition = window.scrollY || window.pageYOffset;
+        const startTime = performance.now();
+        const duration = 800; // 800ms duration
+        
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+        
+        function animateScroll(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeInOutCubic(progress);
+            
+            const newPosition = startPosition - (startPosition * easedProgress);
+            window.scrollTo(0, newPosition);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateScroll);
+            }
+        }
+        
+        requestAnimationFrame(animateScroll);
+    }
+
+    // Event listeners
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    scrollToTopBtn.addEventListener('click', scrollToTop);
+    
+    // Keyboard accessibility
+    scrollToTopBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            scrollToTop();
+        }
+    });
+
+    // Touch device optimizations
+    if ('ontouchstart' in window) {
+        scrollToTopBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            scrollToTopBtn.style.transform = 'scale(0.95)';
+        }, { passive: false });
+        
+        scrollToTopBtn.addEventListener('touchend', () => {
+            scrollToTopBtn.style.transform = '';
+        });
+    }
+
+    // Adjust threshold based on viewport height
+    function adjustScrollThreshold() {
+        const viewportHeight = window.innerHeight;
+        scrollThreshold = Math.max(200, viewportHeight * 0.3); // At least 200px, or 30% of viewport
+    }
+
+    // Initial adjustment and on resize
+    adjustScrollThreshold();
+    window.addEventListener('resize', adjustScrollThreshold);
+
+    // Performance optimization: throttle scroll events on mobile
+    let ticking = false;
+    const originalHandleScroll = handleScroll;
+    
+    function throttledHandleScroll() {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                originalHandleScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+
+    // Use throttled version on mobile devices
+    if ('ontouchstart' in window) {
+        window.removeEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    }
+}
+
+// Initialize scroll to top functionality when page loads
+document.addEventListener('DOMContentLoaded', initializeScrollToTop);

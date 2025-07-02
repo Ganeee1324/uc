@@ -622,6 +622,17 @@ function setupDropdowns() {
                 }
             });
             
+            // Handle dropdown input wrapper click (for better UX)
+            const inputWrapper = container.querySelector('.dropdown-input-wrapper');
+            if (inputWrapper) {
+                inputWrapper.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!container.classList.contains('open')) {
+                        toggleDropdown(container, type);
+                    }
+                });
+            }
+            
                     // Handle arrow click
         const arrow = container.querySelector('.dropdown-arrow');
         if (arrow) {
@@ -660,6 +671,16 @@ function setupDropdowns() {
                 toggleDropdown(container, type);
             });
             
+            // Handle dropdown input wrapper click (for better UX)
+            const inputWrapper = container.querySelector('.dropdown-input-wrapper');
+            if (inputWrapper) {
+                inputWrapper.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleDropdown(container, type);
+                });
+            }
+            
                     // Handle arrow click
         const arrow = container.querySelector('.dropdown-arrow');
         if (arrow) {
@@ -684,11 +705,12 @@ function setupDropdowns() {
         
         // Close dropdowns when clicking outside (unified for all dropdowns)
         document.addEventListener('click', (e) => {
-            // Check if click is outside any dropdown input area or dropdown content
-            const clickedDropdownContainer = e.target.closest('.dropdown-container');
+            // Check if click is on dropdown input wrapper or dropdown content
+            const clickedDropdownInputWrapper = e.target.closest('.dropdown-input-wrapper');
+            const clickedDropdownContent = e.target.closest('.dropdown-content');
             const clickedAuthorContainer = e.target.closest('.author-container');
             
-            if (!clickedDropdownContainer && !clickedAuthorContainer) {
+            if (!clickedDropdownInputWrapper && !clickedDropdownContent && !clickedAuthorContainer) {
                 // Click is outside all dropdown areas - close all dropdowns
                 closeAllDropdowns();
                 
@@ -718,43 +740,6 @@ function setupDropdowns() {
                         }
                     }
                 });
-            } else if (clickedDropdownContainer) {
-                // Click is inside a dropdown container - check if it's outside the input area
-                const input = clickedDropdownContainer.querySelector('.dropdown-input');
-                const dropdownContent = clickedDropdownContainer.querySelector('.dropdown-content');
-                const arrow = clickedDropdownContainer.querySelector('.dropdown-arrow');
-                
-                // If click is not on input, arrow, or dropdown content, close the dropdown
-                if (!input.contains(e.target) && 
-                    !arrow.contains(e.target) && 
-                    !dropdownContent.contains(e.target)) {
-                    
-                    const type = clickedDropdownContainer.getAttribute('data-dropdown');
-                    clickedDropdownContainer.classList.remove('open');
-                    
-                    // Clear invalid input for this specific dropdown
-                    if (input && !input.readOnly) {
-                        const currentValue = input.value.trim();
-                        
-                        const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
-                        const isMultiSelect = multiSelectFilters.includes(type);
-                        
-                        if (!isMultiSelect) {
-                            const isValidSelection = activeFilters[type] === currentValue;
-                            
-                            if (!isValidSelection && currentValue !== '' && !currentValue.includes(' selected')) {
-                                input.value = '';
-                                delete activeFilters[type];
-                                if (type === 'faculty') {
-                                    const courseInput = document.getElementById('courseFilter');
-                                    courseInput.value = '';
-                                    delete activeFilters.course;
-                                }
-                                applyFiltersAndRender();
-                            }
-                        }
-                    }
-                }
             }
         });
         

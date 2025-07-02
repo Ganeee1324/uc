@@ -556,8 +556,26 @@ html {
 }
 
 /* Document Grid - STANDARDIZED LAYOUT - 4 COLUMNS */
+/* Document Count Display */
+.document-count-container {
+    margin-top: calc(var(--space-8) + 40px);
+    margin-left: var(--space-1);
+    margin-bottom: var(--space-4);
+    position: relative;
+    z-index: 2;
+}
+
+.document-count {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    margin: 0;
+    text-align: left;
+    letter-spacing: 0.025em;
+}
+
 .documents-grid {
-    margin-top: calc(var(--space-8) + 70px);
+    margin-top: var(--space-3);
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-5);

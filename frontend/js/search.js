@@ -2291,6 +2291,21 @@ function renderDocuments(files) {
     const grid = document.getElementById('documentsGrid');
     if (!grid) return;
     
+    // Update document count display
+    const documentCountContainer = document.getElementById('documentCountContainer');
+    const documentCount = document.getElementById('documentCount');
+    
+    if (documentCountContainer && documentCount) {
+        if (!files || files.length === 0) {
+            documentCountContainer.style.display = 'none';
+        } else {
+            const count = files.length;
+            const documentText = count === 1 ? 'DOCUMENTO TROVATO' : 'DOCUMENTI TROVATI';
+            documentCount.textContent = `${count} ${documentText}`;
+            documentCountContainer.style.display = 'block';
+        }
+    }
+    
     grid.innerHTML = '';
     
     if (!files || files.length === 0) {

@@ -923,6 +923,9 @@ function filterDropdownOptions(type, searchTerm) {
             }
         });
         items = allTypes;
+    } else if (type === 'tag') {
+        // Always show all tag options
+        items = ['appunti', 'dispense', 'esercizi'];
     } else if (type === 'language') {
         items = ['Italian', 'English'];
     } else if (type === 'academicYear') {
@@ -930,7 +933,7 @@ function filterDropdownOptions(type, searchTerm) {
     }
     
     // For static dropdowns, don't filter by search term (they're readonly)
-    if (['documentType', 'language', 'academicYear'].includes(type)) {
+    if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
         populateOptions(type, items);
         return;
     }

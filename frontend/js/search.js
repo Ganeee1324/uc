@@ -834,6 +834,13 @@ function populateOptions(type, items) {
         'English': 'Inglese'
     };
     
+    // Tag display text mapping
+    const tagDisplayMap = {
+        'appunti': '📝 Appunti',
+        'dispense': '📄 Dispense',
+        'esercizi': '🎯 Esercizi'
+    };
+    
     // Map dropdown types to filter keys
     const filterKeyMap = {
         'faculty': 'faculty',
@@ -850,7 +857,12 @@ function populateOptions(type, items) {
     
     // If there's an active filter, only show that option with an X to remove it
     if (activeFilterValue && activeFilterValue !== '') {
-        const displayText = (type === 'language' && languageDisplayMap[activeFilterValue]) ? languageDisplayMap[activeFilterValue] : activeFilterValue;
+        let displayText = activeFilterValue;
+        if (type === 'language' && languageDisplayMap[activeFilterValue]) {
+            displayText = languageDisplayMap[activeFilterValue];
+        } else if (type === 'tag' && tagDisplayMap[activeFilterValue]) {
+            displayText = tagDisplayMap[activeFilterValue];
+        }
         
         options.innerHTML = `
         <div class="dropdown-option selected has-active-filter" data-value="${activeFilterValue}">
@@ -870,7 +882,13 @@ function populateOptions(type, items) {
     
     // Otherwise, show all options as before
     options.innerHTML = items.map(item => {
-        const displayText = (type === 'language' && languageDisplayMap[item]) ? languageDisplayMap[item] : item;
+        let displayText = item;
+        if (type === 'language' && languageDisplayMap[item]) {
+            displayText = languageDisplayMap[item];
+        } else if (type === 'tag' && tagDisplayMap[item]) {
+            displayText = tagDisplayMap[item];
+        }
+        
         const isSelected = item === currentValue;
         
         let classes = 'dropdown-option';
@@ -1018,7 +1036,7 @@ function selectDropdownOption(type, value, displayText = null) {
 
 function updateActiveFilterIndicators() {
     // Update indicators for all dropdown types
-    const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
+    const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     
     dropdownTypes.forEach(type => {
         const options = document.getElementById(`${type}Options`);

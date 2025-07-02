@@ -1035,6 +1035,8 @@ function selectDropdownOption(type, value, displayText = null) {
 }
 
 function updateActiveFilterIndicators() {
+    console.log('updateActiveFilterIndicators called, activeFilters:', { ...activeFilters });
+    
     // Update indicators for all dropdown types
     const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     
@@ -1055,14 +1057,19 @@ function updateActiveFilterIndicators() {
         const filterKey = filterKeyMap[type] || type;
         const activeFilterValue = activeFilters[filterKey];
         
+        console.log(`Checking ${type}, filterKey: ${filterKey}, activeFilterValue: ${activeFilterValue}`);
+        
         options.querySelectorAll('.dropdown-option').forEach(option => {
             const hasActiveFilter = activeFilterValue === option.dataset.value;
             option.classList.toggle('has-active-filter', hasActiveFilter);
         });
     });
+    
+    console.log('updateActiveFilterIndicators finished, activeFilters:', { ...activeFilters });
 }
 
 function removeFilterFromDropdown(type, filterKey) {
+    console.log('=== REMOVE FILTER START ===');
     console.log('Removing filter:', type, filterKey, 'Current activeFilters:', { ...activeFilters });
     
     const input = document.getElementById(`${type}Filter`);
@@ -1093,6 +1100,8 @@ function removeFilterFromDropdown(type, filterKey) {
         filterDropdownOptions('course', '');
     }
     
+    console.log('Before calling populateOptions, activeFilters:', { ...activeFilters });
+    
     // Force a complete refresh of the dropdown by calling populateOptions directly
     // instead of going through filterDropdownOptions which might have timing issues
     if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
@@ -1115,6 +1124,7 @@ function removeFilterFromDropdown(type, filterKey) {
             items = allTypes;
         }
         
+        console.log('Calling populateOptions with items:', items);
         // Call populateOptions directly with the items
         populateOptions(type, items);
     } else {
@@ -1123,11 +1133,17 @@ function removeFilterFromDropdown(type, filterKey) {
         filterDropdownOptions(type, searchTerm);
     }
     
+    console.log('Before updateActiveFilterIndicators, activeFilters:', { ...activeFilters });
+    
     // Update active filter indicators in all dropdowns
     updateActiveFilterIndicators();
     
+    console.log('Before applyFiltersAndRender, activeFilters:', { ...activeFilters });
+    
     applyFiltersAndRender();
     saveFiltersToStorage();
+    
+    console.log('=== REMOVE FILTER END ===');
 }
 
 function handleDropdownKeyboard(e, type) {

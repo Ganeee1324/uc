@@ -568,7 +568,7 @@ function setupDropdowns() {
     // Initialize hierarchy data first
     loadHierarchyData().then(() => {
         const searchableDropdowns = ['faculty', 'course', 'canale'];
-        const staticDropdowns = ['documentType', 'language', 'academicYear'];
+        const staticDropdowns = ['documentType', 'language', 'academicYear', 'tag'];
         const allDropdowns = [...searchableDropdowns, ...staticDropdowns];
         
         // Setup searchable dropdowns (faculty, course, canale)
@@ -629,7 +629,7 @@ function setupDropdowns() {
             });
         });
         
-        // Setup static dropdowns (documentType, language, academicYear)
+        // Setup static dropdowns (documentType, language, academicYear, tag)
         staticDropdowns.forEach(type => {
             const container = document.querySelector(`[data-dropdown="${type}"]`);
             const input = document.getElementById(`${type}Filter`);

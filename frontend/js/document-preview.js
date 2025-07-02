@@ -117,29 +117,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
         // Add to document
-        document.body.appendChild(notification);
-        
+    document.body.appendChild(notification);
+    
         // Show notification with animation
         setTimeout(() => {
             notification.classList.add('show');
         }, 100);
         
         // Hide and remove notification after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
         setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
-    }
-    
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
     function addNotificationStyles() {
         if (!document.querySelector('#notification-styles')) {
             const styles = document.createElement('style');

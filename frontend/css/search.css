@@ -1681,12 +1681,13 @@ html {
     transform: translateX(100%) !important;
     transition: all 0.5s var(--ease-4) !important;
     z-index: 9999 !important;
-    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
     display: flex !important;
     flex-direction: column !important;
     margin: 0 !important;
     padding: 0 !important;
- }
+}
  
  .filters-panel.active {
     transform: translateX(0) !important;
@@ -1732,7 +1733,8 @@ html {
     display: flex;
     flex-direction: column;
     position: relative;
- }
+    overflow: visible;
+}
  
  /* Filter Header */
  .filters-header {
@@ -1823,9 +1825,11 @@ html {
     flex: 1;
     padding: var(--space-6) var(--space-8) var(--space-8) var(--space-8);
     overflow-y: auto;
+    overflow-x: visible;
     scrollbar-width: thin;
     scrollbar-color: var(--gray-300) transparent;
- }
+    position: relative;
+}
  
  .filters-grid::-webkit-scrollbar {
     width: 6px;
@@ -1854,6 +1858,7 @@ html {
    z-index: 1;
    will-change: transform, opacity;
    backface-visibility: hidden;
+   overflow: visible;
 }
 
 /* Academic Course Info section (with dropdowns) should be above other sections */
@@ -3791,6 +3796,11 @@ html {
 /* Professional Dropdown Styles */
 .dropdown-container {
     position: relative;
+    z-index: 1;
+}
+
+.dropdown-container.open {
+    z-index: 10001;
 }
 
 .dropdown-input-wrapper {
@@ -3864,16 +3874,19 @@ html {
     border: 2px solid var(--blue-300);
     border-top: none;
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-    z-index: 1000;
+    z-index: 9999;
     display: none;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(20px);
     overflow: hidden;
-    max-height: 300px;
+    max-height: 250px;
+    width: 100%;
+    margin: 0;
 }
 
 .dropdown-container.open .dropdown-content {
     display: block !important;
+    z-index: 10000;
 }
 
 .dropdown-options {

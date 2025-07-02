@@ -37,6 +37,9 @@ window.onload = function() {
     initializeAnimations();
     initializeFilters();
     
+    // Restore filters from localStorage
+    restoreFiltersFromStorage();
+    
     // Add keyboard shortcut to test loading animation (Ctrl/Cmd + L)
     document.addEventListener('keydown', function(e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
@@ -183,8 +186,11 @@ function initializeAuthorFilter() {
         
         if (query.length === 0) {
             hideSuggestions();
-            delete activeFilters.author;
-            triggerFilterUpdate();
+            // Only clear the filter if the user manually clears the input
+            if (activeFilters.author) {
+                delete activeFilters.author;
+                triggerFilterUpdate();
+            }
             return;
         }
         
@@ -239,26 +245,38 @@ function initializeAuthorFilter() {
     // Hide suggestions when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.author-container')) {
-            if (isAuthorOpen || authorInput.value) {
+            if (isAuthorOpen) {
                 hideSuggestions();
-                // Always clear input when clicking outside
-                if (authorInput.value) {
-                    authorInput.value = '';
-                    delete activeFilters.author;
-                    applyFiltersAndRender();
-                }
+                // Don't clear the input when clicking outside - preserve the filter
             }
         }
     });
     
     function showSuggestions(filteredAuthors, query) {
-        if (filteredAuthors.length === 0) {
-            hideSuggestions();
+        // If an author filter is active, show only that author with an X to remove
+        if (activeFilters.author && authorInput.value === activeFilters.author) {
+            authorOptions.innerHTML = `
+                <div class="author-option selected has-active-filter" data-value="${activeFilters.author}">
+                    <span>${activeFilters.author}</span>
+                    <i class="material-symbols-outlined dropdown-option-remove">close</i>
+                </div>
+            `;
+            const removeBtn = authorOptions.querySelector('.dropdown-option-remove');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    authorInput.value = '';
+                    delete activeFilters.author;
+                    hideSuggestions();
+                    triggerFilterUpdate();
+                });
+            }
+            authorContainer.classList.add('open');
+            isAuthorOpen = true;
             return;
         }
-        
+        // Default: show suggestions as before
         authorOptions.innerHTML = '';
-        
         filteredAuthors.slice(0, 10).forEach(author => {
             const optionDiv = document.createElement('div');
             optionDiv.className = 'author-option';
@@ -269,7 +287,6 @@ function initializeAuthorFilter() {
             optionDiv.addEventListener('click', () => selectAuthor(author));
             authorOptions.appendChild(optionDiv);
         });
-        
         authorContainer.classList.add('open');
         isAuthorOpen = true;
     }
@@ -824,20 +841,40 @@ function populateOptions(type, items) {
         'canale': 'canale',
         'documentType': 'documentType',
         'language': 'language',
-        'academicYear': 'academicYear'
+        'academicYear': 'academicYear',
+        'tag': 'tag'
     };
     
     const filterKey = filterKeyMap[type] || type;
     const activeFilterValue = activeFilters[filterKey];
     
+    // If there's an active filter, only show that option with an X to remove it
+    if (activeFilterValue && activeFilterValue !== '') {
+        const displayText = (type === 'language' && languageDisplayMap[activeFilterValue]) ? languageDisplayMap[activeFilterValue] : activeFilterValue;
+        
+        options.innerHTML = `
+        <div class="dropdown-option selected has-active-filter" data-value="${activeFilterValue}">
+            <span>${displayText}</span>
+            <i class="material-symbols-outlined dropdown-option-remove">close</i>
+        </div>
+        `;
+        
+        // Add click handler to remove the filter
+        const option = options.querySelector('.dropdown-option');
+        option.addEventListener('click', () => {
+            removeFilterFromDropdown(type, filterKey);
+        });
+        
+        return;
+    }
+    
+    // Otherwise, show all options as before
     options.innerHTML = items.map(item => {
         const displayText = (type === 'language' && languageDisplayMap[item]) ? languageDisplayMap[item] : item;
         const isSelected = item === currentValue;
-        const hasActiveFilter = activeFilterValue === item;
         
         let classes = 'dropdown-option';
         if (isSelected) classes += ' selected';
-        if (hasActiveFilter) classes += ' has-active-filter';
         
         return `
         <div class="${classes}" data-value="${item}">
@@ -852,14 +889,7 @@ function populateOptions(type, items) {
         option.addEventListener('click', () => {
             const value = option.dataset.value;
             const displayText = option.querySelector('span').textContent;
-            const hasActiveFilter = option.classList.contains('has-active-filter');
-            
-            // If this option has an active filter and is not currently selected, remove the filter
-            if (hasActiveFilter && !option.classList.contains('selected')) {
-                removeFilterFromDropdown(type, filterKey);
-            } else {
-                selectDropdownOption(type, value, displayText);
-            }
+            selectDropdownOption(type, value, displayText);
         });
     });
 }
@@ -955,7 +985,8 @@ function selectDropdownOption(type, value, displayText = null) {
         'canale': 'canale',
         'documentType': 'documentType',
         'language': 'language',
-        'academicYear': 'academicYear'
+        'academicYear': 'academicYear',
+        'tag': 'tag'
     };
     
     const filterKey = filterKeyMap[type] || type;
@@ -996,7 +1027,8 @@ function updateActiveFilterIndicators() {
             'canale': 'canale',
             'documentType': 'documentType',
             'language': 'language',
-            'academicYear': 'academicYear'
+            'academicYear': 'academicYear',
+            'tag': 'tag'
         };
         
         const filterKey = filterKeyMap[type] || type;
@@ -1044,6 +1076,7 @@ function removeFilterFromDropdown(type, filterKey) {
     updateActiveFilterIndicators();
     
     applyFiltersAndRender();
+    saveFiltersToStorage();
 }
 
 function handleDropdownKeyboard(e, type) {
@@ -1115,6 +1148,7 @@ function initializeRatingFilter() {
             
             // Apply filters immediately
             applyFiltersAndRender();
+            saveFiltersToStorage();
         });
         
         star.addEventListener('mouseenter', () => {
@@ -1187,6 +1221,7 @@ function initializeToggleFilters() {
             
             // Apply filters immediately
             applyFiltersAndRender();
+            saveFiltersToStorage();
         });
     });
 
@@ -1208,6 +1243,7 @@ function initializeToggleFilters() {
             
             // Apply filters immediately
             applyFiltersAndRender();
+            saveFiltersToStorage();
         });
     });
 
@@ -1229,6 +1265,7 @@ function initializeToggleFilters() {
             
             // Apply filters immediately
             applyFiltersAndRender();
+            saveFiltersToStorage();
         });
     });
 }
@@ -1613,6 +1650,13 @@ function updateFilterCount() {
 
 function clearAllFiltersAction() {
     activeFilters = {};
+    
+    // Clear filters from localStorage
+    try {
+        localStorage.removeItem('searchFilters');
+    } catch (e) {
+        console.warn('Could not clear filters from localStorage:', e);
+    }
     
     // Reset all dropdown filters to their default values
     const dropdownResets = [
@@ -2094,6 +2138,7 @@ function removeFilter(filterKey) {
     
     // Apply changes immediately
     applyFiltersAndRender();
+    saveFiltersToStorage();
     showStatus('Filtro rimosso 🗑️');
 }
 
@@ -3130,6 +3175,51 @@ function triggerFilterUpdate() {
     applyFiltersAndRender().catch(error => {
         console.error('Filter update error:', error);
         showError('Errore nell\'aggiornamento dei filtri');
+    });
+    saveFiltersToStorage();
+}
+
+function saveFiltersToStorage() {
+    try {
+        localStorage.setItem('searchFilters', JSON.stringify(activeFilters));
+    } catch (e) {
+        console.warn('Could not save filters to localStorage:', e);
+    }
+}
+
+function restoreFiltersFromStorage() {
+    try {
+        const savedFilters = localStorage.getItem('searchFilters');
+        if (savedFilters) {
+            const parsedFilters = JSON.parse(savedFilters);
+            activeFilters = { ...activeFilters, ...parsedFilters };
+            
+            // Update UI to reflect restored filters
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateFilterCount();
+            updateActiveFiltersDisplay();
+        }
+    } catch (e) {
+        console.warn('Could not restore filters from localStorage:', e);
+    }
+}
+
+function updateFilterInputs() {
+    // Update author input
+    const authorInput = document.getElementById('autoreFilter');
+    if (authorInput && activeFilters.author) {
+        authorInput.value = activeFilters.author;
+    }
+    
+    // Update dropdown inputs
+    const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
+    dropdownTypes.forEach(type => {
+        const input = document.getElementById(`${type}Filter`);
+        const filterKey = type;
+        if (input && activeFilters[filterKey]) {
+            input.value = activeFilters[filterKey];
+        }
     });
 }
 

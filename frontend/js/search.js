@@ -1738,7 +1738,7 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
-    const activeFiltersContainer = document.getElementById('activeFilters');
+    const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
     if (!activeFiltersContainer) return;
     
     const filterEntries = Object.entries(activeFilters).filter(([key, value]) => {
@@ -1746,58 +1746,59 @@ function updateActiveFiltersDisplay() {
     });
     
     if (filterEntries.length === 0) {
-        activeFiltersContainer.classList.remove('has-filters');
-        activeFiltersContainer.innerHTML = '';
+        activeFiltersContainer.classList.remove('visible');
+        setTimeout(() => {
+            activeFiltersContainer.innerHTML = '';
+        }, 400);
         return;
     }
     
-    activeFiltersContainer.classList.add('has-filters');
-    
-    const filterTags = [];
-    
-    // Add "Clear All" button as the very first filter tag - SAME STYLING AS OTHERS
-    filterTags.push(`
-        <div class="filter-tag clear-all-tag" onclick="clearAllFiltersAction()">
-            <i class="material-symbols-outlined">clear_all</i>
-            <span>Rimuovi tutti</span>
-        </div>
-    `);
+    const filterPills = [];
     
     filterEntries.forEach(([key, value]) => {
-        let displayText = '';
+        let label = '';
+        let displayValue = '';
         
         switch (key) {
             case 'faculty':
-                displayText = `Facoltà: ${value}`;
+                label = 'Facoltà';
+                displayValue = value;
                 break;
             case 'course':
-                displayText = `Corso: ${value}`;
+                label = 'Corso';
+                displayValue = value;
                 break;
             case 'author':
-                displayText = `Autore: ${value}`;
+                label = 'Autore';
+                displayValue = value;
                 break;
             case 'documentType':
-                displayText = `Tipo: ${value}`;
+                label = 'Tipo';
+                displayValue = value;
                 break;
             case 'language':
-                displayText = `Lingua: ${value}`;
+                label = 'Lingua';
+                displayValue = value;
                 break;
             case 'canale':
-                displayText = `Canale: ${value}`;
+                label = 'Canale';
+                displayValue = value;
                 break;
             case 'academicYear':
-                displayText = `Anno: ${value}`;
+                label = 'Anno';
+                displayValue = value;
                 break;
             case 'minRating':
-                displayText = `Rating: ${value}+ ⭐`;
+                label = 'Rating';
+                displayValue = `${value}+ ⭐`;
                 break;
             case 'priceType':
                 if (value === 'free') {
-                    displayText = 'Gratis 🆓';
+                    label = 'Prezzo';
+                    displayValue = 'Gratis';
                 } else if (value === 'paid') {
-                    displayText = 'A pagamento 💰';
-                } else if (value === 'all') {
-                    displayText = 'Tutti i prezzi 💱';
+                    label = 'Prezzo';
+                    displayValue = 'A pagamento';
                 }
                 break;
             case 'sizeType':
@@ -1806,7 +1807,8 @@ function updateActiveFiltersDisplay() {
                     'medium': '5-20MB',
                     'large': '> 20MB'
                 };
-                displayText = `Dimensione: ${sizeLabels[value]}`;
+                label = 'Dimensione';
+                displayValue = sizeLabels[value];
                 break;
             case 'timeType':
                 const timeLabels = {
@@ -1814,36 +1816,95 @@ function updateActiveFiltersDisplay() {
                     'month': 'Ultimo mese',
                     'year': 'Ultimo anno'
                 };
-                displayText = timeLabels[value];
+                label = 'Periodo';
+                displayValue = timeLabels[value];
+                break;
+            case 'tag':
+                label = 'Tag';
+                displayValue = getTagDisplayName(value);
                 break;
         }
         
-        if (displayText) {
-            // MAKE ENTIRE FILTER TAG CLICKABLE FOR REMOVAL
-            filterTags.push(`
-                <div class="filter-tag" onclick="removeFilter('${key}')">
-                    <span>${displayText}</span>
-                    <i class="material-symbols-outlined">close</i>
+        if (label && displayValue) {
+            filterPills.push(`
+                <div class="filter-pill" data-filter-key="${key}" onclick="removeActiveFilter('${key}', event)">
+                    <span class="filter-pill-label">${label}:</span>
+                    <span class="filter-pill-value">${displayValue}</span>
+                    <div class="filter-pill-remove"></div>
                 </div>
             `);
         }
     });
     
-    // Add price range tag if min/max are set and not default values
+    // Add price range pill if min/max are set and not default values
     if ((activeFilters.minPrice !== undefined || activeFilters.maxPrice !== undefined) &&
         (activeFilters.minPrice !== 0 || activeFilters.maxPrice !== 100)) {
         const minPrice = activeFilters.minPrice !== undefined ? activeFilters.minPrice : 0;
         const maxPrice = activeFilters.maxPrice !== undefined ? activeFilters.maxPrice : 100;
-        // MAKE ENTIRE PRICE RANGE TAG CLICKABLE FOR REMOVAL
-        filterTags.push(`
-            <div class="filter-tag" onclick="removeFilter('priceRange')">
-                <span>€${minPrice}-€${maxPrice}</span>
-                <i class="material-symbols-outlined">close</i>
+        filterPills.push(`
+            <div class="filter-pill" data-filter-key="priceRange" onclick="removeActiveFilter('priceRange', event)">
+                <span class="filter-pill-label">Prezzo:</span>
+                <span class="filter-pill-value">€${minPrice}-€${maxPrice}</span>
+                <div class="filter-pill-remove"></div>
             </div>
         `);
     }
     
-    activeFiltersContainer.innerHTML = filterTags.join('');
+    // Add clear all button if there are filters
+    if (filterPills.length > 0) {
+        filterPills.push(`
+            <button class="clear-all-filters-btn" onclick="clearAllActiveFilters(event)">
+                <span class="material-symbols-outlined">clear_all</span>
+                <span class="clear-all-filters-btn-text">Rimuovi tutti</span>
+            </button>
+        `);
+    }
+    
+    activeFiltersContainer.innerHTML = filterPills.join('');
+    
+    // Trigger animation
+    setTimeout(() => {
+        activeFiltersContainer.classList.add('visible');
+    }, 50);
+}
+
+// New function to handle individual filter removal with animation
+function removeActiveFilter(filterKey, event) {
+    event?.stopPropagation();
+    
+    const pill = event?.target.closest('.filter-pill');
+    if (pill) {
+        pill.style.animation = 'filterPillRemove 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        setTimeout(() => {
+            removeFilter(filterKey);
+            applyFiltersAndRender();
+        }, 250);
+    } else {
+        removeFilter(filterKey);
+        applyFiltersAndRender();
+    }
+}
+
+// New function to handle clear all filters with animation
+function clearAllActiveFilters(event) {
+    event?.stopPropagation();
+    
+    const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+    if (activeFiltersContainer) {
+        // Animate all pills out
+        const pills = activeFiltersContainer.querySelectorAll('.filter-pill, .clear-all-filters-btn');
+        pills.forEach((pill, index) => {
+            setTimeout(() => {
+                pill.style.animation = 'filterPillRemove 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+            }, index * 50);
+        });
+        
+        setTimeout(() => {
+            clearAllFiltersAction();
+        }, pills.length * 50 + 200);
+    } else {
+        clearAllFiltersAction();
+    }
 }
 
 function removeFilter(filterKey) {
@@ -2303,6 +2364,9 @@ function renderDocuments(files) {
             const documentText = count === 1 ? 'DOCUMENTO TROVATO' : 'DOCUMENTI TROVATI';
             documentCount.textContent = `${count} ${documentText}`;
             documentCountContainer.style.display = 'block';
+            
+            // Update active filters display
+            updateActiveFiltersDisplay();
         }
     }
     

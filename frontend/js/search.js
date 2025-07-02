@@ -817,10 +817,30 @@ function populateOptions(type, items) {
         'English': 'Inglese'
     };
     
+    // Map dropdown types to filter keys
+    const filterKeyMap = {
+        'faculty': 'faculty',
+        'course': 'course',
+        'canale': 'canale',
+        'documentType': 'documentType',
+        'language': 'language',
+        'academicYear': 'academicYear'
+    };
+    
+    const filterKey = filterKeyMap[type] || type;
+    const activeFilterValue = activeFilters[filterKey];
+    
     options.innerHTML = items.map(item => {
         const displayText = (type === 'language' && languageDisplayMap[item]) ? languageDisplayMap[item] : item;
+        const isSelected = item === currentValue;
+        const hasActiveFilter = activeFilterValue === item;
+        
+        let classes = 'dropdown-option';
+        if (isSelected) classes += ' selected';
+        if (hasActiveFilter) classes += ' has-active-filter';
+        
         return `
-        <div class="dropdown-option ${item === currentValue ? 'selected' : ''}" data-value="${item}">
+        <div class="${classes}" data-value="${item}">
             <span>${displayText}</span>
             <i class="material-symbols-outlined dropdown-option-check">check</i>
         </div>
@@ -832,7 +852,14 @@ function populateOptions(type, items) {
         option.addEventListener('click', () => {
             const value = option.dataset.value;
             const displayText = option.querySelector('span').textContent;
-            selectDropdownOption(type, value, displayText);
+            const hasActiveFilter = option.classList.contains('has-active-filter');
+            
+            // If this option has an active filter and is not currently selected, remove the filter
+            if (hasActiveFilter && !option.classList.contains('selected')) {
+                removeFilterFromDropdown(type, filterKey);
+            } else {
+                selectDropdownOption(type, value, displayText);
+            }
         });
     });
 }
@@ -948,6 +975,73 @@ function selectDropdownOption(type, value, displayText = null) {
         // Don't auto-open course dropdown, just update its options
         filterDropdownOptions('course', '');
     }
+    
+    // Refresh active filter indicators in all dropdowns
+    updateActiveFilterIndicators();
+    
+    applyFiltersAndRender();
+}
+
+function updateActiveFilterIndicators() {
+    // Update indicators for all dropdown types
+    const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
+    
+    dropdownTypes.forEach(type => {
+        const options = document.getElementById(`${type}Options`);
+        if (!options) return;
+        
+        const filterKeyMap = {
+            'faculty': 'faculty',
+            'course': 'course',
+            'canale': 'canale',
+            'documentType': 'documentType',
+            'language': 'language',
+            'academicYear': 'academicYear'
+        };
+        
+        const filterKey = filterKeyMap[type] || type;
+        const activeFilterValue = activeFilters[filterKey];
+        
+        options.querySelectorAll('.dropdown-option').forEach(option => {
+            const hasActiveFilter = activeFilterValue === option.dataset.value;
+            option.classList.toggle('has-active-filter', hasActiveFilter);
+        });
+    });
+}
+
+function removeFilterFromDropdown(type, filterKey) {
+    const input = document.getElementById(`${type}Filter`);
+    const container = document.querySelector(`[data-dropdown="${type}"]`);
+    
+    // Clear the input
+    input.value = '';
+    container.classList.remove('open');
+    
+    // Remove from active filters
+    delete activeFilters[filterKey];
+    
+    // Update visual selection in dropdown
+    const options = document.getElementById(`${type}Options`);
+    if (options) {
+        options.querySelectorAll('.dropdown-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+    }
+    
+    // Handle dependent dropdowns
+    if (type === 'faculty') {
+        const courseInput = document.getElementById('courseFilter');
+        courseInput.value = '';
+        delete activeFilters.course;
+        filterDropdownOptions('course', '');
+    }
+    
+    // Refresh the dropdown options to update active filter indicators
+    const searchTerm = input.value;
+    filterDropdownOptions(type, searchTerm);
+    
+    // Update active filter indicators in all dropdowns
+    updateActiveFilterIndicators();
     
     applyFiltersAndRender();
 }

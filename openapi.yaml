@@ -251,7 +251,18 @@ paths:
       tags:
         - Vetrine
       summary: Search vetrine
-      description: Search for vetrine based on various criteria. If no JWT is provided, the response will not include the favorite field.
+      description: |
+        Search for vetrine using a two-stage filtering approach:
+        
+        **Stage 1 - Vetrina Filters:**
+        - `text`: Partial text search across multiple fields
+        - `course_name`, `faculty`, `canale`, `language`: Exact matches on course instance properties
+        - `date_year`, `course_year`: Exact matches on numeric fields
+        
+        **Stage 2 - File Filters:**
+        - `tag`, `extension`: Only vetrine containing files with these exact properties will be returned
+        
+        If no JWT is provided, the response will not include the favorite field.
       security:
         - BearerAuth: []
       parameters:
@@ -260,19 +271,62 @@ paths:
           required: false
           schema:
             type: string
-          description: Filter by text
+          description: Search text across vetrina name, description, course name, faculty name, username, and author full name (partial matching)
         - name: course_name
           in: query
           required: false
           schema:
             type: string
-          description: Filter by course name
+          description: Filter by exact course name
         - name: faculty
           in: query
           required: false
           schema:
             type: string
-          description: Filter by faculty
+          description: Filter by exact faculty name
+        - name: canale
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact canale (course channel/section)
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact language of instruction
+        - name: date_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact academic year (e.g., 2024)
+        - name: course_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact course year in curriculum (e.g., 1, 2, 3)
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["dispense", "appunti", "esercizi"]
+          description: |
+            Filter vetrine that contain files with the specified tag (exact match).
+            Valid options are:
+            - **dispense**: Course handouts or lecture materials
+            - **appunti**: Student notes
+            - **esercizi**: Exercises or practice problems
+        - name: extension
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["pdf", "docx", "txt", "xlsx"]
+          description: Filter vetrine that contain files with the specified extension (exact match)
       responses:
         "200":
           description: Search results

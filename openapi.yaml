@@ -313,19 +313,17 @@ paths:
           required: false
           schema:
             type: string
-            enum: ["dispense", "appunti", "esercizi"]
           description: |
             Filter vetrine that contain files with the specified tag (exact match).
             Valid options are:
-            - **dispense**: Course handouts or lecture materials
-            - **appunti**: Student notes
-            - **esercizi**: Exercises or practice problems
+            - **dispense**
+            - **appunti**
+            - **esercizi**
         - name: extension
           in: query
           required: false
           schema:
             type: string
-            enum: ["pdf", "docx", "txt", "xlsx"]
           description: Filter vetrine that contain files with the specified extension (exact match)
       responses:
         "200":

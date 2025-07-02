@@ -183,64 +183,6 @@ body {
     width: auto;
 }
 
-.auth-buttons {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-xl);
-    background: var(--neutral-50);
-    border: 1px solid var(--neutral-200);
-    transition: all 0.2s var(--ease-out);
-}
-
-.user-info:hover {
-    background: var(--neutral-100);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
-.user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: var(--text-sm);
-    box-shadow: var(--shadow-lg);
-}
-
-.user-name {
-    font-weight: 500;
-    color: var(--neutral-700);
-    font-size: var(--text-sm);
-}
-
-.logout-btn {
-    background: none;
-    border: none;
-    color: var(--neutral-500);
-    cursor: pointer;
-    padding: var(--space-1);
-    border-radius: var(--radius-md);
-    transition: all 0.2s var(--ease-out);
-}
-
-.logout-btn:hover {
-    background: var(--danger-50);
-    color: var(--danger-600);
-}
-
 /* Main Preview Layout - Full height to bottom of screen */
 .preview-main {
     display: flex;

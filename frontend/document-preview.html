@@ -10,19 +10,24 @@
     <link rel="icon" href="images/favicon.png" type="image/png">
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header matching the image -->
     <header class="header">
         <a href="search.html" class="logo">
-            <img src="images/Logo.png" alt="StudyHub">
+            <img src="images/Logo.png" alt="Uniclarity">
         </a>
         
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <a href="search.html" class="nav-link">Home</a>
+            <a href="#about" class="nav-link">About us</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+        </nav>
+        
         <div class="auth-buttons">
+            <div class="divider"></div>
+            <a href="upload.html" class="nav-link">Carica</a>
             <div class="user-info">
-                <div class="user-avatar"></div>
-                <span class="user-name"></span>
-                <button class="logout-btn">
-                    <span class="material-symbols-outlined">logout</span>
-                </button>
+                <div class="user-avatar" id="userAvatar"></div>
             </div>
         </div>
     </header>

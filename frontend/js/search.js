@@ -855,11 +855,8 @@ function populateOptions(type, items) {
     const filterKey = filterKeyMap[type] || type;
     const activeFilterValue = activeFilters[filterKey];
     
-    console.log('populateOptions called for:', type, 'activeFilterValue:', activeFilterValue, 'activeFilters:', { ...activeFilters });
-    
     // If there's an active filter, only show that option with an X to remove it
     if (activeFilterValue && activeFilterValue !== '') {
-        console.log('Showing active filter for:', type, 'value:', activeFilterValue);
         let displayText = activeFilterValue;
         if (type === 'language' && languageDisplayMap[activeFilterValue]) {
             displayText = languageDisplayMap[activeFilterValue];
@@ -883,7 +880,6 @@ function populateOptions(type, items) {
         return;
     }
     
-    console.log('Showing all options for:', type, 'items:', items);
     // Otherwise, show all options as before
     options.innerHTML = items.map(item => {
         let displayText = item;
@@ -1097,10 +1093,30 @@ function removeFilterFromDropdown(type, filterKey) {
         filterDropdownOptions('course', '');
     }
     
-    // For static dropdowns, force refresh the options to show all options instead of the active filter
+    // Force a complete refresh of the dropdown by calling populateOptions directly
+    // instead of going through filterDropdownOptions which might have timing issues
     if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
-        // Force refresh by calling filterDropdownOptions with empty search term
-        filterDropdownOptions(type, '');
+        let items = [];
+        if (type === 'tag') {
+            items = ['appunti', 'dispense', 'esercizi'];
+        } else if (type === 'language') {
+            items = ['Italian', 'English'];
+        } else if (type === 'academicYear') {
+            items = ['2024/2025', '2023/2024', '2022/2023', '2021/2022'];
+        } else if (type === 'documentType') {
+            const staticTypes = ['PDF', 'DOCX', 'PPTX', 'XLSX'];
+            const dynamicTypes = window.allFileTypes || [];
+            const allTypes = [...staticTypes];
+            dynamicTypes.forEach(type => {
+                if (!allTypes.includes(type)) {
+                    allTypes.push(type);
+                }
+            });
+            items = allTypes;
+        }
+        
+        // Call populateOptions directly with the items
+        populateOptions(type, items);
     } else {
         // For dynamic dropdowns, refresh with current search term
         const searchTerm = input.value;

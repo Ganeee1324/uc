@@ -1100,43 +1100,41 @@ function removeFilterFromDropdown(type, filterKey) {
         filterDropdownOptions('course', '');
     }
     
-    console.log('Before calling populateOptions, activeFilters:', { ...activeFilters });
-    
-    // Force a complete refresh of the dropdown by calling populateOptions directly
-    // instead of going through filterDropdownOptions which might have timing issues
-    if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
-        let items = [];
-        if (type === 'tag') {
-            items = ['appunti', 'dispense', 'esercizi'];
-        } else if (type === 'language') {
-            items = ['Italian', 'English'];
-        } else if (type === 'academicYear') {
-            items = ['2024/2025', '2023/2024', '2022/2023', '2021/2022'];
-        } else if (type === 'documentType') {
-            const staticTypes = ['PDF', 'DOCX', 'PPTX', 'XLSX'];
-            const dynamicTypes = window.allFileTypes || [];
-            const allTypes = [...staticTypes];
-            dynamicTypes.forEach(type => {
-                if (!allTypes.includes(type)) {
-                    allTypes.push(type);
-                }
-            });
-            items = allTypes;
-        }
-        
-        console.log('Calling populateOptions with items:', items);
-        // Call populateOptions directly with the items
-        populateOptions(type, items);
-    } else {
-        // For dynamic dropdowns, refresh with current search term
-        const searchTerm = input.value;
-        filterDropdownOptions(type, searchTerm);
-    }
-    
     console.log('Before updateActiveFilterIndicators, activeFilters:', { ...activeFilters });
     
     // Add a small delay to ensure activeFilters is properly updated
     setTimeout(() => {
+        // Force a complete refresh of the dropdown by calling populateOptions directly
+        // instead of going through filterDropdownOptions which might have timing issues
+        if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
+            let items = [];
+            if (type === 'tag') {
+                items = ['appunti', 'dispense', 'esercizi'];
+            } else if (type === 'language') {
+                items = ['Italian', 'English'];
+            } else if (type === 'academicYear') {
+                items = ['2024/2025', '2023/2024', '2022/2023', '2021/2022'];
+            } else if (type === 'documentType') {
+                const staticTypes = ['PDF', 'DOCX', 'PPTX', 'XLSX'];
+                const dynamicTypes = window.allFileTypes || [];
+                const allTypes = [...staticTypes];
+                dynamicTypes.forEach(type => {
+                    if (!allTypes.includes(type)) {
+                        allTypes.push(type);
+                    }
+                });
+                items = allTypes;
+            }
+            
+            console.log('Calling populateOptions with items:', items);
+            // Call populateOptions directly with the items
+            populateOptions(type, items);
+        } else {
+            // For dynamic dropdowns, refresh with current search term
+            const searchTerm = input.value;
+            filterDropdownOptions(type, searchTerm);
+        }
+        
         // Update active filter indicators in all dropdowns
         updateActiveFilterIndicators();
         

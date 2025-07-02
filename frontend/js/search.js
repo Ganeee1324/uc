@@ -855,8 +855,11 @@ function populateOptions(type, items) {
     const filterKey = filterKeyMap[type] || type;
     const activeFilterValue = activeFilters[filterKey];
     
+    console.log('populateOptions called for:', type, 'activeFilterValue:', activeFilterValue, 'activeFilters:', { ...activeFilters });
+    
     // If there's an active filter, only show that option with an X to remove it
     if (activeFilterValue && activeFilterValue !== '') {
+        console.log('Showing active filter for:', type, 'value:', activeFilterValue);
         let displayText = activeFilterValue;
         if (type === 'language' && languageDisplayMap[activeFilterValue]) {
             displayText = languageDisplayMap[activeFilterValue];
@@ -880,6 +883,7 @@ function populateOptions(type, items) {
         return;
     }
     
+    console.log('Showing all options for:', type, 'items:', items);
     // Otherwise, show all options as before
     options.innerHTML = items.map(item => {
         let displayText = item;

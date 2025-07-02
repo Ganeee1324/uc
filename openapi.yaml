@@ -979,6 +979,9 @@ components:
             - **dispense**: Course handouts or lecture materials
             - **appunti**: Student notes  
             - **esercizi**: Exercises or practice problems
+        extension:
+          type: string
+          description: File extension (e.g., "pdf", "docx", "txt", "xlsx")
 
     Transaction:
       type: object

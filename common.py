@@ -11,6 +11,7 @@ class File:
         size: int,
         vetrina_id: int,
         sha256: str,
+        extension: str,
         download_count: int = 0,
         fact_mark: int | None = None,
         fact_mark_updated_at: datetime | None = None,
@@ -32,9 +33,10 @@ class File:
         self.favorite = favorite
         self.price = price
         self.tag = tag
+        self.extension = extension
 
     def __str__(self) -> str:
-        return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag})"
+        return f"File(id={self.id}, filename={self.filename}, created_at={self.created_at}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag}, extension={self.extension})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -54,6 +56,7 @@ class File:
             "price": self.price,
             "favorite": self.favorite,
             "tag": self.tag,
+            "extension": self.extension,
         }
 
 

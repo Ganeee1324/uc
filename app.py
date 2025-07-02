@@ -169,9 +169,8 @@ def search_vetrine():
     user_id = get_jwt_identity()
     search_params = {}
     for key, value in request.args.items():
-        if key in ["text", "course_name", "faculty"]:
-            if value and value.strip():  # Check if value exists and is not just whitespace
-                search_params[key] = value.strip()
+        if value and value.strip():
+            search_params[key] = value.strip()
 
     results = database.search_vetrine(search_params, user_id)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
@@ -196,7 +195,10 @@ def upload_file(vetrina_id):
     # Check if filename is empty
     if file.filename == "":
         return jsonify({"error": "no_filename", "msg": "No filename provided"}), 400
-
+    
+    extension = file.filename.split(".")[-1]
+    if extension not in ["pdf", "docx", "txt", "xlsx"]: 
+        return jsonify({"error": "invalid_extension", "msg": "Invalid extension. Valid extensions are: pdf, docx, txt, xlsx"}), 400
     # Get and validate tag if provided
     tag = request.form.get("tag")
     if tag and tag not in VALID_TAGS:
@@ -217,11 +219,12 @@ def upload_file(vetrina_id):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
 
     # Add file to database with size and tag
-    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, price=0, size=file_size, tag=tag)
+    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, extension, price=0, size=file_size, tag=tag)
 
     try:
         file.save(new_file_path)
-        redact.blur_pages(new_file_path, [1])
+        if extension == "pdf":
+            redact.blur_pages(new_file_path, [1])
 
     except Exception as e:
         try:

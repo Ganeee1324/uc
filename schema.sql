@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS files (
     size INTEGER NOT NULL DEFAULT 0,
     download_count INTEGER NOT NULL DEFAULT 0,
     price INTEGER NOT NULL DEFAULT 0,
+    extension VARCHAR(10) NOT NULL,
     tag VARCHAR(50),
     vetrina_id INTEGER REFERENCES vetrina(id) ON DELETE CASCADE
 );

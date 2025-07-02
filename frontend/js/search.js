@@ -567,10 +567,11 @@ function updateCoursesForFaculty(faculty) {
 function setupDropdowns() {
     // Initialize hierarchy data first
     loadHierarchyData().then(() => {
-        const searchableDropdowns = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
-        const allDropdowns = [...searchableDropdowns];
+        const searchableDropdowns = ['faculty', 'course', 'canale'];
+        const staticDropdowns = ['documentType', 'language', 'academicYear', 'tag'];
+        const allDropdowns = [...searchableDropdowns, ...staticDropdowns];
         
-        // Setup all dropdowns as searchable dropdowns
+        // Setup searchable dropdowns (faculty, course, canale)
         searchableDropdowns.forEach(type => {
             const container = document.querySelector(`[data-dropdown="${type}"]`);
             const input = document.getElementById(`${type}Filter`);
@@ -625,6 +626,45 @@ function setupDropdowns() {
             // Keyboard navigation
             input.addEventListener('keydown', (e) => {
                 handleDropdownKeyboard(e, type);
+            });
+        });
+        
+        // Setup static dropdowns (documentType, language, academicYear, tag) - click only
+        staticDropdowns.forEach(type => {
+            const container = document.querySelector(`[data-dropdown="${type}"]`);
+            const input = document.getElementById(`${type}Filter`);
+            const options = document.getElementById(`${type}Options`);
+            
+            if (!container || !input || !options) return;
+            
+            // Handle click to open dropdown (readonly inputs)
+            input.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleDropdown(container, type);
+            });
+            
+            // Handle arrow click
+            const arrow = container.querySelector('.dropdown-arrow');
+            if (arrow) {
+                arrow.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleDropdown(container, type);
+                });
+            }
+            
+            // Keyboard navigation
+            input.addEventListener('keydown', (e) => {
+                handleDropdownKeyboard(e, type);
+            });
+            
+            // Setup option clicks
+            options.addEventListener('click', (e) => {
+                const option = e.target.closest('.dropdown-option');
+                if (option) {
+                    const value = option.dataset.value;
+                    const text = option.querySelector('span').textContent;
+                    selectDropdownOption(type, value, text);
+                }
             });
         });
         
@@ -841,9 +881,29 @@ function populateOptions(type, items) {
     }
     
     // Otherwise, show all options as before
-    options.innerHTML = items.map(item => {
+    let allItems = items;
+    
+    // Add default "all" option for static dropdowns
+    if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
+        const defaultOptions = {
+            'tag': 'Tutti i tipi',
+            'documentType': 'Tutti i formati', 
+            'language': 'Tutte le lingue',
+            'academicYear': 'Tutti gli anni'
+        };
+        allItems = ['', ...items]; // Add empty string as first option
+    }
+    
+    options.innerHTML = allItems.map(item => {
         let displayText = item;
-        if (type === 'language' && languageDisplayMap[item]) {
+        
+        // Handle default "all" options
+        if (item === '') {
+            if (type === 'tag') displayText = 'Tutti i tipi';
+            else if (type === 'documentType') displayText = 'Tutti i formati';
+            else if (type === 'language') displayText = 'Tutte le lingue';
+            else if (type === 'academicYear') displayText = 'Tutti gli anni';
+        } else if (type === 'language' && languageDisplayMap[item]) {
             displayText = languageDisplayMap[item];
         } else if (type === 'tag' && tagDisplayMap[item]) {
             displayText = tagDisplayMap[item];
@@ -910,36 +970,9 @@ function filterDropdownOptions(type, searchTerm) {
         items = ['2024/2025', '2023/2024', '2022/2023', '2021/2022'];
     }
     
-    // For static dropdowns, show all items but still allow filtering
+    // For static dropdowns, always show all items (no filtering)
     if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
-        if (searchTerm.trim() === '') {
-            // If no search term, show all items
-            populateOptions(type, items);
-        } else {
-            // If there's a search term, filter the items
-            const filteredItems = items.filter(item => 
-                item.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            
-            // Sort by similarity: items starting with search term first, then by alphabetical order
-            const sortedItems = filteredItems.sort((a, b) => {
-                const aLower = a.toLowerCase();
-                const bLower = b.toLowerCase();
-                const searchLower = searchTerm.toLowerCase();
-                
-                const aStartsWith = aLower.startsWith(searchLower);
-                const bStartsWith = bLower.startsWith(searchLower);
-                
-                // If one starts with search term and other doesn't, prioritize the one that starts with it
-                if (aStartsWith && !bStartsWith) return -1;
-                if (!aStartsWith && bStartsWith) return 1;
-                
-                // If both start with search term or both don't, sort alphabetically
-                return a.localeCompare(b);
-            });
-            
-            populateOptions(type, sortedItems);
-        }
+        populateOptions(type, items);
         return;
     }
     
@@ -971,8 +1004,23 @@ function selectDropdownOption(type, value, displayText = null) {
     const input = document.getElementById(`${type}Filter`);
     const container = document.querySelector(`[data-dropdown="${type}"]`);
     
-    // Use displayText if provided, otherwise use value
-    input.value = displayText || value;
+    // Handle default values for static dropdowns
+    if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
+        if (value === '') {
+            // Reset to default text
+            if (type === 'tag') input.value = 'Tutti i tipi';
+            else if (type === 'documentType') input.value = 'Tutti i formati';
+            else if (type === 'language') input.value = 'Tutte le lingue';
+            else if (type === 'academicYear') input.value = 'Tutti gli anni';
+        } else {
+            // Use displayText if provided, otherwise use value
+            input.value = displayText || value;
+        }
+    } else {
+        // Use displayText if provided, otherwise use value
+        input.value = displayText || value;
+    }
+    
     container.classList.remove('open');
     
     // Update visual selection in dropdown
@@ -1062,8 +1110,15 @@ function removeFilterFromDropdown(type, filterKey) {
     const input = document.getElementById(`${type}Filter`);
     const container = document.querySelector(`[data-dropdown="${type}"]`);
     
-    // Clear the input
-    input.value = '';
+    // Clear the input and reset to default for static dropdowns
+    if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
+        if (type === 'tag') input.value = 'Tutti i tipi';
+        else if (type === 'documentType') input.value = 'Tutti i formati';
+        else if (type === 'language') input.value = 'Tutte le lingue';
+        else if (type === 'academicYear') input.value = 'Tutti gli anni';
+    } else {
+        input.value = '';
+    }
     container.classList.remove('open');
     
     // Remove from active filters

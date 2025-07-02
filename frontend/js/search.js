@@ -42,7 +42,7 @@ window.onload = function() {
         if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
             e.preventDefault();
             console.log('🧪 Manual loading test triggered!');
-            testLoadingAnimation();
+            
         }
     });
     
@@ -2061,19 +2061,7 @@ function showLoadingCards(count = 8) {
     console.log(`✅ Added ${count} loading cards to grid`);
 }
 
-// Test function - you can call this in console to test loading animation
-function testLoadingAnimation() {
-    console.log('🧪 Testing loading animation...');
-    showLoadingCards(6);
-    
-    // Auto-remove after 5 seconds for testing
-    setTimeout(() => {
-        const grid = document.getElementById('documentsGrid');
-        if (grid) {
-            grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">Loading animation test completed!</div>';
-        }
-    }, 5000);
-}
+
 
 async function loadAllFiles() {
     try {

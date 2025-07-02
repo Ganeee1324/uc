@@ -1135,15 +1135,18 @@ function removeFilterFromDropdown(type, filterKey) {
     
     console.log('Before updateActiveFilterIndicators, activeFilters:', { ...activeFilters });
     
-    // Update active filter indicators in all dropdowns
-    updateActiveFilterIndicators();
-    
-    console.log('Before applyFiltersAndRender, activeFilters:', { ...activeFilters });
-    
-    applyFiltersAndRender();
-    saveFiltersToStorage();
-    
-    console.log('=== REMOVE FILTER END ===');
+    // Add a small delay to ensure activeFilters is properly updated
+    setTimeout(() => {
+        // Update active filter indicators in all dropdowns
+        updateActiveFilterIndicators();
+        
+        console.log('Before applyFiltersAndRender, activeFilters:', { ...activeFilters });
+        
+        applyFiltersAndRender();
+        saveFiltersToStorage();
+        
+        console.log('=== REMOVE FILTER END ===');
+    }, 10);
 }
 
 function handleDropdownKeyboard(e, type) {

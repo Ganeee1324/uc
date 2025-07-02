@@ -567,10 +567,14 @@ html {
     max-width: none;
     text-align: left !important;
     padding-left: 0;
+}
+
+.document-count-and-filters {
     display: flex;
     align-items: center;
     gap: var(--space-4);
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .document-count {
@@ -581,15 +585,14 @@ html {
     text-align: left !important;
     letter-spacing: 0.025em;
     text-transform: uppercase;
-    display: block;
-    width: fit-content;
-    flex-shrink: 0;
+    display: inline-block;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Active Filters Display */
 .active-filters-display {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     flex-wrap: wrap;
@@ -800,7 +803,7 @@ html {
 
 /* Responsive behavior */
 @media (max-width: 768px) {
-    .document-count-container {
+    .document-count-and-filters {
         gap: var(--space-3);
         flex-direction: column;
         align-items: flex-start;

@@ -560,31 +560,23 @@ html {
 .document-count-container {
     margin-top: calc(var(--space-8) + 40px);
     margin-left: var(--space-1);
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
     position: relative;
-    z-index: 10;
-    width: 100%;
-    padding: 0;
-    display: block !important;
-    background: rgba(255, 0, 0, 0.1); /* Temporary debug background */
+    z-index: 2;
 }
 
 .document-count {
-    font-size: 1rem;
-    color: #374151;
-    font-weight: 600;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
     margin: 0;
-    padding: 8px 0;
     text-align: left;
     letter-spacing: 0.025em;
     text-transform: uppercase;
-    display: block;
-    line-height: 1.4;
-    background: rgba(0, 255, 0, 0.1); /* Temporary debug background */
 }
 
 .documents-grid {
-    margin-top: var(--space-3);
+    margin-top: var(--space-2);
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-5);

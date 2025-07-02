@@ -559,7 +559,7 @@ html {
 /* Document Count Display */
 .document-count-container {
     margin-top: calc(var(--space-8) + 40px);
-    margin-left: var(--space-1);
+    margin-left: 0;
     margin-bottom: var(--space-3);
     position: relative;
     z-index: 2;
@@ -567,7 +567,7 @@ html {
 
 .document-count {
     font-size: 0.75rem;
-    color: #9ca3af;
+    color: #6b7280;
     font-weight: 500;
     margin: 0;
     text-align: left;

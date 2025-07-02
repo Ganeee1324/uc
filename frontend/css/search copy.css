@@ -228,10 +228,21 @@ html {
     font-weight: 600;
     color: var(--gray-700);
     text-decoration: none;
-    padding: var(--space-2) var(--space-4);
+    padding: var(--space-4);
     border-radius: var(--radius-lg);
     transition: all 0.2s var(--ease-2);
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    min-height: 48px;
+}
+
+.nav-link svg {
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
 }
 
 .nav-link:hover {
@@ -266,16 +277,58 @@ html {
 }
 
 .user-avatar {
-    height: 40px;
-    width: 40px;
-    border-radius: 50%;
-    background: var(--gradient-primary);
-    color: var(--white);
+    height: auto;
+    width: auto;
+    border-radius: 0;
+    background: transparent;
+    color: black;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     font-size: 18px;
+    overflow: visible;
+    position: relative;
+    border: none;
+}
+
+.user-avatar svg {
+    width: 32px;
+    height: 32px;
+    color: black;
+    display: block !important;
+    position: relative;
+    z-index: 10;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hide any text content that might be overlaid */
+.user-avatar::before,
+.user-avatar::after {
+    display: none !important;
+}
+
+/* Ensure no text content is displayed */
+.user-avatar {
+    text-indent: -9999px;
+    font-size: 0;
+    line-height: 0;
+    color: transparent !important;
+}
+
+/* Force SVG to be visible and text to be hidden */
+.user-avatar > *:not(svg) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.user-avatar svg {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 999 !important;
 }
 
 .user-name {

@@ -1063,6 +1063,8 @@ function updateActiveFilterIndicators() {
 }
 
 function removeFilterFromDropdown(type, filterKey) {
+    console.log('Removing filter:', type, filterKey, 'Current activeFilters:', { ...activeFilters });
+    
     const input = document.getElementById(`${type}Filter`);
     const container = document.querySelector(`[data-dropdown="${type}"]`);
     
@@ -1072,6 +1074,8 @@ function removeFilterFromDropdown(type, filterKey) {
     
     // Remove from active filters
     delete activeFilters[filterKey];
+    
+    console.log('After removal, activeFilters:', { ...activeFilters });
     
     // Update visual selection in dropdown
     const options = document.getElementById(`${type}Options`);
@@ -1089,9 +1093,15 @@ function removeFilterFromDropdown(type, filterKey) {
         filterDropdownOptions('course', '');
     }
     
-    // Refresh the dropdown options to update active filter indicators
-    const searchTerm = input.value;
-    filterDropdownOptions(type, searchTerm);
+    // For static dropdowns, force refresh the options to show all options instead of the active filter
+    if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
+        // Force refresh by calling filterDropdownOptions with empty search term
+        filterDropdownOptions(type, '');
+    } else {
+        // For dynamic dropdowns, refresh with current search term
+        const searchTerm = input.value;
+        filterDropdownOptions(type, searchTerm);
+    }
     
     // Update active filter indicators in all dropdowns
     updateActiveFilterIndicators();

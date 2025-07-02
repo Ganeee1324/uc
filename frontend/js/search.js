@@ -567,11 +567,10 @@ function updateCoursesForFaculty(faculty) {
 function setupDropdowns() {
     // Initialize hierarchy data first
     loadHierarchyData().then(() => {
-        const searchableDropdowns = ['faculty', 'course', 'canale'];
-        const staticDropdowns = ['documentType', 'language', 'academicYear', 'tag'];
-        const allDropdowns = [...searchableDropdowns, ...staticDropdowns];
+        const searchableDropdowns = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
+        const allDropdowns = [...searchableDropdowns];
         
-        // Setup searchable dropdowns (faculty, course, canale)
+        // Setup all dropdowns as searchable dropdowns
         searchableDropdowns.forEach(type => {
             const container = document.querySelector(`[data-dropdown="${type}"]`);
             const input = document.getElementById(`${type}Filter`);
@@ -626,45 +625,6 @@ function setupDropdowns() {
             // Keyboard navigation
             input.addEventListener('keydown', (e) => {
                 handleDropdownKeyboard(e, type);
-            });
-        });
-        
-        // Setup static dropdowns (documentType, language, academicYear, tag)
-        staticDropdowns.forEach(type => {
-            const container = document.querySelector(`[data-dropdown="${type}"]`);
-            const input = document.getElementById(`${type}Filter`);
-            const options = document.getElementById(`${type}Options`);
-            
-            if (!container || !input || !options) return;
-            
-            // Handle click to open dropdown (readonly inputs)
-            input.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleDropdown(container, type);
-            });
-            
-            // Handle arrow click
-            const arrow = container.querySelector('.dropdown-arrow');
-            if (arrow) {
-                arrow.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleDropdown(container, type);
-                });
-            }
-            
-            // Keyboard navigation
-            input.addEventListener('keydown', (e) => {
-                handleDropdownKeyboard(e, type);
-            });
-            
-            // Setup option clicks
-            options.addEventListener('click', (e) => {
-                const option = e.target.closest('.dropdown-option');
-                if (option) {
-                    const value = option.dataset.value;
-                    const text = option.querySelector('span').textContent;
-                    selectDropdownOption(type, value, text);
-                }
             });
         });
         
@@ -950,9 +910,36 @@ function filterDropdownOptions(type, searchTerm) {
         items = ['2024/2025', '2023/2024', '2022/2023', '2021/2022'];
     }
     
-    // For static dropdowns, don't filter by search term (they're readonly)
+    // For static dropdowns, show all items but still allow filtering
     if (['documentType', 'language', 'academicYear', 'tag'].includes(type)) {
-        populateOptions(type, items);
+        if (searchTerm.trim() === '') {
+            // If no search term, show all items
+            populateOptions(type, items);
+        } else {
+            // If there's a search term, filter the items
+            const filteredItems = items.filter(item => 
+                item.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            // Sort by similarity: items starting with search term first, then by alphabetical order
+            const sortedItems = filteredItems.sort((a, b) => {
+                const aLower = a.toLowerCase();
+                const bLower = b.toLowerCase();
+                const searchLower = searchTerm.toLowerCase();
+                
+                const aStartsWith = aLower.startsWith(searchLower);
+                const bStartsWith = bLower.startsWith(searchLower);
+                
+                // If one starts with search term and other doesn't, prioritize the one that starts with it
+                if (aStartsWith && !bStartsWith) return -1;
+                if (!aStartsWith && bStartsWith) return 1;
+                
+                // If both start with search term or both don't, sort alphabetically
+                return a.localeCompare(b);
+            });
+            
+            populateOptions(type, sortedItems);
+        }
         return;
     }
     

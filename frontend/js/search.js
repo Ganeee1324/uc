@@ -614,15 +614,30 @@ function setupDropdowns() {
                 }
             });
             
-            // Handle arrow click
-            const arrow = container.querySelector('.dropdown-arrow');
-            if (arrow) {
-                arrow.addEventListener('click', (e) => {
-                    e.stopPropagation();
+            // Handle input click specifically (not the wrapper)
+            input.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!container.classList.contains('open')) {
+                    toggleDropdown(container, type);
+                }
+            });
+            
+                    // Handle arrow click
+        const arrow = container.querySelector('.dropdown-arrow');
+        if (arrow) {
+            arrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = container.classList.contains('open');
+                if (isOpen) {
+                    // Close dropdown if already open
+                    container.classList.remove('open');
+                } else {
+                    // Open dropdown if closed
                     toggleDropdown(container, type);
                     input.focus();
-                });
-            }
+                }
+            });
+        }
             
             // Keyboard navigation
             input.addEventListener('keydown', (e) => {
@@ -641,17 +656,25 @@ function setupDropdowns() {
             // Handle click to open dropdown (readonly inputs)
             input.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 toggleDropdown(container, type);
             });
             
-            // Handle arrow click
-            const arrow = container.querySelector('.dropdown-arrow');
-            if (arrow) {
-                arrow.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    // Handle arrow click
+        const arrow = container.querySelector('.dropdown-arrow');
+        if (arrow) {
+            arrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = container.classList.contains('open');
+                if (isOpen) {
+                    // Close dropdown if already open
+                    container.classList.remove('open');
+                } else {
+                    // Open dropdown if closed
                     toggleDropdown(container, type);
-                });
-            }
+                }
+            });
+        }
             
             // Keyboard navigation
             input.addEventListener('keydown', (e) => {
@@ -661,8 +684,14 @@ function setupDropdowns() {
         
         // Close dropdowns when clicking outside (unified for all dropdowns)
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown-container') && !e.target.closest('.author-container')) {
+            // Check if click is outside any dropdown input area or dropdown content
+            const clickedDropdownContainer = e.target.closest('.dropdown-container');
+            const clickedAuthorContainer = e.target.closest('.author-container');
+            
+            if (!clickedDropdownContainer && !clickedAuthorContainer) {
+                // Click is outside all dropdown areas - close all dropdowns
                 closeAllDropdowns();
+                
                 // Clear any invalid inputs consistently
                 allDropdowns.forEach(type => {
                     const input = document.getElementById(`${type}Filter`);
@@ -689,6 +718,43 @@ function setupDropdowns() {
                         }
                     }
                 });
+            } else if (clickedDropdownContainer) {
+                // Click is inside a dropdown container - check if it's outside the input area
+                const input = clickedDropdownContainer.querySelector('.dropdown-input');
+                const dropdownContent = clickedDropdownContainer.querySelector('.dropdown-content');
+                const arrow = clickedDropdownContainer.querySelector('.dropdown-arrow');
+                
+                // If click is not on input, arrow, or dropdown content, close the dropdown
+                if (!input.contains(e.target) && 
+                    !arrow.contains(e.target) && 
+                    !dropdownContent.contains(e.target)) {
+                    
+                    const type = clickedDropdownContainer.getAttribute('data-dropdown');
+                    clickedDropdownContainer.classList.remove('open');
+                    
+                    // Clear invalid input for this specific dropdown
+                    if (input && !input.readOnly) {
+                        const currentValue = input.value.trim();
+                        
+                        const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
+                        const isMultiSelect = multiSelectFilters.includes(type);
+                        
+                        if (!isMultiSelect) {
+                            const isValidSelection = activeFilters[type] === currentValue;
+                            
+                            if (!isValidSelection && currentValue !== '' && !currentValue.includes(' selected')) {
+                                input.value = '';
+                                delete activeFilters[type];
+                                if (type === 'faculty') {
+                                    const courseInput = document.getElementById('courseFilter');
+                                    courseInput.value = '';
+                                    delete activeFilters.course;
+                                }
+                                applyFiltersAndRender();
+                            }
+                        }
+                    }
+                }
             }
         });
         

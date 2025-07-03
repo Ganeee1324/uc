@@ -240,7 +240,7 @@ body {
 
 .premium-main {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 320px; /* Made info panel even narrower to make viewer wider */
     gap: var(--space-8);
     padding: var(--space-8);
     flex: 1;
@@ -634,7 +634,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 320px; /* Fixed height for both cards */
+    height: 320px;
 }
 
 .card-header {
@@ -827,7 +827,7 @@ body {
 }
 
 .recommended-container {
-    max-width: 1200px;
+    max-width: 1600px; /* Increased max-width to better accommodate 4 cards */
     margin: 0 auto;
 }
 
@@ -852,9 +852,9 @@ body {
 
 .recommendations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-6);
-    max-width: 1200px;
+    grid-template-columns: repeat(4, 1fr); /* Force 4 columns */
+    gap: var(--space-8); /* Increased gap for better spacing */
+    max-width: 1600px; /* Increased max-width */
     margin: 0 auto;
 }
 
@@ -867,7 +867,7 @@ body {
     cursor: pointer;
     transition: var(--transition-normal);
     box-shadow: var(--shadow-md);
-    height: 480px; /* Slightly smaller than search page */
+    height: 560px; /* Increased height to prevent content squishing */
 }
 
 .premium-recommended .document-card:hover {
@@ -877,24 +877,24 @@ body {
 }
 
 .premium-recommended .document-preview {
-    height: 200px; /* Slightly smaller than search page */
+    height: 220px;
     background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
     border-bottom: 1px solid var(--gray-200);
 }
 
 .premium-recommended .document-content {
-    height: 280px; /* Adjusted for smaller preview */
+    height: 340px; /* Increased content height for better spacing */
     padding: var(--space-4);
 }
 
 .premium-recommended .document-info {
-    top: 80px; /* Adjusted for smaller content */
-    height: 120px; /* Smaller info section */
+    top: 100px; /* Adjusted for increased content */
+    height: 160px; /* Increased info section height for better spacing */
 }
 
 .premium-recommended .document-footer {
     bottom: var(--space-4);
-    height: 40px; /* Smaller footer */
+    height: 50px;
 }
 
 /* ========================================
@@ -943,8 +943,12 @@ body {
     }
     
     .recommendations-grid {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: var(--space-4);
+    }
+    
+    .premium-recommended .document-card {
+        height: 480px;
     }
 }
 
@@ -991,6 +995,10 @@ body {
     
     .premium-recommended {
         padding: var(--space-4);
+    }
+    
+    .premium-recommended .document-card {
+        height: 460px;
     }
 }
 

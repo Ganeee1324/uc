@@ -233,10 +233,9 @@ body {
 ======================================== */
 .premium-container {
     padding-top: 72px;
-    height: 100vh; /* Fixed height instead of min-height for better control */
+    min-height: 100vh; /* Allow content to expand beyond viewport */
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevent page scrolling */
 }
 
 .premium-main {

@@ -466,27 +466,25 @@ body {
 }
 
 .doc-info-content {
-    padding: var(--space-8);
+    padding: var(--space-6);
     height: 100%;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-6); /* Space between sections */
+    gap: var(--space-4); /* Reduced space between sections */
 }
 
 /* Document Details Section - Contains document metadata only */
 .doc-details-section {
     background: var(--neutral-25);
     border-radius: var(--radius-xl);
-    padding: var(--space-6);
+    padding: var(--space-4);
     border: 1px solid var(--neutral-100);
-    min-height: 240px; /* Reduced height for fewer items */
     overflow: hidden; /* Prevent content overflow */
 }
 
 .doc-details {
-    overflow-y: auto; /* Enable scrolling for details content */
-    max-height: calc(240px - 80px); /* Subtract padding (48px) and header (32px) */
+    overflow: visible; /* Allow content to display naturally */
 }
 
 .doc-details-section h3 {
@@ -496,27 +494,27 @@ body {
     font-size: var(--text-lg);
     font-weight: 600;
     color: var(--neutral-800);
-    margin: 0 0 var(--space-6) 0;
-    padding-bottom: var(--space-3);
+    margin: 0 0 var(--space-4) 0;
+    padding-bottom: var(--space-2);
     border-bottom: 2px solid var(--primary-100);
 }
 
 /* Main Document Info - Back outside details section */
 .doc-main-info {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-4);
 }
 
 /* Action Buttons - Back outside details section */
 .doc-actions {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-4);
 }
 
 /* Vertical Detail Items - Professional Structure */
 .detail-item-vertical {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-4) 0;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
     border-bottom: 1px solid var(--neutral-150);
 }
 
@@ -576,9 +574,8 @@ body {
 .doc-description-section {
     background: var(--neutral-25);
     border-radius: var(--radius-xl);
-    padding: var(--space-6);
+    padding: var(--space-4);
     border: 1px solid var(--neutral-100);
-    min-height: 200px; /* Increased minimum height */
 }
 
 .doc-description-section h3 {
@@ -588,8 +585,8 @@ body {
     font-size: var(--text-lg);
     font-weight: 600;
     color: var(--neutral-800);
-    margin-bottom: var(--space-6);
-    padding-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
     border-bottom: 2px solid var(--primary-100);
 }
 

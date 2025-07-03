@@ -1,6 +1,6 @@
 /**
- * WORLD-CLASS DOCUMENT PREVIEW JS
- * Premium Interactive Experience v2.0
+ * INTERFACCIA DOCUMENTO PREMIUM
+ * Esperienza Interattiva di Classe Mondiale v2.1 - Edizione Italiana
  */
 
 class PremiumDocumentPreview {
@@ -20,24 +20,24 @@ class PremiumDocumentPreview {
     }
 
     setupEventListeners() {
-        // Header interactions
+        // Interazioni header
         this.setupHeaderActions();
         
-        // Document viewer controls
+        // Controlli visualizzatore documento
         this.setupViewerControls();
         
-        // Interactive buttons
+        // Pulsanti interattivi
         this.setupInteractiveButtons();
         
-        // Card interactions
+        // Interazioni carte
         this.setupCardInteractions();
         
-        // Review system
+        // Sistema recensioni
         this.setupReviewSystem();
     }
 
     setupHeaderActions() {
-        // Share button
+        // Pulsante condividi
         const shareBtn = document.querySelector('.share-btn');
         if (shareBtn) {
             shareBtn.addEventListener('click', (e) => {
@@ -46,7 +46,7 @@ class PremiumDocumentPreview {
             });
         }
 
-        // Favorite button
+        // Pulsante preferiti
         const favoriteBtn = document.querySelector('.favorite-btn');
         if (favoriteBtn) {
             favoriteBtn.addEventListener('click', (e) => {
@@ -55,7 +55,7 @@ class PremiumDocumentPreview {
             });
         }
 
-        // User avatar click
+        // Click avatar utente
         const userAvatar = document.querySelector('.user-avatar');
         if (userAvatar) {
             userAvatar.addEventListener('click', (e) => {
@@ -66,27 +66,27 @@ class PremiumDocumentPreview {
     }
 
     setupViewerControls() {
-        // Zoom out
-        const zoomOutBtn = document.querySelector('.control-btn[title="Zoom out"]');
+        // Riduci zoom
+        const zoomOutBtn = document.querySelector('.control-btn[title="Riduci zoom"]');
         if (zoomOutBtn) {
             zoomOutBtn.addEventListener('click', () => this.zoomOut());
         }
 
-        // Zoom in
-        const zoomInBtn = document.querySelector('.control-btn[title="Zoom in"]');
+        // Aumenta zoom
+        const zoomInBtn = document.querySelector('.control-btn[title="Aumenta zoom"]');
         if (zoomInBtn) {
             zoomInBtn.addEventListener('click', () => this.zoomIn());
         }
 
-        // Fullscreen
-        const fullscreenBtn = document.querySelector('.control-btn[title="Fullscreen"]');
+        // Schermo intero
+        const fullscreenBtn = document.querySelector('.control-btn[title="Schermo intero"]');
         if (fullscreenBtn) {
             fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
         }
     }
 
     setupInteractiveButtons() {
-        // Add to cart button
+        // Pulsante aggiungi al carrello
         const addToCartBtn = document.querySelector('.premium-btn.primary');
         if (addToCartBtn) {
             addToCartBtn.addEventListener('click', (e) => {
@@ -95,7 +95,7 @@ class PremiumDocumentPreview {
             });
         }
 
-        // Buy now button
+        // Pulsante acquista ora
         const buyNowBtn = document.querySelector('.premium-btn.secondary');
         if (buyNowBtn) {
             buyNowBtn.addEventListener('click', (e) => {
@@ -104,7 +104,7 @@ class PremiumDocumentPreview {
             });
         }
 
-        // Write review button
+        // Pulsante scrivi recensione
         const writeReviewBtn = document.querySelector('.write-review-btn');
         if (writeReviewBtn) {
             writeReviewBtn.addEventListener('click', (e) => {
@@ -115,7 +115,7 @@ class PremiumDocumentPreview {
     }
 
     setupCardInteractions() {
-        // Recommendation cards
+        // Carte raccomandazioni
         const recommendationCards = document.querySelectorAll('.recommendation-card');
         recommendationCards.forEach(card => {
             card.addEventListener('click', (e) => {
@@ -124,7 +124,7 @@ class PremiumDocumentPreview {
                 }
             });
 
-            // Overlay button
+            // Pulsante overlay
             const overlayBtn = card.querySelector('.overlay-btn');
             if (overlayBtn) {
                 overlayBtn.addEventListener('click', (e) => {
@@ -136,7 +136,7 @@ class PremiumDocumentPreview {
     }
 
     setupReviewSystem() {
-        // Star rating interactions
+        // Interazioni valutazione stelle
         const stars = document.querySelectorAll('.stars .star');
         stars.forEach((star, index) => {
             star.addEventListener('mouseenter', () => this.highlightStars(index));
@@ -146,7 +146,7 @@ class PremiumDocumentPreview {
     }
 
     setupAnimations() {
-        // Intersection Observer for fade-in animations
+        // Intersection Observer per animazioni fade-in
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -160,7 +160,7 @@ class PremiumDocumentPreview {
             });
         }, observerOptions);
 
-        // Observe recommendation cards
+        // Osserva carte raccomandazioni
         const cards = document.querySelectorAll('.recommendation-card');
         cards.forEach((card, index) => {
             card.style.animationDelay = `${index * 0.1}s`;
@@ -169,7 +169,7 @@ class PremiumDocumentPreview {
     }
 
     setupScrollEffects() {
-        // Smooth scroll for internal links
+        // Scroll fluido per link interni
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -183,7 +183,7 @@ class PremiumDocumentPreview {
             });
         });
 
-        // Header scroll effect
+        // Effetto scroll header
         let lastScrollY = window.scrollY;
         window.addEventListener('scroll', () => {
             const header = document.querySelector('.premium-header');
@@ -200,7 +200,7 @@ class PremiumDocumentPreview {
     }
 
     preloadElements() {
-        // Preload critical images and icons
+        // Precarica immagini e icone critiche
         const imageUrls = [
             'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face'
         ];
@@ -211,7 +211,7 @@ class PremiumDocumentPreview {
         });
     }
 
-    // Viewer Controls
+    // Controlli Visualizzatore
     zoomOut() {
         if (this.currentZoom > 25) {
             this.currentZoom -= 25;
@@ -245,7 +245,7 @@ class PremiumDocumentPreview {
 
     toggleFullscreen() {
         const viewer = document.querySelector('.premium-viewer');
-        const icon = document.querySelector('.control-btn[title="Fullscreen"] .material-symbols-outlined');
+        const icon = document.querySelector('.control-btn[title="Schermo intero"] .material-symbols-outlined');
         
         if (!this.isFullscreen) {
             viewer.classList.add('fullscreen-mode');
@@ -258,14 +258,14 @@ class PremiumDocumentPreview {
         }
     }
 
-    // Header Actions
+    // Azioni Header
     toggleFavorite() {
         const favoriteBtn = document.querySelector('.favorite-btn .material-symbols-outlined');
         
         this.favorited = !this.favorited;
         favoriteBtn.textContent = this.favorited ? 'favorite' : 'favorite_border';
         
-        // Add animation
+        // Aggiungi animazione
         favoriteBtn.style.transform = 'scale(1.2)';
         favoriteBtn.style.color = this.favorited ? '#ef4444' : '';
         
@@ -273,16 +273,16 @@ class PremiumDocumentPreview {
             favoriteBtn.style.transform = 'scale(1)';
         }, 200);
 
-        this.showToast(this.favorited ? 'Added to favorites!' : 'Removed from favorites');
+        this.showToast(this.favorited ? 'Aggiunto ai preferiti!' : 'Rimosso dai preferiti');
     }
 
     showShareModal() {
-        // Create share modal
-        const modal = this.createModal('Share Document', `
+        // Crea modal condivisione
+        const modal = this.createModal('Condividi Documento', `
             <div class="share-options">
                 <button class="share-option" data-type="copy">
                     <span class="material-symbols-outlined">link</span>
-                    Copy Link
+                    Copia Link
                 </button>
                 <button class="share-option" data-type="email">
                     <span class="material-symbols-outlined">email</span>
@@ -295,7 +295,7 @@ class PremiumDocumentPreview {
             </div>
         `);
 
-        // Add event listeners
+        // Aggiungi event listeners
         modal.querySelectorAll('.share-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 const type = e.currentTarget.dataset.type;
@@ -308,34 +308,34 @@ class PremiumDocumentPreview {
     showUserMenu() {
         const userAvatar = document.querySelector('.user-avatar');
         
-        // Create user menu
+        // Crea menu utente
         const menu = document.createElement('div');
         menu.className = 'user-menu';
         menu.innerHTML = `
             <div class="menu-item">
                 <span class="material-symbols-outlined">person</span>
-                Profile
+                Profilo
             </div>
             <div class="menu-item">
                 <span class="material-symbols-outlined">shopping_cart</span>
-                My Cart
+                Il Mio Carrello
             </div>
             <div class="menu-item">
                 <span class="material-symbols-outlined">favorite</span>
-                Favorites
+                Preferiti
             </div>
             <div class="menu-item">
                 <span class="material-symbols-outlined">settings</span>
-                Settings
+                Impostazioni
             </div>
             <hr class="menu-divider">
             <div class="menu-item">
                 <span class="material-symbols-outlined">logout</span>
-                Sign Out
+                Disconnetti
             </div>
         `;
 
-        // Position and show menu
+        // Posiziona e mostra menu
         const rect = userAvatar.getBoundingClientRect();
         menu.style.position = 'fixed';
         menu.style.top = `${rect.bottom + 10}px`;
@@ -343,7 +343,7 @@ class PremiumDocumentPreview {
         
         document.body.appendChild(menu);
 
-        // Close menu on outside click
+        // Chiudi menu al click esterno
         setTimeout(() => {
             document.addEventListener('click', (e) => {
                 if (!menu.contains(e.target) && !userAvatar.contains(e.target)) {
@@ -353,21 +353,21 @@ class PremiumDocumentPreview {
         }, 100);
     }
 
-    // Purchase Actions
+    // Azioni Acquisto
     addToCart() {
         const button = document.querySelector('.premium-btn.primary');
         const originalText = button.querySelector('.btn-text').textContent;
         const icon = button.querySelector('.material-symbols-outlined');
         
-        // Button loading state
+        // Stato loading pulsante
         button.style.pointerEvents = 'none';
         icon.textContent = 'hourglass_empty';
-        button.querySelector('.btn-text').textContent = 'Adding...';
+        button.querySelector('.btn-text').textContent = 'Aggiungendo...';
         
-        // Simulate API call
+        // Simula chiamata API
         setTimeout(() => {
             icon.textContent = 'check';
-            button.querySelector('.btn-text').textContent = 'Added!';
+            button.querySelector('.btn-text').textContent = 'Aggiunto!';
             button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
             
             setTimeout(() => {
@@ -378,13 +378,13 @@ class PremiumDocumentPreview {
             }, 2000);
         }, 1500);
 
-        this.showToast('Document added to cart!');
+        this.showToast('Documento aggiunto al carrello!');
     }
 
     buyNow() {
         const button = document.querySelector('.premium-btn.secondary');
         
-        // Add loading animation
+        // Aggiungi animazione loading
         button.style.transform = 'scale(0.95)';
         
         setTimeout(() => {
@@ -394,19 +394,19 @@ class PremiumDocumentPreview {
     }
 
     showPurchaseModal() {
-        const modal = this.createModal('Complete Purchase', `
+        const modal = this.createModal('Completa Acquisto', `
             <div class="purchase-form">
                 <div class="purchase-summary">
-                    <h3>Advanced Machine Learning Algorithms</h3>
+                    <h3>Algoritmi Avanzati di Machine Learning</h3>
                     <div class="price-line">
-                        <span>Price:</span>
+                        <span>Prezzo:</span>
                         <span class="price">€24.99</span>
                     </div>
                 </div>
                 <div class="payment-methods">
                     <button class="payment-method">
                         <span class="material-symbols-outlined">credit_card</span>
-                        Credit Card
+                        Carta di Credito
                     </button>
                     <button class="payment-method">
                         <span class="material-symbols-outlined">account_balance_wallet</span>
@@ -415,12 +415,12 @@ class PremiumDocumentPreview {
                 </div>
                 <button class="confirm-purchase">
                     <span class="material-symbols-outlined">lock</span>
-                    Secure Purchase
+                    Acquisto Sicuro
                 </button>
             </div>
         `);
 
-        // Add purchase logic
+        // Aggiungi logica acquisto
         const confirmBtn = modal.querySelector('.confirm-purchase');
         confirmBtn.addEventListener('click', () => {
             this.processPurchase();
@@ -428,17 +428,17 @@ class PremiumDocumentPreview {
         });
     }
 
-    // Card Interactions
+    // Interazioni Carte
     navigateToDocument(card) {
         const title = card.querySelector('.card-title').textContent;
         
-        // Add navigation animation
+        // Aggiungi animazione navigazione
         card.style.transform = 'scale(0.95)';
         card.style.opacity = '0.8';
         
         setTimeout(() => {
-            this.showToast(`Opening: ${title}`);
-            // Here you would typically navigate to the document
+            this.showToast(`Apertura: ${title}`);
+            // Qui normalmente navigheresti al documento
         }, 200);
     }
 
@@ -446,20 +446,20 @@ class PremiumDocumentPreview {
         const title = card.querySelector('.card-title').textContent;
         const description = card.querySelector('.card-description').textContent;
         
-        const modal = this.createModal('Quick Preview', `
+        const modal = this.createModal('Anteprima Rapida', `
             <div class="quick-preview">
                 <div class="preview-content">
                     <h3>${title}</h3>
                     <p>${description}</p>
                     <div class="preview-actions">
-                        <button class="preview-btn primary">View Full Document</button>
-                        <button class="preview-btn secondary">Add to Cart</button>
+                        <button class="preview-btn primary">Visualizza Documento Completo</button>
+                        <button class="preview-btn secondary">Aggiungi al Carrello</button>
                     </div>
                 </div>
             </div>
         `);
 
-        // Add preview interactions
+        // Aggiungi interazioni anteprima
         const viewBtn = modal.querySelector('.preview-btn.primary');
         const addBtn = modal.querySelector('.preview-btn.secondary');
         
@@ -470,16 +470,16 @@ class PremiumDocumentPreview {
         
         addBtn.addEventListener('click', () => {
             this.closeModal(modal);
-            this.showToast('Added to cart!');
+            this.showToast('Aggiunto al carrello!');
         });
     }
 
-    // Review System
+    // Sistema Recensioni
     showReviewModal() {
-        const modal = this.createModal('Write a Review', `
+        const modal = this.createModal('Scrivi una Recensione', `
             <div class="review-form">
                 <div class="rating-section">
-                    <label>Your Rating:</label>
+                    <label>La Tua Valutazione:</label>
                     <div class="interactive-stars">
                         ${Array(5).fill(0).map((_, i) => 
                             `<span class="star interactive" data-rating="${i + 1}">★</span>`
@@ -487,11 +487,11 @@ class PremiumDocumentPreview {
                     </div>
                 </div>
                 <div class="review-text">
-                    <label for="review-content">Your Review:</label>
-                    <textarea id="review-content" rows="4" placeholder="Share your thoughts about this document..."></textarea>
+                    <label for="review-content">La Tua Recensione:</label>
+                    <textarea id="review-content" rows="4" placeholder="Condividi i tuoi pensieri su questo documento..."></textarea>
                 </div>
                 <div class="review-actions">
-                    <button class="submit-review">Submit Review</button>
+                    <button class="submit-review">Invia Recensione</button>
                 </div>
             </div>
         `);
@@ -525,7 +525,7 @@ class PremiumDocumentPreview {
                 this.submitReview(selectedRating, content);
                 this.closeModal(modal);
             } else {
-                this.showToast('Please provide a rating and review text');
+                this.showToast('Per favore fornisci una valutazione e testo della recensione');
             }
         });
     }
@@ -549,10 +549,10 @@ class PremiumDocumentPreview {
     }
 
     submitReview(rating, content) {
-        // Simulate API call
-        this.showToast('Review submitted successfully!');
+        // Simula chiamata API
+        this.showToast('Recensione inviata con successo!');
         
-        // Add new review to the list (simulation)
+        // Aggiungi nuova recensione alla lista (simulazione)
         setTimeout(() => {
             this.addReviewToList(rating, content);
         }, 1000);
@@ -566,10 +566,10 @@ class PremiumDocumentPreview {
             <div class="comment-header">
                 <div class="comment-author">
                     <div class="author-avatar">
-                        <span>Y</span>
+                        <span>T</span>
                     </div>
                     <div class="author-info">
-                        <span class="author-name">You</span>
+                        <span class="author-name">Tu</span>
                         <div class="comment-rating">
                             ${Array(5).fill(0).map((_, i) => 
                                 `<span class="star">${i < rating ? '★' : '★'}</span>`
@@ -577,12 +577,12 @@ class PremiumDocumentPreview {
                         </div>
                     </div>
                 </div>
-                <span class="comment-time">Just now</span>
+                <span class="comment-time">Proprio ora</span>
             </div>
             <p class="comment-text">${content}</p>
         `;
         
-        // Add with animation
+        // Aggiungi con animazione
         newComment.style.opacity = '0';
         newComment.style.transform = 'translateY(20px)';
         commentsList.insertBefore(newComment, commentsList.firstChild);
@@ -594,7 +594,7 @@ class PremiumDocumentPreview {
         }, 100);
     }
 
-    // Utility Functions
+    // Funzioni Utilità
     createModal(title, content) {
         const modal = document.createElement('div');
         modal.className = 'premium-modal';
@@ -615,7 +615,7 @@ class PremiumDocumentPreview {
 
         document.body.appendChild(modal);
 
-        // Add close functionality
+        // Aggiungi funzionalità chiusura
         const closeBtn = modal.querySelector('.modal-close');
         const overlay = modal.querySelector('.modal-overlay');
         
@@ -623,12 +623,12 @@ class PremiumDocumentPreview {
             element.addEventListener('click', () => this.closeModal(modal));
         });
 
-        // Prevent modal content click from closing
+        // Previeni chiusura al click contenuto modal
         modal.querySelector('.modal-content').addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
-        // Animate in
+        // Anima entrata
         requestAnimationFrame(() => {
             modal.style.opacity = '1';
             modal.querySelector('.modal-content').style.transform = 'scale(1)';
@@ -658,13 +658,13 @@ class PremiumDocumentPreview {
 
         document.body.appendChild(toast);
 
-        // Animate in
+        // Anima entrata
         requestAnimationFrame(() => {
             toast.style.transform = 'translateX(0) translateY(0)';
             toast.style.opacity = '1';
         });
 
-        // Auto remove
+        // Auto rimozione
         setTimeout(() => {
             toast.style.transform = 'translateX(100%) translateY(0)';
             toast.style.opacity = '0';
@@ -676,32 +676,32 @@ class PremiumDocumentPreview {
         switch (type) {
             case 'copy':
                 navigator.clipboard.writeText(window.location.href);
-                this.showToast('Link copied to clipboard!');
+                this.showToast('Link copiato negli appunti!');
                 break;
             case 'email':
-                window.location.href = `mailto:?subject=Check out this document&body=${encodeURIComponent(window.location.href)}`;
+                window.location.href = `mailto:?subject=Guarda questo documento&body=${encodeURIComponent(window.location.href)}`;
                 break;
             case 'social':
-                this.showToast('Social sharing opened!');
+                this.showToast('Condivisione social aperta!');
                 break;
         }
     }
 
     processPurchase() {
-        this.showToast('Processing purchase...');
+        this.showToast('Elaborazione acquisto...');
         
         setTimeout(() => {
-            this.showToast('Purchase completed successfully!');
+            this.showToast('Acquisto completato con successo!');
         }, 2000);
     }
 }
 
-// Initialize when DOM is loaded
+// Inizializza quando DOM è caricato
 document.addEventListener('DOMContentLoaded', () => {
     new PremiumDocumentPreview();
 });
 
-// Add premium modal and toast styles
+// Aggiungi stili modal e toast premium
 const premiumStyles = `
 <style>
 .premium-modal {

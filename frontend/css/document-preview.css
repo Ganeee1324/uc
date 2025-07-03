@@ -471,7 +471,7 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-4); /* Reduced space between sections */
+    gap: var(--space-2); /* Further reduced space between sections */
 }
 
 /* Document Details Section - Contains document metadata only */
@@ -495,8 +495,8 @@ body {
     font-size: var(--text-lg);
     font-weight: 600;
     color: var(--neutral-800);
-    margin: 0 0 var(--space-6) 0;
-    padding-bottom: var(--space-3);
+    margin: 0 0 var(--space-2) 0;
+    padding-bottom: var(--space-1);
     border-bottom: 2px solid var(--primary-100);
 }
 

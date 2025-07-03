@@ -515,7 +515,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: var(--space-2) 0;
+    padding: 2px 0;
     border-bottom: 1px solid var(--neutral-150);
 }
 

@@ -241,7 +241,7 @@ body {
 
 .premium-main {
     display: grid;
-    grid-template-columns: 1fr 340px; /* Made info panel narrower to make viewer thinner */
+    grid-template-columns: 1fr 420px; /* Increased info panel width to give it more space */
     gap: var(--space-6); /* Reduced gap for better space utilization */
     padding: var(--space-6); /* Reduced padding */
     flex: 1;

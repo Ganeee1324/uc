@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
 openapi: 3.0.3
 info:
   title: Marketplace API
@@ -251,7 +252,18 @@ paths:
       tags:
         - Vetrine
       summary: Search vetrine
-      description: Search for vetrine based on various criteria. If no JWT is provided, the response will not include the favorite field.
+      description: |
+        Search for vetrine using a two-stage filtering approach:
+        
+        **Stage 1 - Vetrina Filters:**
+        - `text`: Partial text search across multiple fields
+        - `course_name`, `faculty`, `canale`, `language`: Exact matches on course instance properties
+        - `date_year`, `course_year`: Exact matches on numeric fields
+        
+        **Stage 2 - File Filters:**
+        - `tag`, `extension`: Only vetrine containing files with these exact properties will be returned
+        
+        If no JWT is provided, the response will not include the favorite field.
       security:
         - BearerAuth: []
       parameters:
@@ -260,19 +272,60 @@ paths:
           required: false
           schema:
             type: string
-          description: Filter by text
+          description: Search text across vetrina name, description, course name, faculty name, username, and author full name (partial matching)
         - name: course_name
           in: query
           required: false
           schema:
             type: string
-          description: Filter by course name
+          description: Filter by exact course name
         - name: faculty
           in: query
           required: false
           schema:
             type: string
-          description: Filter by faculty
+          description: Filter by exact faculty name
+        - name: canale
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact canale (course channel/section)
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact language of instruction
+        - name: date_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact academic year (e.g., 2024)
+        - name: course_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact course year in curriculum (e.g., 1, 2, 3)
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Filter vetrine that contain files with the specified tag (exact match).
+            Valid options are:
+            - **dispense**
+            - **appunti**
+            - **esercizi**
+        - name: extension
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter vetrine that contain files with the specified extension (exact match)
       responses:
         "200":
           description: Search results
@@ -660,8 +713,6 @@ paths:
                 error: already_owned
                 msg: You already own this file
 
-
-
   /user/favorites/vetrine/{vetrina_id}:
     post:
       tags:
@@ -726,8 +777,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
-
 
   /user/favorites/files/{file_id}:
     post:
@@ -860,7 +909,7 @@ components:
     Vetrina:
       type: object
       properties:
-        id:
+        vetrina_id:
           type: integer
           description: Unique identifier for the vetrina
         name:
@@ -879,12 +928,10 @@ components:
           type: boolean
           description: Whether the current user has marked this vetrina as favorite
 
-
-
     CourseInstance:
       type: object
       properties:
-        instance_id:
+        course_instance_id:
           type: integer
           description: Unique identifier for the course instance
         course_code:
@@ -896,7 +943,7 @@ components:
         faculty_name:
           type: string
           description: Name of the faculty
-        year:
+        course_year:
           type: integer
           description: Year of the course in curriculum
         date_year:
@@ -920,23 +967,29 @@ components:
     User:
       type: object
       properties:
-        id:
+        user_id:
           type: integer
           description: Unique identifier for the user
         username:
           type: string
           description: User's username
+        first_name:
+          type: string
+          description: User's first name
+        last_name:
+          type: string
+          description: User's last name
 
     File:
       type: object
       properties:
-        id:
+        file_id:
           type: integer
           description: Unique identifier for the file
         filename:
           type: string
           description: Name of the file
-        created_at:
+        upload_date:
           type: string
           format: date-time
           description: Timestamp when the file was uploaded
@@ -979,11 +1032,14 @@ components:
             - **dispense**: Course handouts or lecture materials
             - **appunti**: Student notes  
             - **esercizi**: Exercises or practice problems
+        extension:
+          type: string
+          description: File extension (e.g., "pdf", "docx", "txt", "xlsx")
 
     Transaction:
       type: object
       properties:
-        id:
+        transaction_id:
           type: integer
           description: Unique identifier for the transaction
         user_id:
@@ -992,7 +1048,7 @@ components:
         amount:
           type: integer
           description: Amount of the transaction
-        created_at:
+        transaction_date:
           type: string
           format: date-time
           description: Timestamp when the transaction was created
@@ -1008,7 +1064,7 @@ components:
         price:
           type: integer
           description: Price of the subscription
-        created_at:
+        subscription_date:
           type: string
           format: date-time
           description: Timestamp when the subscription was created

@@ -74,7 +74,7 @@ def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM vetrina_subscriptions WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
+            cursor.execute("DELETE FROM vetrina_subscriptions WHERE subscriber_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
             if cursor.rowcount == 0:
                 raise NotFoundException("Subscription or vetrina not found")
 
@@ -93,56 +93,23 @@ def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT v.id as v_id, v.name as v_name, v.description, v.course_instance_id, vs.price, vs.created_at as vs_created_at, vs.user_id,
-                       u.id as u_id, u.username, u.name as u_name, u.surname, u.email, u.last_login as u_last_login, u.created_at as u_created_at,
-                       ci.id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                SELECT v.vetrina_id, v.name, v.description, v.course_instance_id, vs.price, vs.subscription_date, vs.subscriber_id,
+                       u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                       ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
                        ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
                 FROM vetrina_subscriptions vs
-                JOIN vetrina v ON vs.vetrina_id = v.id
-                JOIN users u ON v.author_id = u.id
-                JOIN course_instances ci ON v.course_instance_id = ci.id
-                WHERE vs.user_id = %s
+                JOIN vetrina v ON vs.vetrina_id = v.vetrina_id
+                JOIN users u ON v.author_id = u.user_id
+                JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
+                WHERE vs.subscriber_id = %s
                 """,
                 (user_id,),
             )
-            subscriptions = cursor.fetchall()
+            subscriptions_data = cursor.fetchall()
 
             result = []
-            for sub in subscriptions:
-                author = User(
-                    id=sub["u_id"],
-                    username=sub["username"],
-                    name=sub["u_name"],
-                    surname=sub["surname"],
-                    email=sub["email"],
-                    last_login=sub["u_last_login"],
-                    created_at=sub["u_created_at"],
-                )
-                course_instance = CourseInstance(
-                    instance_id=sub["ci_id"],
-                    course_code=sub["course_code"],
-                    course_name=sub["course_name"],
-                    faculty_name=sub["faculty_name"],
-                    year=sub["course_year"],
-                    date_year=sub["date_year"],
-                    language=sub["language"],
-                    course_semester=sub["course_semester"],
-                    canale=sub["canale"],
-                    professors=sub["professors"],
-                )
-                vetrina = Vetrina(
-                    id=sub["v_id"],
-                    name=sub["v_name"],
-                    author=author,
-                    description=sub["description"],
-                    course_instance=course_instance,
-                )
-                subscription = VetrinaSubscription(
-                    subscriber_id=sub["user_id"],
-                    vetrina=vetrina,
-                    price=sub["price"],
-                    created_at=sub["vs_created_at"],
-                )
+            for sub_row in subscriptions_data:
+                subscription = VetrinaSubscription.from_dict(sub_row)
                 result.append(subscription)
             return result
 
@@ -161,27 +128,16 @@ def get_vetrina_subscribers(vetrina_id: int) -> List[User]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT u.id, u.username, u.name, u.surname, u.email, u.last_login, u.created_at
+                SELECT u.user_id, u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date
                 FROM vetrina_subscriptions vs
-                JOIN users u ON vs.user_id = u.id
+                JOIN users u ON vs.subscriber_id = u.user_id
                 WHERE vs.vetrina_id = %s
                 """,
                 (vetrina_id,),
             )
-            subscribers = cursor.fetchall()
+            subscribers_data = cursor.fetchall()
 
-            return [
-                User(
-                    id=user["id"],
-                    username=user["username"],
-                    name=user["name"],
-                    surname=user["surname"],
-                    email=user["email"],
-                    last_login=user["last_login"],
-                    created_at=user["created_at"],
-                )
-                for user in subscribers
-            ]
+            return [User.from_dict(user_row) for user_row in subscribers_data]
 
 
 # ---------------------------------------------
@@ -210,24 +166,16 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO users (username, email, password, name, surname)
+                INSERT INTO users (username, email, password, first_name, last_name)
                 VALUES (%s, %s, %s, %s, %s)
-                RETURNING id, username, name, surname, email, last_login, created_at
+                RETURNING user_id, username, first_name, last_name, email, last_login, registration_date
                 """,
                 (username, email, password, name, surname),
             )
             user_data = cursor.fetchone()
             conn.commit()
 
-            return User(
-                id=user_data["id"],
-                username=user_data["username"],
-                name=user_data["name"],
-                surname=user_data["surname"],
-                email=user_data["email"],
-                last_login=user_data["last_login"],
-                created_at=user_data["created_at"],
-            )
+            return User(**user_data)
 
 
 def verify_user(email: str, password: str) -> User:
@@ -246,20 +194,14 @@ def verify_user(email: str, password: str) -> User:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT id, username, name, surname, email, password, last_login, created_at FROM users WHERE email = %s", (email,))
+            cursor.execute(
+                "SELECT user_id, username, first_name, last_name, email, last_login, registration_date, password FROM users WHERE email = %s", (email,)
+            )
             user_data = cursor.fetchone()
             if not user_data or password != user_data["password"]:
                 raise UnauthorizedError("Invalid email or password")
 
-            return User(
-                id=user_data["id"],
-                username=user_data["username"],
-                name=user_data["name"],
-                surname=user_data["surname"],
-                email=user_data["email"],
-                last_login=user_data["last_login"],
-                created_at=user_data["created_at"],
-            )
+            return User.from_dict(user_data)
 
 
 def delete_user(user_id: int) -> None:
@@ -271,7 +213,7 @@ def delete_user(user_id: int) -> None:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
             conn.commit()
 
 
@@ -288,24 +230,12 @@ def get_user_by_id(user_id: int) -> User:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT id, username, name, surname, email, last_login, created_at FROM users WHERE id = %s",
+                "SELECT user_id, username, first_name, last_name, email, last_login, registration_date FROM users WHERE user_id = %s",
                 (user_id,),
             )
             user_data = cursor.fetchone()
 
-            return (
-                User(
-                    id=user_data["id"],
-                    username=user_data["username"],
-                    name=user_data["name"],
-                    surname=user_data["surname"],
-                    email=user_data["email"],
-                    last_login=user_data["last_login"],
-                    created_at=user_data["created_at"],
-                )
-                if user_data
-                else None
-            )
+            return User(**user_data) if user_data else None
 
 
 # ---------------------------------------------
@@ -315,10 +245,12 @@ def get_user_by_id(user_id: int) -> User:
 
 def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> List[Vetrina]:
     """
-    Search for vetrine based on provided parameters.
+    Search for vetrine based on provided parameters using a two-stage filtering approach.
 
     Args:
-        params: Dictionary containing search parameters (text, name, course_code, course_name, faculty)
+        params: Dictionary containing search parameters
+                Vetrina filters: text, course_name, faculty, canale, date_year, course_year, language
+                File filters: tag
         user_id: Optional ID of the user to check favorite status for vetrine
 
     Returns:
@@ -330,18 +262,49 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
     # Build the base query with conditional favorite check
     favorite_select = ""
     if user_id is not None:
-        favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.id AND user_id = %s) AS is_vetrina_favorite"
+        favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS favorite"
         query_params.append(user_id)
 
-    base_query = f"""
-        SELECT v.id as v_id, v.name as v_name, v.description, v.course_instance_id,
-               u.id as u_id, u.username, u.name as u_name, u.surname, u.email, u.last_login as u_last_login, u.created_at as u_created_at,
-               ci.id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
-               ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors{favorite_select}
-        FROM vetrina v
-        JOIN course_instances ci ON v.course_instance_id = ci.id
-        JOIN users u ON v.author_id = u.id
-    """
+    # Add vetrina filters - course instance related filters (exact matches)
+    vetrina_filters = [
+        ("course_name", "ci.course_name", params.get("course_name")),  # nome corso
+        ("faculty", "ci.faculty_name", params.get("faculty")),  # nome facoltà
+        ("canale", "ci.canale", params.get("canale")),
+        ("language", "ci.language", params.get("language")),
+        ("date_year", "ci.date_year", params.get("date_year")),  # anno di inizio corso
+        ("course_year", "ci.course_year", params.get("course_year")),  # anno accademico
+    ]
+    file_filters = [
+        ("tag", "f.tag", params.get("tag")),  # tag del file (es. "esame", "esercizi", "appunti"...)
+        ("extension", "f.extension", params.get("extension")),  # estensione del file (es. "pdf", "docx", "txt"...)
+    ]
+
+    # Determine if we need to join with files for file filters
+    has_file_filters = any(value for param_name, field_name, value in file_filters if value)
+
+    if has_file_filters:
+        # Two-stage filtering: first filter vetrine, then filter by files
+        base_query = f"""
+            SELECT DISTINCT v.vetrina_id, v.name, v.description, v.course_instance_id,
+                   u.user_id, u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                   ci.course_code, ci.course_name, ci.faculty_name, ci.course_year,
+                   ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors{favorite_select}
+            FROM vetrina v
+            JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
+            JOIN users u ON v.author_id = u.user_id
+            JOIN files f ON f.vetrina_id = v.vetrina_id
+        """
+    else:
+        # Simple vetrina filtering without file join
+        base_query = f"""
+            SELECT v.vetrina_id, v.name, v.description, v.course_instance_id,
+                   u.user_id, u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                   ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                   ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors{favorite_select}
+            FROM vetrina v
+            JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
+            JOIN users u ON v.author_id = u.user_id
+        """
 
     # Build WHERE clause and ORDER BY clause
     where_parts = ["1=1"]
@@ -350,23 +313,27 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
     # Handle text search with optimized ordering
     if "text" in params and params["text"]:
         text_search = f"%{params['text']}%"
-        where_parts.append("(v.name ILIKE %s OR v.description ILIKE %s OR ci.course_name ILIKE %s OR ci.faculty_name ILIKE %s OR u.username ILIKE %s OR CONCAT(u.name, ' ', u.surname) ILIKE %s)")
+        where_parts.append(
+            "(v.name ILIKE %s OR v.description ILIKE %s OR ci.course_name ILIKE %s OR ci.faculty_name ILIKE %s OR u.username ILIKE %s OR CONCAT(u.first_name, ' ', u.last_name) ILIKE %s)"
+        )
         query_params.extend([text_search] * 6)
 
         # Optimized ORDER BY using a single CASE statement
-        order_by_clause = "ORDER BY CASE WHEN v.name ILIKE %s THEN 1 WHEN v.description ILIKE %s THEN 2 WHEN ci.course_name ILIKE %s THEN 3 WHEN ci.faculty_name ILIKE %s THEN 4 WHEN u.username ILIKE %s THEN 5 WHEN CONCAT(u.name, ' ', u.surname) ILIKE %s THEN 6 ELSE 7 END"
+        order_by_clause = "ORDER BY CASE WHEN v.name ILIKE %s THEN 1 WHEN v.description ILIKE %s THEN 2 WHEN ci.course_name ILIKE %s THEN 3 WHEN ci.faculty_name ILIKE %s THEN 4 WHEN u.username ILIKE %s THEN 5 WHEN CONCAT(u.first_name, ' ', u.last_name) ILIKE %s THEN 6 ELSE 7 END"
         query_params.extend([text_search] * 6)
 
-    # Add filters - only build filter strings for non-empty values
-    filters = [
-        ("course_name", "ci.course_name", params.get("course_name")),
-        ("faculty", "ci.faculty_name", params.get("faculty")),
-    ]
-
-    for param_name, field_name, value in filters:
+    # Add vetrina filters (always applied)
+    for param_name, field_name, value in vetrina_filters:
         if value:
-            where_parts.append(f"{field_name} ILIKE %s")
-            query_params.append(f"%{value}%")
+            where_parts.append(f"{field_name} = %s")
+            query_params.append(value)
+
+    # Add file filters (only when files are joined)
+    if has_file_filters:
+        for param_name, field_name, value in file_filters:
+            if value:
+                where_parts.append(f"{field_name} = %s")
+                query_params.append(value)
 
     # Build final query
     where_clause = " AND ".join(where_parts)
@@ -376,40 +343,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
         with conn.cursor() as cursor:
             cursor.execute(final_query, tuple(query_params))
             vetrine_data = cursor.fetchall()
-            vetrine = []
-            for row in vetrine_data:
-                author = User(
-                    id=row["u_id"],
-                    username=row["username"],
-                    name=row["u_name"],
-                    surname=row["surname"],
-                    email=row["email"],
-                    last_login=row["u_last_login"],
-                    created_at=row["u_created_at"],
-                )
-                course_instance = CourseInstance(
-                    instance_id=row["ci_id"],
-                    course_code=row["course_code"],
-                    course_name=row["course_name"],
-                    faculty_name=row["faculty_name"],
-                    year=row["course_year"],
-                    date_year=row["date_year"],
-                    language=row["language"],
-                    course_semester=row["course_semester"],
-                    canale=row["canale"],
-                    professors=row["professors"],
-                )
-                vetrina = Vetrina(
-                    id=row["v_id"],
-                    name=row["v_name"],
-                    author=author,
-                    description=row["description"],
-                    course_instance=course_instance,
-                )
-                if user_id is not None:
-                    vetrina.favorite = row["is_vetrina_favorite"]
-                vetrine.append(vetrina)
-            return vetrine
+            return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
 def get_vetrina_by_id(vetrina_id: int, user_id: Optional[int] = None) -> Vetrina:
@@ -504,58 +438,26 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO vetrina (author_id, course_instance_id, name, description) 
-                VALUES (%s, %s, %s, %s) 
-                RETURNING id, name, description, course_instance_id
+                WITH new_vetrina AS (
+                    INSERT INTO vetrina (author_id, course_instance_id, name, description) 
+                    VALUES (%s, %s, %s, %s) 
+                    RETURNING vetrina_id, name, description, course_instance_id, author_id
+                )
+                SELECT v.vetrina_id, v.name, v.description, v.course_instance_id,
+                       u.user_id, u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                       ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                       ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
+                FROM new_vetrina v
+                JOIN users u ON v.author_id = u.user_id
+                JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
                 """,
                 (user_id, course_instance_id, name, description),
             )
             vetrina_data = cursor.fetchone()
 
-            # Get the user data for the owner
-            cursor.execute(
-                "SELECT id, username, name, surname, email, last_login, created_at FROM users WHERE id = %s",
-                (user_id,),
-            )
-            user_data = cursor.fetchone()
-            author = User(
-                id=user_data["id"],
-                username=user_data["username"],
-                name=user_data["name"],
-                surname=user_data["surname"],
-                email=user_data["email"],
-                last_login=user_data["last_login"],
-                created_at=user_data["created_at"],
-            )
-
-            # Get the course instance data
-            cursor.execute(
-                "SELECT id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE id = %s",
-                (course_instance_id,),
-            )
-            course_data = cursor.fetchone()
-            course_instance = CourseInstance(
-                instance_id=course_data["id"],
-                course_code=course_data["course_code"],
-                course_name=course_data["course_name"],
-                faculty_name=course_data["faculty_name"],
-                year=course_data["course_year"],
-                date_year=course_data["date_year"],
-                language=course_data["language"],
-                course_semester=course_data["course_semester"],
-                canale=course_data["canale"],
-                professors=course_data["professors"],
-            )
-
             conn.commit()
 
-            return Vetrina(
-                id=vetrina_data["id"],
-                name=vetrina_data["name"],
-                author=author,
-                description=vetrina_data["description"],
-                course_instance=course_instance,
-            )
+            return Vetrina.from_dict(vetrina_data)
 
 
 def delete_vetrina(user_id: int, vetrina_id: int) -> None:
@@ -572,7 +474,7 @@ def delete_vetrina(user_id: int, vetrina_id: int) -> None:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM vetrina WHERE id = %s AND author_id = %s", (vetrina_id, user_id))
+            cursor.execute("DELETE FROM vetrina WHERE vetrina_id = %s AND author_id = %s", (vetrina_id, user_id))
             conn.commit()
 
 
@@ -618,7 +520,7 @@ def get_course_by_id(course_id: int) -> CourseInstance:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE id = %s",
+                "SELECT course_instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors FROM course_instances WHERE course_instance_id = %s",
                 (course_id,),
             )
             course_data = cursor.fetchone()
@@ -626,18 +528,7 @@ def get_course_by_id(course_id: int) -> CourseInstance:
             if not course_data:
                 raise NotFoundException("Course not found")
 
-            return CourseInstance(
-                instance_id=course_data["id"],
-                course_code=course_data["course_code"],
-                course_name=course_data["course_name"],
-                faculty_name=course_data["faculty_name"],
-                year=course_data["course_year"],
-                date_year=course_data["date_year"],
-                language=course_data["language"],
-                course_semester=course_data["course_semester"],
-                canale=course_data["canale"],
-                professors=course_data["professors"],
-            )
+            return CourseInstance(**course_data)
 
 
 faculties_courses_cache = None
@@ -647,7 +538,9 @@ faculties_courses_cache = None
 # ---------------------------------------------
 
 
-def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha256: str, price: int = 0, size: int = 0, tag: str | None = None) -> File:
+def add_file_to_vetrina(
+    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None
+) -> File:
     """
     Add a file to a vetrina.
 
@@ -656,6 +549,7 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
         vetrina_id: ID of the vetrina to add the file to
         file_name: Name of the file
         sha256: SHA256 hash of the file
+        extension: Extension of the file
         price: Price of the file
         size: Size of the file in bytes
         tag: Tag for the file
@@ -668,7 +562,7 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
             with conn.transaction():
 
                 # First check if the vetrina exists
-                cursor.execute("SELECT author_id FROM vetrina WHERE id = %s", (vetrina_id,))
+                cursor.execute("SELECT author_id FROM vetrina WHERE vetrina_id = %s", (vetrina_id,))
                 vetrina = cursor.fetchone()
 
                 if not vetrina:
@@ -680,24 +574,12 @@ def add_file_to_vetrina(requester_id: int, vetrina_id: int, file_name: str, sha2
 
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag",
-                    (vetrina_id, file_name, sha256, price, size, tag),
+                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag, extension) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension",
+                    (vetrina_id, file_name, sha256, price, size, tag, extension),
                 )
                 file_data = cursor.fetchone()
 
-            return File(
-                id=file_data["id"],
-                filename=file_data["filename"],
-                created_at=file_data["created_at"],
-                size=file_data["size"],
-                vetrina_id=file_data["vetrina_id"],
-                sha256=file_data["sha256"],
-                download_count=file_data["download_count"],
-                fact_mark=file_data["fact_mark"],
-                fact_mark_updated_at=file_data["fact_mark_updated_at"],
-                price=file_data["price"],
-                tag=file_data["tag"],
-            )
+            return File(**file_data)
 
 
 def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[File]:
@@ -718,62 +600,30 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 # and if the file is favorited by the user
                 cursor.execute(
                     """
-                    SELECT f.id, f.filename, f.created_at, f.size, f.vetrina_id, f.sha256, 
-                           f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price, f.tag,
-                           (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.id AND owner_id = %s) OR
-                            EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = %s AND user_id = %s)) AS owned,
-                           EXISTS(SELECT 1 FROM favourite_file WHERE file_id = f.id AND user_id = %s) AS favorite
+                    SELECT f.file_id, f.filename, f.upload_date, f.size, f.vetrina_id, f.sha256, 
+                           f.download_count, f.fact_mark, f.fact_mark_updated_at, f.price, f.tag, f.extension,
+                           (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.file_id AND owner_id = %s) OR
+                            EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = %s AND subscriber_id = %s)) AS owned,
+                           EXISTS(SELECT 1 FROM favourite_file WHERE file_id = f.file_id AND user_id = %s) AS favorite
                     FROM files f
                     WHERE f.vetrina_id = %s
                     """,
                     (user_id, vetrina_id, user_id, user_id, vetrina_id),
                 )
                 files_data = cursor.fetchall()
-                return [
-                    File(
-                        id=data["id"],
-                        filename=data["filename"],
-                        created_at=data["created_at"],
-                        size=data["size"],
-                        vetrina_id=data["vetrina_id"],
-                        sha256=data["sha256"],
-                        download_count=data["download_count"],
-                        fact_mark=data["fact_mark"],
-                        fact_mark_updated_at=data["fact_mark_updated_at"],
-                        price=data["price"],
-                        owned=data["owned"],
-                        favorite=data["favorite"],
-                        tag=data["tag"],
-                    )
-                    for data in files_data
-                ]
+                return [File(**data) for data in files_data]
             else:
                 cursor.execute(
                     """
-                    SELECT id, filename, created_at, size, vetrina_id, sha256, 
-                           download_count, fact_mark, fact_mark_updated_at, price, tag
+                    SELECT file_id, filename, upload_date, size, vetrina_id, sha256, 
+                           download_count, fact_mark, fact_mark_updated_at, price, tag, extension
                     FROM files 
                     WHERE vetrina_id = %s
                     """,
                     (vetrina_id,),
                 )
                 files_data = cursor.fetchall()
-                return [
-                    File(
-                        id=data["id"],
-                        filename=data["filename"],
-                        created_at=data["created_at"],
-                        size=data["size"],
-                        vetrina_id=data["vetrina_id"],
-                        sha256=data["sha256"],
-                        download_count=data["download_count"],
-                        fact_mark=data["fact_mark"],
-                        fact_mark_updated_at=data["fact_mark_updated_at"],
-                        price=data["price"],
-                        tag=data["tag"],
-                    )
-                    for data in files_data
-                ]
+                return [File(**data) for data in files_data]
 
 
 def delete_file(requester_id: int, file_id: int) -> File:
@@ -795,13 +645,13 @@ def delete_file(requester_id: int, file_id: int) -> File:
             cursor.execute(
                 """
                 DELETE FROM files 
-                WHERE id = %s 
+                WHERE file_id = %s 
                 AND vetrina_id IN (
-                    SELECT v.id 
+                    SELECT v.vetrina_id 
                     FROM vetrina v 
                     WHERE v.author_id = %s
                 )
-                RETURNING id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag
+                RETURNING file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension
             """,
                 (file_id, requester_id),
             )
@@ -811,19 +661,7 @@ def delete_file(requester_id: int, file_id: int) -> File:
             if cursor.rowcount == 0:
                 raise NotFoundException("File not found")
 
-            return File(
-                id=file_data["id"],
-                filename=file_data["filename"],
-                created_at=file_data["created_at"],
-                size=file_data["size"],
-                vetrina_id=file_data["vetrina_id"],
-                sha256=file_data["sha256"],
-                download_count=file_data["download_count"],
-                fact_mark=file_data["fact_mark"],
-                fact_mark_updated_at=file_data["fact_mark_updated_at"],
-                price=file_data["price"],
-                tag=file_data["tag"],
-            )
+            return File(**file_data)
 
 
 def get_file(file_id: int) -> File:
@@ -842,7 +680,7 @@ def get_file(file_id: int) -> File:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag FROM files WHERE id = %s",
+                "SELECT file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension FROM files WHERE file_id = %s",
                 (file_id,),
             )
             file_data = cursor.fetchone()
@@ -850,19 +688,7 @@ def get_file(file_id: int) -> File:
             if not file_data:
                 raise NotFoundException("File not found")
 
-            return File(
-                id=file_data["id"],
-                filename=file_data["filename"],
-                created_at=file_data["created_at"],
-                size=file_data["size"],
-                vetrina_id=file_data["vetrina_id"],
-                sha256=file_data["sha256"],
-                download_count=file_data["download_count"],
-                fact_mark=file_data["fact_mark"],
-                fact_mark_updated_at=file_data["fact_mark_updated_at"],
-                price=file_data["price"],
-                tag=file_data["tag"],
-            )
+            return File(**file_data)
 
 
 def check_file_ownership(user_id: int, file_id: int) -> File:
@@ -885,7 +711,7 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
                 UNION
                 SELECT 1 FROM vetrina_subscriptions vs
                 JOIN files f ON f.vetrina_id = vs.vetrina_id
-                WHERE vs.user_id = %s AND f.id = %s
+                WHERE vs.subscriber_id = %s AND f.file_id = %s
                 """,
                 (user_id, file_id, user_id, file_id),
             )
@@ -894,23 +720,11 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
                 raise ForbiddenError("You do not have access to this file")
 
             cursor.execute(
-                "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag FROM files WHERE id = %s",
+                "SELECT file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension FROM files WHERE file_id = %s",
                 (file_id,),
             )
             file_data = cursor.fetchone()
-            file = File(
-                id=file_data["id"],
-                filename=file_data["filename"],
-                created_at=file_data["created_at"],
-                size=file_data["size"],
-                vetrina_id=file_data["vetrina_id"],
-                sha256=file_data["sha256"],
-                download_count=file_data["download_count"],
-                fact_mark=file_data["fact_mark"],
-                fact_mark_updated_at=file_data["fact_mark_updated_at"],
-                price=file_data["price"],
-                tag=file_data["tag"],
-            )
+            file = File(**file_data)
             file.owned = True
             return file
 
@@ -969,7 +783,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                     UNION
                     SELECT 1 FROM vetrina_subscriptions vs
                     JOIN files f ON f.vetrina_id = vs.vetrina_id
-                    WHERE vs.user_id = %s AND f.id = %s
+                    WHERE vs.subscriber_id = %s AND f.file_id = %s
                     """,
                     (user_id, file_id, user_id, file_id),
                 )
@@ -978,7 +792,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                     raise AlreadyOwnedError("You already own this file")
 
                 cursor.execute(
-                    "SELECT id, filename, created_at, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag FROM files WHERE id = %s",
+                    "SELECT file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension FROM files WHERE file_id = %s",
                     (file_id,),
                 )
                 file_data = cursor.fetchone()
@@ -986,33 +800,19 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 if not file_data:
                     raise NotFoundException("File not found")
 
-                file = File(
-                    id=file_data["id"],
-                    filename=file_data["filename"],
-                    created_at=file_data["created_at"],
-                    size=file_data["size"],
-                    vetrina_id=file_data["vetrina_id"],
-                    sha256=file_data["sha256"],
-                    download_count=file_data["download_count"],
-                    fact_mark=file_data["fact_mark"],
-                    fact_mark_updated_at=file_data["fact_mark_updated_at"],
-                    price=file_data["price"],
-                    tag=file_data["tag"],
-                )
+                file = File(**file_data)
 
                 cursor.execute(
-                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, file.price)
+                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING transaction_id, user_id, amount, transaction_date",
+                    (user_id, file.price),
                 )
                 transaction_data = cursor.fetchone()
-                transaction = Transaction(
-                    id=transaction_data["id"],
-                    user_id=transaction_data["user_id"],
-                    amount=transaction_data["amount"],
-                    created_at=transaction_data["created_at"],
-                )
+                transaction = Transaction(**transaction_data)
 
-                cursor.execute("INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.id))
-                cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE id = %s", (file_id,))
+                cursor.execute(
+                    "INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.transaction_id)
+                )
+                cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE file_id = %s", (file_id,))
 
             return transaction, file
 
@@ -1026,82 +826,42 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
             with conn.transaction():
                 # Check if the user is already subscribed to this vetrina
                 cursor.execute(
-                    "SELECT 1 FROM vetrina_subscriptions WHERE user_id = %s AND vetrina_id = %s",
+                    "SELECT 1 FROM vetrina_subscriptions WHERE subscriber_id = %s AND vetrina_id = %s",
                     (user_id, vetrina_id),
                 )
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You are already subscribed to this vetrina")
 
                 cursor.execute(
-                    """
-                    SELECT v.id as v_id, v.name as v_name, v.description, v.course_instance_id,
-                           u.id as u_id, u.username, u.name as u_name, u.surname, u.email, u.last_login as u_last_login, u.created_at as u_created_at,
-                           ci.id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
-                           ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
-                    FROM vetrina v
-                    JOIN users u ON v.author_id = u.id
-                    JOIN course_instances ci ON v.course_instance_id = ci.id
-                    WHERE v.id = %s
-                    """,
-                    (vetrina_id,),
-                )
-                vetrina_data = cursor.fetchone()
-
-                if not vetrina_data:
-                    raise NotFoundException("Vetrina not found")
-
-                author = User(
-                    id=vetrina_data["u_id"],
-                    username=vetrina_data["username"],
-                    name=vetrina_data["u_name"],
-                    surname=vetrina_data["surname"],
-                    email=vetrina_data["email"],
-                    last_login=vetrina_data["u_last_login"],
-                    created_at=vetrina_data["u_created_at"],
-                )
-
-                course_instance = CourseInstance(
-                    instance_id=vetrina_data["ci_id"],
-                    course_code=vetrina_data["course_code"],
-                    course_name=vetrina_data["course_name"],
-                    faculty_name=vetrina_data["faculty_name"],
-                    year=vetrina_data["course_year"],
-                    date_year=vetrina_data["date_year"],
-                    language=vetrina_data["language"],
-                    course_semester=vetrina_data["course_semester"],
-                    canale=vetrina_data["canale"],
-                    professors=vetrina_data["professors"],
-                )
-
-                cursor.execute(
-                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING id, user_id, amount, created_at", (user_id, price)
+                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING transaction_id, user_id, amount, transaction_date",
+                    (user_id, price),
                 )
                 transaction_data = cursor.fetchone()
-                transaction = Transaction(
-                    id=transaction_data["id"],
-                    user_id=transaction_data["user_id"],
-                    amount=transaction_data["amount"],
-                    created_at=transaction_data["created_at"],
-                )
+                transaction = Transaction(**transaction_data)
 
                 cursor.execute(
-                    "INSERT INTO vetrina_subscriptions (user_id, vetrina_id, transaction_id, price) VALUES (%s, %s, %s, %s) RETURNING user_id, vetrina_id, price, created_at",
-                    (user_id, vetrina_id, transaction.id, price),
+                    "INSERT INTO vetrina_subscriptions (subscriber_id, vetrina_id, transaction_id, price) VALUES (%s, %s, %s, %s)",
+                    (user_id, vetrina_id, transaction.transaction_id, price),
+                )
+                
+                # Fetch the complete subscription data with all required fields for VetrinaSubscription.from_dict
+                cursor.execute(
+                    """
+                    SELECT vs.subscriber_id, vs.price, vs.subscription_date,
+                           v.vetrina_id, v.name, v.description, v.course_instance_id,
+                           u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                           ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                           ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors
+                    FROM vetrina_subscriptions vs
+                    JOIN vetrina v ON vs.vetrina_id = v.vetrina_id
+                    JOIN users u ON v.author_id = u.user_id
+                    JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
+                    WHERE vs.subscriber_id = %s AND vs.vetrina_id = %s
+                    """,
+                    (user_id, vetrina_id),
                 )
                 subscription_data = cursor.fetchone()
-                subscription = VetrinaSubscription(
-                    subscriber_id=user_id,
-                    vetrina=Vetrina(
-                        id=vetrina_data["v_id"],
-                        name=vetrina_data["v_name"],
-                        author=author,
-                        description=vetrina_data["description"],
-                        course_instance=course_instance,
-                    ),
-                    price=price,
-                    created_at=subscription_data["created_at"],
-                )
-
+                subscription = VetrinaSubscription.from_dict(subscription_data)
                 return transaction, subscription
 
 
@@ -1198,60 +958,25 @@ def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
             cursor.execute(
                 """
                 SELECT DISTINCT
-                    v.id as v_id, v.name as v_name, v.description, v.course_instance_id,
-                    u.id as u_id, u.username, u.name as u_name, u.surname, u.email, u.last_login as u_last_login, u.created_at as u_created_at,
-                    ci.id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                    v.vetrina_id, v.name, v.description, v.course_instance_id,
+                    u.user_id, u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                    ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
                     ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors,
-                    EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.id AND user_id = %s) AS is_vetrina_favorite
+                    EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS favorite
                 FROM vetrina v
-                JOIN users u ON v.author_id = u.id
-                JOIN course_instances ci ON v.course_instance_id = ci.id
+                JOIN users u ON v.author_id = u.user_id
+                JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
                 WHERE (
-                    EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = v.id AND user_id = %s) OR
-                    EXISTS(SELECT 1 FROM owned_files of JOIN files f ON of.file_id = f.id WHERE f.vetrina_id = v.id AND of.owner_id = %s)
+                    EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = v.vetrina_id AND subscriber_id = %s) OR
+                    EXISTS(SELECT 1 FROM owned_files of JOIN files f ON of.file_id = f.file_id WHERE f.vetrina_id = v.vetrina_id AND of.owner_id = %s)
                 )
-                ORDER BY v.id
+                ORDER BY v.vetrina_id
                 """,
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
 
-            vetrine = []
-            for row in results:
-                author = User(
-                    id=row["u_id"],
-                    username=row["username"],
-                    name=row["u_name"],
-                    surname=row["surname"],
-                    email=row["email"],
-                    last_login=row["u_last_login"],
-                    created_at=row["u_created_at"],
-                )
-
-                course_instance = CourseInstance(
-                    instance_id=row["ci_id"],
-                    course_code=row["course_code"],
-                    course_name=row["course_name"],
-                    faculty_name=row["faculty_name"],
-                    year=row["course_year"],
-                    date_year=row["date_year"],
-                    language=row["language"],
-                    course_semester=row["course_semester"],
-                    canale=row["canale"],
-                    professors=row["professors"],
-                )
-
-                vetrina = Vetrina(
-                    id=row["v_id"],
-                    name=row["v_name"],
-                    author=author,
-                    description=row["description"],
-                    course_instance=course_instance,
-                    favorite=row["is_vetrina_favorite"],
-                )
-                vetrine.append(vetrina)
-
-            return vetrine
+            return [Vetrina.from_dict(row) for row in results]
 
 
 def get_favorites(user_id: int) -> List[Vetrina]:
@@ -1269,57 +994,23 @@ def get_favorites(user_id: int) -> List[Vetrina]:
             cursor.execute(
                 """
                 SELECT DISTINCT
-                    v.id as v_id, v.name as v_name, v.description, v.course_instance_id,
-                    u.id as u_id, u.username, u.name as u_name, u.surname, u.email, u.last_login as u_last_login, u.created_at as u_created_at,
-                    ci.id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+                    v.vetrina_id, v.name, v.description, v.course_instance_id,
+                    u.user_id, u.username, u.first_name, u.last_name, u.email, u.last_login, u.registration_date,
+                    ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
                     ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors,
-                    EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.id AND user_id = %s) AS is_vetrina_favorite
+                    EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS favorite
                 FROM vetrina v
-                JOIN users u ON v.author_id = u.id
-                JOIN course_instances ci ON v.course_instance_id = ci.id
+                JOIN users u ON v.author_id = u.user_id
+                JOIN course_instances ci ON v.course_instance_id = ci.course_instance_id
                 WHERE (
-                    EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.id AND user_id = %s) OR
-                    EXISTS(SELECT 1 FROM favourite_file ff JOIN files f ON ff.file_id = f.id WHERE f.vetrina_id = v.id AND ff.user_id = %s)
+                    EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) OR
+                    EXISTS(SELECT 1 FROM favourite_file ff JOIN files f ON ff.file_id = f.file_id WHERE f.vetrina_id = v.vetrina_id AND ff.user_id = %s)
                 )
-                ORDER BY v.id
+                ORDER BY v.vetrina_id
                 """,
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
 
-            vetrine = []
-            for row in results:
-                author = User(
-                    id=row["u_id"],
-                    username=row["username"],
-                    name=row["u_name"],
-                    surname=row["surname"],
-                    email=row["email"],
-                    last_login=row["u_last_login"],
-                    created_at=row["u_created_at"],
-                )
-
-                course_instance = CourseInstance(
-                    instance_id=row["ci_id"],
-                    course_code=row["course_code"],
-                    course_name=row["course_name"],
-                    faculty_name=row["faculty_name"],
-                    year=row["course_year"],
-                    date_year=row["date_year"],
-                    language=row["language"],
-                    course_semester=row["course_semester"],
-                    canale=row["canale"],
-                    professors=row["professors"],
-                )
-
-                vetrina = Vetrina(
-                    id=row["v_id"],
-                    name=row["v_name"],
-                    author=author,
-                    description=row["description"],
-                    course_instance=course_instance,
-                    favorite=row["is_vetrina_favorite"],
-                )
-                vetrine.append(vetrina)
-
+            vetrine = [Vetrina.from_dict(row) for row in results]
             return vetrine

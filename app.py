@@ -110,13 +110,13 @@ def already_owned_error(e):
 def register():
     data = request.json
     user = database.create_user(
-        str(data.get("username")),
-        str(data.get("email")),
-        str(data.get("password")),
-        str(data.get("name")),
-        str(data.get("surname")),
+        username=str(data.get("username")),
+        email=str(data.get("email")),
+        password=str(data.get("password")),
+        name=str(data.get("name")),
+        surname=str(data.get("surname")),
     )
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=user.user_id)
     return jsonify({"access_token": access_token}), 200
 
 
@@ -127,8 +127,8 @@ def login():
     password = data.get("password")
 
     user = database.verify_user(email, password)
-    access_token = create_access_token(identity=user.id)
-    return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
+    access_token = create_access_token(identity=user.user_id)
+    return jsonify({"access_token": access_token}), 200
 
 
 # ---------------------------------------------
@@ -144,7 +144,12 @@ def create_vetrina():
     course_instance_id = int(data.get("course_instance_id"))
     name = str(data.get("name"))
     description = str(data.get("description"))
-    database.create_vetrina(user_id, course_instance_id, name, description)
+    database.create_vetrina(
+        user_id=user_id,
+        course_instance_id=course_instance_id,
+        name=name,
+        description=description
+    )
     return jsonify({"msg": "Vetrina created"}), 200
 
 
@@ -178,9 +183,8 @@ def search_vetrine():
     user_id = get_jwt_identity()
     search_params = {}
     for key, value in request.args.items():
-        if key in ["text", "course_name", "faculty"]:
-            if value and value.strip():  # Check if value exists and is not just whitespace
-                search_params[key] = value.strip()
+        if value and value.strip():
+            search_params[key] = value.strip()
 
     results = database.search_vetrine(search_params, user_id)
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
@@ -213,7 +217,10 @@ def upload_file(vetrina_id):
     # Check if filename is empty
     if file.filename == "":
         return jsonify({"error": "no_filename", "msg": "No filename provided"}), 400
-
+    
+    extension = file.filename.split(".")[-1]
+    if extension not in ["pdf", "docx", "txt", "xlsx"]: 
+        return jsonify({"error": "invalid_extension", "msg": "Invalid extension. Valid extensions are: pdf, docx, txt, xlsx"}), 400
     # Get and validate tag if provided
     tag = request.form.get("tag")
     if tag and tag not in VALID_TAGS:
@@ -234,11 +241,21 @@ def upload_file(vetrina_id):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
 
     # Add file to database with size and tag
-    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, price=0, size=file_size, tag=tag)
+    db_file = database.add_file_to_vetrina(
+        requester_id=requester_id,
+        vetrina_id=vetrina_id,
+        file_name=new_file_name,
+        sha256=file_hash,
+        extension=extension,
+        price=0,
+        size=file_size,
+        tag=tag
+    )
 
     try:
         file.save(new_file_path)
-        redact.blur_pages(new_file_path, [1])
+        if extension == "pdf":
+            redact.blur_pages(new_file_path, [1])
 
     except Exception as e:
         try:
@@ -250,7 +267,7 @@ def upload_file(vetrina_id):
         except Exception as e:
             print(f"Error deleting redacted file: {e}")
         try:
-            database.delete_file(requester_id, db_file.id)
+            database.delete_file(requester_id, db_file.file_id)
         except Exception as e:
             print(f"Error deleting file from database: {e}")
         return jsonify({"error": "save_failed", "msg": str(e)}), 500

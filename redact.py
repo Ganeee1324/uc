@@ -1,9 +1,9 @@
 import pymupdf
-from PIL import ImageFilter
+from PIL import Image, ImageFilter
 from io import BytesIO
 
 
-def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 2):
+def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 0.2):
     doc = pymupdf.open(doc_path)
     indexes = []
     for page_number in excluded_pages:
@@ -16,8 +16,8 @@ def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 2)
         if page_index in indexes:
             continue
         page: pymupdf.Page = doc.load_page(page_index)
-        mat: pymupdf.Matrix = pymupdf.Matrix(0.5, 0.5)
-        image = page.get_pixmap(matrix=mat).pil_image().filter(ImageFilter.GaussianBlur(blur_strength))
+        mat: pymupdf.Matrix = pymupdf.Matrix(0.1, 0.1)
+        image: Image.Image = page.get_pixmap(matrix=mat).pil_image()#.filter(ImageFilter.GaussianBlur(blur_strength))
         bio = BytesIO()
         image.save(bio, format="PNG")
         bio.seek(0)

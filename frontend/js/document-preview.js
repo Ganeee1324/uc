@@ -252,14 +252,14 @@ function renderDocumentInfo(docData) {
     // Extract course information from vetrina if available
     const courseInfo = vetrinaData?.course_instance || {};
     
-    // Update document title
-    const title = vetrinaData?.name || fileData.filename || 'Documento Senza Titolo';
+    // Update document title - use original filename if available, otherwise use vetrina name
+    const title = fileData.original_filename || vetrinaData?.name || fileData.filename || 'Documento Senza Titolo';
     const titleElement = document.querySelector('.doc-title');
     if (titleElement) titleElement.textContent = title;
     document.title = `${title} - StudyHub`;
 
-    // Determine document type from filename
-    const documentType = getDocumentTypeFromFilename(fileData.filename);
+    // Determine document type from filename or tag
+    const documentType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
     
     // Update rating and price (mock data for now since no rating system exists yet)
     const rating = 4.2; // Mock rating
@@ -300,8 +300,14 @@ function renderDocumentInfo(docData) {
     updateDetailValue('Download', `${fileData.download_count || 0} volte`);
     updateDetailValue('Data Pubblicazione', formatDate(fileData.created_at));
 
-    // Update description
-    const description = vetrinaData?.description || 'Nessuna descrizione disponibile per questo documento.';
+    // Update description - use vetrina description or generate one based on document type
+    let description = vetrinaData?.description;
+    if (!description) {
+        const docType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : 'Documento';
+        const courseName = courseInfo.course_name || 'questo corso';
+        description = `${docType} per ${courseName}. Materiale didattico completo e aggiornato.`;
+    }
+    
     const descriptionContainer = document.querySelector('.doc-description');
     if(descriptionContainer) {
         descriptionContainer.innerHTML = `<p>${description}</p>`;
@@ -323,6 +329,18 @@ function updateDetailValue(label, value) {
             }
         }
     });
+}
+
+// Get document type from tag
+function getDocumentTypeFromTag(tag) {
+    const tagMap = {
+        'dispense': 'Dispense',
+        'appunti': 'Appunti',
+        'esercizi': 'Esercizi',
+        'formulario': 'Formulario',
+        'progetto': 'Progetto'
+    };
+    return tagMap[tag] || 'Documento';
 }
 
 // Get document type from filename
@@ -365,9 +383,9 @@ function generateDocumentPages(docData) {
     const { document: fileData, vetrina: vetrinaData } = docData;
     const courseInfo = vetrinaData?.course_instance || {};
     
-    const documentType = getFileExtension(fileData.filename);
+    const documentType = getFileExtension(fileData.original_filename || fileData.filename);
     const courseDetails = {
-        title: vetrinaData?.name || fileData.filename || 'Documento',
+        title: fileData.original_filename || vetrinaData?.name || fileData.filename || 'Documento',
         course: courseInfo.course_name || 'Corso',
         professor: courseInfo.professors || 'Professore', 
         university: courseInfo.faculty_name || 'Università'

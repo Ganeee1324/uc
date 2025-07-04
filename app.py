@@ -314,7 +314,26 @@ def get_files_for_vetrina(vetrina_id):
 @jwt_required()
 def get_file(file_id):
     file = database.get_file(file_id)
-    return jsonify(file.to_dict()), 200
+    
+    # Get additional information including vetrina and course details
+    file_data = file.to_dict()
+    
+    # Extract original filename from the UUID-based filename
+    if file.filename and '-' in file.filename:
+        # Format: uuid-userid-originalname
+        parts = file.filename.split('-', 2)
+        if len(parts) >= 3:
+            original_filename = parts[2]
+            file_data['original_filename'] = original_filename
+        else:
+            file_data['original_filename'] = file.filename
+    else:
+        file_data['original_filename'] = file.filename
+    
+    # Add created_at field for compatibility
+    file_data['created_at'] = file.upload_date.isoformat() if file.upload_date else None
+    
+    return jsonify(file_data), 200
 
 
 @app.route("/files/<int:file_id>/buy", methods=["POST"])

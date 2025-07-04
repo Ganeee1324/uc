@@ -21,7 +21,11 @@ let isFiltersOpen = false;
 window.onload = async function() {
     console.log('🚀 Page loading started...');
     
-    // Check authentication first
+    // Loading state is already set in HTML for immediate display
+    // This ensures layout stability even on first load with empty cache
+    console.log('✅ Loading state already present in HTML - no layout shift will occur');
+    
+    // Check authentication after showing loading state
     if (!checkAuthentication()) {
         console.log('❌ Authentication failed, redirecting...');
         return; // Stop execution if not authenticated
@@ -2825,6 +2829,13 @@ function showLoadingCards(count = 8) {
         return;
     }
     
+    // Check if there are already loading cards from HTML - if so, just return
+    const existingLoadingCards = grid.querySelectorAll('.loading-card');
+    if (existingLoadingCards.length > 0) {
+        console.log('✅ Loading cards already present from HTML, skipping creation');
+        return;
+    }
+    
     console.log('✅ Grid element found, clearing content...');
     grid.innerHTML = '';
     
@@ -2919,8 +2930,7 @@ function showLoadingCards(count = 8) {
 
 async function loadAllFiles() {
     try {
-        // Show loading cards immediately
-        showLoadingCards(8);
+        // Loading cards are already shown from HTML
         showStatus('Caricamento documenti... 📚');
         
         // First get all vetrines

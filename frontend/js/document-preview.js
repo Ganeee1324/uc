@@ -173,15 +173,21 @@ function updateHeaderUserInfo(user) {
     if (!user) return;
 
     const userNameElem = document.querySelector('.user-name');
-    const userAvatarElem = document.querySelector('.user-avatar');
+    const userAvatarElem = document.querySelector('#userAvatar');
 
     if (userNameElem) {
         userNameElem.textContent = user.username || 'User';
     }
 
     if (userAvatarElem) {
-        const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
-        userAvatarElem.textContent = initial;
+        // Check if there's already an SVG inside the avatar element
+        const existingSvg = userAvatarElem.querySelector('svg');
+        if (!existingSvg) {
+            // Only set the initial if there's no SVG inside
+            const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
+            userAvatarElem.textContent = initial;
+        }
+        // If SVG exists, leave it as is - don't modify the content
     }
 
     const logoutBtn = document.querySelector('.logout-btn');

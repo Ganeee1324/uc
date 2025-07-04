@@ -33,15 +33,15 @@ def populate_database():
     # Get admin user ID (created during setup)
     with connect() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM users WHERE username = 'admin'")
+            cur.execute("SELECT user_id FROM users WHERE username = 'admin'")
             admin_user = cur.fetchone()
             if not admin_user:
                 print("No admin user found. Run setup_database.py first.")
                 return
-            user_id = admin_user['id']
+            user_id = admin_user['user_id']
             
             # Get some course instances to use
-            cur.execute("SELECT id, course_name, faculty_name FROM course_instances LIMIT 5")
+            cur.execute("SELECT course_instance_id, course_name, faculty_name FROM course_instances LIMIT 5")
             courses = cur.fetchall()
             if not courses:
                 print("No course instances found. Run setup_database.py first.")
@@ -101,13 +101,13 @@ def populate_database():
         # Create vetrina
         vetrina = create_vetrina(
             user_id=user_id,
-            course_instance_id=course['id'],
+            course_instance_id=course['course_instance_id'],
             name=vetrina_info['name'],
             description=vetrina_info['description']
         )
         
         created_vetrine.append(vetrina)
-        print(f"✓ Created vetrina ID: {vetrina.id}")
+        print(f"✓ Created vetrina ID: {vetrina.vetrina_id}")
         
         # Add files to vetrina
         for filename, content, price, tag in vetrina_info['files']:
@@ -117,17 +117,19 @@ def populate_database():
             unique_filename, file_hash, file_size = create_test_file(filename, content)
             
             # Add to database
+            extension = unique_filename.split('.')[-1]
             db_file = add_file_to_vetrina(
                 requester_id=user_id,
-                vetrina_id=vetrina.id,
+                vetrina_id=vetrina.vetrina_id,
                 file_name=unique_filename,
                 sha256=file_hash,
+                extension=extension,
                 price=price,
                 size=file_size,
                 tag=tag
             )
             
-            print(f"  ✓ Created file ID: {db_file.id} (Price: €{price})")
+            print(f"  ✓ Created file ID: {db_file.file_id} (Price: €{price})")
     
     print(f"\n🎉 Successfully created {len(created_vetrine)} vetrine with files!")
     

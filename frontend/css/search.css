@@ -181,13 +181,11 @@ html {
 /* Background Image as Element */
 .background-image {
     position: absolute;
-    top: -100px;
-    left: -1px;
-    width: calc(100% + 2px);
-    height: calc(100% + 100px);
-    background-image: url('./images/bg.png'), url('../images/bg.png'), url('images/bg.png');
-    background-position: center top;
-    background-size: calc(100% + 2px) auto;
+    left: 0;
+    width: 100vw; /* Span the full viewport width */
+    /* height and top will be set by JavaScript */
+    background-image: url('../images/bg.png');
+    background-size: 100% 100%; /* Stretch to fill the element */
     background-repeat: no-repeat;
     z-index: -1;
     pointer-events: none;
@@ -1845,7 +1843,7 @@ html {
     text-align: left; /* Explicitly align text to the left */
  }
  
- /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
+t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  .owner-avatar, .author-avatar {
     width: 24px;
     height: 24px;

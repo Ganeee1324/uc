@@ -4585,7 +4585,84 @@ function initializeScrollToTop() {
         window.removeEventListener('scroll', handleScroll);
         window.addEventListener('scroll', throttledHandleScroll, { passive: true });
     }
+
+    throttledHandleScroll(); // Initial check
 }
 
 // Initialize scroll to top functionality when page loads
 document.addEventListener('DOMContentLoaded', initializeScrollToTop);
+
+// ===========================
+// DYNAMIC BACKGROUND POSITIONING
+// ===========================
+
+function adjustBackgroundPosition() {
+    const bgElement = document.querySelector('.background-image');
+    const title = document.querySelector('.search-title');
+    const searchContainer = document.querySelector('.search-container');
+
+    if (!bgElement || !title || !searchContainer) {
+        return;
+    }
+
+    // Use an Image object to get the natural dimensions and calculate aspect ratio.
+    // This is the key to making the calculation reliable.
+    const tempImage = new Image();
+    // The path must be relative to the HTML file that loads the script.
+    tempImage.src = 'images/bg.png'; 
+
+    const calculatePosition = () => {
+        if (tempImage.naturalWidth === 0 || tempImage.naturalHeight === 0) {
+            // Avoid division by zero if image fails to load
+            return;
+        }
+        const imageAspectRatio = tempImage.naturalWidth / tempImage.naturalHeight;
+
+        // Calculate the rendered height of the background based on viewport width
+        const viewportWidth = window.innerWidth;
+        const bgRenderedHeight = viewportWidth / imageAspectRatio;
+
+        // Set the container's height to match the image's rendered height
+        bgElement.style.height = `${bgRenderedHeight}px`;
+
+        // Find the page anchor's Y-coordinate relative to the document
+        const scrollY = window.scrollY;
+        const titleRect = title.getBoundingClientRect();
+        const searchRect = searchContainer.getBoundingClientRect();
+        const pageAnchorY = scrollY + titleRect.bottom + (searchRect.top - titleRect.bottom) / 2;
+
+        // Calculate the image's internal anchor point in pixels (50% from the top)
+        const imageAnchorInPixels = bgRenderedHeight * 0.50;
+
+        // Calculate the final 'top' offset for the element.
+        // This makes the image's anchor line up with the page's anchor.
+        const finalTopOffset = pageAnchorY - imageAnchorInPixels;
+        
+        bgElement.style.top = `${finalTopOffset}px`;
+    };
+
+    // This handles both cached and uncached images
+    if (tempImage.complete) {
+        calculatePosition();
+    } else {
+        tempImage.onload = calculatePosition;
+        tempImage.onerror = () => console.error("Background image failed to load, cannot position it.");
+    }
+}
+
+// Debounce function to limit how often a function can run.
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Add event listeners for dynamic background
+window.addEventListener('load', adjustBackgroundPosition);
+window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));

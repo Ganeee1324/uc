@@ -2946,7 +2946,7 @@ async function loadAllFiles() {
         const allFiles = [];
         for (const vetrina of currentVetrine) {
             try {
-                const filesResponse = await makeRequest(`/vetrine/${vetrina.id}/files`);
+                const filesResponse = await makeRequest(`/vetrine/${vetrina.id || vetrina.vetrina_id}/files`);
                 if (filesResponse && filesResponse.files) {
                     const files = filesResponse.files;
                     
@@ -2958,7 +2958,7 @@ async function loadAllFiles() {
                     
                     // Transform the vetrina into a card item
                     const vetrineCard = {
-                        id: vetrina.id,
+                        id: vetrina.id || vetrina.vetrina_id,
                         isVetrina: true,
                         fileCount: files.length,
                         files: files.map(file => ({
@@ -2999,7 +2999,7 @@ async function loadAllFiles() {
                         tags: files.map(file => file.tag).filter(tag => tag !== null),
                         primary_tag: files.find(file => file.tag)?.tag || null,
                         vetrina_info: {
-                            id: vetrina.id,
+                            id: vetrina.id || vetrina.vetrina_id,
                             name: vetrina.name,
                             description: vetrina.description,
                             course_instance_id: vetrina.course_instance?.instance_id,
@@ -3750,7 +3750,7 @@ async function transformSearchResults(vetrine) {
             
                                 // Transform the vetrina into a card item (same format as loadAllFiles)
                     const vetrineCard = {
-                        id: vetrina.id,
+                        id: vetrina.id || vetrina.vetrina_id,
                         isVetrina: true,
                         fileCount: files.length,
                         files: files.map(file => ({
@@ -3792,7 +3792,7 @@ async function transformSearchResults(vetrine) {
                         tags: files.map(file => file.tag).filter(tag => tag !== null),
                         primary_tag: files.find(file => file.tag)?.tag || null,
                         vetrina_info: {
-                            id: vetrina.id,
+                            id: vetrina.id || vetrina.vetrina_id,
                             name: vetrina.name,
                             description: vetrina.description,
                             course_instance_id: vetrina.course_instance?.instance_id,

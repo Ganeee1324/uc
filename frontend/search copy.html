@@ -598,32 +598,28 @@
     
     <!-- Font Loading Detection Script -->
     <script>
-        // Detect when Material Symbols font is loaded
-        document.fonts.ready.then(function() {
-            // Check if Material Symbols font is loaded
-            if (document.fonts.check('1em "Material Symbols Outlined"')) {
-                // Add font-loaded class to all material-symbols-outlined elements
-                document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
-                    element.classList.add('font-loaded');
-                });
-            } else {
-                // Fallback: show icons after a short delay
-                setTimeout(function() {
-                    document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
-                        element.classList.add('font-loaded');
-                    });
-                }, 100);
-            }
-        });
-        
-        // Fallback for older browsers
-        if (!document.fonts) {
-            setTimeout(function() {
-                document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
-                    element.classList.add('font-loaded');
-                });
-            }, 200);
+        // Show icons immediately and update when font loads
+        function showIconsImmediately() {
+            document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
+                element.style.visibility = 'visible';
+                element.style.opacity = '1';
+            });
         }
+        
+        // Show icons immediately on page load
+        showIconsImmediately();
+        
+        // Update when fonts are ready
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function() {
+                if (document.fonts.check('1em "Material Symbols Outlined"')) {
+                    showIconsImmediately();
+                }
+            });
+        }
+        
+        // Additional check after a short delay to ensure icons are visible
+        setTimeout(showIconsImmediately, 50);
     </script>
 </body>
 </html>

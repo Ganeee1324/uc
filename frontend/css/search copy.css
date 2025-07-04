@@ -36,6 +36,17 @@
     vertical-align: middle;
 }
 
+/* Hide text content until font is loaded */
+.material-symbols-outlined {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Show icons once font is loaded */
+.material-symbols-outlined.font-loaded {
+    opacity: 1;
+}
+
 /* Fallback for when Material Symbols font is not loaded yet */
 .material-symbols-outlined:not([style*="font-family"]) {
     font-family: 'Material Icons', -apple-system, BlinkMacSystemFont, sans-serif;

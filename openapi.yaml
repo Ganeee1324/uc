@@ -713,8 +713,6 @@ paths:
                 error: already_owned
                 msg: You already own this file
 
-
-
   /user/favorites/vetrine/{vetrina_id}:
     post:
       tags:
@@ -779,8 +777,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
-
 
   /user/favorites/files/{file_id}:
     post:
@@ -913,7 +909,7 @@ components:
     Vetrina:
       type: object
       properties:
-        id:
+        vetrina_id:
           type: integer
           description: Unique identifier for the vetrina
         name:
@@ -932,12 +928,10 @@ components:
           type: boolean
           description: Whether the current user has marked this vetrina as favorite
 
-
-
     CourseInstance:
       type: object
       properties:
-        instance_id:
+        course_instance_id:
           type: integer
           description: Unique identifier for the course instance
         course_code:
@@ -949,7 +943,7 @@ components:
         faculty_name:
           type: string
           description: Name of the faculty
-        year:
+        course_year:
           type: integer
           description: Year of the course in curriculum
         date_year:
@@ -973,23 +967,29 @@ components:
     User:
       type: object
       properties:
-        id:
+        user_id:
           type: integer
           description: Unique identifier for the user
         username:
           type: string
           description: User's username
+        first_name:
+          type: string
+          description: User's first name
+        last_name:
+          type: string
+          description: User's last name
 
     File:
       type: object
       properties:
-        id:
+        file_id:
           type: integer
           description: Unique identifier for the file
         filename:
           type: string
           description: Name of the file
-        created_at:
+        upload_date:
           type: string
           format: date-time
           description: Timestamp when the file was uploaded
@@ -1039,7 +1039,7 @@ components:
     Transaction:
       type: object
       properties:
-        id:
+        transaction_id:
           type: integer
           description: Unique identifier for the transaction
         user_id:
@@ -1048,7 +1048,7 @@ components:
         amount:
           type: integer
           description: Amount of the transaction
-        created_at:
+        transaction_date:
           type: string
           format: date-time
           description: Timestamp when the transaction was created
@@ -1064,7 +1064,7 @@ components:
         price:
           type: integer
           description: Price of the subscription
-        created_at:
+        subscription_date:
           type: string
           format: date-time
           description: Timestamp when the subscription was created

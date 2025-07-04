@@ -101,13 +101,13 @@ def already_owned_error(e):
 def register():
     data = request.json
     user = database.create_user(
-        str(data.get("username")),
-        str(data.get("email")),
-        str(data.get("password")),
-        str(data.get("name")),
-        str(data.get("surname")),
+        username=str(data.get("username")),
+        email=str(data.get("email")),
+        password=str(data.get("password")),
+        name=str(data.get("name")),
+        surname=str(data.get("surname")),
     )
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=user.user_id)
     return jsonify({"access_token": access_token}), 200
 
 
@@ -118,7 +118,7 @@ def login():
     password = data.get("password")
 
     user = database.verify_user(email, password)
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=user.user_id)
     return jsonify({"access_token": access_token}), 200
 
 
@@ -135,7 +135,12 @@ def create_vetrina():
     course_instance_id = int(data.get("course_instance_id"))
     name = str(data.get("name"))
     description = str(data.get("description"))
-    database.create_vetrina(user_id, course_instance_id, name, description)
+    database.create_vetrina(
+        user_id=user_id,
+        course_instance_id=course_instance_id,
+        name=name,
+        description=description
+    )
     return jsonify({"msg": "Vetrina created"}), 200
 
 
@@ -219,7 +224,16 @@ def upload_file(vetrina_id):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
 
     # Add file to database with size and tag
-    db_file = database.add_file_to_vetrina(requester_id, vetrina_id, new_file_name, file_hash, extension, price=0, size=file_size, tag=tag)
+    db_file = database.add_file_to_vetrina(
+        requester_id=requester_id,
+        vetrina_id=vetrina_id,
+        file_name=new_file_name,
+        sha256=file_hash,
+        extension=extension,
+        price=0,
+        size=file_size,
+        tag=tag
+    )
 
     try:
         file.save(new_file_path)
@@ -236,7 +250,7 @@ def upload_file(vetrina_id):
         except Exception as e:
             print(f"Error deleting redacted file: {e}")
         try:
-            database.delete_file(requester_id, db_file.id)
+            database.delete_file(requester_id, db_file.file_id)
         except Exception as e:
             print(f"Error deleting file from database: {e}")
         return jsonify({"error": "save_failed", "msg": str(e)}), 500

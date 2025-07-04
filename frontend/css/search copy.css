@@ -4824,23 +4824,6 @@ html {
 /* Professional Skeleton System - Matching Real Card Structure */
 
 /* Preview Area Skeletons - Match real document-preview */
-.skeleton-preview-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(90deg,
-        var(--gray-300) 25%,
-        var(--gray-200) 50%,
-        var(--gray-300) 75%);
-    background-size: 400% 100%;
-    animation: skeletonWave 2.2s ease-in-out infinite;
-    border-radius: 12px;
-    will-change: background-position;
-}
-
 .skeleton-preview-badge {
     position: absolute;
     top: 16px;
@@ -4855,6 +4838,42 @@ html {
     animation: skeletonWave 2.6s ease-in-out infinite;
     border-radius: 12px;
     animation-delay: 0.3s;
+    will-change: background-position;
+}
+
+/* Rating Badge Skeleton - Bottom left of preview */
+.skeleton-rating-badge {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    width: 80px;
+    height: 20px;
+    background: linear-gradient(90deg,
+        var(--gray-300) 25%,
+        var(--gray-150) 50%,
+        var(--gray-300) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.4s ease-in-out infinite;
+    border-radius: 10px;
+    animation-delay: 0.4s;
+    will-change: background-position;
+}
+
+/* Favorite Button Skeleton - Top right corner */
+.skeleton-favorite-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(90deg,
+        var(--gray-300) 25%,
+        var(--gray-200) 50%,
+        var(--gray-300) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.8s ease-in-out infinite;
+    border-radius: 50%;
+    animation-delay: 0.2s;
     will-change: background-position;
 }
 

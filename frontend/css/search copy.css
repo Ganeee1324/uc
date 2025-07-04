@@ -4693,18 +4693,22 @@ html {
 .loading-card {
     position: relative;
     background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.02) 0%, 
-        rgba(255, 255, 255, 0.08) 50%, 
-        rgba(255, 255, 255, 0.02) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+        var(--white) 0%, 
+        #fefefe 50%, 
+        var(--white) 100%);
+    border: 1px solid var(--gray-200);
     box-shadow: 
-        0 4px 32px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.02);
+        var(--shadow-md),
+        0 0 20px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
     overflow: hidden;
     animation: shimmerWave 3.2s ease-in-out infinite;
     background-size: 400% 100%;
     will-change: background-position;
+    /* Ensure proper card structure */
+    height: 560px;
+    display: flex;
+    flex-direction: column;
 }
 
 .document-card.loading:hover,
@@ -4727,14 +4731,19 @@ html {
     bottom: 0;
     background: linear-gradient(
         110deg,
-        transparent 25%,
-        rgba(255, 255, 255, 0.15) 50%,
-        transparent 75%
+        transparent 0%,
+        transparent 35%,
+        rgba(255, 255, 255, 0.8) 45%,
+        rgba(255, 255, 255, 1) 50%,
+        rgba(255, 255, 255, 0.8) 55%,
+        transparent 65%,
+        transparent 100%
     );
     animation: professionalShine 3.4s ease-in-out infinite;
-    z-index: 2;
+    z-index: 10;
     pointer-events: none;
     will-change: transform;
+    border-radius: var(--radius-3xl);
 }
 
 /* Disable interactions for loading cards */
@@ -4754,29 +4763,35 @@ html {
 .loading-card .document-preview,
 .document-card.loading .loading-preview,
 .loading-card .loading-preview {
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.03) 0%,
-        rgba(255, 255, 255, 0.08) 25%,
-        rgba(255, 255, 255, 0.12) 50%,
-        rgba(255, 255, 255, 0.08) 75%,
-        rgba(255, 255, 255, 0.03) 100%);
+    background: linear-gradient(110deg, 
+        var(--gray-100) 25%, 
+        var(--gray-50) 45%, 
+        var(--white) 50%, 
+        var(--gray-50) 55%, 
+        var(--gray-100) 75%);
     background-size: 400% 100%;
     animation: shimmerWave 2.8s ease-in-out infinite;
     position: relative;
     overflow: hidden;
     will-change: background-position;
+    /* Ensure proper preview sizing */
+    height: 240px;
+    min-height: 240px;
+    max-height: 240px;
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
 }
 
 /* Content area specialized shimmer */
 .document-card.loading .document-content,
 .loading-card .document-content {
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.01) 0%,
-        rgba(255, 255, 255, 0.05) 50%,
-        rgba(255, 255, 255, 0.01) 100%);
-    background-size: 300% 100%;
-    animation: shimmerWave 3.0s ease-in-out infinite;
-    will-change: background-position;
+    background: var(--white);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    position: relative;
+    overflow: hidden;
 }
 
 .document-card.loading .document-content::after,
@@ -4808,14 +4823,57 @@ html {
 .document-card.loading .document-stats span,
 .loading-card .document-stats span {
     background: linear-gradient(90deg,
-        rgba(255, 255, 255, 0.08) 25%,
-        rgba(255, 255, 255, 0.15) 50%,
-        rgba(255, 255, 255, 0.08) 75%);
+        var(--gray-200) 25%,
+        var(--gray-100) 50%,
+        var(--gray-200) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.4s ease-in-out infinite;
     border-radius: 6px;
     color: transparent !important;
     will-change: background-position;
+    margin: 4px 0;
+}
+
+/* Specific skeleton sizing */
+.document-card.loading .document-title,
+.loading-card .document-title {
+    height: 20px;
+    width: 85%;
+    margin-bottom: 8px;
+}
+
+.document-card.loading .document-author,
+.loading-card .document-author {
+    height: 16px;
+    width: 60%;
+    margin-bottom: 12px;
+}
+
+.document-card.loading .document-course,
+.loading-card .document-course {
+    height: 14px;
+    width: 75%;
+    margin-bottom: 16px;
+}
+
+.document-card.loading .document-stats span,
+.loading-card .document-stats span {
+    height: 12px;
+    width: 50px;
+    display: inline-block;
+    margin-right: 12px;
+}
+
+.document-card.loading .document-header,
+.loading-card .document-header {
+    margin-bottom: 16px;
+}
+
+.document-card.loading .document-stats,
+.loading-card .document-stats {
+    margin-top: auto;
+    display: flex;
+    gap: 12px;
 }
 
 .document-card.loading .document-info::after,

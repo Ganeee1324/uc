@@ -30,7 +30,9 @@
             <div class="divider"></div>
             <a href="upload.html" class="nav-link">Carica</a>
             <div class="user-info">
-                <div class="user-avatar" id="userAvatar"></div>
+                <div class="user-avatar" id="userAvatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path fill="#000" fill-rule="evenodd" d="M256 42.667A213.333 213.333 0 0 1 469.334 256c0 117.821-95.513 213.334-213.334 213.334c-117.82 0-213.333-95.513-213.333-213.334C42.667 138.18 138.18 42.667 256 42.667m21.334 234.667h-42.667c-52.815 0-98.158 31.987-117.715 77.648c30.944 43.391 81.692 71.685 139.048 71.685s108.104-28.294 139.049-71.688c-19.557-45.658-64.9-77.645-117.715-77.645M256 106.667c-35.346 0-64 28.654-64 64s28.654 64 64 64s64-28.654 64-64s-28.653-64-64-64"/></svg>
+                </div>
             </div>
         </div>
     </header>
@@ -38,7 +40,7 @@
     <!-- Main Content - Centered Search Interface -->
     <main class="main-content" id="mainContent">
         <!-- Search Section with integrated cards -->
-        <div class="search-section" id="searchSection">
+        <div class="search-section has-results" id="searchSection">
             <h1 class="search-title">Cerca.</h1>
             <p class="search-subtitle">Pensato per chi vuole di più.</p>
             
@@ -59,9 +61,9 @@
             
 
             <!-- Document Count and Active Filters Display -->
-            <div id="documentCountContainer" class="document-count-container" style="display: none;">
+            <div id="documentCountContainer" class="document-count-container" style="display: block;">
                 <div class="document-count-and-filters">
-                    <span id="documentCount" class="document-count"></span>
+                    <span id="documentCount" class="document-count">Caricamento...</span>
                     <div id="activeFiltersDisplay" class="active-filters-display">
                         <!-- Active filter pills will be dynamically added here -->
                     </div>
@@ -70,7 +72,31 @@
 
             <!-- Documents Grid - Will be populated dynamically -->
             <div class="documents-grid" id="documentsGrid">
-                <!-- Cards will be loaded from the database via JavaScript -->
+                <!-- Initial loading cards to prevent layout shift -->
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="loading-shimmer"></div>
+                </div>
             </div>
         </div>
     </main>

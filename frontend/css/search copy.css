@@ -681,7 +681,7 @@ html {
     transition: all 0.25s var(--ease-2);
     box-shadow: var(--shadow-lg);
     overflow: hidden;
-    margin-top: 50px;
+    margin-top: 0;
 }
 
 .search-bar::before {
@@ -783,7 +783,9 @@ html {
     white-space: nowrap;
     position: relative;
     overflow: hidden;
-    margin-top: 50px;
+    margin-top: 0;
+    opacity: 1;
+    visibility: visible;
 }
 
 .filters-btn::before {

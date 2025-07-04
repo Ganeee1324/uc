@@ -4848,9 +4848,9 @@ html {
     width: 60px;
     height: 24px;
     background: linear-gradient(90deg,
-        var(--gray-250) 25%,
+        var(--gray-400) 25%,
         var(--gray-150) 50%,
-        var(--gray-250) 75%);
+        var(--gray-400) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.6s ease-in-out infinite;
     border-radius: 12px;
@@ -4878,9 +4878,9 @@ html {
     height: 16px;
     width: 60%;
     background: linear-gradient(90deg,
-        var(--gray-250) 25%,
+        var(--gray-400) 25%,
         var(--gray-150) 50%,
-        var(--gray-250) 75%);
+        var(--gray-400) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.3s ease-in-out infinite;
     border-radius: 6px;
@@ -4893,9 +4893,9 @@ html {
     height: 18px;
     width: 75%;
     background: linear-gradient(90deg,
-        var(--gray-280) 25%,
-        var(--gray-180) 50%,
-        var(--gray-280) 75%);
+        var(--gray-300) 25%,
+        var(--gray-200) 50%,
+        var(--gray-300) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.5s ease-in-out infinite;
     border-radius: 7px;
@@ -4916,9 +4916,9 @@ html {
     height: 14px;
     width: 90%;
     background: linear-gradient(90deg,
-        var(--gray-220) 25%,
-        var(--gray-120) 50%,
-        var(--gray-220) 75%);
+        var(--gray-300) 25%,
+        var(--gray-150) 50%,
+        var(--gray-300) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.1s ease-in-out infinite;
     border-radius: 5px;
@@ -4944,9 +4944,9 @@ html {
     width: 32px;
     height: 32px;
     background: linear-gradient(90deg,
-        var(--gray-350) 25%,
-        var(--gray-250) 50%,
-        var(--gray-350) 75%);
+        var(--gray-400) 25%,
+        var(--gray-300) 50%,
+        var(--gray-400) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.7s ease-in-out infinite;
     border-radius: 50%;
@@ -4959,9 +4959,9 @@ html {
     height: 12px;
     width: 80px;
     background: linear-gradient(90deg,
-        var(--gray-200) 25%,
-        var(--gray-100) 50%,
-        var(--gray-200) 75%);
+        var(--gray-300) 25%,
+        var(--gray-150) 50%,
+        var(--gray-300) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.0s ease-in-out infinite;
     border-radius: 4px;
@@ -4973,9 +4973,9 @@ html {
     height: 20px;
     width: 60px;
     background: linear-gradient(90deg,
-        var(--gray-280) 25%,
-        var(--gray-180) 50%,
-        var(--gray-280) 75%);
+        var(--gray-400) 25%,
+        var(--gray-200) 50%,
+        var(--gray-400) 75%);
     background-size: 400% 100%;
     animation: skeletonWave 2.3s ease-in-out infinite;
     border-radius: 6px;

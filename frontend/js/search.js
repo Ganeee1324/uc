@@ -131,8 +131,8 @@ function updateHeaderUserInfo(user) {
     const logoutBtn = userInfo.querySelector('.logout-btn');
 
     if (userAvatar) {
-        const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
-        userAvatar.textContent = initial;
+        // Keep the SVG icon instead of showing initials
+        // The SVG is already in the HTML, so we don't need to modify it
     }
     
     if (userName) {
@@ -2930,7 +2930,7 @@ function showLoadingCards(count = 8) {
 
 async function loadAllFiles() {
     try {
-        // Loading cards are already shown from window.onload
+        // Loading cards are already shown from HTML
         showStatus('Caricamento documenti... 📚');
         
         // First get all vetrines

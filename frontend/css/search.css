@@ -5107,7 +5107,7 @@ html {
     right: 24px;
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, var(--blue-600) 0%, var(--purple-600) 100%);
+    background: linear-gradient(135deg, var(--indigo-600) 0%, var(--blue-600) 100%);
     border: none;
     border-radius: 50%;
     color: var(--white);
@@ -5142,7 +5142,7 @@ html {
 .scroll-to-top-btn:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.2);
-    background: linear-gradient(135deg, var(--blue-600) 0%, var(--purple-600) 100%);
+    background: linear-gradient(135deg, var(--indigo-600) 0%, var(--blue-600) 100%);
     border-color: rgba(255, 255, 255, 0.4);
 }
 

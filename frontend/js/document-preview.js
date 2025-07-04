@@ -35,6 +35,68 @@ class LoadingManager {
         return loader;
     }
 
+    static showDocumentPreview(container) {
+        const loader = document.createElement('div');
+        loader.className = 'document-preview-loader';
+        loader.innerHTML = `
+            <div class="preview-loader-content">
+                <!-- Document Viewer Skeleton -->
+                <div class="preview-viewer-skeleton">
+                    <div class="viewer-header-skeleton">
+                        <div class="skeleton-title-large"></div>
+                        <div class="skeleton-subtitle"></div>
+                    </div>
+                    <div class="viewer-pages-skeleton">
+                        <div class="skeleton-page"></div>
+                        <div class="skeleton-page"></div>
+                        <div class="skeleton-page"></div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar Skeleton -->
+                <div class="preview-sidebar-skeleton">
+                    <div class="sidebar-header-skeleton">
+                        <div class="skeleton-doc-title"></div>
+                        <div class="skeleton-doc-meta">
+                            <div class="skeleton-rating"></div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-details-skeleton">
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                    </div>
+                    
+                    <div class="sidebar-actions-skeleton">
+                        <div class="skeleton-action-btn primary"></div>
+                        <div class="skeleton-action-buttons">
+                            <div class="skeleton-action-btn secondary"></div>
+                            <div class="skeleton-action-btn secondary"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-sections-skeleton">
+                        <div class="skeleton-section">
+                            <div class="skeleton-section-title"></div>
+                            <div class="skeleton-section-content"></div>
+                        </div>
+                        <div class="skeleton-section">
+                            <div class="skeleton-section-title"></div>
+                            <div class="skeleton-section-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(loader);
+        return loader;
+    }
+
     static hide(loader) {
         if (loader && loader.parentNode) {
             loader.style.opacity = '0';
@@ -221,13 +283,12 @@ function renderDocumentInfo(docData) {
     // Update all details (no longer expandable - all visible)
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
+    updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
     updateDetailValue('Canale', courseInfo.canale || 'Non specificato');
     updateDetailValue('Tipo Documento', documentType);
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
     updateDetailValue('Autore', vetrinaData?.author?.username || 'Non specificato');
-    updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
     updateDetailValue('Semestre', courseInfo.course_semester || 'Non specificato');
-    updateDetailValue('Pagine', `${totalPages} pagine`);
     updateDetailValue('Formato', getFileExtension(fileData.filename));
     updateDetailValue('Dimensione', formatFileSize(fileData.size || 0));
     updateDetailValue('Download', `${fileData.download_count || 0} volte`);
@@ -620,25 +681,32 @@ function goToPage(pageNumber) {
 }
 
 function updatePageDisplay() {
-    // Hide all pages
-    document.querySelectorAll('.document-page').forEach(page => {
-        page.classList.remove('active');
+    // Hide all pages first
+    documentPages.forEach(page => {
+        page.style.display = 'none';
     });
-    
+
     // Show current page
-    const currentPageElement = document.querySelector(`[data-page="${currentPage}"]`);
-    if (currentPageElement) {
-        currentPageElement.classList.add('active');
+    if (documentPages[currentPage - 1]) {
+        documentPages[currentPage - 1].style.display = 'block';
     }
+
+    // Update navigation elements
+    updateNavigationElements();
     
-    // Update navigation
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const currentPageSpan = document.querySelector('.current-page');
+    // Update page indicator
+    updatePageIndicator();
     
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-    if (currentPageSpan) currentPageSpan.textContent = currentPage;
+    // Save reading position
+    saveReadingPosition();
+}
+
+// Update Page Indicator - Professional Display
+function updatePageIndicator() {
+    const pageIndicator = document.getElementById('pageIndicator');
+    if (pageIndicator) {
+        pageIndicator.textContent = `${currentPage} di ${totalPages}`;
+    }
 }
 
 // Zoom System
@@ -1063,8 +1131,8 @@ async function initializeDocumentPreview() {
     const fileId = getFileIdFromUrl();
     if (!fileId) return;
 
-    const viewerContainer = document.querySelector('.viewer-container');
-    const loader = LoadingManager.show(viewerContainer, 'Caricamento anteprima...');
+    const mainContainer = document.querySelector('.preview-main');
+    const loader = LoadingManager.showDocumentPreview(mainContainer);
 
     try {
         // Fetch user and document data in parallel for faster loading
@@ -1107,7 +1175,7 @@ async function initializeDocumentPreview() {
         console.error('Error loading document:', error);
         LoadingManager.hide(loader);
         LoadingManager.showError(
-            viewerContainer,
+            mainContainer,
             'Impossibile caricare il documento. Verifica la tua connessione e riprova.',
             'Riprova',
             'initializeDocumentPreview'

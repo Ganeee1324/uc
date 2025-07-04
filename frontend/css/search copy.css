@@ -4663,10 +4663,18 @@ html {
 
 @keyframes professionalShine {
     0% {
-        transform: translateX(-100%) skewX(-25deg);
+        left: -100%;
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
     }
     100% {
-        transform: translateX(400%) skewX(-25deg);
+        left: 100%;
+        opacity: 0;
     }
 }
 
@@ -4813,67 +4821,276 @@ html {
     will-change: transform;
 }
 
-/* Enhanced skeleton elements */
-.document-card.loading .document-title,
-.loading-card .document-title,
-.document-card.loading .document-author,
-.loading-card .document-author,
-.document-card.loading .document-course,
-.loading-card .document-course,
-.document-card.loading .document-stats span,
-.loading-card .document-stats span {
+/* Professional Skeleton System */
+
+/* Preview Area Skeletons */
+.skeleton-preview-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(90deg,
+        var(--gray-300) 25%,
+        var(--gray-200) 50%,
+        var(--gray-300) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.2s ease-in-out infinite;
+    border-radius: 12px;
+    will-change: background-position;
+}
+
+.skeleton-preview-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 60px;
+    height: 24px;
+    background: linear-gradient(90deg,
+        var(--gray-250) 25%,
+        var(--gray-150) 50%,
+        var(--gray-250) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.6s ease-in-out infinite;
+    border-radius: 12px;
+    animation-delay: 0.3s;
+    will-change: background-position;
+}
+
+/* Content Area Skeletons */
+.skeleton-title {
+    height: 24px;
+    width: 85%;
+    background: linear-gradient(90deg,
+        var(--gray-300) 25%,
+        var(--gray-200) 50%,
+        var(--gray-300) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.4s ease-in-out infinite;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    animation-delay: 0.1s;
+    will-change: background-position;
+}
+
+.skeleton-author {
+    height: 16px;
+    width: 60%;
+    background: linear-gradient(90deg,
+        var(--gray-250) 25%,
+        var(--gray-150) 50%,
+        var(--gray-250) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.3s ease-in-out infinite;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    animation-delay: 0.2s;
+    will-change: background-position;
+}
+
+.skeleton-course {
+    height: 18px;
+    width: 75%;
+    background: linear-gradient(90deg,
+        var(--gray-280) 25%,
+        var(--gray-180) 50%,
+        var(--gray-280) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.5s ease-in-out infinite;
+    border-radius: 7px;
+    margin-bottom: 20px;
+    animation-delay: 0.3s;
+    will-change: background-position;
+}
+
+/* Description Lines */
+.skeleton-description {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-line {
+    height: 14px;
+    width: 90%;
+    background: linear-gradient(90deg,
+        var(--gray-220) 25%,
+        var(--gray-120) 50%,
+        var(--gray-220) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.1s ease-in-out infinite;
+    border-radius: 5px;
+    animation-delay: 0.4s;
+    will-change: background-position;
+}
+
+.skeleton-line.short {
+    width: 65%;
+    animation-delay: 0.5s;
+}
+
+/* Footer Elements */
+.document-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+.skeleton-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(90deg,
+        var(--gray-350) 25%,
+        var(--gray-250) 50%,
+        var(--gray-350) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.7s ease-in-out infinite;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation-delay: 0.6s;
+    will-change: background-position;
+}
+
+.skeleton-meta {
+    height: 12px;
+    width: 80px;
     background: linear-gradient(90deg,
         var(--gray-200) 25%,
         var(--gray-100) 50%,
         var(--gray-200) 75%);
     background-size: 400% 100%;
-    animation: skeletonWave 2.4s ease-in-out infinite;
-    border-radius: 6px;
-    color: transparent !important;
+    animation: skeletonWave 2.0s ease-in-out infinite;
+    border-radius: 4px;
+    animation-delay: 0.7s;
     will-change: background-position;
-    margin: 4px 0;
 }
 
-/* Specific skeleton sizing */
-.document-card.loading .document-title,
-.loading-card .document-title {
+.skeleton-price {
     height: 20px;
-    width: 85%;
-    margin-bottom: 8px;
+    width: 60px;
+    background: linear-gradient(90deg,
+        var(--gray-280) 25%,
+        var(--gray-180) 50%,
+        var(--gray-280) 75%);
+    background-size: 400% 100%;
+    animation: skeletonWave 2.3s ease-in-out infinite;
+    border-radius: 6px;
+    margin-left: auto;
+    animation-delay: 0.8s;
+    will-change: background-position;
 }
 
-.document-card.loading .document-author,
-.loading-card .document-author {
-    height: 16px;
-    width: 60%;
-    margin-bottom: 12px;
+/* Enhanced Professional Shine Effect */
+.document-card.loading::before,
+.loading-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        110deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(255, 255, 255, 0.6) 40%,
+        rgba(255, 255, 255, 0.9) 50%,
+        rgba(255, 255, 255, 0.6) 60%,
+        transparent 65%,
+        transparent 100%
+    );
+    animation: professionalShine 3.0s ease-in-out infinite;
+    z-index: 15;
+    pointer-events: none;
+    will-change: transform;
+    border-radius: var(--radius-3xl);
+    transform: skewX(-25deg);
 }
 
-.document-card.loading .document-course,
-.loading-card .document-course {
-    height: 14px;
-    width: 75%;
-    margin-bottom: 16px;
-}
+/* Staggered Shine Animation Delays */
+.loading-card:nth-child(1)::before { animation-delay: 0.0s; }
+.loading-card:nth-child(2)::before { animation-delay: 0.2s; }
+.loading-card:nth-child(3)::before { animation-delay: 0.4s; }
+.loading-card:nth-child(4)::before { animation-delay: 0.6s; }
+.loading-card:nth-child(5)::before { animation-delay: 0.8s; }
+.loading-card:nth-child(6)::before { animation-delay: 1.0s; }
+.loading-card:nth-child(7)::before { animation-delay: 1.2s; }
+.loading-card:nth-child(8)::before { animation-delay: 1.4s; }
 
-.document-card.loading .document-stats span,
-.loading-card .document-stats span {
-    height: 12px;
-    width: 50px;
-    display: inline-block;
-    margin-right: 12px;
-}
-
+/* Layout Structure */
 .document-card.loading .document-header,
 .loading-card .document-header {
     margin-bottom: 16px;
 }
 
-.document-card.loading .document-stats,
-.loading-card .document-stats {
-    margin-top: auto;
+.document-card.loading .document-content,
+.loading-card .document-content {
     display: flex;
-    gap: 12px;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Responsive Skeleton Adjustments */
+@media (max-width: 1200px) {
+    .skeleton-title {
+        height: 22px;
+        width: 80%;
+    }
+    
+    .skeleton-author {
+        height: 15px;
+        width: 55%;
+    }
+    
+    .skeleton-course {
+        height: 16px;
+        width: 70%;
+    }
+}
+
+@media (max-width: 768px) {
+    .skeleton-title {
+        height: 20px;
+        width: 75%;
+    }
+    
+    .skeleton-author {
+        height: 14px;
+        width: 50%;
+    }
+    
+    .skeleton-course {
+        height: 15px;
+        width: 65%;
+    }
+    
+    .skeleton-preview-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .skeleton-avatar {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* Performance Optimizations */
+.skeleton-preview-icon,
+.skeleton-preview-badge,
+.skeleton-title,
+.skeleton-author,
+.skeleton-course,
+.skeleton-line,
+.skeleton-avatar,
+.skeleton-meta,
+.skeleton-price {
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .document-card.loading .document-info::after,

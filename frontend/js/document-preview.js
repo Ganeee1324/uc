@@ -241,6 +241,15 @@ async function fetchDocumentData(fileId) {
         };
     } catch (error) {
         console.error('Failed to fetch document data:', error);
+        
+        // If file not found, try to redirect to a valid file
+        if (error.message.includes('404') || error.message.includes('not found')) {
+            console.log('File not found, attempting to redirect to a valid file...');
+            // Redirect to a known valid file (teoria_insiemi.pdf - ID 117)
+            window.location.href = 'document-preview.html?id=117';
+            return null;
+        }
+        
         throw error;
     }
 }
@@ -1198,12 +1207,35 @@ async function initializeDocumentPreview() {
     } catch (error) {
         console.error('Error loading document:', error);
         LoadingManager.hide(loader);
-        LoadingManager.showError(
-            mainContainer,
-            'Impossibile caricare il documento. Verifica la tua connessione e riprova.',
-            'Riprova',
-            'initializeDocumentPreview'
-        );
+        
+        // Check if it's a 404 error (file not found)
+        if (error.message.includes('404') || error.message.includes('not found')) {
+            mainContainer.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">📄</div>
+                    <h2>Documento non trovato</h2>
+                    <p>Il documento richiesto (ID: ${fileId}) non è più disponibile.</p>
+                    <p>Probabilmente è stato aggiornato o rimosso dal database.</p>
+                    <div class="error-actions">
+                        <button class="retry-btn primary" onclick="window.location.href='document-preview.html?id=117'">
+                            <span class="material-symbols-outlined">visibility</span>
+                            Visualizza un documento di esempio
+                        </button>
+                        <button class="retry-btn secondary" onclick="window.location.href='search.html'">
+                            <span class="material-symbols-outlined">search</span>
+                            Torna alla ricerca
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else {
+            LoadingManager.showError(
+                mainContainer,
+                'Impossibile caricare il documento. Verifica la tua connessione e riprova.',
+                'Riprova',
+                'initializeDocumentPreview'
+            );
+        }
     }
 }
 

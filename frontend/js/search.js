@@ -2933,92 +2933,64 @@ async function loadAllFiles() {
         // Loading cards are already shown from HTML
         showStatus('Caricamento documenti... 📚');
         
-        // First get all vetrines
+        // Only get vetrine metadata initially - don't load individual files yet
         const vetrineResponse = await makeRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }
         
         currentVetrine = vetrineResponse.vetrine || [];
-        console.log('Loaded vetrine:', currentVetrine);
+        console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         
-        // Load files for each vetrina and group them by vetrina
-        const allFiles = [];
-        for (const vetrina of currentVetrine) {
-            try {
-                const filesResponse = await makeRequest(`/vetrine/${vetrina.id || vetrina.vetrina_id}/files`);
-                if (filesResponse && filesResponse.files) {
-                    const files = filesResponse.files;
-                    
-                    if (files.length === 0) continue;
-                    
-                    // Calculate total size and average price for the vetrina
-                    const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
-                    const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
-                    
-                    // Transform the vetrina into a card item
-                    const vetrineCard = {
-                        id: vetrina.id || vetrina.vetrina_id,
-                        isVetrina: true,
-                        fileCount: files.length,
-                        files: files.map(file => ({
-                            id: file.id,
-                            filename: file.filename,
-                            title: getOriginalFilename(file.filename),
-                            size: file.size || 0,
-                            price: file.price || 0,
-                            document_type: getFileTypeFromFilename(file.filename),
-                            created_at: file.created_at,
-                            download_count: file.download_count || 0,
-                            owned: file.owned || false,
-                            tag: file.tag || null
-                        })),
-                        // Use vetrina info for the card
-                        filename: files.length > 1 ? `${files.length} files` : files[0].filename,
-                        title: vetrina.name || 'Vetrina Senza Nome',
-                        description: vetrina.description || 'No description available',
-                        size: totalSize,
-                        price: totalPrice,
-                        created_at: vetrina.created_at,
-                        download_count: files.reduce((sum, file) => sum + (file.download_count || 0), 0),
-                        rating: Math.random() * 2 + 3, // Generate random rating between 3-5
-                        review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
-                        course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
-                        faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
-                        language: vetrina.course_instance?.language || 'Italiano',
-                        canale: vetrina.course_instance?.canale || 'A',
-                        course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                        academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                        document_types: files.length > 1 ? 
-                            Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
-                            : [getDocumentCategory(getOriginalFilename(files[0].filename), '')],
-                        document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
-                        author_username: vetrina.owner?.username || 'Unknown',
-                        owned: files.every(file => file.owned),
-                        // Add tags from files
-                        tags: files.map(file => file.tag).filter(tag => tag !== null),
-                        primary_tag: files.find(file => file.tag)?.tag || null,
-                        vetrina_info: {
-                            id: vetrina.id || vetrina.vetrina_id,
-                            name: vetrina.name,
-                            description: vetrina.description,
-                            course_instance_id: vetrina.course_instance?.instance_id,
-                            owner_id: vetrina.owner?.id,
-                            owner_username: vetrina.owner?.username || 'Unknown'
-                        }
-                    };
-                    allFiles.push(vetrineCard);
-                }
-            } catch (error) {
-                console.error(`Error loading files for vetrina ${vetrina.id}:`, error);
-            }
-        }
+        // Transform vetrine into card items without loading individual files
+        const allFiles = currentVetrine.map(vetrina => {
+            // Create a card item with basic vetrina info
+            const vetrineCard = {
+                id: vetrina.id || vetrina.vetrina_id,
+                isVetrina: true,
+                fileCount: 0, // Will be loaded when user clicks
+                files: [], // Will be loaded when user clicks
+                // Use vetrina info for the card
+                filename: 'Click to view files',
+                title: vetrina.name || 'Vetrina Senza Nome',
+                description: vetrina.description || 'No description available',
+                size: 0, // Will be calculated when files are loaded
+                price: 0, // Will be calculated when files are loaded
+                created_at: vetrina.created_at,
+                download_count: 0, // Will be calculated when files are loaded
+                rating: Math.random() * 2 + 3, // Generate random rating between 3-5
+                review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
+                course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
+                faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
+                language: vetrina.course_instance?.language || 'Italiano',
+                canale: vetrina.course_instance?.canale || 'A',
+                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                document_types: ['Click to view'], // Will be populated when files are loaded
+                document_type: 'BUNDLE', // Default to bundle since we don't know yet
+                author_username: vetrina.owner?.username || 'Unknown',
+                owned: false, // Will be determined when files are loaded
+                tags: [], // Will be populated when files are loaded
+                primary_tag: null, // Will be determined when files are loaded
+                vetrina_info: {
+                    id: vetrina.id || vetrina.vetrina_id,
+                    name: vetrina.name,
+                    description: vetrina.description,
+                    course_instance_id: vetrina.course_instance?.instance_id,
+                    owner_id: vetrina.owner?.id,
+                    owner_username: vetrina.owner?.username || 'Unknown'
+                },
+                // Add flag to indicate files need to be loaded
+                filesLoaded: false
+            };
+            return vetrineCard;
+        });
         
         currentFiles = allFiles;
         originalFiles = [...allFiles]; // Keep original copy
         renderDocuments(currentFiles);
         populateFilterOptions();
-        showStatus(`${allFiles.length} documenti caricati con successo! 🎉`);
+        showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);
         
     } catch (error) {
         console.error('Error loading vetrine:', error);
@@ -3210,8 +3182,14 @@ function renderDocuments(files) {
         
         // Make the entire card clickable
         card.style.cursor = 'pointer';
-        card.onclick = () => {
-            window.location.href = `document-preview.html?id=${item.id}`;
+        card.onclick = async (e) => {
+            // Don't trigger if clicking on interactive elements
+            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button')) {
+                return;
+            }
+            
+            // Call the async preview function
+            await previewDocument(item.id);
         };
 
         const documentType = item.document_type || 'Documento';
@@ -3224,14 +3202,23 @@ function renderDocuments(files) {
         const stars = generateStars(Math.floor(rating));
         const documentCategory = getDocumentCategory(documentTitle, description);
         
-        // Determine if this is a multi-file vetrina
+        // Determine if this is a multi-file vetrina and if files have been loaded
         const isMultiFile = item.isVetrina && item.fileCount > 1;
+        const filesLoaded = item.filesLoaded;
         const fileStackClass = isMultiFile ? 'file-stack' : '';
         const stackCountBadge = isMultiFile ? `<div class="file-count-badge">${item.fileCount}</div>` : '';
         
-        // Generate preview based on whether it's a single file or multi-file vetrina
+        // Generate preview based on whether files have been loaded
         let previewContent;
-        if (isMultiFile) {
+        if (item.isVetrina && !filesLoaded) {
+            // Show placeholder for vetrina that hasn't been loaded yet
+            previewContent = `
+                <div class="preview-icon">
+                    <span class="document-icon">📁</span>
+                    <div class="file-extension">VETRINA</div>
+                </div>
+            `;
+        } else if (isMultiFile && filesLoaded) {
             // Show professional file stack with uniform grid on hover
             const fileCount = item.fileCount;
             const files = item.files;
@@ -3290,8 +3277,8 @@ function renderDocuments(files) {
                 </div>
             `;
         } else {
-            // Single file preview
-            const filename = item.isVetrina ? item.files[0].filename : item.filename;
+            // Single file preview or loaded vetrina
+            const filename = item.isVetrina && filesLoaded ? item.files[0].filename : item.filename;
             previewContent = `
                 <div class="preview-icon">
                     <span class="document-icon">${getDocumentPreviewIcon(filename)}</span>
@@ -3310,10 +3297,13 @@ function renderDocuments(files) {
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
-                    ${item.tags && item.tags.length > 0 ?
-                        `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
-                        (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
-                        : ''
+                    ${item.isVetrina && !filesLoaded ? 
+                        '<div class="document-type-badge">Vetrina</div>' :
+                        (item.tags && item.tags.length > 0 ?
+                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
+                            (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
+                            : ''
+                        )
                     }
                 </div>
                 <div class="rating-badge">
@@ -3358,10 +3348,12 @@ function renderDocuments(files) {
                         <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
-                        <div class="document-meta">${formatFileSize(item.size || 0)}</div>
+                        <div class="document-meta">
+                            ${item.isVetrina && !filesLoaded ? 'Click to view' : formatFileSize(item.size || 0)}
+                        </div>
                     </div>
                     <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
-                        ${price === 0 ? 'Gratis' : `€${price}`}
+                        ${item.isVetrina && !filesLoaded ? 'View' : (price === 0 ? 'Gratis' : `€${price}`)}
                     </div>
                 </div>
             </div>
@@ -3498,9 +3490,61 @@ async function toggleFavorite(button, event) {
     }
 }
 
-function previewDocument(fileId) {
+async function previewDocument(fileId) {
     const file = currentFiles.find(f => f.id === fileId);
     if (!file) return;
+
+    // If files haven't been loaded yet, load them now
+    if (!file.filesLoaded) {
+        try {
+            showStatus('Caricamento dettagli documento... 📚');
+            
+            // Load files for this specific vetrina
+            const filesResponse = await makeRequest(`/vetrine/${file.id}/files`);
+            if (filesResponse && filesResponse.files) {
+                const files = filesResponse.files;
+                
+                if (files.length > 0) {
+                    // Calculate total size and price for the vetrina
+                    const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
+                    const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
+                    
+                    // Update the file object with loaded data
+                    file.fileCount = files.length;
+                    file.files = files.map(file => ({
+                        id: file.id,
+                        filename: file.filename,
+                        title: getOriginalFilename(file.filename),
+                        size: file.size || 0,
+                        price: file.price || 0,
+                        document_type: getFileTypeFromFilename(file.filename),
+                        created_at: file.created_at,
+                        download_count: file.download_count || 0,
+                        owned: file.owned || false,
+                        tag: file.tag || null
+                    }));
+                    file.size = totalSize;
+                    file.price = totalPrice;
+                    file.download_count = files.reduce((sum, file) => sum + (file.download_count || 0), 0);
+                    file.document_types = files.length > 1 ? 
+                        Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
+                        : [getDocumentCategory(getOriginalFilename(files[0].filename), '')];
+                    file.document_type = files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename);
+                    file.owned = files.every(file => file.owned);
+                    file.tags = files.map(file => file.tag).filter(tag => tag !== null);
+                    file.primary_tag = files.find(file => file.tag)?.tag || null;
+                    file.filesLoaded = true;
+                    
+                    // Update the filename to show actual file count
+                    file.filename = files.length > 1 ? `${files.length} files` : files[0].filename;
+                }
+            }
+        } catch (error) {
+            console.error(`Error loading files for vetrina ${file.id}:`, error);
+            showError('Errore nel caricamento dei dettagli del documento.');
+            return;
+        }
+    }
 
     // Use REAL database information for preview
     const documentTitle = file.title || 'Documento Senza Titolo';

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import logging
 import pandas as pd
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 load_dotenv()
 
 DB_NAME = os.getenv("DB_NAME")
@@ -62,29 +62,49 @@ def insert_sample_data():
     with connect() as conn:
         with conn.cursor() as cursor:
             # Insert user and get the actual user_id
-            cursor.execute("INSERT INTO users (username, email, password, first_name, last_name) VALUES (%s, %s, %s, %s, %s) RETURNING user_id", ("mario_rossi", "mario@example.com", "password123", "Mario", "Rossi"))
+            cursor.execute(
+                "INSERT INTO users (username, email, password, first_name, last_name) VALUES (%s, %s, %s, %s, %s) RETURNING user_id",
+                ("mario_rossi", "mario@example.com", "password123", "Mario", "Rossi"),
+            )
             user_id = cursor.fetchone()["user_id"]
             conn.commit()
-            
+
             logging.info(f"User {user_id} created")
-            
+
             cursor.execute("SELECT * FROM course_instances")
             course_instances = cursor.fetchall()
-            
+
             for course_instance in course_instances:
                 # Insert vetrina and get the vetrina_id
-                cursor.execute("INSERT INTO vetrina (author_id, course_instance_id, name, description) VALUES (%s, %s, %s, %s) RETURNING vetrina_id", 
-                             (user_id, course_instance["instance_id"], "Vetrina for " + course_instance["course_name"], "Description for " + course_instance["course_name"]))
+                cursor.execute(
+                    "INSERT INTO vetrina (author_id, course_instance_id, name, description) VALUES (%s, %s, %s, %s) RETURNING vetrina_id",
+                    (
+                        user_id,
+                        course_instance["instance_id"],
+                        "Vetrina for " + course_instance["course_name"],
+                        "Description for " + course_instance["course_name"],
+                    ),
+                )
                 vetrina_id = cursor.fetchone()["vetrina_id"]
                 conn.commit()
 
                 logging.info(f"Vetrina {vetrina_id} created")
                 for i in range(3):
                     # Use correct column names: filename instead of name, and provide required sha256
-                    cursor.execute("INSERT INTO files (vetrina_id, filename, price, tag, extension, sha256) VALUES (%s, %s, %s, %s, %s, %s)", 
-                                 (vetrina_id, "File " + str(i), random.randint(1, 100), random.choice(["dispense", "appunti", "esercizi"]), random.choice(["pdf", "docx", "txt"]), "dummy_sha256_" + str(i)))
+                    cursor.execute(
+                        "INSERT INTO files (vetrina_id, filename, price, tag, extension, sha256) VALUES (%s, %s, %s, %s, %s, %s)",
+                        (
+                            vetrina_id,
+                            "File " + str(i),
+                            random.randint(1, 100),
+                            random.choice(["dispense", "appunti", "esercizi"]),
+                            random.choice(["pdf", "docx", "txt"]),
+                            "dummy_sha256_" + str(i),
+                        ),
+                    )
                     conn.commit()
                     logging.info(f"File {i} added to vetrina {vetrina_id}")
+
 
 # ---------------------------------------------
 # Subscription management
@@ -138,6 +158,7 @@ def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
             for sub_row in subscriptions_data:
                 subscription = VetrinaSubscription.from_dict(sub_row)
                 result.append(subscription)
+            logging.debug(f"Found {len(result)} subscriptions for user {user_id}")
             return result
 
 
@@ -163,6 +184,7 @@ def get_vetrina_subscribers(vetrina_id: int) -> List[User]:
                 (vetrina_id,),
             )
             subscribers_data = cursor.fetchall()
+            logging.debug(f"Found {len(subscribers_data)} subscribers for vetrina {vetrina_id}")
 
             return [User.from_dict(user_row) for user_row in subscribers_data]
 
@@ -201,6 +223,7 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
             )
             user_data = cursor.fetchone()
             conn.commit()
+            logging.debug(f"User {user_data['user_id']} created")
 
             return User.from_dict(user_data)
 
@@ -225,7 +248,7 @@ def verify_user(email: str, password: str) -> User:
             user_data = cursor.fetchone()
             if not user_data or password != user_data["password"]:
                 raise UnauthorizedError("Invalid email or password")
-
+            logging.debug(f"User {user_data['user_id']} verified")
             return User.from_dict(user_data)
 
 
@@ -240,6 +263,7 @@ def delete_user(user_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
             conn.commit()
+            logging.debug(f"User {user_id} deleted")
 
 
 def get_user_by_id(user_id: int) -> User:
@@ -259,7 +283,7 @@ def get_user_by_id(user_id: int) -> User:
                 (user_id,),
             )
             user_data = cursor.fetchone()
-
+            logging.debug(f"User {user_id} retrieved")
             return User.from_dict(user_data) if user_data else None
 
 
@@ -350,6 +374,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             value = type_(value)
             where_parts.append(f"{field_name} = %s")
             where_params.append(value)
+            logging.debug(f"Added vetrina filter {param_name} = {value} to query")
 
     # Add file filters (only when files are joined)
     if has_file_filters:
@@ -358,6 +383,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
                 value = type_(value)
                 where_parts.append(f"{field_name} = %s")
                 where_params.append(value)
+                logging.debug(f"Added file filter {param_name} = {value} to query")
 
     # Build final query with proper parameter order
     where_clause = " AND ".join(where_parts)
@@ -370,6 +396,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
         with conn.cursor() as cursor:
             cursor.execute(final_query, tuple(all_params))
             vetrine_data = cursor.fetchall()
+            logging.debug(f"Retrieved {len(vetrine_data)} vetrine for user {user_id}")
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
@@ -403,8 +430,8 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
                 (user_id, course_instance_id, name, description),
             )
             vetrina_data = cursor.fetchone()
-
             conn.commit()
+            logging.debug(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id}")
 
             return Vetrina.from_dict(vetrina_data)
 
@@ -425,6 +452,7 @@ def delete_vetrina(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM vetrina WHERE vetrina_id = %s AND author_id = %s", (vetrina_id, user_id))
             conn.commit()
+            logging.debug(f"Vetrina {vetrina_id} deleted by user {user_id}")
 
 
 # ---------------------------------------------
@@ -477,6 +505,7 @@ def get_course_by_id(course_id: int) -> CourseInstance:
             if not course_data:
                 raise NotFoundException("Course not found")
 
+            logging.debug(f"Course {course_id} retrieved")
             return CourseInstance(**course_data)
 
 
@@ -517,9 +546,13 @@ def add_file_to_vetrina(
                 if not vetrina:
                     raise NotFoundException("Vetrina not found")
 
+                logging.debug(f"Vetrina {vetrina_id} found")
+
                 # Then check if the requester is the author
                 if vetrina["author_id"] != requester_id:
                     raise ForbiddenError("Only the author can add files to this vetrina")
+
+                logging.debug(f"Requester {requester_id} is the author of vetrina {vetrina_id}")
 
                 # If all checks pass, insert the file
                 cursor.execute(
@@ -528,6 +561,7 @@ def add_file_to_vetrina(
                 )
                 file_data = cursor.fetchone()
 
+                logging.debug(f"File {file_data['file_id']} added to vetrina {vetrina_id} by user {requester_id}")
             return File.from_dict(file_data)
 
 
@@ -568,6 +602,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                     (vetrina_id,),
                 )
             files_data = cursor.fetchall()
+            logging.debug(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
             return [File.from_dict(data) for data in files_data]
 
 
@@ -596,17 +631,11 @@ def delete_file(requester_id: int, file_id: int) -> File:
                     FROM vetrina v 
                     WHERE v.author_id = %s
                 )
-                RETURNING *
             """,
                 (file_id, requester_id),
             )
-            file_data = cursor.fetchone()
             conn.commit()
-
-            if cursor.rowcount == 0:
-                raise NotFoundException("File not found")
-
-            return File.from_dict(file_data)
+            logging.debug(f"File {file_id} deleted by user {requester_id}")
 
 
 def get_file(file_id: int) -> File:
@@ -632,7 +661,7 @@ def get_file(file_id: int) -> File:
 
             if not file_data:
                 raise NotFoundException("File not found")
-
+            logging.debug(f"File {file_id} retrieved")
             return File.from_dict(file_data)
 
 
@@ -649,28 +678,27 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            # First check if the user owns the file
+            # Single query that returns file data only if user has ownership access
             cursor.execute(
                 """
-                SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s
-                UNION
-                SELECT 1 FROM vetrina_subscriptions vs
-                JOIN files f ON f.vetrina_id = vs.vetrina_id
-                WHERE vs.subscriber_id = %s AND f.file_id = %s
+                SELECT f.* FROM files f
+                WHERE f.file_id = %s 
+                AND (
+                    EXISTS(SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s)
+                    OR 
+                    EXISTS(SELECT 1 FROM vetrina_subscriptions vs WHERE vs.subscriber_id = %s AND vs.vetrina_id = f.vetrina_id)
+                )
                 """,
-                (user_id, file_id, user_id, file_id),
+                (file_id, user_id, file_id, user_id),
             )
 
-            if not cursor.fetchone():
+            file_data = cursor.fetchone()
+            if not file_data:
                 raise ForbiddenError("You do not have access to this file")
 
-            cursor.execute(
-                "SELECT * FROM files WHERE file_id = %s",
-                (file_id,),
-            )
-            file_data = cursor.fetchone()
             file = File.from_dict(file_data)
             file.owned = True
+            logging.debug(f"File {file_id} is owned by user {user_id}")
             return file
 
 
@@ -687,6 +715,7 @@ def add_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO owned_files (owner_id, file_id) VALUES (%s, %s)", (user_id, file_id))
             conn.commit()
+            logging.debug(f"File {file_id} added to owned files of user {user_id}")
 
 
 def remove_owned_file(user_id: int, file_id: int) -> None:
@@ -697,6 +726,7 @@ def remove_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM owned_files WHERE owner_id = %s AND file_id = %s", (user_id, file_id))
             conn.commit()
+            logging.debug(f"File {file_id} removed from owned files of user {user_id}")
 
 
 # ---------------------------------------------
@@ -736,11 +766,15 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You already own this file")
 
+                logging.debug(f"File {file_id} not owned by user {user_id}")
+
                 cursor.execute(
                     "SELECT * FROM files WHERE file_id = %s",
                     (file_id,),
                 )
                 file_data = cursor.fetchone()
+
+                logging.debug(f"File {file_id} retrieved for transaction")
 
                 if not file_data:
                     raise NotFoundException("File not found")
@@ -753,12 +787,13 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 )
                 transaction_data = cursor.fetchone()
                 transaction = Transaction.from_dict(transaction_data)
+                logging.debug(f"Transaction {transaction.transaction_id} created for file {file_id} bought by user {user_id}")
 
                 cursor.execute(
                     "INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.transaction_id)
                 )
                 cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE file_id = %s", (file_id,))
-
+                logging.debug(f"File {file_id} bought by user {user_id} with transaction {transaction.transaction_id}")
             return transaction, file
 
 
@@ -777,17 +812,21 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You are already subscribed to this vetrina")
 
+                logging.debug(f"User {user_id} is not subscribed to vetrina {vetrina_id}")
+
                 cursor.execute(
                     "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING *",
                     (user_id, price),
                 )
                 transaction_data = cursor.fetchone()
                 transaction = Transaction.from_dict(transaction_data)
+                logging.debug(f"Transaction {transaction.transaction_id} created for subscription {vetrina_id} bought by user {user_id}")
 
                 cursor.execute(
                     "INSERT INTO vetrina_subscriptions (subscriber_id, vetrina_id, transaction_id, price) VALUES (%s, %s, %s, %s)",
                     (user_id, vetrina_id, transaction.transaction_id, price),
                 )
+                logging.debug(f"Subscription {vetrina_id} bought by user {user_id} with transaction {transaction.transaction_id}")
 
                 # Fetch the complete subscription data with all required fields for VetrinaSubscription.from_dict
                 cursor.execute(
@@ -826,6 +865,7 @@ def add_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO favourite_vetrine (user_id, vetrina_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, vetrina_id))
             conn.commit()
+            logging.debug(f"Vetrina {vetrina_id} added to favorites of user {user_id}")
 
 
 def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
@@ -845,6 +885,7 @@ def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
             if cursor.rowcount == 0:
                 raise NotFoundException("Favorite vetrina not found")
             conn.commit()
+            logging.debug(f"Vetrina {vetrina_id} removed from favorites of user {user_id}")
 
 
 def add_favorite_file(user_id: int, file_id: int) -> None:
@@ -862,6 +903,7 @@ def add_favorite_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO favourite_file (user_id, file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, file_id))
             conn.commit()
+            logging.debug(f"File {file_id} added to favorites of user {user_id}")
 
 
 def remove_favorite_file(user_id: int, file_id: int) -> None:
@@ -881,6 +923,7 @@ def remove_favorite_file(user_id: int, file_id: int) -> None:
             if cursor.rowcount == 0:
                 raise NotFoundException("Favorite file not found")
             conn.commit()
+            logging.debug(f"File {file_id} removed from favorites of user {user_id}")
 
 
 def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
@@ -913,7 +956,7 @@ def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
-
+            logging.debug(f"Retrieved {len(results)} vetrine with owned files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
 
 
@@ -946,7 +989,9 @@ def get_favorites(user_id: int) -> List[Vetrina]:
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
+            logging.debug(f"Retrieved {len(results)} vetrine with favorite files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
+
 
 if __name__ == "__main__":
     insert_sample_data()

@@ -16,6 +16,8 @@ from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, F
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import uuid
 
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+
 load_dotenv()
 
 # Check if JWT secret key exists in environment

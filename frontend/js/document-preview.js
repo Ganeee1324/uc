@@ -7,6 +7,7 @@ let authToken = localStorage.getItem('authToken');
 
 // Document State Management
 let currentDocument = null;
+let currentVetrina = null;
 let currentPage = 1;
 let totalPages = 1;
 let currentZoom = 100;
@@ -229,6 +230,8 @@ async function fetchDocumentData(fileId) {
 
         // Fetch vetrina data to get course information
         let vetrinaData = null;
+        let fileWithUserContext = null;
+        
         if (fileResponse.vetrina_id) {
             try {
                 // Get all vetrine and find the one we need since individual vetrina endpoint doesn't exist
@@ -237,6 +240,19 @@ async function fetchDocumentData(fileId) {
                     vetrinaData = allVetrineResponse.vetrine.find(v => v.vetrina_id === fileResponse.vetrina_id);
                     if (!vetrinaData) {
                         console.warn(`Vetrina with ID ${fileResponse.vetrina_id} not found in the list`);
+                    }
+                }
+                
+                // Get file with user context (including favorite status) from the vetrina's files
+                const vetrinaFilesResponse = await makeRequest(`${API_BASE}/vetrine/${fileResponse.vetrina_id}/files`);
+                if (vetrinaFilesResponse && vetrinaFilesResponse.files) {
+                    fileWithUserContext = vetrinaFilesResponse.files.find(f => f.file_id === parseInt(fileId));
+                    if (fileWithUserContext) {
+                        // Merge the user context data with the original file data
+                        Object.assign(fileResponse, {
+                            favorite: fileWithUserContext.favorite,
+                            owned: fileWithUserContext.owned
+                        });
                     }
                 }
             } catch (error) {
@@ -341,7 +357,7 @@ function renderDocumentInfo(docData) {
     }
     
     // Set up action buttons with proper data
-    setupActionButtons(fileData);
+    setupActionButtons(fileData, vetrinaData);
 }
 
 // Helper function to update detail values
@@ -1020,7 +1036,7 @@ function loadReadingPosition() {
 }
 
 // Enhanced Action Buttons Setup with proper file handling
-function setupActionButtons(fileData) {
+function setupActionButtons(fileData, vetrinaData = null) {
     const purchaseBtn = document.getElementById('purchaseBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const favoriteBtn = document.getElementById('favoriteBtn');
@@ -1060,8 +1076,24 @@ function setupActionButtons(fileData) {
         }
     }
 
-    // Setup other action buttons
-    if (favoriteBtn) favoriteBtn.onclick = handleFavorite;
+    // Setup favorite button with proper initial state
+    if (favoriteBtn) {
+        // Check both file and vetrina favorite status
+        const isFileFavorited = fileData.favorite === true;
+        const isVetrinaFavorited = vetrinaData && vetrinaData.favorite === true;
+        const isFavorited = isFileFavorited || isVetrinaFavorited;
+        
+        if (isFavorited) {
+            favoriteBtn.classList.add('active');
+            favoriteBtn.title = 'Rimuovi dai Preferiti';
+        } else {
+            favoriteBtn.classList.remove('active');
+            favoriteBtn.title = 'Aggiungi ai Preferiti';
+        }
+        favoriteBtn.onclick = handleFavorite;
+    }
+
+    // Setup share button
     if (shareBtn) shareBtn.onclick = handleShare;
 }
 
@@ -1199,6 +1231,7 @@ async function initializeDocumentPreview() {
         }
 
         currentDocument = docData.document;
+        currentVetrina = docData.vetrina;
 
         // Hide loader
         LoadingManager.hide(loader);
@@ -1297,17 +1330,68 @@ document.addEventListener('visibilitychange', () => {
 console.log('Document Preview System - World Class Edition - Loaded Successfully');
 
 // Action Handlers
-function handleFavorite() {
-    // Toggle favorite status
+async function handleFavorite() {
+    if (!currentDocument || !currentDocument.file_id) {
+        showNotification('Errore: ID file non trovato', 'error');
+        return;
+    }
+
     const btn = document.getElementById('favoriteBtn');
+    const isCurrentlyFavorited = btn.classList.contains('active');
     
-    // Just toggle the active class - text stays the same, icon stays the same
-    if (btn.classList.contains('active')) {
-        btn.classList.remove('active');
-        showNotification('Rimosso dai preferiti 💔', 'success');
-    } else {
-        btn.classList.add('active');
-        showNotification('Aggiunto ai preferiti! ❤️', 'success');
+    try {
+        // Determine which endpoint to call based on current state
+        let response;
+        
+        if (isCurrentlyFavorited) {
+            // If currently favorited, we need to unfavorite
+            // Check if it's favorited because of vetrina or file
+            const isFileFavorited = currentDocument.favorite === true;
+            const isVetrinaFavorited = currentVetrina && currentVetrina.favorite === true;
+            
+            if (isVetrinaFavorited) {
+                // Unfavorite the vetrina
+                response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${currentDocument.vetrina_id}`, {
+                    method: 'DELETE'
+                });
+                // Also update the vetrina's favorite status in our data
+                if (currentVetrina) {
+                    currentVetrina.favorite = false;
+                }
+            } else if (isFileFavorited) {
+                // Unfavorite the file
+                response = await makeRequest(`${API_BASE}/user/favorites/files/${currentDocument.file_id}`, {
+                    method: 'DELETE'
+                });
+            }
+        } else {
+            // If not favorited, favorite the file
+            response = await makeRequest(`${API_BASE}/user/favorites/files/${currentDocument.file_id}`, {
+                method: 'POST'
+            });
+        }
+
+        if (response) {
+            // Toggle the favorite state in the UI
+            if (isCurrentlyFavorited) {
+                btn.classList.remove('active');
+                btn.title = 'Aggiungi ai Preferiti';
+                showNotification('Rimosso dai preferiti 💔', 'success');
+            } else {
+                btn.classList.add('active');
+                btn.title = 'Rimuovi dai Preferiti';
+                showNotification('Aggiunto ai preferiti! ❤️', 'success');
+            }
+            
+            // Update the current document's favorite status
+            currentDocument.favorite = !isCurrentlyFavorited;
+            
+            // Mark that favorites have been changed so search page knows to refresh
+            sessionStorage.setItem('favoritesChanged', 'true');
+        }
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
     }
 }
 

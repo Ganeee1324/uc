@@ -17,62 +17,81 @@ let originalFiles = []; // Keep original unfiltered data
 let activeFilters = {};
 let isFiltersOpen = false;
 
-// Initialize the page
-window.onload = async function() {
-    console.log('🚀 Page loading started...');
-    
-    // Loading state is already set in HTML for immediate display
-    // This ensures layout stability even on first load with empty cache
-    console.log('✅ Loading state already present in HTML - no layout shift will occur');
-    
-    // Check authentication after showing loading state
-    if (!checkAuthentication()) {
-        console.log('❌ Authentication failed, redirecting...');
-        return; // Stop execution if not authenticated
-    }
-    
-    console.log('✅ Authentication passed, initializing page...');
-    
-    // Initialize user info and logout button
-    initializeUserInfo();
-    
-    console.log('📱 Loading files and initializing components...');
-    initializeAnimations();
-    initializeFilters();
-    initializeScrollToTop();
-    
-    // Load files first, then restore filters
-    await loadAllFiles();
-    
-    // Ensure documents are shown after loading
-    if (originalFiles && originalFiles.length > 0) {
-        console.log('Initial load complete, showing all documents');
-        renderDocuments(originalFiles);
-        currentFiles = originalFiles;
-        showStatus(`${originalFiles.length} documenti disponibili 📚`);
-    }
-    
-    // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
-    setTimeout(() => {
-        restoreFiltersFromStorage();
+    // Initialize the page
+    window.onload = async function() {
+        console.log('🚀 Page loading started...');
         
-        // Additional check to ensure all UI elements are properly updated
+        // Loading state is already set in HTML for immediate display
+        // This ensures layout stability even on first load with empty cache
+        console.log('✅ Loading state already present in HTML - no layout shift will occur');
+        
+        // Check authentication after showing loading state
+        if (!checkAuthentication()) {
+            console.log('❌ Authentication failed, redirecting...');
+            return; // Stop execution if not authenticated
+        }
+        
+        console.log('✅ Authentication passed, initializing page...');
+        
+        // Initialize user info and logout button
+        initializeUserInfo();
+        
+        console.log('📱 Loading files and initializing components...');
+        initializeAnimations();
+        initializeFilters();
+        initializeScrollToTop();
+        
+        // Load files first, then restore filters
+        await loadAllFiles();
+        
+        // Ensure documents are shown after loading
+        if (originalFiles && originalFiles.length > 0) {
+            console.log('Initial load complete, showing all documents');
+            renderDocuments(originalFiles);
+            currentFiles = originalFiles;
+            showStatus(`${originalFiles.length} documenti disponibili 📚`);
+        }
+        
+        // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
         setTimeout(() => {
-            updateActiveFilterIndicators();
-            updateActiveFiltersDisplay();
+            restoreFiltersFromStorage();
             
-            // Final safety check - if no documents are shown, show all documents
+            // Additional check to ensure all UI elements are properly updated
             setTimeout(() => {
-                const documentsGrid = document.getElementById('documentsGrid');
-                if (documentsGrid && documentsGrid.children.length === 0 && originalFiles && originalFiles.length > 0) {
-                    console.log('Safety check: No documents shown, displaying all documents');
-                    renderDocuments(originalFiles);
-                    currentFiles = originalFiles;
-                    showStatus(`${originalFiles.length} documenti disponibili 📚`);
+                updateActiveFilterIndicators();
+                updateActiveFiltersDisplay();
+                
+                // Final safety check - if no documents are shown, show all documents
+                setTimeout(() => {
+                    const documentsGrid = document.getElementById('documentsGrid');
+                    if (documentsGrid && documentsGrid.children.length === 0 && originalFiles && originalFiles.length > 0) {
+                        console.log('Safety check: No documents shown, displaying all documents');
+                        renderDocuments(originalFiles);
+                        currentFiles = originalFiles;
+                        showStatus(`${originalFiles.length} documenti disponibili 📚`);
+                    }
+                }, 500);
+            }, 50);
+        }, 100);
+        
+        // Check if we're returning from another page and refresh favorites if needed
+        setTimeout(async () => {
+            if (currentFiles && currentFiles.length > 0) {
+                // Check if we're returning from document preview
+                const wasNavigatingFromSearch = sessionStorage.getItem('navigatingFromSearch');
+                const favoritesChanged = sessionStorage.getItem('favoritesChanged');
+                
+                if (wasNavigatingFromSearch === 'true' || favoritesChanged === 'true') {
+                    console.log('🔄 Returning from document preview with potential favorite changes, refreshing favorite status...');
+                    sessionStorage.removeItem('navigatingFromSearch');
+                    sessionStorage.removeItem('favoritesChanged');
+                    await refreshFavoriteStatus();
+                } else {
+                    console.log('🔄 Checking for favorite status updates after page load...');
+                    await refreshFavoriteStatus();
                 }
-            }, 500);
-        }, 50);
-    }, 100);
+            }
+        }, 1000);
     
     // Add keyboard shortcut to test loading animation (Ctrl/Cmd + L)
     document.addEventListener('keydown', function(e) {
@@ -97,6 +116,67 @@ window.onload = async function() {
             console.log('Active filters count:', Object.keys(activeFilters).length);
             console.log('Original files count:', originalFiles ? originalFiles.length : 'undefined');
             console.log('Current files count:', currentFiles ? currentFiles.length : 'undefined');
+        }
+    });
+    
+    // Add visibility change listener to refresh favorites when page becomes visible
+    document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden && currentFiles && currentFiles.length > 0) {
+            // Refresh favorite status when page becomes visible
+            await refreshFavoriteStatus();
+        }
+    });
+    
+    // Add focus event listener to refresh favorites when page gains focus (e.g., when returning from another page)
+    window.addEventListener('focus', async () => {
+        if (currentFiles && currentFiles.length > 0) {
+            const favoritesChanged = sessionStorage.getItem('favoritesChanged');
+            if (favoritesChanged === 'true') {
+                console.log('🔄 Page gained focus with favorite changes detected, refreshing favorite status...');
+                sessionStorage.removeItem('favoritesChanged');
+            } else {
+                console.log('🔄 Page gained focus, refreshing favorite status...');
+            }
+            // Small delay to ensure the page is fully loaded
+            setTimeout(async () => {
+                await refreshFavoriteStatus();
+            }, 100);
+        }
+    });
+    
+    // Add page show event listener for better cross-browser compatibility
+    window.addEventListener('pageshow', async (event) => {
+        // Check if the page is being restored from cache (back/forward navigation)
+        if (event.persisted && currentFiles && currentFiles.length > 0) {
+            console.log('🔄 Page restored from cache, refreshing favorite status...');
+            await refreshFavoriteStatus();
+        }
+    });
+    
+    // Mark when we're leaving the page
+    let isLeavingPage = false;
+    window.addEventListener('beforeunload', () => {
+        isLeavingPage = true;
+    });
+    
+    // Check if we're returning to the page and refresh favorites
+    window.addEventListener('pageshow', async (event) => {
+        if (isLeavingPage && currentFiles && currentFiles.length > 0) {
+            console.log('🔄 Returning to page, refreshing favorite status...');
+            isLeavingPage = false;
+            setTimeout(async () => {
+                await refreshFavoriteStatus();
+            }, 200);
+        }
+    });
+    
+    // Handle browser back/forward navigation
+    window.addEventListener('popstate', async (event) => {
+        if (currentFiles && currentFiles.length > 0) {
+            console.log('🔄 Browser navigation detected, refreshing favorite status...');
+            setTimeout(async () => {
+                await refreshFavoriteStatus();
+            }, 100);
         }
     });
     
@@ -3003,22 +3083,42 @@ async function loadAllFiles() {
         currentVetrine = vetrineResponse.vetrine || [];
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         
-        // Transform vetrine into card items without loading individual files
+        // Transform vetrine into card items with mock file data for UI display
         const allFiles = currentVetrine.map(vetrina => {
-            // Create a card item with basic vetrina info
+            // Create mock files for UI display (we don't load real files)
+            const mockFileCount = Math.floor(Math.random() * 5) + 1; // 1-5 files
+            const mockFiles = Array.from({ length: mockFileCount }, (_, i) => ({
+                id: `${vetrina.id}-file-${i}`,
+                filename: `file${i + 1}.pdf`,
+                title: `File ${i + 1}`,
+                size: Math.floor(Math.random() * 1000000) + 100000,
+                price: Math.random() > 0.7 ? Math.floor(Math.random() * 10) + 1 : 0,
+                document_type: ['PDF', 'DOCX', 'PPTX'][Math.floor(Math.random() * 3)],
+                created_at: vetrina.created_at,
+                download_count: Math.floor(Math.random() * 100),
+                owned: false,
+                tag: ['appunti', 'dispense', 'esercizi'][Math.floor(Math.random() * 3)]
+            }));
+            
+            // Calculate totals for the vetrina
+            const totalSize = mockFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+            const totalPrice = mockFiles.reduce((sum, file) => sum + (file.price || 0), 0);
+            
+            // Create a card item with mock file data for proper UI display
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
-                fileCount: 0, // Will be loaded when user clicks
-                files: [], // Will be loaded when user clicks
+                filesLoaded: true, // Mark as loaded so it shows file stack UI
+                fileCount: mockFileCount,
+                files: mockFiles,
                 // Use vetrina info for the card
-                filename: 'Click to view files',
+                filename: mockFileCount > 1 ? `${mockFileCount} files` : mockFiles[0].filename,
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
-                size: 0, // Will be calculated when files are loaded
-                price: 0, // Will be calculated when files are loaded
+                size: totalSize,
+                price: totalPrice,
                 created_at: vetrina.created_at,
-                download_count: 0, // Will be calculated when files are loaded
+                download_count: mockFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
                 rating: Math.random() * 2 + 3, // Generate random rating between 3-5
                 review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
@@ -3027,12 +3127,13 @@ async function loadAllFiles() {
                 canale: vetrina.course_instance?.canale || 'A',
                 course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                document_types: ['Click to view'], // Will be populated when files are loaded
-                document_type: 'BUNDLE', // Default to bundle since we don't know yet
+                document_types: Array.from(new Set(mockFiles.map(file => file.document_type))),
+                document_type: mockFileCount > 1 ? 'BUNDLE' : mockFiles[0].document_type,
                 author_username: vetrina.owner?.username || 'Unknown',
-                owned: false, // Will be determined when files are loaded
-                tags: [], // Will be populated when files are loaded
-                primary_tag: null, // Will be determined when files are loaded
+                owned: mockFiles.every(file => file.owned),
+                favorite: vetrina.favorite === true, // Use the real favorite status from backend
+                tags: mockFiles.map(file => file.tag).filter(tag => tag !== null),
+                primary_tag: mockFiles.find(file => file.tag)?.tag || null,
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
                     name: vetrina.name,
@@ -3040,9 +3141,7 @@ async function loadAllFiles() {
                     course_instance_id: vetrina.course_instance?.instance_id,
                     owner_id: vetrina.owner?.id,
                     owner_username: vetrina.owner?.username || 'Unknown'
-                },
-                // Add flag to indicate files need to be loaded
-                filesLoaded: false
+                }
             };
             return vetrineCard;
         });
@@ -3248,6 +3347,9 @@ function renderDocuments(files) {
             if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button')) {
                 return;
             }
+            
+            // Mark that we're navigating to another page
+            sessionStorage.setItem('navigatingFromSearch', 'true');
             
             // Navigate to document preview page instead of opening overlay
             window.location.href = `document-preview.html?id=${item.id}`;
@@ -3513,6 +3615,53 @@ function showError(message) {
     showStatus(message, 'error');
 }
 
+// Function to refresh favorite status when page becomes visible
+async function refreshFavoriteStatus() {
+    try {
+        console.log('🔄 Refreshing favorite status...');
+        
+        // Get fresh favorite data from the backend
+        const response = await makeAuthenticatedRequest('/vetrine');
+        if (response && response.vetrine) {
+            let hasChanges = false;
+            
+            // Update the favorite status in current data
+            response.vetrine.forEach(freshVetrina => {
+                const existingIndex = currentFiles.findIndex(item => 
+                    (item.vetrina_id || item.id) === freshVetrina.vetrina_id
+                );
+                if (existingIndex !== -1) {
+                    const oldFavorite = currentFiles[existingIndex].favorite;
+                    currentFiles[existingIndex].favorite = freshVetrina.favorite;
+                    
+                    // Check if the favorite status actually changed
+                    if (oldFavorite !== freshVetrina.favorite) {
+                        hasChanges = true;
+                        console.log(`📝 Updated favorite status for vetrina ${freshVetrina.vetrina_id}: ${oldFavorite} -> ${freshVetrina.favorite}`);
+                    }
+                }
+                
+                const originalIndex = originalFiles.findIndex(item => 
+                    (item.vetrina_id || item.id) === freshVetrina.vetrina_id
+                );
+                if (originalIndex !== -1) {
+                    originalFiles[originalIndex].favorite = freshVetrina.favorite;
+                }
+            });
+            
+            // Only re-render if there were actual changes to avoid unnecessary DOM updates
+            if (hasChanges) {
+                console.log('🔄 Re-rendering documents due to favorite status changes');
+                renderDocuments(currentFiles);
+            } else {
+                console.log('✅ No favorite status changes detected');
+            }
+        }
+    } catch (error) {
+        console.error('Error refreshing favorite status:', error);
+    }
+}
+
 async function toggleFavorite(button, event) {
     if (event) {
         event.stopPropagation();
@@ -3545,6 +3694,25 @@ async function toggleFavorite(button, event) {
         } else {
             button.classList.add('active');
             showStatus('Aggiunto ai preferiti! ❤️');
+        }
+        
+        // Update the local data to keep it in sync
+        const vetrinaIdInt = parseInt(vetrinaId);
+        if (currentFiles) {
+            const vetrinaIndex = currentFiles.findIndex(item => 
+                (item.vetrina_id || item.id) === vetrinaIdInt
+            );
+            if (vetrinaIndex !== -1) {
+                currentFiles[vetrinaIndex].favorite = !isFavorited;
+            }
+        }
+        if (originalFiles) {
+            const vetrinaIndex = originalFiles.findIndex(item => 
+                (item.vetrina_id || item.id) === vetrinaIdInt
+            );
+            if (vetrinaIndex !== -1) {
+                originalFiles[vetrinaIndex].favorite = !isFavorited;
+            }
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);

@@ -558,7 +558,12 @@ body {
 
 .doc-header-actions {
     display: flex;
+    align-items: center;
     gap: var(--space-3);
+}
+
+.doc-header-actions .doc-type-tag {
+    margin-right: auto; /* Push the tag to the left, buttons to the right */
 }
 
 .doc-header-actions .action-btn.secondary {
@@ -619,7 +624,7 @@ body {
 }
 
 .doc-title {
-    font-size: 1.75rem; /* 28px */
+    font-size: 1.5rem; /* 24px - reduced from 28px */
     font-weight: 800;
     line-height: 1.2;
     color: var(--neutral-900);
@@ -637,7 +642,7 @@ body {
     font-weight: 600;
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-full);
-    margin-bottom: var(--space-3);
+    margin-bottom: 0; /* Remove bottom margin to align with buttons */
 }
 
 .doc-meta-header {

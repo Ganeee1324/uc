@@ -1299,6 +1299,7 @@ async function initializeDocumentPreview() {
                         <div class="doc-title-container">
                             <h1 class="doc-title">Caricamento...</h1>
                             <div class="doc-header-actions">
+                                <div class="doc-type-tag">Caricamento...</div>
                                 <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
                                     <span class="material-symbols-outlined">favorite</span>
                                 </button>
@@ -1307,7 +1308,6 @@ async function initializeDocumentPreview() {
                                 </button>
                             </div>
                         </div>
-                        <div class="doc-type-tag">Caricamento...</div>
                         <div class="doc-meta-header">
                             <div class="doc-rating">
                                 <div class="stars"></div>

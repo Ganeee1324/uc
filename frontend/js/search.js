@@ -40,6 +40,7 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
+        initializeStickySearchButtons();
         
         // Load files first, then restore filters
         await loadAllFiles();
@@ -4709,129 +4710,64 @@ async function performClientSideSearch(query) {
 // ===========================
 
 function initializeScrollToTop() {
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-    const searchContainer = document.querySelector('.search-container');
-    const caricaButton = document.querySelector('.nav-link[href="upload.html"]');
-    
+    const scrollToTopBtn = document.querySelector('.scroll-to-top-btn');
     if (!scrollToTopBtn) return;
 
-    let scrollThreshold = 300; // Show button after scrolling 300px
-    let isScrolling = false;
-    let scrollTimeout;
+    let isVisible = false;
+    let lastScrollTop = 0;
+    let ticking = false;
 
-    // Show/hide button based on scroll position
     function handleScroll() {
-        const scrollY = window.scrollY || window.pageYOffset;
-        
-        if (scrollY > scrollThreshold) {
-            if (!scrollToTopBtn.classList.contains('visible')) {
-                scrollToTopBtn.classList.add('visible');
-                // Add pulse animation for first appearance
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const documentHeight = document.documentElement.scrollHeight;
+        const windowHeight = window.innerHeight;
+        const scrollPercent = (scrollTop / (documentHeight - windowHeight)) * 100;
+
+        // Show button when scrolled down more than 300px
+        if (scrollTop > 300 && !isVisible) {
+            isVisible = true;
+            scrollToTopBtn.classList.add('visible');
+            
+            // Add pulse animation when first showing
+            setTimeout(() => {
+                scrollToTopBtn.classList.add('pulse');
                 setTimeout(() => {
-                    scrollToTopBtn.classList.add('pulse');
-                    setTimeout(() => {
-                        scrollToTopBtn.classList.remove('pulse');
-                    }, 1500); // Reduced pulse duration
-                }, 50); // Reduced delay
-            }
-        } else {
+                    scrollToTopBtn.classList.remove('pulse');
+                }, 600);
+            }, 100);
+        } else if (scrollTop <= 300 && isVisible) {
+            isVisible = false;
             scrollToTopBtn.classList.remove('visible');
         }
-        
-        // Handle search container positioning
-        if (searchContainer && caricaButton) {
-            const searchContainerRect = searchContainer.getBoundingClientRect();
-            const caricaButtonRect = caricaButton.getBoundingClientRect();
-            
-            // Check if search container aligns with carica button
-            const searchContainerTop = searchContainerRect.top;
-            const caricaButtonTop = caricaButtonRect.top;
-            const caricaButtonBottom = caricaButtonRect.bottom;
-            
-            // If search container top is at or above carica button level, make it fixed
-            if (searchContainerTop <= caricaButtonBottom) {
-                if (!searchContainer.classList.contains('fixed')) {
-                    searchContainer.classList.add('fixed');
-                }
-            } else {
-                if (searchContainer.classList.contains('fixed')) {
-                    searchContainer.classList.remove('fixed');
-                }
-            }
-        }
+
+        lastScrollTop = scrollTop;
     }
 
-    // Smooth scroll to top
     function scrollToTop() {
-        // Remove pulse animation if active
-        scrollToTopBtn.classList.remove('pulse');
-        
-        // Smooth scroll to top with optimized easing
-        const startPosition = window.scrollY || window.pageYOffset;
+        const startPosition = window.pageYOffset;
         const startTime = performance.now();
-        const duration = 500; // Reduced to 500ms for faster animation
-        
-        // Use a smoother easing function
+        const duration = Math.min(1000, Math.max(300, startPosition / 3)); // Dynamic duration
+
         function easeOutQuart(t) {
-            return 1 - Math.pow(1 - t, 4);
+            return 1 - (--t) * t * t * t;
         }
-        
+
         function animateScroll(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easedProgress = easeOutQuart(progress);
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            const ease = easeOutQuart(progress);
             
-            const newPosition = startPosition - (startPosition * easedProgress);
-            window.scrollTo(0, newPosition);
+            window.scrollTo(0, startPosition * (1 - ease));
             
             if (progress < 1) {
                 requestAnimationFrame(animateScroll);
-            } else {
-                // Ensure we reach exactly the top
-                window.scrollTo(0, 0);
             }
         }
-        
+
         requestAnimationFrame(animateScroll);
     }
 
-    // Event listeners
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    scrollToTopBtn.addEventListener('click', scrollToTop);
-    
-    // Keyboard accessibility
-    scrollToTopBtn.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            scrollToTop();
-        }
-    });
-
-    // Touch device optimizations
-    if ('ontouchstart' in window) {
-        scrollToTopBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            scrollToTopBtn.style.transform = 'scale(0.95)';
-        }, { passive: false });
-        
-        scrollToTopBtn.addEventListener('touchend', () => {
-            scrollToTopBtn.style.transform = '';
-        });
-    }
-
-    // Adjust threshold based on viewport height
-    function adjustScrollThreshold() {
-        const viewportHeight = window.innerHeight;
-        scrollThreshold = Math.max(200, viewportHeight * 0.3); // At least 200px, or 30% of viewport
-    }
-
-    // Initial adjustment and on resize
-    adjustScrollThreshold();
-    window.addEventListener('resize', adjustScrollThreshold);
-
-    // Performance optimization: throttle scroll events for better performance
-    let ticking = false;
-    
+    // Throttle scroll events for better performance
     function throttledHandleScroll() {
         if (!ticking) {
             requestAnimationFrame(() => {
@@ -4842,19 +4778,102 @@ function initializeScrollToTop() {
         }
     }
 
-    // Use throttled version for all devices for better performance
+    // Event listeners
     window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    scrollToTopBtn.addEventListener('click', scrollToTop);
 
-    throttledHandleScroll(); // Initial check
-    
-    // Also handle resize events for search container positioning
-    window.addEventListener('resize', () => {
-        throttledHandleScroll();
-    }, { passive: true });
+    // Adjust threshold on resize
+    window.addEventListener('resize', debounce(() => {
+        // Recalculate on resize if needed
+        handleScroll();
+    }, 250));
+
+    // Initial check
+    handleScroll();
 }
 
-// Initialize scroll to top functionality when page loads
-document.addEventListener('DOMContentLoaded', initializeScrollToTop);
+function initializeStickySearchButtons() {
+    const searchContainer = document.querySelector('.search-container');
+    const header = document.querySelector('.header');
+    
+    if (!searchContainer || !header) return;
+    
+    let isSticky = false;
+    let originalPosition = null;
+    let ticking = false;
+    
+    function handleScroll() {
+        const headerHeight = header.offsetHeight; // 72px
+        const searchContainerRect = searchContainer.getBoundingClientRect();
+        const searchContainerTop = searchContainerRect.top;
+        
+        // When the search container reaches the header level (accounting for header height)
+        const shouldBeSticky = searchContainerTop <= headerHeight;
+        
+        if (shouldBeSticky && !isSticky) {
+            // Store original position before making sticky
+            if (!originalPosition) {
+                originalPosition = {
+                    top: searchContainer.offsetTop,
+                    left: searchContainer.offsetLeft,
+                    width: searchContainer.offsetWidth
+                };
+            }
+            
+            // Make sticky
+            isSticky = true;
+            searchContainer.style.position = 'fixed';
+            searchContainer.style.top = `${headerHeight}px`;
+            searchContainer.style.left = '50%';
+            searchContainer.style.transform = 'translateX(-50%)';
+            searchContainer.style.width = `${originalPosition.width}px`;
+            searchContainer.style.zIndex = '1001';
+            
+            console.log('🔒 Search buttons are now sticky');
+            
+        } else if (!shouldBeSticky && isSticky) {
+            // Remove sticky
+            isSticky = false;
+            searchContainer.style.position = 'relative';
+            searchContainer.style.top = 'auto';
+            searchContainer.style.left = 'auto';
+            searchContainer.style.transform = 'none';
+            searchContainer.style.width = '100%';
+            searchContainer.style.zIndex = '1001';
+            
+            console.log('🔓 Search buttons are no longer sticky');
+        }
+    }
+    
+    function throttledHandleScroll() {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                handleScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }
+    
+    // Event listeners
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    window.addEventListener('resize', debounce(() => {
+        // Reset on resize
+        if (isSticky) {
+            originalPosition = null;
+            isSticky = false;
+            searchContainer.style.position = 'relative';
+            searchContainer.style.top = 'auto';
+            searchContainer.style.left = 'auto';
+            searchContainer.style.transform = 'none';
+            searchContainer.style.width = '100%';
+            setTimeout(handleScroll, 100);
+        }
+    }, 250));
+    
+    // Initial check
+    setTimeout(handleScroll, 100);
+}
 
 // ===========================
 // DYNAMIC BACKGROUND POSITIONING

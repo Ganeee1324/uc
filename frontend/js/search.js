@@ -237,8 +237,7 @@ function initializeFilters() {
 }
 
 function initializeFilterControls() {
-    // Author autocomplete (with overlay suggestions)
-    initializeAuthorFilter();
+
     
     // Professional dropdowns (includes all dropdown types now)
     setupDropdowns();
@@ -258,177 +257,7 @@ function handleFilterChangeImmediate(e) {
     // All filter changes are now handled through the dropdown system
 }
 
-function initializeAuthorFilter() {
-    const authorContainer = document.querySelector('.author-container');
-    const authorInput = document.getElementById('autoreFilter');
-    const authorSuggestions = document.getElementById('authorSuggestions');
-    const authorOptions = document.getElementById('authorOptions');
-    let authors = [];
-    let selectedIndex = -1;
-    let isAuthorOpen = false;
-    
-    if (!authorInput || !authorSuggestions || !authorOptions) return;
-    
-    // Handle author filter label click - close suggestions if open, do nothing if closed
-    const authorLabel = document.querySelector('label[for="autoreFilter"]');
-    if (authorLabel) {
-        authorLabel.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (isAuthorOpen) {
-                hideSuggestions();
-            }
-            // Do nothing if suggestions are closed
-        });
-    }
-    
-    // Extract authors from files
-    function updateAuthors() {
-        if (originalFiles.length > 0) {
-            authors = [...new Set(originalFiles.map(f => 
-                f.author_username || f.vetrina_info?.owner_username
-            ).filter(Boolean))].sort();
-        }
-    }
-    
-    authorInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        updateAuthors();
-        
-        if (query.length === 0) {
-            hideSuggestions();
-            // Only clear the filter if the user manually clears the input
-            if (activeFilters.author) {
-                delete activeFilters.author;
-                triggerFilterUpdate();
-            }
-            return;
-        }
-        
-        // Reset scroll to top when typing
-        if (isAuthorOpen) {
-            authorOptions.scrollTop = 0;
-        }
-        
-        const filteredAuthors = authors.filter(author => 
-            author.toLowerCase().includes(query)
-        );
-        
-        showSuggestions(filteredAuthors, query);
-        selectedIndex = -1;
-    });
-    
-    // Don't show suggestions on focus, only when typing
-    authorInput.addEventListener('focus', (e) => {
-        // Only show if there's already text
-        if (e.target.value.trim().length > 0) {
-            const query = e.target.value.toLowerCase().trim();
-            updateAuthors();
-            const filteredAuthors = authors.filter(author => 
-                author.toLowerCase().includes(query)
-            );
-            showSuggestions(filteredAuthors, query);
-        }
-    });
-    
-    authorInput.addEventListener('keydown', (e) => {
-        const options = authorOptions.querySelectorAll('.author-option');
-        
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            selectedIndex = Math.min(selectedIndex + 1, options.length - 1);
-            updateSelection(options);
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            selectedIndex = Math.max(selectedIndex - 1, -1);
-            updateSelection(options);
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (selectedIndex >= 0 && options[selectedIndex]) {
-                const authorText = options[selectedIndex].querySelector('span').textContent;
-                selectAuthor(authorText);
-            }
-        } else if (e.key === 'Escape') {
-            hideSuggestions();
-        }
-    });
-    
-    // Hide suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.author-container')) {
-            if (isAuthorOpen) {
-                hideSuggestions();
-                // Don't clear the input when clicking outside - preserve the filter
-            }
-        }
-    });
-    
-    function showSuggestions(filteredAuthors, query) {
-        // If an author filter is active, show only that author with an X to remove
-        if (activeFilters.author && authorInput.value === activeFilters.author) {
-            authorOptions.innerHTML = `
-                <div class="author-option selected has-active-filter" data-value="${activeFilters.author}">
-                    <span>${activeFilters.author}</span>
-                    <i class="material-symbols-outlined dropdown-option-remove">close</i>
-                </div>
-            `;
-            const removeBtn = authorOptions.querySelector('.dropdown-option-remove');
-            if (removeBtn) {
-                removeBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    authorInput.value = '';
-                    delete activeFilters.author;
-                    hideSuggestions();
-                    triggerFilterUpdate();
-                });
-            }
-            authorContainer.classList.add('open');
-            isAuthorOpen = true;
-            return;
-        }
-        // Default: show suggestions as before
-        authorOptions.innerHTML = '';
-        filteredAuthors.slice(0, 10).forEach(author => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'author-option';
-            optionDiv.innerHTML = `
-                <span>${author}</span>
-                <span class="author-option-check">✓</span>
-            `;
-            optionDiv.addEventListener('click', () => selectAuthor(author));
-            authorOptions.appendChild(optionDiv);
-        });
-        authorContainer.classList.add('open');
-        isAuthorOpen = true;
-    }
-    
-    function hideSuggestions() {
-        authorContainer.classList.remove('open');
-        isAuthorOpen = false;
-        selectedIndex = -1;
-    }
-    
-    function updateSelection(options) {
-        options.forEach((option, index) => {
-            option.classList.toggle('highlighted', index === selectedIndex);
-        });
-        
-        // Scroll to highlighted option
-        if (selectedIndex >= 0 && options[selectedIndex]) {
-            options[selectedIndex].scrollIntoView({
-                block: 'nearest',
-                behavior: 'smooth'
-            });
-        }
-    }
-    
-    function selectAuthor(author) {
-        authorInput.value = author;
-        activeFilters.author = author;
-        hideSuggestions();
-        triggerFilterUpdate();
-    }
-}
+
 
 
 
@@ -846,9 +675,7 @@ function setupDropdowns() {
             // Check if click is on dropdown input wrapper or dropdown content
             const clickedDropdownInputWrapper = e.target.closest('.dropdown-input-wrapper');
             const clickedDropdownContent = e.target.closest('.dropdown-content');
-            const clickedAuthorContainer = e.target.closest('.author-container');
-            
-            if (!clickedDropdownInputWrapper && !clickedDropdownContent && !clickedAuthorContainer) {
+                    if (!clickedDropdownInputWrapper && !clickedDropdownContent) {
                 // Click is outside all dropdown areas - close all dropdowns
                 closeAllDropdowns();
                 
@@ -1110,7 +937,7 @@ function populateOptions(type, items) {
         optionsHTML += otherOptionsHTML;
         
     } else if (!isMultiSelect && activeFilterValues && activeFilterValues !== '') {
-        // Single-select behavior (for faculty, course, canale, author)
+        // Single-select behavior (for faculty, course, canale)
         let displayText = activeFilterValues;
         if (type === 'language' && languageDisplayMap[activeFilterValues]) {
             displayText = languageDisplayMap[activeFilterValues];
@@ -2259,13 +2086,7 @@ function applyFiltersToFiles(files) {
             }
         }
         
-        // Author filter - case insensitive partial match
-        if (activeFilters.author) {
-            const fileAuthor = file.author_username || file.vetrina_info?.owner_username || '';
-            if (!fileAuthor.toLowerCase().includes(activeFilters.author.toLowerCase())) {
-                return false;
-            }
-        }
+        
         
         // Document type filter - exact match (supports multiple)
         if (activeFilters.documentType) {
@@ -2517,10 +2338,7 @@ function updateActiveFiltersDisplay() {
                 label = 'Corso';
                 displayValue = value;
                 break;
-            case 'author':
-                label = 'Autore';
-                displayValue = value;
-                break;
+
             case 'documentType':
                 label = 'Tipo';
                 displayValue = value;
@@ -4171,8 +3989,7 @@ function applyClientSideFilters(files) {
         
         filtered = filtered.filter(file => {
             switch (key) {
-                case 'author':
-                    return file.author_username && file.author_username.toLowerCase().includes(value.toLowerCase());
+
                 case 'language':
                     return file.language && file.language.toLowerCase() === value.toLowerCase();
                 case 'canale':
@@ -4307,7 +4124,7 @@ function updateFilterInputs() {
     };
     
     // Clear all inputs first to ensure clean state
-    const allInputs = ['autoreFilter', 'facultyFilter', 'courseFilter', 'canaleFilter', 'documentTypeFilter', 'languageFilter', 'academicYearFilter', 'tagFilter'];
+    const allInputs = ['facultyFilter', 'courseFilter', 'canaleFilter', 'documentTypeFilter', 'languageFilter', 'academicYearFilter', 'tagFilter'];
     allInputs.forEach(inputId => {
         const input = document.getElementById(inputId);
         if (input) {
@@ -4330,11 +4147,7 @@ function updateFilterInputs() {
         }
     });
     
-    // Update author input
-    const authorInput = document.getElementById('autoreFilter');
-    if (authorInput && activeFilters.author) {
-        authorInput.value = activeFilters.author;
-    }
+
     
     // Update dropdown inputs
     const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];

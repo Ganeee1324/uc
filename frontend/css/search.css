@@ -202,7 +202,7 @@ html {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid #e9ecef;
-    z-index: 1000;
+    z-index: 1001;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -384,6 +384,7 @@ html {
 .main-content {
     min-height: calc(100vh - 120px);
     position: relative;
+    z-index: 1;
 }
 
 /* Initial Search Section - Centered Layout */

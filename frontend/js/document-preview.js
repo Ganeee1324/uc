@@ -1255,7 +1255,9 @@ async function initializeDocumentPreview() {
         console.log('🔍 Document data loaded:', {
             documentId: currentDocument?.file_id,
             vetrinaId: currentVetrina?.vetrina_id,
-            vetrinaData: currentVetrina
+            vetrinaIdField: currentVetrina?.id,
+            vetrinaData: currentVetrina,
+            vetrinaKeys: currentVetrina ? Object.keys(currentVetrina) : 'null'
         });
 
         // Generate document pages
@@ -1490,9 +1492,17 @@ async function handleFavorite() {
         return;
     }
     
-    if (!currentVetrina || !currentVetrina.vetrina_id) {
-        console.error('❌ Current vetrina is missing or has no ID:', currentVetrina);
+    if (!currentVetrina) {
+        console.error('❌ Current vetrina is missing:', currentVetrina);
         showNotification('Errore: Dati vetrina non disponibili. Ricarica la pagina.', 'error');
+        return;
+    }
+    
+    // Get the vetrina ID from either id or vetrina_id field
+    const vetrinaId = currentVetrina.id || currentVetrina.vetrina_id;
+    if (!vetrinaId) {
+        console.error('❌ Current vetrina has no ID field:', currentVetrina);
+        showNotification('Errore: ID vetrina non trovato. Ricarica la pagina.', 'error');
         return;
     }
 
@@ -1504,8 +1514,8 @@ async function handleFavorite() {
     sessionStorage.setItem('favoritesChanged', 'true');
 
     try {
-        console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${currentVetrina.id}`);
-        const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${currentVetrina.id}`, {
+        console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${vetrinaId}`);
+        const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
             method: isActive ? 'POST' : 'DELETE'
         });
 

@@ -677,6 +677,67 @@ html {
     margin: 50px auto 0;
     position: relative;
     z-index: 1001;
+    transition: all 0.3s var(--ease-2);
+}
+
+/* Sticky search container when aligned with header */
+.search-container.sticky {
+    position: fixed;
+    top: 72px; /* Header height */
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: var(--space-4) 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    transition: opacity 0.3s var(--ease-2), transform 0.3s var(--ease-2);
+}
+
+/* Enhanced styling for sticky state */
+.search-container.sticky .search-bar {
+    box-shadow: var(--shadow-xl);
+}
+
+.search-container.sticky .filters-btn {
+    box-shadow: var(--shadow-xl);
+}
+
+/* Mobile responsive adjustments for sticky search */
+@media (max-width: 900px) {
+    .search-container.sticky {
+        padding: var(--space-3) var(--space-4);
+        gap: var(--space-3);
+    }
+    
+    .search-container-placeholder {
+        height: 110px; /* Smaller height for mobile */
+    }
+}
+
+@media (max-width: 600px) {
+    .search-container.sticky {
+        padding: var(--space-2) var(--space-3);
+        gap: var(--space-2);
+    }
+    
+    .search-container-placeholder {
+        height: 100px; /* Even smaller for very small screens */
+    }
+}
+
+/* Placeholder to maintain layout when search container becomes sticky */
+.search-container-placeholder {
+    height: 130px; /* Approximate height of search container with margins */
+    width: 100%;
+    display: none;
+}
+
+.search-container-placeholder.active {
+    display: block;
 }
 
 .search-bar {

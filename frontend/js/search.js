@@ -2847,6 +2847,40 @@ async function makeSimpleRequest(url) {
     }
 }
 
+// Special request function for authenticated endpoints that handles CORS properly
+async function makeAuthenticatedRequest(url) {
+    try {
+        // For authenticated requests, we need to handle the preflight properly
+        const response = await fetch(API_BASE + url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (!response.ok) {
+            // Handle authentication errors
+            if (response.status === 401 || response.status === 422) {
+                console.log('Authentication failed, redirecting to login');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+                return;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Authenticated request failed:', error);
+        // If it's a CORS error, try to provide a better error message
+        if (error.message.includes('Failed to fetch') || error.message.includes('Load failed')) {
+            throw new Error('CORS error: The server does not allow cross-origin requests for this endpoint. Please contact the administrator.');
+        }
+        throw error;
+    }
+}
+
 // Function to create and display loading cards
 function showLoadingCards(count = 8) {
     console.log('🔄 Creating loading cards...', count);
@@ -3527,7 +3561,7 @@ async function previewDocument(fileId) {
             showStatus('Caricamento dettagli documento... 📚');
             
             // Load files for this specific vetrina
-            const filesResponse = await makeRequest(`/vetrine/${file.id}/files`);
+            const filesResponse = await makeAuthenticatedRequest(`/vetrine/${file.id}/files`);
             if (filesResponse && filesResponse.files) {
                 const files = filesResponse.files;
                 
@@ -3568,7 +3602,13 @@ async function previewDocument(fileId) {
             }
         } catch (error) {
             console.error(`Error loading files for vetrina ${file.id}:`, error);
-            showError('Errore nel caricamento dei dettagli del documento.');
+            
+            // Check if it's a CORS/preflight error
+            if (error.message.includes('CORS error') || error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
+                showError('Errore CORS: Il server non permette richieste cross-origin per questo endpoint. Contatta l\'amministratore.');
+            } else {
+                showError('Errore nel caricamento dei dettagli del documento.');
+            }
             return;
         }
     }
@@ -3809,7 +3849,7 @@ async function transformSearchResults(vetrine) {
     for (const vetrina of vetrine) {
         try {
             // Load files for this vetrina
-            const filesResponse = await makeRequest(`/vetrine/${vetrina.id}/files`);
+                            const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.id}/files`);
             if (!filesResponse || !filesResponse.files || filesResponse.files.length === 0) {
                 continue; // Skip vetrine with no files
             }

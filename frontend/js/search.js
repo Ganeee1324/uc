@@ -598,9 +598,9 @@ function initializeCanaleFilter() {
         }
         
         suggestionsContainer.innerHTML = filteredCanali
-            .map(canale => 
-                `<div class="autocomplete-suggestion" data-value="${canale}">Canale ${canale}</div>`
-            ).join('');
+                    .map(canale =>
+            `<div class="autocomplete-suggestion" data-value="${canale}">Canale ${formatCanaleDisplay(canale)}</div>`
+        ).join('');
         
         suggestionsContainer.classList.add('show');
         
@@ -1021,7 +1021,7 @@ function populateDropdownOptions() {
     populateOptions('course', uniqueCourses);
     
     // Canale options
-    populateOptions('canale', ['A', 'B', 'C', 'D', 'E', 'F']);
+    populateOptions('canale', ['A', 'B', 'C', 'D', 'E', 'F', '0']);
 }
 
 function populateOptions(type, items) {
@@ -2471,8 +2471,9 @@ function updateActiveFiltersDisplay() {
                         itemLabel = 'Corso';
                         itemValue = item;
                         break;
-                    case 'canale':
-                        itemLabel = 'Canale';
+                            case 'canale':
+            itemLabel = 'Canale';
+            value = formatCanaleDisplay(value);
                         itemValue = item;
                         break;
                     case 'documentType':
@@ -2528,8 +2529,9 @@ function updateActiveFiltersDisplay() {
                 label = 'Lingua';
                 displayValue = value === 'Italian' ? 'Italiano' : value === 'English' ? 'Inglese' : value;
                 break;
-            case 'canale':
-                label = 'Canale';
+                    case 'canale':
+            label = 'Canale';
+            value = formatCanaleDisplay(value);
                 displayValue = value;
                 break;
             case 'academicYear':
@@ -3254,6 +3256,14 @@ function getTagDisplayName(tag) {
     return tagNames[tag] || tag;
 }
 
+// Helper function to format canale display
+function formatCanaleDisplay(canale) {
+    if (canale === "0" || canale === 0) {
+        return "Canale Unico";
+    }
+    return canale;
+}
+
 function renderDocuments(files) {
     console.log('renderDocuments called with', files ? files.length : 'undefined', 'files');
     const grid = document.getElementById('documentsGrid');
@@ -3470,11 +3480,11 @@ function renderDocuments(files) {
                         <span class="info-icon">menu_book</span>
                         <span class="info-text">${item.course_name || 'N/A'}</span>
                     </div>
-                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale: ' + item.canale : ''}">
+                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale: ' + formatCanaleDisplay(item.canale) : ''}">
                         <span class="info-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><path fill="currentColor" d="m11 16.5l-1 3.1h2z" class="clr-i-solid clr-i-solid-path-1"/><path fill="currentColor" d="M30.3 3h-16v5h4v2h-13c-1.7 0-3 1.3-3 3v11c0 1.7 1.3 3 3 3h1v5.1l6.3-5.1h6.7v-7h11c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3M13.1 22.9l-.5-1.6H9.5l-.6 1.6H6.5L9.8 14h2.4l3.3 8.9zM28.3 15v2c-1.3 0-2.7-.4-3.9-1c-1.2.6-2.6.9-4 1l-.1-2q1.05 0 2.1-.3c-.9-.9-1.5-2-1.8-3.2h2.1c.3.9.9 1.6 1.6 2.2c1.1-.9 1.8-2.2 1.9-3.7h-6V8h3V6h2v2h3.3l.1 1c.1 2.1-.7 4.2-2.2 5.7c.7.2 1.3.3 1.9.3" class="clr-i-solid clr-i-solid-path-2"/><path fill="none" d="M0 0h36v36H0z"/></svg>
                         </span>
-                        <span class="info-text">${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale ' + item.canale : ''}</span>
+                        <span class="info-text">${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale ' + formatCanaleDisplay(item.canale) : ''}</span>
                     </div>
                     <div class="document-info-item" title="Anno Accademico: ${item.academic_year || 'N/A'}">
                         <span class="info-icon">calendar_today</span>
@@ -3847,7 +3857,7 @@ async function previewDocument(fileId) {
     const documentType = file.document_type || 'Documento';
     const courseName = file.course_name || file.vetrina_info?.course_name || 'Corso';
     const faculty = file.faculty_name || file.vetrina_info?.faculty_name || 'Facoltà';
-    const canale = file.canale || file.vetrina_info?.canale || 'A';
+    const canale = formatCanaleDisplay(file.canale || file.vetrina_info?.canale || 'A');
     const academicYear = file.academic_year || '2024/2025';
     const language = file.language || 'English';
     const rating = parseFloat(file.rating) || 0;

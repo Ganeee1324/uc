@@ -1296,17 +1296,17 @@ async function initializeDocumentPreview() {
                 <div class="doc-info-content">
                     <!-- Main Info & CTA -->
                     <div class="doc-main-info">
+                        <div class="doc-header-actions">
+                            <div class="doc-type-tag">Caricamento...</div>
+                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
                         <div class="doc-title-container">
                             <h1 class="doc-title">Caricamento...</h1>
-                            <div class="doc-header-actions">
-                                <div class="doc-type-tag">Caricamento...</div>
-                                <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                                    <span class="material-symbols-outlined">favorite</span>
-                                </button>
-                                <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
-                            </div>
                         </div>
                         <div class="doc-meta-header">
                             <div class="doc-rating">

@@ -393,11 +393,11 @@ html {
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - 120px);
-    margin-top: 120px;
+    margin-top: -0px;
     padding: var(--space-12);
     text-align: center;
     position: relative;
-    z-index: 2;
+    z-index: 10002;
 }
 
 /* When there are results, keep title and subtitle centered but adjust layout */
@@ -676,17 +676,8 @@ html {
     width: 100%;
     max-width: 800px;
     margin: 50px auto 0;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
     z-index: 10002;
-    transition: all 0.3s ease;
-}
-
-.search-container.fixed {
-    position: fixed;
-    top: 120px;
 }
 
 .search-bar {

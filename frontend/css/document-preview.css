@@ -501,6 +501,44 @@ body {
 
 .doc-details {
     overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+/* Detail items with vertical layout - label above value */
+.detail-item-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    background: var(--neutral-25);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--neutral-100);
+    transition: all 0.2s var(--ease-out);
+}
+
+.detail-item-vertical:hover {
+    background: var(--neutral-50);
+    border-color: var(--neutral-200);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.detail-item-vertical .detail-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--neutral-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-1);
+}
+
+.detail-item-vertical .detail-value {
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--neutral-900);
+    line-height: 1.4;
 }
 
 .doc-details-section h3 {
@@ -531,10 +569,7 @@ body {
 
 .doc-header-actions {
     display: flex;
-    gap: var(--space-2);
-    flex-shrink: 0;
-    padding: var(--space-2);
-    margin: calc(-1 * var(--space-2));
+    gap: var(--space-3);
 }
 
 .doc-header-actions .action-btn.secondary {
@@ -561,29 +596,41 @@ body {
     font-size: 32px;
 }
 
-/* Favorite Button - Match Search Page Styling */
+/* Remove all the old, incorrect styles for the favorite button */
+/* They will be replaced by the new, correct styles below */
+
+.doc-header-actions .action-btn.secondary#favoriteBtn {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.2s ease-in-out;
+    width: auto;
+    height: auto;
+}
+
 .doc-header-actions .action-btn.secondary#favoriteBtn .material-symbols-outlined {
-    font-size: 32px;
+    font-size: 36px;
     color: rgba(0, 0, 0, 0.4);
     font-variation-settings: 'FILL' 1, 'wght' 400;
     -webkit-text-stroke: 2px rgba(255, 255, 255, 1);
     text-stroke: 2px rgba(255, 255, 255, 1);
-    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
-    will-change: transform, color;
-    position: relative;
-    z-index: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
 .doc-header-actions .action-btn.secondary#favoriteBtn.active .material-symbols-outlined {
     color: var(--red-500);
     font-variation-settings: 'FILL' 1, 'wght' 600;
-    -webkit-text-stroke: 2px rgba(255, 255, 255, 1);
-    text-stroke: 2px rgba(255, 255, 255, 1);
-    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
+}
+
+.doc-header-actions .action-btn.secondary#favoriteBtn:hover {
+    transform: scale(1.1);
+    background: transparent;
 }
 
 .doc-title {
-    font-size: var(--text-2xl);
+    font-size: 1.75rem; /* 28px */
     font-weight: 800;
     line-height: 1.2;
     color: var(--neutral-900);
@@ -850,16 +897,10 @@ body {
 
 /* Loading States & Animations */
 .document-preview-loader {
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(20px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    border-radius: inherit;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 100;
 }
 
 .preview-loader-content {
@@ -867,10 +908,8 @@ body {
     grid-template-columns: 1fr 550px;
     gap: var(--space-8);
     width: 100%;
-    max-width: 1400px;
     height: 100%;
-    padding: var(--space-8);
-    position: relative;
+    padding: var(--space-4) var(--space-8) 0;
 }
 
 /* Document Viewer Skeleton */

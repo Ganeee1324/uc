@@ -4719,6 +4719,8 @@ function initializeScrollToTop() {
     // Show/hide button based on scroll position
     function handleScroll() {
         const scrollY = window.scrollY || window.pageYOffset;
+        const searchContainer = document.querySelector('.search-container');
+        const header = document.querySelector('.header');
         
         if (scrollY > scrollThreshold) {
             if (!scrollToTopBtn.classList.contains('visible')) {
@@ -4733,6 +4735,19 @@ function initializeScrollToTop() {
             }
         } else {
             scrollToTopBtn.classList.remove('visible');
+        }
+
+        // Handle search container positioning relative to header
+        if (searchContainer && header) {
+            const headerHeight = header.offsetHeight;
+            const searchContainerTop = searchContainer.offsetTop;
+            
+            // When search container would go past the header, attach it to the header
+            if (scrollY >= searchContainerTop - headerHeight) {
+                searchContainer.classList.add('fixed');
+            } else {
+                searchContainer.classList.remove('fixed');
+            }
         }
     }
 
@@ -4771,7 +4786,6 @@ function initializeScrollToTop() {
     }
 
     // Event listeners
-    window.addEventListener('scroll', handleScroll, { passive: true });
     scrollToTopBtn.addEventListener('click', scrollToTop);
     
     // Keyboard accessibility

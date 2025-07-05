@@ -1,6 +1,8 @@
 from datetime import timedelta
 import logging
 import traceback
+
+import werkzeug
 import database
 import redact
 from flask import Flask, jsonify, request, send_file
@@ -69,6 +71,11 @@ def not_found_error(e):
 @app.errorhandler(ForeignKeyViolation)
 def foreign_key_violation_error(e):
     return jsonify({"error": "foreign_key_violation", "msg": str(e)}), 404
+
+
+@app.errorhandler(werkzeug.exceptions.MethodNotAllowed)
+def method_not_allowed_error(e):
+    return jsonify({"error": "method_not_allowed", "msg": str(e)}), 405
 
 
 @app.errorhandler(UniqueViolation)

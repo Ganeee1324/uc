@@ -4905,29 +4905,22 @@ function initializeScrollToTop() {
 
     // Show/hide button based on scroll position
     function handleScroll() {
-        if (isScrolling) return;
+        const scrollY = window.scrollY || window.pageYOffset;
         
-        isScrolling = true;
-        requestAnimationFrame(() => {
-            const scrollY = window.scrollY || window.pageYOffset;
-            
-            if (scrollY > scrollThreshold) {
-                if (!scrollToTopBtn.classList.contains('visible')) {
-                    scrollToTopBtn.classList.add('visible');
-                    // Add pulse animation for first appearance
+        if (scrollY > scrollThreshold) {
+            if (!scrollToTopBtn.classList.contains('visible')) {
+                scrollToTopBtn.classList.add('visible');
+                // Add pulse animation for first appearance
+                setTimeout(() => {
+                    scrollToTopBtn.classList.add('pulse');
                     setTimeout(() => {
-                        scrollToTopBtn.classList.add('pulse');
-                        setTimeout(() => {
-                            scrollToTopBtn.classList.remove('pulse');
-                        }, 2000);
-                    }, 100);
-                }
-            } else {
-                scrollToTopBtn.classList.remove('visible');
+                        scrollToTopBtn.classList.remove('pulse');
+                    }, 1500); // Reduced pulse duration
+                }, 50); // Reduced delay
             }
-            
-            isScrolling = false;
-        });
+        } else {
+            scrollToTopBtn.classList.remove('visible');
+        }
     }
 
     // Smooth scroll to top
@@ -4935,25 +4928,29 @@ function initializeScrollToTop() {
         // Remove pulse animation if active
         scrollToTopBtn.classList.remove('pulse');
         
-        // Smooth scroll to top with easing
+        // Smooth scroll to top with optimized easing
         const startPosition = window.scrollY || window.pageYOffset;
         const startTime = performance.now();
-        const duration = 800; // 800ms duration
+        const duration = 500; // Reduced to 500ms for faster animation
         
-        function easeInOutCubic(t) {
-            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        // Use a smoother easing function
+        function easeOutQuart(t) {
+            return 1 - Math.pow(1 - t, 4);
         }
         
         function animateScroll(currentTime) {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            const easedProgress = easeInOutCubic(progress);
+            const easedProgress = easeOutQuart(progress);
             
             const newPosition = startPosition - (startPosition * easedProgress);
             window.scrollTo(0, newPosition);
             
             if (progress < 1) {
                 requestAnimationFrame(animateScroll);
+            } else {
+                // Ensure we reach exactly the top
+                window.scrollTo(0, 0);
             }
         }
         
@@ -4994,25 +4991,21 @@ function initializeScrollToTop() {
     adjustScrollThreshold();
     window.addEventListener('resize', adjustScrollThreshold);
 
-    // Performance optimization: throttle scroll events on mobile
+    // Performance optimization: throttle scroll events for better performance
     let ticking = false;
-    const originalHandleScroll = handleScroll;
     
     function throttledHandleScroll() {
         if (!ticking) {
             requestAnimationFrame(() => {
-                originalHandleScroll();
+                handleScroll();
                 ticking = false;
             });
             ticking = true;
         }
     }
 
-    // Use throttled version on mobile devices
-    if ('ontouchstart' in window) {
-        window.removeEventListener('scroll', handleScroll);
-        window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    }
+    // Use throttled version for all devices for better performance
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
 
     throttledHandleScroll(); // Initial check
 }

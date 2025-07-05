@@ -362,18 +362,18 @@ def get_vetrina_by_id(vetrina_id: int, user_id: Optional[int] = None) -> Vetrina
     # Build the query with conditional favorite check
     favorite_select = ""
     if user_id is not None:
-        favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.id AND user_id = %s) AS is_vetrina_favorite"
+        favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS is_vetrina_favorite"
         query_params.append(user_id)
 
     query = f"""
-        SELECT v.id as v_id, v.name as v_name, v.description, v.course_instance_id,
-               u.id as u_id, u.username, u.name as u_name, u.surname, u.email, u.last_login as u_last_login, u.created_at as u_created_at,
-               ci.id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
+        SELECT v.vetrina_id as v_id, v.name as v_name, v.description, v.course_instance_id,
+               u.user_id as u_id, u.username, u.first_name as u_name, u.last_name as u_surname, u.email, u.last_login as u_last_login, u.registration_date as u_created_at,
+               ci.instance_id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
                ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors{favorite_select}
         FROM vetrina v
-        JOIN course_instances ci ON v.course_instance_id = ci.id
-        JOIN users u ON v.author_id = u.id
-        WHERE v.id = %s
+        JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+        JOIN users u ON v.author_id = u.user_id
+        WHERE v.vetrina_id = %s
     """
 
     with connect() as conn:

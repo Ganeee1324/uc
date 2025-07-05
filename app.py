@@ -101,6 +101,11 @@ def already_owned_error(e):
     return jsonify({"error": "already_owned", "msg": str(e)}), 409
 
 
+@app.errorhandler(ValueError)
+def value_error(e):
+    return jsonify({"error": "bad_parameter", "msg": str(e)}), 400
+
+
 # ---------------------------------------------
 # Auth routes
 # ---------------------------------------------
@@ -144,12 +149,7 @@ def create_vetrina():
     course_instance_id = int(data.get("course_instance_id"))
     name = str(data.get("name"))
     description = str(data.get("description"))
-    database.create_vetrina(
-        user_id=user_id,
-        course_instance_id=course_instance_id,
-        name=name,
-        description=description
-    )
+    database.create_vetrina(user_id=user_id, course_instance_id=course_instance_id, name=name, description=description)
     return jsonify({"msg": "Vetrina created"}), 200
 
 
@@ -217,9 +217,9 @@ def upload_file(vetrina_id):
     # Check if filename is empty
     if file.filename == "":
         return jsonify({"error": "no_filename", "msg": "No filename provided"}), 400
-    
+
     extension = file.filename.split(".")[-1]
-    if extension not in ["pdf", "docx", "txt", "xlsx"]: 
+    if extension not in ["pdf", "docx", "txt", "xlsx"]:
         return jsonify({"error": "invalid_extension", "msg": "Invalid extension. Valid extensions are: pdf, docx, txt, xlsx"}), 400
     # Get and validate tag if provided
     tag = request.form.get("tag")
@@ -249,7 +249,7 @@ def upload_file(vetrina_id):
         extension=extension,
         price=0,
         size=file_size,
-        tag=tag
+        tag=tag,
     )
 
     try:

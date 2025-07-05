@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS course_instances (
-    course_instance_id SERIAL PRIMARY KEY,
+    instance_id SERIAL PRIMARY KEY,
     professors VARCHAR(40)[],
     course_code VARCHAR(10) NOT NULL,
     course_name VARCHAR(255) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS vetrina (
     vetrina_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     author_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
-    course_instance_id INTEGER REFERENCES course_instances(course_instance_id) ON DELETE CASCADE NOT NULL,
+    course_instance_id INTEGER REFERENCES course_instances(instance_id) ON DELETE CASCADE NOT NULL,
     description TEXT NOT NULL,
     UNIQUE (author_id, name, course_instance_id)
 );

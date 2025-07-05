@@ -1081,10 +1081,7 @@ function setupActionButtons(fileData, vetrinaData = null) {
     } else {
         // For paid documents: show primary as purchase, show secondary download
         if (purchaseBtn) {
-            purchaseBtn.innerHTML = `
-                <span class="material-symbols-outlined">shopping_cart</span>
-                Acquista
-            `;
+            purchaseBtn.innerHTML = `Acquista`;
             purchaseBtn.onclick = () => handlePurchase(fileData.file_id);
         }
         // Show secondary download button for paid documents (after purchase)

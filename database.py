@@ -54,7 +54,7 @@ def fill_courses(debug: bool = False) -> None:
                 cursor.execute("SELECT * FROM course_instances")
                 course_instances = cursor.fetchall()
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
-
+                    
 
 # ---------------------------------------------
 # Subscription management
@@ -341,81 +341,6 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             cursor.execute(final_query, tuple(all_params))
             vetrine_data = cursor.fetchall()
             return [Vetrina.from_dict(row) for row in vetrine_data]
-
-
-def get_vetrina_by_id(vetrina_id: int, user_id: Optional[int] = None) -> Vetrina:
-    """
-    Get a specific vetrina by ID.
-
-    Args:
-        vetrina_id: ID of the vetrina to retrieve
-        user_id: Optional ID of the user to check favorite status
-
-    Returns:
-        Vetrina: The vetrina object with complete information
-
-    Raises:
-        NotFoundException: If the vetrina is not found
-    """
-    query_params = [vetrina_id]
-    
-    # Build the query with conditional favorite check
-    favorite_select = ""
-    if user_id is not None:
-        favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS is_vetrina_favorite"
-        query_params.append(user_id)
-
-    query = f"""
-        SELECT v.vetrina_id as v_id, v.name as v_name, v.description, v.course_instance_id,
-               u.user_id as u_id, u.username, u.first_name as u_name, u.last_name as u_surname, u.email, u.last_login as u_last_login, u.registration_date as u_created_at,
-               ci.instance_id as ci_id, ci.course_code, ci.course_name, ci.faculty_name, ci.course_year, 
-               ci.date_year, ci.language, ci.course_semester, ci.canale, ci.professors{favorite_select}
-        FROM vetrina v
-        JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-        JOIN users u ON v.author_id = u.user_id
-        WHERE v.vetrina_id = %s
-    """
-
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query, tuple(query_params))
-            row = cursor.fetchone()
-            
-            if not row:
-                raise NotFoundException(f"Vetrina with id {vetrina_id} not found")
-                
-            author = User(
-                id=row["u_id"],
-                username=row["username"],
-                name=row["u_name"],
-                surname=row["surname"],
-                email=row["email"],
-                last_login=row["u_last_login"],
-                created_at=row["u_created_at"],
-            )
-            course_instance = CourseInstance(
-                instance_id=row["ci_id"],
-                course_code=row["course_code"],
-                course_name=row["course_name"],
-                faculty_name=row["faculty_name"],
-                year=row["course_year"],
-                date_year=row["date_year"],
-                language=row["language"],
-                course_semester=row["course_semester"],
-                canale=row["canale"],
-                professors=row["professors"],
-            )
-            vetrina = Vetrina(
-                id=row["v_id"],
-                name=row["v_name"],
-                author=author,
-                description=row["description"],
-                course_instance=course_instance,
-            )
-            if user_id is not None:
-                vetrina.favorite = row["is_vetrina_favorite"]
-                
-            return vetrina
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:

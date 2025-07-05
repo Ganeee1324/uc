@@ -25,13 +25,8 @@ if not jwt_secret_key:
 
 app = Flask(__name__)
 
-# Configure CORS to allow frontend origins
-CORS(app, origins=[
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",  # Common development port
-    "http://127.0.0.1:3000"   # Common development port
-], supports_credentials=True)
+# Enable CORS for all origins (prototype only)
+CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 app.config["JWT_SECRET_KEY"] = jwt_secret_key
 app.config["JWT_VERIFY_SUB"] = False
@@ -190,14 +185,6 @@ def search_vetrine():
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
 
 
-@app.route("/vetrine/<int:vetrina_id>", methods=["GET"])
-@jwt_required(optional=True)
-def get_vetrina(vetrina_id):
-    user_id = get_jwt_identity()
-    vetrina = database.get_vetrina_by_id(vetrina_id, user_id)
-    return jsonify(vetrina.to_dict()), 200
-
-
 # ---------------------------------------------
 # File routes
 # ---------------------------------------------
@@ -314,26 +301,7 @@ def get_files_for_vetrina(vetrina_id):
 @jwt_required()
 def get_file(file_id):
     file = database.get_file(file_id)
-    
-    # Get additional information including vetrina and course details
-    file_data = file.to_dict()
-    
-    # Extract original filename from the UUID-based filename
-    if file.filename and '-' in file.filename:
-        # Format: uuid-userid-originalname
-        parts = file.filename.split('-', 2)
-        if len(parts) >= 3:
-            original_filename = parts[2]
-            file_data['original_filename'] = original_filename
-        else:
-            file_data['original_filename'] = file.filename
-    else:
-        file_data['original_filename'] = file.filename
-    
-    # Add created_at field for compatibility
-    file_data['created_at'] = file.upload_date.isoformat() if file.upload_date else None
-    
-    return jsonify(file_data), 200
+    return jsonify(file.to_dict()), 200
 
 
 @app.route("/files/<int:file_id>/buy", methods=["POST"])

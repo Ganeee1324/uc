@@ -28,7 +28,7 @@ if not jwt_secret_key:
 app = Flask(__name__)
 
 # Enable CORS for all origins (prototype only)
-CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE"])
+CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 app.config["JWT_SECRET_KEY"] = jwt_secret_key
 app.config["JWT_VERIFY_SUB"] = False
@@ -106,15 +106,6 @@ def already_owned_error(e):
 @app.errorhandler(ValueError)
 def value_error(e):
     return jsonify({"error": "bad_parameter", "msg": str(e)}), 400
-
-
-@app.before_request
-def handle_options():
-    if request.method == "OPTIONS":
-        response = Response(status=405)
-        response.headers['Allow'] = 'GET, POST, PUT, DELETE'  # Specify allowed methods
-        return response
-
 
 
 # ---------------------------------------------

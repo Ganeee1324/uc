@@ -941,8 +941,7 @@ async function loadHierarchyData() {
     if (window.facultyCoursesData) return;
     
     try {
-        const response = await fetch(`${API_BASE}/hierarchy`);
-        const data = await response.json();
+        const data = await makeSimpleRequest('/hierarchy');
         
         // The backend returns data already in the correct format:
         // { "Faculty Name": [["course_code", "course_name"], ...], ... }
@@ -2004,7 +2003,7 @@ function closeFiltersPanel() {
 async function populateFilterOptions() {
     // Always get real hierarchy data from backend - don't depend on files
     try {
-        const hierarchyResponse = await makeRequest('/hierarchy');
+        const hierarchyResponse = await makeSimpleRequest('/hierarchy');
         if (hierarchyResponse) {
             // Store hierarchy for ALL faculties and courses
             window.facultyCoursesData = hierarchyResponse;
@@ -2791,13 +2790,25 @@ function getAvatarVariant(username) {
 
 async function makeRequest(url, options = {}) {
     try {
+        // Only add Content-Type for requests with body to avoid preflight
+        const headers = {};
+        
+        // Only add Authorization if we have a token
+        if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+        }
+        
+        // Only add Content-Type for POST/PUT/PATCH requests with body
+        if (options.body && ['POST', 'PUT', 'PATCH'].includes(options.method?.toUpperCase())) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
+        // Merge with any additional headers from options
+        Object.assign(headers, options.headers || {});
+        
         const response = await fetch(API_BASE + url, {
             ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
-                ...options.headers
-            }
+            headers
         });
 
         if (!response.ok) {
@@ -2816,6 +2827,22 @@ async function makeRequest(url, options = {}) {
         return await response.json();
     } catch (error) {
         console.error('Request failed:', error);
+        throw error;
+    }
+}
+
+// Simple GET request function that avoids preflight
+async function makeSimpleRequest(url) {
+    try {
+        const response = await fetch(API_BASE + url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Simple request failed:', error);
         throw error;
     }
 }
@@ -2934,7 +2961,7 @@ async function loadAllFiles() {
         showStatus('Caricamento documenti... 📚');
         
         // Only get vetrine metadata initially - don't load individual files yet
-        const vetrineResponse = await makeRequest('/vetrine');
+        const vetrineResponse = await makeSimpleRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }
@@ -3731,7 +3758,8 @@ async function performSearch(query) {
         // Make backend search request with fallback
         let response;
         try {
-            response = await makeRequest(`/vetrine?${searchParams.toString()}`);
+            // Use simple request for GET search
+            response = await makeSimpleRequest(`/vetrine?${searchParams.toString()}`);
         } catch (error) {
             console.warn('Backend search failed, falling back to client-side search:', error);
             // Fallback to client-side search if backend fails

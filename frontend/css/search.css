@@ -202,7 +202,7 @@ html {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid #e9ecef;
-    z-index: 999;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -677,47 +677,7 @@ html {
     width: 100%;
     max-width: 800px;
     margin: 50px auto 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 20px 0;
-    border-radius: 0 0 16px 16px;
-    transition: all 0.3s var(--ease-2);
-}
-
-/* When search container is fixed (latched to header) */
-.search-container.fixed {
-    position: fixed !important;
-    top: 72px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 100% !important;
-    max-width: 800px !important;
-    z-index: 1000 !important;
-    border-radius: 0 0 16px 16px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
-    margin: 0 auto !important;
-    padding: 20px 0 !important;
-}
-
-/* Responsive adjustments for fixed search container */
-@media (max-width: 900px) {
-    .search-container.fixed {
-        top: 72px !important;
-        padding: 16px 0 !important;
-        max-width: calc(100% - 32px) !important;
-    }
-}
-
-@media (max-width: 600px) {
-    .search-container.fixed {
-        top: 72px !important;
-        padding: 12px 0 !important;
-        max-width: calc(100% - 16px) !important;
-    }
+    position: relative;
 }
 
 .search-bar {
@@ -806,7 +766,7 @@ html {
     transition: all 0.2s var(--ease-2);
     margin-left: var(--space-2);
     position: relative;
-    z-index: 1;
+    z-index: 10002;
 }
 
 .search-btn:hover {
@@ -839,6 +799,7 @@ html {
     margin-top: 0;
     opacity: 1;
     visibility: visible;
+    z-index: 10002;
 }
 
 .filters-btn::before {

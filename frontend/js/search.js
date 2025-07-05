@@ -3249,8 +3249,8 @@ function renderDocuments(files) {
                 return;
             }
             
-            // Call the async preview function
-            await previewDocument(item.id);
+            // Navigate to document preview page instead of opening overlay
+            window.location.href = `document-preview.html?id=${item.id}`;
         };
 
         const documentType = item.document_type || 'Documento';
@@ -3423,7 +3423,8 @@ function renderDocuments(files) {
         if (item.isVetrina) {
             card.querySelector('.view-files-button').addEventListener('click', (e) => {
                 e.stopPropagation();
-                openQuickLook(item);
+                // Navigate to document preview page instead of opening quick look
+                window.location.href = `document-preview.html?id=${item.id}`;
             });
         }
 

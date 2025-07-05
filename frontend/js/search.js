@@ -2390,7 +2390,7 @@ function updateActiveFiltersDisplay() {
             case 'vetrinaType':
                 const vetrinaLabels = {
                     'single': 'Singolo File',
-                    'multiple': 'Multi File'
+                    'multiple': 'Pacchetti'
                 };
                 label = 'Tipo Vetrina';
                 displayValue = vetrinaLabels[value];

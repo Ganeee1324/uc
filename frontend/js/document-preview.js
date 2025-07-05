@@ -1333,11 +1333,9 @@ async function initializeDocumentPreview() {
                     <!-- Premium Action Buttons -->
                     <div class="doc-actions">
                         <button class="action-btn cart" id="addToCartBtn">
-                            <span class="material-symbols-outlined">add_shopping_cart</span>
                             Aggiungi al Carrello
                         </button>
                         <button class="action-btn primary" id="purchaseBtn">
-                            <span class="material-symbols-outlined">shopping_cart</span>
                             Acquista Ora
                         </button>
                         <!-- Hidden download button (controlled by JS) -->
@@ -1585,10 +1583,7 @@ async function handleAddToCart() {
 
     // Optimistically update UI
     addToCartBtn.classList.add('added');
-    addToCartBtn.innerHTML = `
-        <span class="material-symbols-outlined">check</span>
-        Aggiunto al Carrello
-    `;
+    addToCartBtn.innerHTML = `Aggiunto al Carrello`;
     addToCartBtn.disabled = true;
 
     try {
@@ -1606,10 +1601,7 @@ async function handleAddToCart() {
         
         // Revert UI on error
         addToCartBtn.classList.remove('added');
-        addToCartBtn.innerHTML = `
-            <span class="material-symbols-outlined">add_shopping_cart</span>
-            Aggiungi al Carrello
-        `;
+        addToCartBtn.innerHTML = `Aggiungi al Carrello`;
         addToCartBtn.disabled = false;
         
         showNotification('Errore nell\'aggiunta al carrello. Riprova.', 'error');

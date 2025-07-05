@@ -3042,7 +3042,7 @@ async function loadAllFiles() {
         showStatus('Caricamento documenti... 📚');
         
         // Only get vetrine metadata initially - don't load individual files yet
-        const vetrineResponse = await makeSimpleRequest('/vetrine');
+        const vetrineResponse = await makeAuthenticatedRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }
@@ -3993,8 +3993,8 @@ async function performSearch(query) {
         // Make backend search request with fallback
         let response;
         try {
-            // Use simple request for GET search
-            response = await makeSimpleRequest(`/vetrine?${searchParams.toString()}`);
+            // Use authenticated request for GET search to include favorite status
+            response = await makeAuthenticatedRequest(`/vetrine?${searchParams.toString()}`);
         } catch (error) {
             console.warn('Backend search failed, falling back to client-side search:', error);
             // Fallback to client-side search if backend fails

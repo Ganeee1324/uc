@@ -2,7 +2,7 @@
 // WORLD-CLASS DYNAMIC DOCUMENT PREVIEW SYSTEM
 // ============================================
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'http://146.59.236.26';
 let authToken = localStorage.getItem('authToken');
 
 // Document State Management
@@ -307,7 +307,7 @@ function renderDocumentInfo(docData) {
     updateDetailValue('Formato', getFileExtension(fileData.filename));
     updateDetailValue('Dimensione', formatFileSize(fileData.size || 0));
     updateDetailValue('Download', `${fileData.download_count || 0} volte`);
-    updateDetailValue('Data Pubblicazione', formatDate(fileData.created_at));
+    updateDetailValue('Data Pubblicazione', formatDate(fileData.upload_date));
 
     // Update description - use vetrina description or generate one based on document type
     let description = vetrinaData?.description;
@@ -396,7 +396,7 @@ function generateDocumentPages(docData) {
     const courseDetails = {
         title: fileData.original_filename || vetrinaData?.name || fileData.filename || 'Documento',
         course: courseInfo.course_name || 'Corso',
-        professor: courseInfo.professors || 'Professore', 
+        professor: Array.isArray(courseInfo.professors) ? courseInfo.professors.join(', ') : courseInfo.professors || 'Professore', 
         university: courseInfo.faculty_name || 'Università'
     };
     
@@ -665,7 +665,7 @@ function renderRelatedDocuments(relatedDocs) {
     }
     
     const relatedHTML = relatedDocs.slice(0, 3).map(doc => `
-        <div class="related-doc-item" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+        <div class="related-doc-item" onclick="window.location.href='document-preview.html?id=${doc.file_id || doc.id}'">
             <div class="related-doc-preview"></div>
             <div class="related-doc-info">
                 <h4>${doc.name || doc.title || 'Documento Senza Titolo'}</h4>
@@ -969,7 +969,7 @@ function formatDate(dateString) {
 // Reading Position Management
 function saveReadingPosition() {
     if (currentDocument) {
-        const fileId = currentDocument.id;
+        const fileId = currentDocument.file_id;
         const scrollable = document.querySelector('.document-viewer-section');
         if (scrollable) {
             localStorage.setItem(`file-${fileId}-scroll`, scrollable.scrollTop);
@@ -980,7 +980,7 @@ function saveReadingPosition() {
 
 function loadReadingPosition() {
     if (currentDocument) {
-        const fileId = currentDocument.id;
+        const fileId = currentDocument.file_id;
         const savedScroll = localStorage.getItem(`file-${fileId}-scroll`);
         const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
         
@@ -1020,7 +1020,7 @@ function setupActionButtons(fileData) {
                 <span class="material-symbols-outlined">download</span>
                 Download
             `;
-            purchaseBtn.onclick = () => downloadDocument(fileData.id);
+            purchaseBtn.onclick = () => downloadDocument(fileData.file_id);
         }
         // Hide secondary download button for free documents
         if (downloadBtn) {
@@ -1033,12 +1033,12 @@ function setupActionButtons(fileData) {
                 <span class="material-symbols-outlined">shopping_cart</span>
                 Acquista
             `;
-            purchaseBtn.onclick = () => handlePurchase(fileData.id);
+            purchaseBtn.onclick = () => handlePurchase(fileData.file_id);
         }
         // Show secondary download button for paid documents (after purchase)
         if (downloadBtn) {
             downloadBtn.style.display = 'flex';
-            downloadBtn.onclick = () => downloadDocument(fileData.id);
+            downloadBtn.onclick = () => downloadDocument(fileData.file_id);
         }
     }
 
@@ -1054,7 +1054,7 @@ function handlePurchase(fileId) {
         return;
     }
     
-    const currentData = currentDocument || { id: fileId };
+    const currentData = currentDocument || { file_id: fileId };
     
     if (currentData.price === 0) {
         // Free document - direct download
@@ -1296,7 +1296,7 @@ function handleFavorite() {
 function handleShare() {
     if (navigator.share) {
         navigator.share({
-            title: currentDocument?.title || 'Documento StudyHub',
+            title: currentDocument?.original_filename || currentDocument?.filename || 'Documento StudyHub',
             text: 'Guarda questo documento su StudyHub',
             url: window.location.href
         });

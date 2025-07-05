@@ -511,18 +511,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    padding: var(--space-3);
-    background: var(--neutral-25);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--neutral-100);
-    transition: all 0.2s var(--ease-out);
-}
-
-.detail-item-vertical:hover {
-    background: var(--neutral-50);
-    border-color: var(--neutral-200);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-4);
 }
 
 .detail-item-vertical .detail-label {

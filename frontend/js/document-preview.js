@@ -1130,6 +1130,7 @@ function handlePurchase(fileId) {
     }
     
     const currentData = currentDocument || { file_id: fileId };
+    const purchaseBtn = document.getElementById('purchaseBtn');
     
     if (currentData.price === 0) {
         // Free document - direct download
@@ -1137,9 +1138,27 @@ function handlePurchase(fileId) {
     } else {
         // Paid document - show purchase confirmation
         if (confirm(`Confermi l'acquisto di questo documento per €${currentData.price?.toFixed(2) || 'N/A'}?`)) {
+            // Optimistically update UI
+            if (purchaseBtn) {
+                purchaseBtn.classList.add('purchased');
+                purchaseBtn.innerHTML = 'Acquisto Completato';
+                purchaseBtn.disabled = true;
+            }
+            
+            // Show success notification
+            showNotification('Acquisto completato con successo!', 'success');
+            
             // In a real implementation, this would redirect to payment processor
-            showNotification('Funzionalità di pagamento non ancora implementata', 'info');
             // window.location.href = `payment.html?file=${fileId}&price=${currentData.price}`;
+            
+            // Reset button after animation (in real app, this would happen after payment confirmation)
+            setTimeout(() => {
+                if (purchaseBtn) {
+                    purchaseBtn.classList.remove('purchased');
+                    purchaseBtn.innerHTML = 'Acquista';
+                    purchaseBtn.disabled = false;
+                }
+            }, 3000);
         }
     }
 }

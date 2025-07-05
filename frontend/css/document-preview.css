@@ -715,13 +715,63 @@ body {
     background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
     color: white;
     font-size: var(--text-base);
+    font-weight: 600;
     box-shadow: var(--shadow-lg);
     text-align: center;
+    transition: all 0.3s var(--ease-spring);
+    position: relative;
+    overflow: hidden;
+    border: none;
+    cursor: pointer;
+}
+
+.action-btn.primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
 }
 
 .action-btn.primary:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--shadow-2xl);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: var(--shadow-2xl), 0 8px 25px rgba(0, 123, 255, 0.3);
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+}
+
+.action-btn.primary:hover::before {
+    left: 100%;
+}
+
+.action-btn.primary:active {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Primary button success state */
+.action-btn.primary.purchased {
+    background: linear-gradient(135deg, var(--success-500), var(--success-700));
+    color: white;
+    box-shadow: var(--shadow-md);
+    animation: purchaseSuccess 0.8s var(--ease-spring);
+}
+
+@keyframes purchaseSuccess {
+    0% { 
+        transform: scale(1);
+        background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+    }
+    50% { 
+        transform: scale(1.05);
+        background: linear-gradient(135deg, var(--success-400), var(--success-600));
+    }
+    100% { 
+        transform: scale(1);
+        background: linear-gradient(135deg, var(--success-500), var(--success-700));
+    }
 }
 
 /* Professional Cart Button - Modern Design */

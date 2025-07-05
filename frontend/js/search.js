@@ -4742,8 +4742,8 @@ function initializeScrollToTop() {
             const headerHeight = header.offsetHeight;
             const searchContainerTop = searchContainer.offsetTop;
             
-            // When search container would go past the header, slide it into the header
-            if (scrollY >= searchContainerTop - headerHeight) {
+            // When search container would scroll past the header, latch it to the header
+            if (scrollY >= searchContainerTop) {
                 searchContainer.classList.add('fixed');
             } else {
                 searchContainer.classList.remove('fixed');

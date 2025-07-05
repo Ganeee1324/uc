@@ -226,7 +226,7 @@ class Vetrina:
             - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
             - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional)
         """
-        args = {key: data[key] for key in vetrina_fields if key in data and key not in ['author', 'course_instance']}
+        args = {key: data[key] for key in vetrina_fields if key in data and key not in ["author", "course_instance"]}
         args["author"] = User.from_dict(data)
         args["course_instance"] = CourseInstance.from_dict(data)
         return cls(**args)
@@ -266,7 +266,7 @@ class VetrinaSubscription:
             - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional)
             - VetrinaSubscription object fields: subscriber_id, vetrina, price, subscription_date
         """
-        args = {key: data[key] for key in vetrina_subscription_fields if key in data and key not in ['vetrina']}
+        args = {key: data[key] for key in vetrina_subscription_fields if key in data and key not in ["vetrina"]}
         args["vetrina"] = Vetrina.from_dict(data)
         return cls(**args)
 
@@ -311,9 +311,30 @@ class Transaction:
         return cls(**args)
 
 
-file_fields = [key for key in inspect.signature(File.__init__).parameters.keys() if key != 'self']
-user_fields = [key for key in inspect.signature(User.__init__).parameters.keys() if key != 'self']
-course_instance_fields = [key for key in inspect.signature(CourseInstance.__init__).parameters.keys() if key != 'self']
-vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.keys() if key != 'self']
-vetrina_subscription_fields = [key for key in inspect.signature(VetrinaSubscription.__init__).parameters.keys() if key != 'self']
-transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != 'self']
+class SearchResultDocument:
+    def __init__(self, filename: str, filepath: str, score: float):
+        self.filename = filename
+        self.filepath = filepath
+        self.score = score
+
+    def __str__(self) -> str:
+        return f"SearchResultDocument(filename={self.filename}, score={self.score})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, SearchResultDocument):
+            return False
+        return self.filename == other.filename and self.filepath == other.filepath
+    
+    def __hash__(self) -> int:
+        return hash("search_result_document" + self.filename + self.filepath)
+
+
+file_fields = [key for key in inspect.signature(File.__init__).parameters.keys() if key != "self"]
+user_fields = [key for key in inspect.signature(User.__init__).parameters.keys() if key != "self"]
+course_instance_fields = [key for key in inspect.signature(CourseInstance.__init__).parameters.keys() if key != "self"]
+vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.keys() if key != "self"]
+vetrina_subscription_fields = [key for key in inspect.signature(VetrinaSubscription.__init__).parameters.keys() if key != "self"]
+transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != "self"]

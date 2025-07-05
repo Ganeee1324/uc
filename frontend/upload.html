@@ -402,10 +402,7 @@
             <div class="tag-selector">
                 <label for="tagSelect">Document Type (Tag):</label>
                 <select id="tagSelect">
-                    <option value="">No tag (optional)</option>
-                    <option value="appunti">📝 Appunti (Notes)</option>
-                    <option value="dispense">📄 Dispense (Handouts)</option>
-                    <option value="esercizi">🎯 Esercizi (Exercises)</option>
+                    <option value="">Loading tags...</option>
                 </select>
                 <div class="tag-help">
                     <p>Select the type of document to help others find your content more easily.</p>
@@ -520,6 +517,50 @@
                 console.error('Error loading vetrine:', error);
                 showError('Failed to load vetrine. Please make sure you are logged in and vetrine exist.');
             }
+        }
+
+        // Load valid tags from API
+        async function loadValidTags() {
+            try {
+                console.log('Loading valid tags...');
+                const response = await makeRequest('/tags');
+                const tags = response.tags || [];
+                
+                const tagSelect = document.getElementById('tagSelect');
+                tagSelect.innerHTML = '<option value="">No tag (optional)</option>';
+                
+                tags.forEach(tag => {
+                    const option = document.createElement('option');
+                    option.value = tag;
+                    // Capitalize first letter and add emoji based on tag
+                    const displayName = tag.charAt(0).toUpperCase() + tag.slice(1);
+                    const emoji = getTagEmoji(tag);
+                    option.textContent = `${emoji} ${displayName}`;
+                    tagSelect.appendChild(option);
+                });
+                
+                console.log(`Loaded ${tags.length} valid tags`);
+            } catch (error) {
+                console.error('Error loading tags:', error);
+                // Fallback to hardcoded tags
+                const tagSelect = document.getElementById('tagSelect');
+                tagSelect.innerHTML = `
+                    <option value="">No tag (optional)</option>
+                    <option value="appunti">📝 Appunti</option>
+                    <option value="dispense">📄 Dispense</option>
+                    <option value="esercizi">🎯 Esercizi</option>
+                `;
+            }
+        }
+
+        // Helper function to get emoji for tags
+        function getTagEmoji(tag) {
+            const emojiMap = {
+                'appunti': '📝',
+                'dispense': '📄',
+                'esercizi': '🎯'
+            };
+            return emojiMap[tag] || '🏷️';
         }
 
         // File handling
@@ -708,8 +749,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (!checkAuth()) return;
             
-            console.log('Upload page loaded, attempting to load vetrine...');
+            console.log('Upload page loaded, attempting to load vetrine and tags...');
             loadVetrine();
+            loadValidTags();
 
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');

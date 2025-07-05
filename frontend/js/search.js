@@ -629,8 +629,8 @@ function updateCoursesForFaculty(faculty) {
 
 // Professional Dropdown functionality
 function setupDropdowns() {
-    // Initialize hierarchy data first
-    loadHierarchyData().then(() => {
+    // Initialize hierarchy data and valid tags first
+    Promise.all([loadHierarchyData(), loadValidTags()]).then(() => {
         const searchableDropdowns = ['faculty', 'course', 'canale'];
         const staticDropdowns = ['documentType', 'language', 'academicYear', 'tag'];
         const allDropdowns = [...searchableDropdowns, ...staticDropdowns];
@@ -959,6 +959,26 @@ async function loadHierarchyData() {
     }
 }
 
+async function loadValidTags() {
+    if (window.validTags) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/tags`);
+        const data = await response.json();
+        
+        if (data && data.tags && Array.isArray(data.tags)) {
+            window.validTags = data.tags;
+            console.log('Loaded valid tags:', window.validTags);
+        } else {
+            console.warn('Unexpected tags data format:', data);
+            window.validTags = ['appunti', 'dispense', 'esercizi'];
+        }
+    } catch (error) {
+        console.error('Error loading valid tags:', error);
+        window.validTags = ['appunti', 'dispense', 'esercizi'];
+    }
+}
+
 function populateDropdownOptions() {
     if (!window.facultyCoursesData) return;
     
@@ -1166,8 +1186,13 @@ function filterDropdownOptions(type, searchTerm) {
         });
         items = allTypes;
     } else if (type === 'tag') {
-        // Always show all tag options
-        items = ['appunti', 'dispense', 'esercizi'];
+        // Fetch tags from API or use cached version
+        if (window.validTags) {
+            items = window.validTags;
+        } else {
+            // Fallback to hardcoded tags if API fails
+            items = ['appunti', 'dispense', 'esercizi'];
+        }
     } else if (type === 'language') {
         items = ['Italian', 'English'];
     } else if (type === 'academicYear') {
@@ -3143,12 +3168,13 @@ function getTagIcon(tag) {
 
 // Helper function to get tag display name
 function getTagDisplayName(tag) {
-    const tagNames = {
-        'appunti': 'Appunti',
-        'dispense': 'Dispense',
-        'esercizi': 'Esercizi'
-    };
-    return tagNames[tag] || tag;
+    // Dynamic tag display mapping based on loaded valid tags
+    if (window.validTags && window.validTags.includes(tag)) {
+        // Capitalize first letter for display
+        return tag.charAt(0).toUpperCase() + tag.slice(1);
+    }
+    // Fallback to original tag if not in valid tags
+    return tag;
 }
 
 function renderDocuments(files) {

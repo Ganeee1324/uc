@@ -26,7 +26,7 @@ if not jwt_secret_key:
 app = Flask(__name__)
 
 # Enable CORS for all origins (prototype only)
-CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE"])
 
 app.config["JWT_SECRET_KEY"] = jwt_secret_key
 app.config["JWT_VERIFY_SUB"] = False

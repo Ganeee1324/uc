@@ -231,7 +231,14 @@ async function fetchDocumentData(fileId) {
         let vetrinaData = null;
         if (fileResponse.vetrina_id) {
             try {
-                vetrinaData = await makeRequest(`${API_BASE}/vetrine/${fileResponse.vetrina_id}`);
+                // Get all vetrine and find the one we need since individual vetrina endpoint doesn't exist
+                const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
+                if (allVetrineResponse && allVetrineResponse.vetrine) {
+                    vetrinaData = allVetrineResponse.vetrine.find(v => v.vetrina_id === fileResponse.vetrina_id);
+                    if (!vetrinaData) {
+                        console.warn(`Vetrina with ID ${fileResponse.vetrina_id} not found in the list`);
+                    }
+                }
             } catch (error) {
                 console.warn('Could not fetch vetrina data:', error);
                 if (error.message.includes('CORS Error')) {

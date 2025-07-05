@@ -237,9 +237,18 @@ async function fetchDocumentData(fileId) {
                 // Get all vetrine and find the one we need since individual vetrina endpoint doesn't exist
                 const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
                 if (allVetrineResponse && allVetrineResponse.vetrine) {
-                    vetrinaData = allVetrineResponse.vetrine.find(v => v.vetrina_id === fileResponse.vetrina_id);
+                    // Try to find the vetrina by different possible ID fields
+                    vetrinaData = allVetrineResponse.vetrine.find(v => 
+                        v.vetrina_id === fileResponse.vetrina_id || 
+                        v.id === fileResponse.vetrina_id ||
+                        v.vetrina_id === fileResponse.vetrina_id
+                    );
+                    
                     if (!vetrinaData) {
-                        console.warn(`Vetrina with ID ${fileResponse.vetrina_id} not found in the list`);
+                        console.warn(`❌ Vetrina with ID ${fileResponse.vetrina_id} not found in the list. Available vetrine:`, 
+                            allVetrineResponse.vetrine.map(v => ({ id: v.id, vetrina_id: v.vetrina_id })));
+                    } else {
+                        console.log('✅ Found vetrina data:', vetrinaData);
                     }
                 }
                 
@@ -266,6 +275,18 @@ async function fetchDocumentData(fileId) {
         // For now, we'll use mock data for reviews and related since endpoints don't exist
         const mockReviews = [];
         const mockRelated = [];
+
+        // Ensure we have vetrina data for favorite functionality
+        if (!vetrinaData && fileResponse.vetrina_id) {
+            // Create a minimal vetrina object with the ID for favorite functionality
+            vetrinaData = {
+                vetrina_id: fileResponse.vetrina_id,
+                id: fileResponse.vetrina_id,
+                name: fileResponse.original_filename || fileResponse.filename || 'Documento',
+                description: 'Documento caricato'
+            };
+            console.log('🔄 Created fallback vetrina data for favorite functionality:', vetrinaData);
+        }
 
         return {
             document: fileResponse,
@@ -1229,6 +1250,13 @@ async function initializeDocumentPreview() {
 
         currentDocument = docData.document;
         currentVetrina = docData.vetrina;
+        
+        // Debug logging
+        console.log('🔍 Document data loaded:', {
+            documentId: currentDocument?.file_id,
+            vetrinaId: currentVetrina?.vetrina_id,
+            vetrinaData: currentVetrina
+        });
 
         // Generate document pages
         const pages = generateDocumentPages(docData);
@@ -1457,7 +1485,16 @@ async function handleFavorite() {
     }
 
     const favoriteBtn = document.getElementById('favoriteBtn');
-    if (!favoriteBtn || !currentVetrina) return;
+    if (!favoriteBtn) {
+        showNotification('Errore: Pulsante preferiti non trovato', 'error');
+        return;
+    }
+    
+    if (!currentVetrina || !currentVetrina.vetrina_id) {
+        console.error('❌ Current vetrina is missing or has no ID:', currentVetrina);
+        showNotification('Errore: Dati vetrina non disponibili. Ricarica la pagina.', 'error');
+        return;
+    }
 
     // Optimistically update UI
     const isActive = favoriteBtn.classList.toggle('active');

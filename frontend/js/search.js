@@ -3498,10 +3498,44 @@ function renderDocuments(files) {
         `;
         
         if (item.isVetrina) {
-            card.querySelector('.view-files-button').addEventListener('click', (e) => {
+            card.querySelector('.view-files-button').addEventListener('click', async (e) => {
                 e.stopPropagation();
-                // Navigate to document preview page instead of opening quick look
-                window.location.href = `document-preview.html?id=${item.id}`;
+                
+                try {
+                    // Show loading state
+                    const button = e.target.closest('.view-files-button');
+                    const originalContent = button.innerHTML;
+                    button.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span>Caricamento...';
+                    button.disabled = true;
+                    
+                    // Fetch files for this vetrina
+                    const filesResponse = await makeAuthenticatedRequest(`/vetrine/${item.id}/files`);
+                    
+                    if (!filesResponse || !filesResponse.files || filesResponse.files.length === 0) {
+                        showError('Nessun file trovato in questa vetrina');
+                        return;
+                    }
+                    
+                    // Create vetrina object with files for quick look
+                    const vetrinaWithFiles = {
+                        ...item,
+                        files: filesResponse.files
+                    };
+                    
+                    // Open quick look overlay
+                    openQuickLook(vetrinaWithFiles);
+                    
+                } catch (error) {
+                    console.error('Error loading vetrina files:', error);
+                    showError('Errore nel caricamento dei file. Riprova più tardi.');
+                } finally {
+                    // Restore button state
+                    const button = e.target.closest('.view-files-button');
+                    if (button) {
+                        button.innerHTML = originalContent;
+                        button.disabled = false;
+                    }
+                }
             });
         }
 
@@ -4578,17 +4612,33 @@ function openQuickLook(vetrina) {
             <div class="quick-look-modal">
                 <button class="quick-look-close-button">&times;</button>
                 <div class="quick-look-header">
-                    <h2 class="quick-look-title">${vetrina.title}</h2>
-                    <p class="quick-look-file-count">${vetrina.files.length} files</p>
+                    <div class="quick-look-header-content">
+                        <h2 class="quick-look-title">${vetrina.title || vetrina.name}</h2>
+                        <p class="quick-look-description">${vetrina.description || ''}</p>
+                        <div class="quick-look-meta">
+                            <span class="quick-look-file-count">${vetrina.files.length} file${vetrina.files.length !== 1 ? 's' : ''}</span>
+                            <span class="quick-look-separator">•</span>
+                            <span class="quick-look-author">Caricato da ${vetrina.author_username || 'Unknown'}</span>
+                        </div>
+                    </div>
+                    <div class="quick-look-actions">
+                        <button class="quick-look-view-full-btn" onclick="window.location.href='document-preview.html?id=${vetrina.id}'">
+                            <span class="material-symbols-outlined">open_in_new</span>
+                            Visualizza Pagina Completa
+                        </button>
+                    </div>
                 </div>
                 <div class="quick-look-body">
                     <div class="quick-look-main-preview">
                         <div class="preview-placeholder">
                             <span class="material-symbols-outlined">visibility</span>
-                            <p>Select a file to preview</p>
+                            <p>Seleziona un file per l'anteprima</p>
                         </div>
                     </div>
                     <div class="quick-look-sidebar">
+                        <div class="quick-look-sidebar-header">
+                            <h3>File nella Vetrina</h3>
+                        </div>
                         <ul class="quick-look-file-list">
                         </ul>
                     </div>
@@ -4608,10 +4658,21 @@ function openQuickLook(vetrina) {
         const fileItem = document.createElement('li');
         fileItem.className = 'quick-look-file-item';
         fileItem.dataset.index = index;
+        
+        // Get file type and size
+        const fileType = getFileTypeFromFilename(file.filename);
+        const fileSize = formatFileSize(file.size || 0);
+        
         fileItem.innerHTML = `
-            <span class="file-item-icon">${getDocumentPreviewIcon(file.filename)}</span>
-            <span class="file-item-name">${file.filename}</span>
-            <span class="file-item-size">${formatFileSize(file.size)}</span>
+            <div class="file-item-icon">${getDocumentPreviewIcon(file.filename)}</div>
+            <div class="file-item-content">
+                <div class="file-item-name" title="${file.filename}">${file.filename}</div>
+                <div class="file-item-details">
+                    <span class="file-item-type">${fileType}</span>
+                    <span class="file-item-separator">•</span>
+                    <span class="file-item-size">${fileSize}</span>
+                </div>
+            </div>
         `;
         fileList.appendChild(fileItem);
     });
@@ -4633,6 +4694,9 @@ function openQuickLook(vetrina) {
         }
     });
 
+    // Keyboard navigation
+    document.addEventListener('keydown', handleQuickLookKeyboard);
+
     // Animate in
     setTimeout(() => overlay.classList.add('visible'), 10);
 }
@@ -4640,6 +4704,9 @@ function openQuickLook(vetrina) {
 function closeQuickLook() {
     const overlay = document.getElementById('quick-look-overlay');
     if (overlay) {
+        // Remove keyboard event listener
+        document.removeEventListener('keydown', handleQuickLookKeyboard);
+        
         overlay.classList.remove('visible');
         overlay.addEventListener('transitionend', () => {
             overlay.remove();
@@ -4654,15 +4721,25 @@ function switchQuickLookPreview(vetrina, index) {
     const previewContainer = document.querySelector('.quick-look-main-preview');
     const fileListItems = document.querySelectorAll('.quick-look-file-list .quick-look-file-item');
 
+    // Get file type and size
+    const fileType = getFileTypeFromFilename(file.filename);
+    const fileSize = formatFileSize(file.size || 0);
+
     // Update preview content
     previewContainer.innerHTML = `
         <div class="preview-content-area">
             <div class="preview-icon-large">${getDocumentPreviewIcon(file.filename)}</div>
-            <h3 class="preview-filename">${file.filename}</h3>
-            <p class="preview-file-details">
-                <span>Type: ${file.document_type}</span> | 
-                <span>Size: ${formatFileSize(file.size)}</span>
-            </p>
+            <h3 class="preview-filename" title="${file.filename}">${file.filename}</h3>
+            <div class="preview-file-details">
+                <span class="preview-file-type">${fileType}</span>
+                <span class="preview-file-separator">•</span>
+                <span class="preview-file-size">${fileSize}</span>
+            </div>
+            <div class="preview-file-info">
+                <p class="preview-file-description">
+                    ${file.description || 'Nessuna descrizione disponibile'}
+                </p>
+            </div>
         </div>
     `;
 
@@ -4670,6 +4747,40 @@ function switchQuickLookPreview(vetrina, index) {
     fileListItems.forEach((item, i) => {
         item.classList.toggle('active', i === index);
     });
+}
+
+function handleQuickLookKeyboard(e) {
+    const overlay = document.getElementById('quick-look-overlay');
+    if (!overlay) return;
+
+    switch (e.key) {
+        case 'Escape':
+            closeQuickLook();
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            navigateQuickLookFile(1);
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            navigateQuickLookFile(-1);
+            break;
+    }
+}
+
+function navigateQuickLookFile(direction) {
+    const activeItem = document.querySelector('.quick-look-file-item.active');
+    if (!activeItem) return;
+
+    const currentIndex = parseInt(activeItem.dataset.index, 10);
+    const fileList = document.querySelectorAll('.quick-look-file-item');
+    const newIndex = (currentIndex + direction + fileList.length) % fileList.length;
+    
+    const newItem = document.querySelector(`[data-index="${newIndex}"]`);
+    if (newItem) {
+        newItem.click();
+        newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 // Fallback client-side search function when backend search fails

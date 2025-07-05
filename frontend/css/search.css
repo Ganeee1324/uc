@@ -1387,7 +1387,6 @@ html {
 .favorite-button .material-symbols-outlined {
     font-size: 28px;
     color: rgba(0, 0, 0, 0.4);
-    transition: all 0.25s var(--ease-3);
     font-variation-settings: 'FILL' 1, 'wght' 400;
     -webkit-text-stroke: 2px rgba(255, 255, 255, 1);
     text-stroke: 2px rgba(255, 255, 255, 1);
@@ -1691,6 +1690,7 @@ html {
     flex-direction: column;
     justify-content: flex-start;
     flex: 1;
+    gap: 4px; /* Add gap between title and description */
  }
  
  /* Document Title - IMPROVED HEIGHT MANAGEMENT */
@@ -1703,13 +1703,15 @@ html {
     margin-bottom: 0;
     font-family: 'Inter', sans-serif;
     
-    height: 30px;
+    min-height: 20px; /* Minimum height for single line */
+    max-height: 40px; /* Maximum height for 2 lines */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0; /* Prevent shrinking */
  }
  
  .document-subtitle {
@@ -1728,13 +1730,15 @@ html {
     font-weight: 400;
     font-family: 'Inter', sans-serif;
     
-    height: 32px;
+    min-height: 17px; /* Minimum height for single line */
+    max-height: 34px; /* Maximum height for 2 lines */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0; /* Prevent shrinking */
  }
 
  /* Document Tag Badge */
@@ -4534,17 +4538,66 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     color: white;
     border-bottom: 1px solid var(--gray-700);
     flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.quick-look-header-content {
+    flex-grow: 1;
 }
 
 .quick-look-title {
     font-size: 20px;
-    margin: 0;
+    margin: 0 0 8px 0;
+    font-weight: 600;
 }
 
-.quick-look-file-count {
+.quick-look-description {
     font-size: 14px;
+    opacity: 0.8;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.quick-look-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
     opacity: 0.7;
-    margin: 4px 0 0;
+}
+
+.quick-look-separator {
+    opacity: 0.5;
+}
+
+.quick-look-actions {
+    flex-shrink: 0;
+}
+
+.quick-look-view-full-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.quick-look-view-full-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.quick-look-view-full-btn .material-symbols-outlined {
+    font-size: 16px;
 }
 
 .quick-look-body {
@@ -4565,23 +4618,72 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .preview-placeholder, .preview-content-area {
     text-align: center;
     color: var(--gray-500);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.preview-placeholder .material-symbols-outlined {
+    font-size: 80px;
+    color: var(--gray-400);
+    margin-bottom: 16px;
+}
+
+.preview-placeholder p {
+    font-size: 16px;
+    margin: 0;
 }
 
 .preview-icon-large {
-    font-size: 100px;
+    font-size: 120px;
     color: var(--blue-500);
+    margin-bottom: 20px;
 }
 
 .preview-filename {
     font-size: 18px;
     font-weight: 600;
     color: var(--gray-800);
-    margin: 16px 0 8px;
+    margin: 0 0 12px 0;
+    word-break: break-word;
+    line-height: 1.3;
 }
 
 .preview-file-details {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-size: 14px;
     color: var(--gray-600);
+    margin-bottom: 16px;
+}
+
+.preview-file-type {
+    font-weight: 500;
+    color: var(--blue-600);
+}
+
+.preview-file-separator {
+    opacity: 0.5;
+}
+
+.preview-file-size {
+    color: var(--gray-500);
+}
+
+.preview-file-info {
+    text-align: left;
+    background-color: var(--gray-50);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    border: 1px solid var(--gray-200);
+}
+
+.preview-file-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--gray-700);
+    margin: 0;
 }
 
 .quick-look-sidebar {
@@ -4590,12 +4692,29 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     background-color: var(--white);
     overflow-y: auto;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-look-sidebar-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    background-color: var(--gray-50);
+    flex-shrink: 0;
+}
+
+.quick-look-sidebar-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-700);
 }
 
 .quick-look-file-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    flex-grow: 1;
 }
 
 .quick-look-file-item {
@@ -4604,7 +4723,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     padding: 12px 16px;
     border-bottom: 1px solid var(--gray-200);
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     gap: 12px;
 }
 
@@ -4621,25 +4740,47 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .file-item-icon {
     font-size: 24px;
     color: var(--gray-600);
+    flex-shrink: 0;
 }
 
 .quick-look-file-item.active .file-item-icon {
     color: var(--blue-600);
 }
 
-.file-item-name {
+.file-item-content {
     flex-grow: 1;
-    font-size: 14px;
+    min-width: 0;
+}
+
+.file-item-name {
+    font-size: 13px;
     font-weight: 500;
+    color: var(--gray-800);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.file-item-details {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--gray-500);
+}
+
+.file-item-type {
+    font-weight: 500;
+}
+
+.file-item-separator {
+    opacity: 0.5;
 }
 
 .file-item-size {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--gray-500);
-    flex-shrink: 0;
 }
 
 .document-preview:hover .file-stack-container .stack-layer {
@@ -5458,5 +5599,71 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .scroll-to-top-btn {
         border: 2px solid var(--white);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Quick Look Responsive Styles */
+@media (max-width: 768px) {
+    .quick-look-modal {
+        width: 95%;
+        height: 90vh;
+    }
+    
+    .quick-look-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .quick-look-actions {
+        align-self: stretch;
+    }
+    
+    .quick-look-view-full-btn {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .quick-look-body {
+        flex-direction: column;
+    }
+    
+    .quick-look-sidebar {
+        width: 100%;
+        height: 200px;
+        border-left: none;
+        border-top: 1px solid var(--gray-300);
+    }
+    
+    .quick-look-main-preview {
+        padding: 16px;
+    }
+    
+    .preview-icon-large {
+        font-size: 80px;
+    }
+    
+    .preview-filename {
+        font-size: 16px;
+    }
+    
+    .preview-file-details {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .quick-look-file-item {
+        padding: 10px 12px;
+    }
+    
+    .file-item-icon {
+        font-size: 20px;
+    }
+    
+    .file-item-name {
+        font-size: 12px;
+    }
+    
+    .file-item-details {
+        font-size: 10px;
     }
 }

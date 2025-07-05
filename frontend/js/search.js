@@ -40,6 +40,7 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
+        initializeSearchContainerPositioning();
         
         // Load files first, then restore filters
         await loadAllFiles();
@@ -4719,8 +4720,6 @@ function initializeScrollToTop() {
     // Show/hide button based on scroll position
     function handleScroll() {
         const scrollY = window.scrollY || window.pageYOffset;
-        const searchContainer = document.querySelector('.search-container');
-        const header = document.querySelector('.header');
         
         if (scrollY > scrollThreshold) {
             if (!scrollToTopBtn.classList.contains('visible')) {
@@ -4735,19 +4734,6 @@ function initializeScrollToTop() {
             }
         } else {
             scrollToTopBtn.classList.remove('visible');
-        }
-
-        // Handle search container positioning relative to header
-        if (searchContainer && header) {
-            const headerHeight = header.offsetHeight;
-            const searchContainerTop = searchContainer.offsetTop;
-            
-            // When search container would scroll past the header, latch it to the header
-            if (scrollY >= searchContainerTop) {
-                searchContainer.classList.add('fixed');
-            } else {
-                searchContainer.classList.remove('fixed');
-            }
         }
     }
 
@@ -4786,6 +4772,7 @@ function initializeScrollToTop() {
     }
 
     // Event listeners
+    window.addEventListener('scroll', handleScroll, { passive: true });
     scrollToTopBtn.addEventListener('click', scrollToTop);
     
     // Keyboard accessibility
@@ -4914,3 +4901,40 @@ function debounce(func, wait) {
 // Add event listeners for dynamic background
 window.addEventListener('load', adjustBackgroundPosition);
 window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
+
+// ===========================
+// DYNAMIC SEARCH CONTAINER POSITIONING
+// ===========================
+
+function initializeSearchContainerPositioning() {
+    const searchContainer = document.querySelector('.search-container');
+    const caricaLink = document.getElementById('caricaLink');
+    
+    if (!searchContainer || !caricaLink) return;
+    
+    function checkAlignment() {
+        const searchRect = searchContainer.getBoundingClientRect();
+        const caricaRect = caricaLink.getBoundingClientRect();
+        
+        // Check if search container is aligned with or above the carica link
+        const isAligned = searchRect.top <= caricaRect.bottom;
+        
+        if (isAligned && !searchContainer.classList.contains('fixed')) {
+            searchContainer.classList.add('fixed');
+        } else if (!isAligned && searchContainer.classList.contains('fixed')) {
+            searchContainer.classList.remove('fixed');
+        }
+    }
+    
+    // Check on scroll
+    window.addEventListener('scroll', debounce(checkAlignment, 10));
+    
+    // Check on resize
+    window.addEventListener('resize', debounce(checkAlignment, 100));
+    
+    // Initial check
+    setTimeout(checkAlignment, 100);
+}
+
+// Initialize search container positioning when page loads
+document.addEventListener('DOMContentLoaded', initializeSearchContainerPositioning);

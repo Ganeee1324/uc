@@ -140,6 +140,14 @@ async function makeRequest(url, options = {}) {
                 handleAuthError();
                 return null;
             }
+            
+            // Handle CORS preflight failures more gracefully
+            if (response.status === 405 && response.statusText === 'METHOD NOT ALLOWED') {
+                console.warn('CORS preflight failed for:', url);
+                console.warn('This is likely due to the server not handling OPTIONS requests properly');
+                throw new Error(`CORS Error: Server does not support preflight requests for ${url}`);
+            }
+            
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
@@ -226,6 +234,9 @@ async function fetchDocumentData(fileId) {
                 vetrinaData = await makeRequest(`${API_BASE}/vetrine/${fileResponse.vetrina_id}`);
             } catch (error) {
                 console.warn('Could not fetch vetrina data:', error);
+                if (error.message.includes('CORS Error')) {
+                    console.warn('This is a CORS configuration issue on the server side');
+                }
             }
         }
 

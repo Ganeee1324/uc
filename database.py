@@ -1,3 +1,4 @@
+import random
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
@@ -54,7 +55,36 @@ def fill_courses(debug: bool = False) -> None:
                 cursor.execute("SELECT * FROM course_instances")
                 course_instances = cursor.fetchall()
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
-                    
+
+
+def insert_sample_data():
+    # create a sample user, then for each course instance create a vetrina and add 3 files with random inputs
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            # Insert user and get the actual user_id
+            cursor.execute("INSERT INTO users (username, email, password, first_name, last_name) VALUES (%s, %s, %s, %s, %s) RETURNING user_id", ("mario_rossi", "mario@example.com", "password123", "Mario", "Rossi"))
+            user_id = cursor.fetchone()["user_id"]
+            conn.commit()
+            
+            logging.info(f"User {user_id} created")
+            
+            cursor.execute("SELECT * FROM course_instances")
+            course_instances = cursor.fetchall()
+            
+            for course_instance in course_instances:
+                # Insert vetrina and get the vetrina_id
+                cursor.execute("INSERT INTO vetrina (author_id, course_instance_id, name, description) VALUES (%s, %s, %s, %s) RETURNING vetrina_id", 
+                             (user_id, course_instance["instance_id"], "Vetrina for " + course_instance["course_name"], "Description for " + course_instance["course_name"]))
+                vetrina_id = cursor.fetchone()["vetrina_id"]
+                conn.commit()
+
+                logging.info(f"Vetrina {vetrina_id} created")
+                for i in range(3):
+                    # Use correct column names: filename instead of name, and provide required sha256
+                    cursor.execute("INSERT INTO files (vetrina_id, filename, price, tag, extension, sha256) VALUES (%s, %s, %s, %s, %s, %s)", 
+                                 (vetrina_id, "File " + str(i), random.randint(1, 100), random.choice(["dispense", "appunti", "esercizi"]), random.choice(["pdf", "docx", "txt"]), "dummy_sha256_" + str(i)))
+                    conn.commit()
+                    logging.info(f"File {i} added to vetrina {vetrina_id}")
 
 # ---------------------------------------------
 # Subscription management
@@ -917,3 +947,6 @@ def get_favorites(user_id: int) -> List[Vetrina]:
             )
             results = cursor.fetchall()
             return [Vetrina.from_dict(row) for row in results]
+
+if __name__ == "__main__":
+    insert_sample_data()

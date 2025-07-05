@@ -202,7 +202,7 @@ html {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid #e9ecef;
-    z-index: 1001;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -384,7 +384,6 @@ html {
 .main-content {
     min-height: calc(100vh - 120px);
     position: relative;
-    z-index: 1;
 }
 
 /* Initial Search Section - Centered Layout */
@@ -398,7 +397,6 @@ html {
     padding: var(--space-12);
     text-align: center;
     position: relative;
-    z-index: 10002;
 }
 
 /* When there are results, keep title and subtitle centered but adjust layout */
@@ -678,7 +676,7 @@ html {
     max-width: 800px;
     margin: 50px auto 0;
     position: relative;
-    z-index: 10002;
+    z-index: 1001;
 }
 
 .search-bar {
@@ -767,7 +765,7 @@ html {
     transition: all 0.2s var(--ease-2);
     margin-left: var(--space-2);
     position: relative;
-    z-index: 10002;
+    z-index: 1001;
 }
 
 .search-btn:hover {
@@ -800,7 +798,7 @@ html {
     margin-top: 0;
     opacity: 1;
     visibility: visible;
-    z-index: 10002;
+    z-index: 1001;
 }
 
 .filters-btn::before {

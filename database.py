@@ -54,7 +54,7 @@ def fill_courses(debug: bool = False) -> None:
                 cursor.execute("SELECT * FROM course_instances")
                 course_instances = cursor.fetchall()
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
-
+                    
 
 # ---------------------------------------------
 # Subscription management

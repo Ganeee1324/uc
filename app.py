@@ -4,6 +4,7 @@ import traceback
 import database
 import redact
 from flask import Flask, jsonify, request, send_file
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
@@ -23,6 +24,9 @@ if not jwt_secret_key:
     print("Warning: Using default JWT secret key. This is not secure for production.")
 
 app = Flask(__name__)
+
+# Enable CORS for all origins (prototype only)
+CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 app.config["JWT_SECRET_KEY"] = jwt_secret_key
 app.config["JWT_VERIFY_SUB"] = False

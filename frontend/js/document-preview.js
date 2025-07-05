@@ -329,19 +329,16 @@ function renderDocumentInfo(docData) {
         }
     }
     
-    // Update all details (no longer expandable - all visible)
+    // Update document type tag
+    const docTypeTag = document.querySelector('.doc-type-tag');
+    if (docTypeTag) docTypeTag.textContent = documentType;
+    
+    // Update all details (matching original structure)
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
     updateDetailValue('Canale', courseInfo.canale || 'Non specificato');
-    updateDetailValue('Tipo Documento', documentType);
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
-    updateDetailValue('Autore', vetrinaData?.author?.username || 'Non specificato');
-    updateDetailValue('Semestre', courseInfo.course_semester || 'Non specificato');
-    updateDetailValue('Formato', getFileExtension(fileData.filename));
-    updateDetailValue('Dimensione', formatFileSize(fileData.size || 0));
-    updateDetailValue('Download', `${fileData.download_count || 0} volte`);
-    updateDetailValue('Data Pubblicazione', formatDate(fileData.upload_date));
 
     // Update description - use vetrina description or generate one based on document type
     let description = vetrinaData?.description;
@@ -1215,7 +1212,7 @@ async function initializeDocumentPreview() {
     if (!fileId) return;
 
     const mainContainer = document.querySelector('.preview-main');
-    const loader = LoadingManager.showDocumentPreview(mainContainer);
+    const existingLoader = mainContainer.querySelector('.document-preview-loader');
 
     try {
         // Fetch user and document data in parallel for faster loading
@@ -1233,14 +1230,138 @@ async function initializeDocumentPreview() {
         currentDocument = docData.document;
         currentVetrina = docData.vetrina;
 
-        // Hide loader
-        LoadingManager.hide(loader);
-
-        // Generate and render document pages
+        // Generate document pages
         const pages = generateDocumentPages(docData);
-        renderDocumentPages(pages);
         
-        // Render document information
+        // Replace the entire main container content with the document viewer structure
+        mainContainer.innerHTML = `
+            <div class="document-viewer-section">
+                <div class="document-viewer" id="documentViewer">
+                    <!-- Document pages will be rendered here -->
+                </div>
+                
+                <!-- Viewer Controls Overlay -->
+                <div class="viewer-overlay-controls">
+                    <button class="back-btn-overlay" onclick="window.location.href='search.html'">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        Torna alla ricerca
+                    </button>
+                    
+                    <div class="viewer-controls-overlay">
+                        <button class="zoom-btn" id="zoomOut" title="Zoom Out">
+                            <span class="material-symbols-outlined">zoom_out</span>
+                        </button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn" id="zoomIn" title="Zoom In">
+                            <span class="material-symbols-outlined">zoom_in</span>
+                        </button>
+                        <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
+                            <span class="material-symbols-outlined">fullscreen</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="document-info-sidebar">
+                <div class="doc-info-content">
+                    <!-- Main Info & CTA -->
+                    <div class="doc-main-info">
+                        <div class="doc-title-container">
+                            <h1 class="doc-title">Caricamento...</h1>
+                            <div class="doc-header-actions">
+                                <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </button>
+                                <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="doc-type-tag">Caricamento...</div>
+                        <div class="doc-meta-header">
+                            <div class="doc-rating">
+                                <div class="stars"></div>
+                                <span class="rating-score">0.0</span>
+                                <span class="rating-count">(0 recensioni)</span>
+                            </div>
+                            <div class="doc-price">
+                                <span class="price-value">€0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Premium Action Buttons -->
+                    <div class="doc-actions">
+                        <button class="action-btn primary" id="purchaseBtn">
+                            <span class="material-symbols-outlined">shopping_cart</span>
+                            Acquista Ora
+                        </button>
+                        <!-- Hidden download button (controlled by JS) -->
+                        <button class="action-btn secondary" id="downloadBtn" style="display: none;">
+                            <span class="material-symbols-outlined">download</span>
+                            <span>Download</span>
+                        </button>
+                    </div>
+
+                    <!-- Document Description Section -->
+                    <div class="doc-description-section">
+                        <h3>
+                            <span class="material-symbols-outlined">description</span>
+                            Descrizione
+                        </h3>
+                        <div class="doc-description">
+                            <p>Caricamento descrizione...</p>
+                        </div>
+                    </div>
+
+                    <!-- Document Details Section -->
+                    <div class="doc-details-section">
+                        <h3>
+                            <span class="material-symbols-outlined">info</span>
+                            Dettagli Documento
+                        </h3>
+                        <div class="doc-details">
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Facoltà</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Corso</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Lingua</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Canale</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Anno Accademico</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Documents Section -->
+                    <div class="related-docs-section">
+                        <h3>
+                            <span class="material-symbols-outlined">library_books</span>
+                            Documenti Correlati
+                        </h3>
+                        <div class="related-docs-list">
+                            <div class="no-related">
+                                <p>Nessun documento correlato trovato.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Now render the content into the newly created structure
+        renderDocumentPages(pages);
         renderDocumentInfo(docData);
 
         // Initialize controls
@@ -1257,7 +1378,6 @@ async function initializeDocumentPreview() {
 
     } catch (error) {
         console.error('Error loading document:', error);
-        LoadingManager.hide(loader);
         
         // Check if it's a 404 error (file not found)
         if (error.message.includes('404') || error.message.includes('not found')) {
@@ -1336,62 +1456,57 @@ async function handleFavorite() {
         return;
     }
 
-    const btn = document.getElementById('favoriteBtn');
-    const isCurrentlyFavorited = btn.classList.contains('active');
-    
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    if (!favoriteBtn || !currentVetrina) return;
+
+    // Optimistically update UI
+    const isActive = favoriteBtn.classList.toggle('active');
+    favoriteBtn.setAttribute('title', isActive ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti');
+
+    // Set a flag to notify the search page
+    sessionStorage.setItem('favoritesChanged', 'true');
+
     try {
-        // Determine which endpoint to call based on current state
-        let response;
-        
-        if (isCurrentlyFavorited) {
-            // If currently favorited, we need to unfavorite
-            // Check if it's favorited because of vetrina or file
-            const isFileFavorited = currentDocument.favorite === true;
-            const isVetrinaFavorited = currentVetrina && currentVetrina.favorite === true;
-            
-            if (isVetrinaFavorited) {
-                // Unfavorite the vetrina
-                response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${currentDocument.vetrina_id}`, {
-                    method: 'DELETE'
-                });
-                // Also update the vetrina's favorite status in our data
-                if (currentVetrina) {
-                    currentVetrina.favorite = false;
-                }
-            } else if (isFileFavorited) {
-                // Unfavorite the file
-                response = await makeRequest(`${API_BASE}/user/favorites/files/${currentDocument.file_id}`, {
-                    method: 'DELETE'
-                });
-            }
-        } else {
-            // If not favorited, favorite the file
-            response = await makeRequest(`${API_BASE}/user/favorites/files/${currentDocument.file_id}`, {
-                method: 'POST'
-            });
-        }
+        console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${currentVetrina.id}`);
+        const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${currentVetrina.id}`, {
+            method: isActive ? 'POST' : 'DELETE'
+        });
 
         if (response) {
-            // Toggle the favorite state in the UI
-            if (isCurrentlyFavorited) {
-                btn.classList.remove('active');
-                btn.title = 'Aggiungi ai Preferiti';
-                showNotification('Rimosso dai preferiti 💔', 'success');
-            } else {
-                btn.classList.add('active');
-                btn.title = 'Rimuovi dai Preferiti';
+            // Update the favorite state in the UI based on the action
+            if (isActive) {
+                // We just added a favorite, so keep button active
+                favoriteBtn.classList.add('active');
+                favoriteBtn.title = 'Rimuovi dai Preferiti';
                 showNotification('Aggiunto ai preferiti! ❤️', 'success');
+            } else {
+                // We just removed a favorite, so keep button inactive
+                favoriteBtn.classList.remove('active');
+                favoriteBtn.title = 'Aggiungi ai Preferiti';
+                showNotification('Rimosso dai preferiti 💔', 'success');
             }
             
             // Update the current document's favorite status
-            currentDocument.favorite = !isCurrentlyFavorited;
+            currentDocument.favorite = isActive; // isActive is the new state
             
             // Mark that favorites have been changed so search page knows to refresh
             sessionStorage.setItem('favoritesChanged', 'true');
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);
-        showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
+        
+        // Revert the optimistic UI update
+        favoriteBtn.classList.toggle('active'); // Toggle back to original state
+        favoriteBtn.setAttribute('title', isActive ? 'Aggiungi ai preferiti' : 'Rimuovi dai preferiti');
+        
+        // Show specific error message based on error type
+        if (error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
+            showNotification('Errore di connessione al server. Verifica la tua connessione e riprova.', 'error');
+        } else if (error.message.includes('500')) {
+            showNotification('Errore del server. Il servizio preferiti è temporaneamente non disponibile. Riprova più tardi.', 'error');
+        } else {
+            showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
+        }
     }
 }
 

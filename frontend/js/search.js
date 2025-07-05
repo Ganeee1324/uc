@@ -74,24 +74,8 @@ let isFiltersOpen = false;
             }, 50);
         }, 100);
         
-        // Check if we're returning from another page and refresh favorites if needed
-        setTimeout(async () => {
-            if (currentFiles && currentFiles.length > 0) {
-                // Check if we're returning from document preview
-                const wasNavigatingFromSearch = sessionStorage.getItem('navigatingFromSearch');
-                const favoritesChanged = sessionStorage.getItem('favoritesChanged');
-                
-                if (wasNavigatingFromSearch === 'true' || favoritesChanged === 'true') {
-                    console.log('🔄 Returning from document preview with potential favorite changes, refreshing favorite status...');
-                    sessionStorage.removeItem('navigatingFromSearch');
-                    sessionStorage.removeItem('favoritesChanged');
-                    await refreshFavoriteStatus();
-                } else {
-                    console.log('🔄 Checking for favorite status updates after page load...');
-                    await refreshFavoriteStatus();
-                }
-            }
-        }, 1000);
+        // Favorite status is already loaded from the backend in loadAllFiles()
+        // No need to refresh on page load since the data is already correct
     
     // Add keyboard shortcut to test loading animation (Ctrl/Cmd + L)
     document.addEventListener('keydown', function(e) {
@@ -119,37 +103,20 @@ let isFiltersOpen = false;
         }
     });
     
-    // Add visibility change listener to refresh favorites when page becomes visible
-    document.addEventListener('visibilitychange', async () => {
-        if (!document.hidden && currentFiles && currentFiles.length > 0) {
-            // Refresh favorite status when page becomes visible
-            await refreshFavoriteStatus();
-        }
-    });
-    
-    // Add focus event listener to refresh favorites when page gains focus (e.g., when returning from another page)
-    window.addEventListener('focus', async () => {
-        if (currentFiles && currentFiles.length > 0) {
-            const favoritesChanged = sessionStorage.getItem('favoritesChanged');
-            if (favoritesChanged === 'true') {
-                console.log('🔄 Page gained focus with favorite changes detected, refreshing favorite status...');
-                sessionStorage.removeItem('favoritesChanged');
-            } else {
-                console.log('🔄 Page gained focus, refreshing favorite status...');
-            }
-            // Small delay to ensure the page is fully loaded
-            setTimeout(async () => {
-                await refreshFavoriteStatus();
-            }, 100);
-        }
-    });
-    
-    // Add page show event listener for better cross-browser compatibility
-    window.addEventListener('pageshow', async (event) => {
-        // Check if the page is being restored from cache (back/forward navigation)
-        if (event.persisted && currentFiles && currentFiles.length > 0) {
+    // Add a single, reliable event listener to refresh favorites when the page is shown.
+    window.addEventListener('pageshow', (event) => {
+        console.log('📄 Pageshow event triggered:', { persisted: event.persisted, favoritesChanged: sessionStorage.getItem('favoritesChanged') });
+        // This event fires on initial load and when navigating back to the page.
+        const favoritesChanged = sessionStorage.getItem('favoritesChanged');
+        
+        if (favoritesChanged === 'true') {
+            console.log('🔄 Favorites changed on another page, refreshing status...');
+            sessionStorage.removeItem('favoritesChanged'); // Clear the flag
+            refreshFavoriteStatus();
+        } else if (event.persisted) {
+            // event.persisted is true if the page was restored from the back-forward cache.
             console.log('🔄 Page restored from cache, refreshing favorite status...');
-            await refreshFavoriteStatus();
+            refreshFavoriteStatus();
         }
     });
     
@@ -3082,9 +3049,12 @@ async function loadAllFiles() {
         
         currentVetrine = vetrineResponse.vetrine || [];
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
+        console.log('🔍 Raw vetrine data sample:', currentVetrine.slice(0, 3));
         
         // Transform vetrine into card items with mock file data for UI display
+        console.log('🔄 Processing vetrine data for UI...');
         const allFiles = currentVetrine.map(vetrina => {
+            console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             // Create mock files for UI display (we don't load real files)
             const mockFileCount = Math.floor(Math.random() * 5) + 1; // 1-5 files
             const mockFiles = Array.from({ length: mockFileCount }, (_, i) => ({
@@ -3143,6 +3113,7 @@ async function loadAllFiles() {
                     owner_username: vetrina.owner?.username || 'Unknown'
                 }
             };
+            console.log(`💖 Vetrina ${vetrina.vetrina_id} final favorite status: ${vetrineCard.favorite}`);
             return vetrineCard;
         });
         
@@ -3334,6 +3305,7 @@ function renderDocuments(files) {
     }
 
     files.forEach((item, index) => {
+        console.log(`🎨 Rendering document ${item.id}: favorite=${item.favorite}`);
         const card = document.createElement('div');
         card.className = 'document-card';
         // Always use the vetrina ID, whether it's a single file or a collection
@@ -3455,6 +3427,7 @@ function renderDocuments(files) {
 
         // Update the favorite button to include the initial state from the API
         const isFavorited = item.favorite === true;
+        console.log(`❤️ Document ${item.id} isFavorited: ${isFavorited} (from item.favorite: ${item.favorite})`);
         card.innerHTML = `
             <div class="document-preview">
                 ${previewContent}
@@ -3497,9 +3470,11 @@ function renderDocuments(files) {
                         <span class="info-icon">menu_book</span>
                         <span class="info-text">${item.course_name || 'N/A'}</span>
                     </div>
-                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'} - Canale: ${item.canale_name || 'N/A'}">
-                        <span class="info-icon">segment</span>
-                        <span class="info-text">${item.language || 'N/A'} - ${item.canale_name || 'N/A'}</span>
+                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale: ' + item.canale : ''}">
+                        <span class="info-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><path fill="currentColor" d="m11 16.5l-1 3.1h2z" class="clr-i-solid clr-i-solid-path-1"/><path fill="currentColor" d="M30.3 3h-16v5h4v2h-13c-1.7 0-3 1.3-3 3v11c0 1.7 1.3 3 3 3h1v5.1l6.3-5.1h6.7v-7h11c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3M13.1 22.9l-.5-1.6H9.5l-.6 1.6H6.5L9.8 14h2.4l3.3 8.9zM28.3 15v2c-1.3 0-2.7-.4-3.9-1c-1.2.6-2.6.9-4 1l-.1-2q1.05 0 2.1-.3c-.9-.9-1.5-2-1.8-3.2h2.1c.3.9.9 1.6 1.6 2.2c1.1-.9 1.8-2.2 1.9-3.7h-6V8h3V6h2v2h3.3l.1 1c.1 2.1-.7 4.2-2.2 5.7c.7.2 1.3.3 1.9.3" class="clr-i-solid clr-i-solid-path-2"/><path fill="none" d="M0 0h36v36H0z"/></svg>
+                        </span>
+                        <span class="info-text">${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale ' + item.canale : ''}</span>
                     </div>
                     <div class="document-info-item" title="Anno Accademico: ${item.academic_year || 'N/A'}">
                         <span class="info-icon">calendar_today</span>
@@ -3649,10 +3624,30 @@ async function refreshFavoriteStatus() {
                 }
             });
             
-            // Only re-render if there were actual changes to avoid unnecessary DOM updates
+            // Update only the favorite button states without re-rendering everything
             if (hasChanges) {
-                console.log('🔄 Re-rendering documents due to favorite status changes');
-                renderDocuments(currentFiles);
+                console.log('🔄 Updating favorite button states...');
+                response.vetrine.forEach(freshVetrina => {
+                    const existingIndex = currentFiles.findIndex(item => 
+                        (item.vetrina_id || item.id) === freshVetrina.vetrina_id
+                    );
+                    if (existingIndex !== -1) {
+                        const card = document.querySelector(`[data-vetrina-id="${freshVetrina.vetrina_id}"]`);
+                        if (card) {
+                            const favoriteBtn = card.querySelector('.favorite-button');
+                            if (favoriteBtn) {
+                                if (freshVetrina.favorite) {
+                                    favoriteBtn.classList.add('active');
+                                    favoriteBtn.setAttribute('title', 'Rimuovi dai preferiti');
+                                } else {
+                                    favoriteBtn.classList.remove('active');
+                                    favoriteBtn.setAttribute('title', 'Aggiungi ai preferiti');
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('✅ Favorite button states updated');
             } else {
                 console.log('✅ No favorite status changes detected');
             }
@@ -3671,12 +3666,22 @@ async function toggleFavorite(button, event) {
     const card = button.closest('.document-card');
     const vetrinaId = card.getAttribute('data-vetrina-id');
     
-    // Determine if it's currently favorited
-    const isFavorited = button.classList.contains('active');
-    
+    if (!vetrinaId) {
+        showError('Errore: ID vetrina non trovato');
+        return;
+    }
+
+    // Optimistically update UI
+    const isActive = button.classList.toggle('active');
+    button.setAttribute('title', isActive ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti');
+
+    // Set a flag to notify other pages
+    sessionStorage.setItem('favoritesChanged', 'true');
+
     try {
+        console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${vetrinaId}`);
         const response = await fetch(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
-            method: isFavorited ? 'DELETE' : 'POST',
+            method: isActive ? 'POST' : 'DELETE',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
@@ -3687,36 +3692,57 @@ async function toggleFavorite(button, event) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Toggle the favorite state in the UI
-        if (isFavorited) {
-            button.classList.remove('active');
-            showStatus('Rimosso dai preferiti 💔');
-        } else {
-            button.classList.add('active');
-            showStatus('Aggiunto ai preferiti! ❤️');
-        }
-        
-        // Update the local data to keep it in sync
-        const vetrinaIdInt = parseInt(vetrinaId);
-        if (currentFiles) {
-            const vetrinaIndex = currentFiles.findIndex(item => 
-                (item.vetrina_id || item.id) === vetrinaIdInt
-            );
-            if (vetrinaIndex !== -1) {
-                currentFiles[vetrinaIndex].favorite = !isFavorited;
+        if (response) {
+            // Update the favorite state in the UI based on the action
+            if (isActive) {
+                // We just added a favorite, so keep button active
+                button.classList.add('active');
+                button.title = 'Rimuovi dai Preferiti';
+                showStatus('Aggiunto ai preferiti! ❤️');
+            } else {
+                // We just removed a favorite, so keep button inactive
+                button.classList.remove('active');
+                button.title = 'Aggiungi ai Preferiti';
+                showStatus('Rimosso dai preferiti 💔');
             }
-        }
-        if (originalFiles) {
-            const vetrinaIndex = originalFiles.findIndex(item => 
-                (item.vetrina_id || item.id) === vetrinaIdInt
-            );
-            if (vetrinaIndex !== -1) {
-                originalFiles[vetrinaIndex].favorite = !isFavorited;
+            
+            // Update the local data to keep it in sync
+            const vetrinaIdInt = parseInt(vetrinaId);
+            if (currentFiles) {
+                const vetrinaIndex = currentFiles.findIndex(item => 
+                    (item.vetrina_id || item.id) === vetrinaIdInt
+                );
+                if (vetrinaIndex !== -1) {
+                    currentFiles[vetrinaIndex].favorite = isActive; // isActive is the new state
+                }
             }
+            if (originalFiles) {
+                const vetrinaIndex = originalFiles.findIndex(item => 
+                    (item.vetrina_id || item.id) === vetrinaIdInt
+                );
+                if (vetrinaIndex !== -1) {
+                    originalFiles[vetrinaIndex].favorite = isActive; // isActive is the new state
+                }
+            }
+            
+            // Mark that favorites have been changed so other pages know to refresh
+            sessionStorage.setItem('favoritesChanged', 'true');
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);
-        showError('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.');
+        
+        // Revert the optimistic UI update
+        button.classList.toggle('active'); // Toggle back to original state
+        button.setAttribute('title', isActive ? 'Aggiungi ai preferiti' : 'Rimuovi dai preferiti');
+        
+        // Show specific error message based on error type
+        if (error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
+            showError('Errore di connessione al server. Verifica la tua connessione e riprova.');
+        } else if (error.message.includes('500')) {
+            showError('Errore del server. Il servizio preferiti è temporaneamente non disponibile. Riprova più tardi.');
+        } else {
+            showError('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.');
+        }
     }
 }
 

@@ -5,7 +5,7 @@ import traceback
 import werkzeug
 import database
 import redact
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, Response, jsonify, request, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -106,6 +106,15 @@ def already_owned_error(e):
 @app.errorhandler(ValueError)
 def value_error(e):
     return jsonify({"error": "bad_parameter", "msg": str(e)}), 400
+
+
+@app.before_request
+def handle_options():
+    if request.method == "OPTIONS":
+        response = Response(status=405)
+        response.headers['Allow'] = 'GET, POST, PUT, DELETE'  # Specify allowed methods
+        return response
+
 
 
 # ---------------------------------------------

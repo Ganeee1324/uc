@@ -115,7 +115,7 @@ class User:
 class CourseInstance:
     def __init__(
         self,
-        course_instance_id: int,
+        instance_id: int,
         course_code: str,
         course_name: str,
         faculty_name: str,
@@ -126,7 +126,7 @@ class CourseInstance:
         canale: str,
         professors: List[str],
     ):
-        self.course_instance_id = course_instance_id
+        self.instance_id = instance_id
         self.course_code = course_code
         self.course_name = course_name
         self.faculty_name = faculty_name
@@ -138,7 +138,7 @@ class CourseInstance:
         self.professors = professors
 
     def __str__(self) -> str:
-        return f"CourseInstance(course_instance_id={self.course_instance_id}, course_code={self.course_code}, course_name={self.course_name}, faculty_name={self.faculty_name}, year={self.course_year}, date_year={self.date_year}, language={self.language}, course_semester={self.course_semester}, canale={self.canale}, professors={self.professors})"
+        return f"CourseInstance(instance_id={self.instance_id}, course_code={self.course_code}, course_name={self.course_name}, faculty_name={self.faculty_name}, year={self.course_year}, date_year={self.date_year}, language={self.language}, course_semester={self.course_semester}, canale={self.canale}, professors={self.professors})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -146,23 +146,23 @@ class CourseInstance:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, CourseInstance):
             return False
-        return self.course_instance_id == other.course_instance_id
+        return self.instance_id == other.instance_id
 
     def __hash__(self) -> int:
-        return hash("course_instance" + str(self.course_instance_id))
+        return hash("course_instance" + str(self.instance_id))
 
     @classmethod
     def from_dict(cls, data: dict) -> "CourseInstance":
         """
         Create a CourseInstance object from a dictionary.
         Requires:
-            - CourseInstance object fields: course_instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
+            - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
         """
         return cls(**{key: data[key] for key in course_instance_fields if key in data})
 
     def to_dict(self) -> dict:
         return {
-            "course_instance_id": self.course_instance_id,
+            "instance_id": self.instance_id,
             "course_code": self.course_code,
             "course_name": self.course_name,
             "faculty_name": self.faculty_name,
@@ -223,7 +223,7 @@ class Vetrina:
         Create a Vetrina object from a dictionary.
         Requires:
             - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
-            - CourseInstance object fields: course_instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
+            - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
             - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional)
         """
         args = {key: data[key] for key in vetrina_fields if key in data and key not in ['author', 'course_instance']}
@@ -262,6 +262,7 @@ class VetrinaSubscription:
         Create a VetrinaSubscription object from a dictionary.
         Requires:
             - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
+            - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
             - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional)
             - VetrinaSubscription object fields: subscriber_id, vetrina, price, subscription_date
         """

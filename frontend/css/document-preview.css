@@ -723,6 +723,74 @@ body {
     box-shadow: var(--shadow-2xl);
 }
 
+/* Professional Cart Button - Modern Design */
+.action-btn.cart {
+    width: 100%;
+    padding: var(--space-4);
+    border-radius: var(--radius-2xl);
+    background: linear-gradient(135deg, var(--neutral-50), var(--neutral-100));
+    color: var(--neutral-700);
+    font-size: var(--text-base);
+    font-weight: 600;
+    border: 2px solid var(--neutral-200);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s var(--ease-spring);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--space-3);
+}
+
+.action-btn.cart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.action-btn.cart:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-300);
+    background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
+    color: var(--primary-700);
+}
+
+.action-btn.cart:hover::before {
+    left: 100%;
+}
+
+.action-btn.cart:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-md);
+}
+
+.action-btn.cart .material-symbols-outlined {
+    font-size: 20px;
+    margin-right: var(--space-2);
+}
+
+/* Cart button success state */
+.action-btn.cart.added {
+    background: linear-gradient(135deg, var(--success-50), var(--success-100));
+    color: var(--success-700);
+    border-color: var(--success-300);
+    box-shadow: var(--shadow-md);
+}
+
+.action-btn.cart.added .material-symbols-outlined {
+    animation: cartAdded 0.6s var(--ease-spring);
+}
+
+@keyframes cartAdded {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
 /* Secondary Actions - Two buttons under primary */
 .secondary-actions {
     display: grid;

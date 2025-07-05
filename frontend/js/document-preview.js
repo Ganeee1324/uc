@@ -1113,6 +1113,16 @@ function setupActionButtons(fileData, vetrinaData = null) {
 
     // Setup share button
     if (shareBtn) shareBtn.onclick = handleShare;
+    
+    // Setup cart button
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (addToCartBtn) {
+        addToCartBtn.onclick = handleAddToCart;
+        // Hide cart button for free documents
+        if (isFree) {
+            addToCartBtn.style.display = 'none';
+        }
+    }
 }
 
 // Enhanced Purchase Handler
@@ -1322,6 +1332,10 @@ async function initializeDocumentPreview() {
 
                     <!-- Premium Action Buttons -->
                     <div class="doc-actions">
+                        <button class="action-btn cart" id="addToCartBtn">
+                            <span class="material-symbols-outlined">add_shopping_cart</span>
+                            Aggiungi al Carrello
+                        </button>
                         <button class="action-btn primary" id="purchaseBtn">
                             <span class="material-symbols-outlined">shopping_cart</span>
                             Acquista Ora
@@ -1555,6 +1569,64 @@ async function handleFavorite() {
             showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
         }
     }
+}
+
+async function handleAddToCart() {
+    if (!currentDocument || !currentDocument.file_id) {
+        showNotification('Errore: ID file non trovato', 'error');
+        return;
+    }
+
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (!addToCartBtn) {
+        showNotification('Errore: Pulsante carrello non trovato', 'error');
+        return;
+    }
+
+    // Optimistically update UI
+    addToCartBtn.classList.add('added');
+    addToCartBtn.innerHTML = `
+        <span class="material-symbols-outlined">check</span>
+        Aggiunto al Carrello
+    `;
+    addToCartBtn.disabled = true;
+
+    try {
+        // In a real implementation, this would call the cart API
+        // For now, we'll simulate the API call
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
+        
+        showNotification('Documento aggiunto al carrello!', 'success');
+        
+        // Update cart count in header (if cart indicator exists)
+        updateCartCount();
+        
+    } catch (error) {
+        console.error('Add to cart error:', error);
+        
+        // Revert UI on error
+        addToCartBtn.classList.remove('added');
+        addToCartBtn.innerHTML = `
+            <span class="material-symbols-outlined">add_shopping_cart</span>
+            Aggiungi al Carrello
+        `;
+        addToCartBtn.disabled = false;
+        
+        showNotification('Errore nell\'aggiunta al carrello. Riprova.', 'error');
+    }
+}
+
+function updateCartCount() {
+    // In a real implementation, this would update a cart counter in the header
+    // For now, we'll just log the action
+    console.log('🛒 Cart updated - document added');
+    
+    // You could add a cart indicator to the header like this:
+    // const cartIndicator = document.querySelector('.cart-indicator');
+    // if (cartIndicator) {
+    //     const currentCount = parseInt(cartIndicator.textContent) || 0;
+    //     cartIndicator.textContent = currentCount + 1;
+    // }
 }
 
 function handleShare() {

@@ -384,7 +384,6 @@ html {
 .main-content {
     min-height: calc(100vh - 120px);
     position: relative;
-    z-index: 1;
 }
 
 /* Initial Search Section - Centered Layout */

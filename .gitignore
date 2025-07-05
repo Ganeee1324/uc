@@ -1,9 +1,0 @@
-.env
-__pycache__
-.conda
-files/
-.pytest_cache/
-.cursorignore
-test.pdf
-redacted.pdf
-*_redacted.pdf

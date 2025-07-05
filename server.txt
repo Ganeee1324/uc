@@ -1,0 +1,4 @@
+python app.py
+
+cd frontend
+python3 -m http.server

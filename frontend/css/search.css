@@ -393,7 +393,7 @@ html {
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - 120px);
-    margin-top: -0px;
+    margin-top: 120px;
     padding: var(--space-12);
     text-align: center;
     position: relative;
@@ -681,7 +681,7 @@ html {
     left: 50%;
     transform: translateX(-50%);
     z-index: 10002;
-    transition: position 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .search-container.fixed {

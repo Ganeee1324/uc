@@ -40,7 +40,6 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
-        initializeSearchContainerPositioning();
         
         // Load files first, then restore filters
         await loadAllFiles();
@@ -4711,6 +4710,9 @@ async function performClientSideSearch(query) {
 
 function initializeScrollToTop() {
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    const searchContainer = document.querySelector('.search-container');
+    const caricaButton = document.querySelector('.nav-link[href="upload.html"]');
+    
     if (!scrollToTopBtn) return;
 
     let scrollThreshold = 300; // Show button after scrolling 300px
@@ -4734,6 +4736,28 @@ function initializeScrollToTop() {
             }
         } else {
             scrollToTopBtn.classList.remove('visible');
+        }
+        
+        // Handle search container positioning
+        if (searchContainer && caricaButton) {
+            const searchContainerRect = searchContainer.getBoundingClientRect();
+            const caricaButtonRect = caricaButton.getBoundingClientRect();
+            
+            // Check if search container aligns with carica button
+            const searchContainerTop = searchContainerRect.top;
+            const caricaButtonTop = caricaButtonRect.top;
+            const caricaButtonBottom = caricaButtonRect.bottom;
+            
+            // If search container top is at or above carica button level, make it fixed
+            if (searchContainerTop <= caricaButtonBottom) {
+                if (!searchContainer.classList.contains('fixed')) {
+                    searchContainer.classList.add('fixed');
+                }
+            } else {
+                if (searchContainer.classList.contains('fixed')) {
+                    searchContainer.classList.remove('fixed');
+                }
+            }
         }
     }
 
@@ -4822,6 +4846,11 @@ function initializeScrollToTop() {
     window.addEventListener('scroll', throttledHandleScroll, { passive: true });
 
     throttledHandleScroll(); // Initial check
+    
+    // Also handle resize events for search container positioning
+    window.addEventListener('resize', () => {
+        throttledHandleScroll();
+    }, { passive: true });
 }
 
 // Initialize scroll to top functionality when page loads
@@ -4901,40 +4930,3 @@ function debounce(func, wait) {
 // Add event listeners for dynamic background
 window.addEventListener('load', adjustBackgroundPosition);
 window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
-
-// ===========================
-// DYNAMIC SEARCH CONTAINER POSITIONING
-// ===========================
-
-function initializeSearchContainerPositioning() {
-    const searchContainer = document.querySelector('.search-container');
-    const caricaLink = document.getElementById('caricaLink');
-    
-    if (!searchContainer || !caricaLink) return;
-    
-    function checkAlignment() {
-        const searchRect = searchContainer.getBoundingClientRect();
-        const caricaRect = caricaLink.getBoundingClientRect();
-        
-        // Check if search container is aligned with or above the carica link
-        const isAligned = searchRect.top <= caricaRect.bottom;
-        
-        if (isAligned && !searchContainer.classList.contains('fixed')) {
-            searchContainer.classList.add('fixed');
-        } else if (!isAligned && searchContainer.classList.contains('fixed')) {
-            searchContainer.classList.remove('fixed');
-        }
-    }
-    
-    // Check on scroll
-    window.addEventListener('scroll', debounce(checkAlignment, 10));
-    
-    // Check on resize
-    window.addEventListener('resize', debounce(checkAlignment, 100));
-    
-    // Initial check
-    setTimeout(checkAlignment, 100);
-}
-
-// Initialize search container positioning when page loads
-document.addEventListener('DOMContentLoaded', initializeSearchContainerPositioning);

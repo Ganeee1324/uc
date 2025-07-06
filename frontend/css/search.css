@@ -138,6 +138,20 @@
     --bg-reference-point: 50% 50%; /* Center the image, then use offset for precise positioning */
 }
 
+/* Preload background image for immediate display */
+body::before {
+    content: '';
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    background-image: url('../images/bg.png');
+    opacity: 0;
+    pointer-events: none;
+    z-index: -9999;
+}
+
 /* Base Styles */
 html {
     scroll-behavior: smooth;
@@ -183,12 +197,22 @@ html {
     position: absolute;
     left: 0;
     width: 100vw; /* Span the full viewport width */
-    /* height and top will be set by JavaScript */
+    /* Initial fallback positioning - will be adjusted by JavaScript */
+    height: 787.5px; /* Default height for immediate display */
+    top: -91.75px; /* Default top position for immediate display */
     background-image: url('../images/bg.png');
     background-size: 100% 100%; /* Stretch to fill the element */
     background-repeat: no-repeat;
     z-index: -1;
     pointer-events: none;
+    /* Ensure immediate visibility */
+    opacity: 1;
+    visibility: visible;
+    /* Optimize image loading */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    /* Ensure smooth transitions when JavaScript adjusts position */
+    transition: height 0.2s ease-out, top 0.2s ease-out;
 }
 
 /* Header - New Layout to Match Image */
@@ -377,6 +401,8 @@ html {
 }
 
 .main-content {
+    /* --sticky-top-offset is set by JavaScript */
+    --sticky-top-offset: 10px; /* Default fallback value */
     padding-top: 100px;
 }
 
@@ -404,6 +430,7 @@ html {
     justify-content: flex-start;
     align-items: center;
     text-align: center;
+    min-height: auto; /* Allow the section to shrink-to-fit content, fixing the large gap */
 }
 
 /* Empty state styling - Professional and Stunning */
@@ -558,14 +585,16 @@ html {
 
 /* When loading, change grid to flexbox to stack placeholders above cards */
 .documents-grid.loading {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    /* Keep the grid layout during loading */
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
 }
 
 .documents-grid.loading .document-card {
+    /* Ensure cards maintain proper grid sizing */
     width: 100%;
-    max-width: none;
+    min-width: 0;
 }
 
 /* Responsive adjustments for empty state */
@@ -667,77 +696,42 @@ html {
     font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+.search-container-wrapper {
+    /* The wrapper is now back inside search-section. */
+    width: 100%;
+    margin-top: 0px; /* Restore the original spacing between subtitle and search bar. */
+
+    position: sticky;
+    top: var(--sticky-top-offset); /* Calculated by JS */
+    z-index: 1001; /* High z-index to stay on top */
+
+    /* The background and padding are only applied when it's stuck. */
+    transition: padding 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    
+    /* Ensure negative values work properly */
+    transform: translateZ(0);
+}
+
+.search-container-wrapper.is-stuck {
+    background: linear-gradient(135deg, rgba(157, 218, 253, 0.95), rgba(132, 208, 252, 0.95));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
+    /* A little padding for aesthetics when it sticks */
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+}
+
 .search-container {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-4);
+    
+    /* We center the container within the sticky wrapper. */
     width: 100%;
     max-width: 800px;
-    margin: 50px auto 0;
-    position: relative;
-    z-index: 1001;
-    transition: all 0.3s var(--ease-2);
-}
-
-/* Sticky search container when aligned with header */
-.search-container.sticky {
-    position: fixed;
-    top: 72px; /* Header height */
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 0;
-    padding: var(--space-4) 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    z-index: 1001;
-    transition: opacity 0.3s var(--ease-2), transform 0.3s var(--ease-2);
-}
-
-/* Enhanced styling for sticky state */
-.search-container.sticky .search-bar {
-    box-shadow: var(--shadow-xl);
-}
-
-.search-container.sticky .filters-btn {
-    box-shadow: var(--shadow-xl);
-}
-
-/* Mobile responsive adjustments for sticky search */
-@media (max-width: 900px) {
-    .search-container.sticky {
-        padding: var(--space-3) var(--space-4);
-        gap: var(--space-3);
-    }
-    
-    .search-container-placeholder {
-        height: 110px; /* Smaller height for mobile */
-    }
-}
-
-@media (max-width: 600px) {
-    .search-container.sticky {
-        padding: var(--space-2) var(--space-3);
-        gap: var(--space-2);
-    }
-    
-    .search-container-placeholder {
-        height: 100px; /* Even smaller for very small screens */
-    }
-}
-
-/* Placeholder to maintain layout when search container becomes sticky */
-.search-container-placeholder {
-    height: 130px; /* Approximate height of search container with margins */
-    width: 100%;
-    display: none;
-}
-
-.search-container-placeholder.active {
-    display: block;
+    margin: 0 auto;
 }
 
 .search-bar {
@@ -4050,133 +4044,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Autocomplete Filter Styles */
-/* Author Container - Similar to dropdown but without arrow */
-.author-container {
-    position: relative;
-}
 
-.author-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.author-input {
-    width: 100%;
-    padding: var(--space-3) var(--space-4);
-    border: 2px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--gray-800);
-    background: var(--white);
-    transition: all 0.3s var(--ease-2);
-    outline: none;
-    font-family: inherit;
-    cursor: text;
-}
-
-.author-input:hover {
-    border-color: var(--blue-500);
-}
-
-.author-input:focus,
-.author-container.open .author-input {
-    border-color: var(--blue-600);
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-}
-
-.author-input::placeholder {
-    color: var(--gray-500);
-    font-style: italic;
-}
-
-.author-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--white);
-    border: 2px solid var(--blue-300);
-    border-top: none;
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-    z-index: 1000;
-    display: none;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(20px);
-    overflow: hidden;
-    max-height: 300px;
-}
-
-.author-container.open .author-suggestions {
-    display: block !important;
-}
-
-.author-options {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.author-option {
-    padding: var(--space-3) var(--space-4);
-    cursor: pointer;
-    border-bottom: 1px solid var(--gray-100);
-    transition: all 0.2s var(--ease-2);
-    font-size: 14px;
-    color: var(--gray-700);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.author-option:hover {
-    background: var(--blue-50);
-    color: var(--blue-700);
-}
-
-.author-option:last-child {
-    border-bottom: none;
-}
-
-.author-option.selected {
-    background: var(--blue-100);
-    color: var(--blue-800);
-    font-weight: 500;
-}
-
-.author-option.highlighted {
-    background: var(--blue-100);
-    color: var(--blue-800);
-}
-
-.author-option-check {
-    font-size: 16px;
-    color: var(--blue-600);
-    opacity: 0;
-    transition: opacity 0.2s var(--ease-2);
-}
-
-.author-option.selected .author-option-check {
-    opacity: 1;
-}
-
-/* Scrollbar styling for author options */
-.author-options::-webkit-scrollbar {
-    width: 6px;
-}
-
-.author-options::-webkit-scrollbar-track {
-    background: var(--gray-100);
-}
-
-.author-options::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 3px;
-}
-
-.author-options::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
-}
 
 /* Professional Dropdown Styles */
 .dropdown-container {
@@ -4547,7 +4415,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 99999;
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
     backdrop-filter: blur(8px);

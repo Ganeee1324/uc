@@ -10,10 +10,12 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     <link rel="stylesheet" href="css/search.css?v=1.2">
     <link rel="icon" href="images/favicon.png" type="image/png">
+    <!-- Preload background image to eliminate delay -->
+    <link rel="preload" href="images/bg.png" as="image" type="image/png">
 </head>
 <body>
-    <!-- Background Image Element -->
-    <div class="background-image" aria-hidden="true"></div>
+    <!-- Background Image Element with initial positioning -->
+    <div class="background-image" aria-hidden="true" style="height: 787.5px; top: -91.75px;"></div>
 
     <!-- Header matching the image -->
     <header class="header">
@@ -46,25 +48,22 @@
             <h1 class="search-title">Cerca.</h1>
             <p class="search-subtitle">Pensato per chi vuole di più.</p>
             
-            <!-- Placeholder to maintain layout when search container becomes sticky -->
-            <div class="search-container-placeholder" id="searchContainerPlaceholder"></div>
-            
-            <div class="search-container" id="searchContainer">
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Cerca una dispensa...">
-                    <button class="search-btn" id="searchBtn">
-                        <i class="material-symbols-outlined">search</i>
+            <div class="search-container-wrapper">
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Cerca una dispensa...">
+                        <button class="search-btn" id="searchBtn">
+                            <i class="material-symbols-outlined">search</i>
+                        </button>
+                    </div>
+                    <button class="filters-btn" id="filtersBtn">
+                        <i class="material-symbols-outlined">tune</i>
+                        <span class="filters-text">Filtri</span>
+                        <span class="filter-count" id="filterCount">0</span>
                     </button>
                 </div>
-                <button class="filters-btn" id="filtersBtn">
-                    <i class="material-symbols-outlined">tune</i>
-                    <span class="filters-text">Filtri</span>
-                    <span class="filter-count" id="filterCount">0</span>
-                </button>
             </div>
             
-            
-
             <!-- Document Count and Active Filters Display -->
             <div id="documentCountContainer" class="document-count-container" style="display: block;">
                 <div class="document-count-and-filters">
@@ -377,17 +376,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="filter-item">
-                            <label for="autoreFilter" class="filter-label">Autore</label>
-                            <div class="author-container">
-                                <div class="author-input-wrapper">
-                                    <input type="text" id="autoreFilter" class="author-input" placeholder="Scrivi per cercare autore...">
-                                </div>
-                                <div class="author-suggestions" id="authorSuggestions">
-                                    <div class="author-options" id="authorOptions"></div>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
@@ -447,7 +436,7 @@
                                 </button>
                                 <button class="vetrina-toggle" data-vetrina="multiple">
                                     <i class="material-symbols-outlined">folder</i>
-                                    Multi File
+                                    Pacchetti
                                 </button>
                             </div>
                         </div>

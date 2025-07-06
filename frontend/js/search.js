@@ -388,7 +388,7 @@ function initializeCourseFilter() {
 function initializeCanaleFilter() {
     const canaleInput = document.getElementById('canaleFilter');
     const suggestionsContainer = document.getElementById('canaleSuggestions');
-    let canali = ['A', 'B', 'C', 'D', 'E', 'F'];
+    let canali = ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico'];
     let selectedIndex = -1;
     
     if (!canaleInput || !suggestionsContainer) return;
@@ -848,7 +848,7 @@ function populateDropdownOptions() {
     populateOptions('course', uniqueCourses);
     
     // Canale options
-    populateOptions('canale', ['A', 'B', 'C', 'D', 'E', 'F', '0']);
+    populateOptions('canale', ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico']);
 }
 
 function populateOptions(type, items) {
@@ -1026,7 +1026,7 @@ function filterDropdownOptions(type, searchTerm) {
             items = [...new Set(courses)].sort();
         }
     } else if (type === 'canale') {
-        items = ['A', 'B', 'C', 'D', 'E', 'F'];
+        items = ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico'];
     } else if (type === 'documentType') {
         // Static document types (popular ones first) plus dynamic ones from files
         const staticTypes = ['PDF', 'DOCX', 'PPTX', 'XLSX'];
@@ -1069,6 +1069,12 @@ function filterDropdownOptions(type, searchTerm) {
         // If one starts with search term and other doesn't, prioritize the one that starts with it
         if (aStartsWith && !bStartsWith) return -1;
         if (!aStartsWith && bStartsWith) return 1;
+        
+        // Special sorting for canale: "Canale Unico" should always be last
+        if (type === 'canale') {
+            if (a === 'Canale Unico') return 1;
+            if (b === 'Canale Unico') return -1;
+        }
         
         // If both start with search term or both don't, sort alphabetically
         return a.localeCompare(b);
@@ -1729,7 +1735,7 @@ async function applyFiltersAndRender() {
     const searchInput = document.getElementById('searchInput');
     const currentQuery = searchInput?.value?.trim() || '';
     
-    const hasBackendFilters = activeFilters.course_name || activeFilters.faculty_name;
+    const hasBackendFilters = activeFilters.course || activeFilters.faculty || activeFilters.canale || activeFilters.language || activeFilters.tag || activeFilters.documentType || activeFilters.academicYear || activeFilters.courseYear;
     
     if (hasBackendFilters || currentQuery) {
         // Use backend search with filters
@@ -2770,73 +2776,36 @@ function showLoadingCards(count = 8) {
     // Add loading class to grid
     grid.classList.add('loading');
     
-    // Add placeholder elements to maintain correct positioning
-    const documentCountPlaceholder = document.createElement('div');
-    documentCountPlaceholder.className = 'loading-placeholder document-count';
-    grid.appendChild(documentCountPlaceholder);
+    // Don't add placeholder elements - they interfere with grid positioning
     
-    const activeFiltersPlaceholder = document.createElement('div');
-    activeFiltersPlaceholder.className = 'loading-placeholder active-filters';
-    grid.appendChild(activeFiltersPlaceholder);
-    
-    // Create a container for the loading cards grid
-    const cardsContainer = document.createElement('div');
-    cardsContainer.className = 'loading-cards-container';
-    cardsContainer.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: var(--space-5);
-        width: 100%;
-    `;
-    
+    // Add loading cards directly to the grid (no separate container)
     for (let i = 0; i < count; i++) {
         const loadingCard = document.createElement('div');
-        loadingCard.className = 'document-card loading';
+        loadingCard.className = 'document-card loading-card';
         loadingCard.style.animationDelay = `${i * 0.1}s`;
         
         loadingCard.innerHTML = `
-            <div class="document-preview">
-                <div class="loading-preview"></div>
-                <div class="document-type-badges">
-                    <div class="skeleton-badge"></div>
-                </div>
-                <div class="rating-badge">
-                    <div class="skeleton-rating-stars"></div>
-                    <div class="skeleton-rating-count"></div>
-                </div>
+            <div class="document-preview loading-preview">
+                <div class="skeleton-preview-circle"></div>
+                <div class="skeleton-rating-badge"></div>
+                <div class="skeleton-preview-bar"></div>
             </div>
-            
-            <button class="favorite-button">
-                <div class="skeleton-favorite-icon"></div>
-            </button>
-            
+            <div class="skeleton-favorite-button"></div>
             <div class="document-content">
                 <div class="document-header">
                     <div class="document-title-section">
                         <div class="skeleton-title"></div>
-                        <div class="skeleton-description"></div>
+                        <div class="skeleton-author"></div>
                     </div>
                 </div>
                 <div class="document-info">
-                    <div class="skeleton-info-item">
-                        <div class="skeleton-info-icon"></div>
-                        <div class="skeleton-info-text"></div>
-                    </div>
-                    <div class="skeleton-info-item">
-                        <div class="skeleton-info-icon"></div>
-                        <div class="skeleton-info-text"></div>
-                    </div>
-                    <div class="skeleton-info-item">
-                        <div class="skeleton-info-icon"></div>
-                        <div class="skeleton-info-text"></div>
-                    </div>
-                    <div class="skeleton-info-item">
-                        <div class="skeleton-info-icon"></div>
-                        <div class="skeleton-info-text"></div>
-                    </div>
+                    <div class="skeleton-line info-item"></div>
+                    <div class="skeleton-line info-item"></div>
+                    <div class="skeleton-line info-item"></div>
+                    <div class="skeleton-line info-item"></div>
                 </div>
                 <div class="document-footer">
-                    <div class="document-footer-left">
+                    <div class="skeleton-footer-left">
                         <div class="skeleton-avatar"></div>
                         <div class="skeleton-meta"></div>
                     </div>
@@ -2845,11 +2814,8 @@ function showLoadingCards(count = 8) {
             </div>
         `;
         
-        cardsContainer.appendChild(loadingCard);
+        grid.appendChild(loadingCard);
     }
-    
-    // Append the cards container to the grid
-    grid.appendChild(cardsContainer);
     
     console.log(`✅ Added ${count} loading cards to grid`);
 }
@@ -3076,8 +3042,8 @@ function getTagDisplayName(tag) {
 
 // Helper function to format canale display
 function formatCanaleDisplay(canale) {
-    if (canale === "0" || canale === 0) {
-        return "Canale Unico";
+    if (canale === "0" || canale === 0 || canale === "Canale Unico") {
+        return "Unico";
     }
     return canale;
 }
@@ -3298,11 +3264,11 @@ function renderDocuments(files) {
                         <span class="info-icon">menu_book</span>
                         <span class="info-text">${item.course_name || 'N/A'}</span>
                     </div>
-                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale: ' + formatCanaleDisplay(item.canale) : ''}">
+                    <div class="document-info-item" title="Lingua: ${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null ? ' - Canale: ' + formatCanaleDisplay(item.canale) : ''}">
                         <span class="info-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.05 0-3.875-.788t-3.187-2.15t-2.15-3.187T2 12q0-2.075.788-3.887t2.15-3.175t3.187-2.15T12 2q2.075 0 3.888.788t3.174 2.15t2.15 3.175T22 12q0 2.05-.788 3.875t-2.15 3.188t-3.175 2.15T12 22m0-2.05q.65-.9 1.125-1.875T13.9 16h-3.8q.3 1.1.775 2.075T12 19.95m-2.6-.4q-.45-.825-.787-1.713T8.05 16H5.1q.725 1.25 1.813 2.175T9.4 19.55m5.2 0q1.4-.45 2.488-1.375T18.9 16h-2.95q-.225.95-.562 1.838T14.6 19.55M4.25 14h3.4q-.075-.5-.112-.987T7.5 12t.038-1.012T7.65 10h-3.4q-.125.5-.187.988T4 12t.063 1.013t.187.987m5.4 0h4.7q.075-.5.113-.987T14.5 12t-.038-1.012T14.35 10h-4.7q-.075.5-.112.988T9.5 12t.038 1.013t.112.987m6.7 0h3.4q.125-.5.188-.987T20 12t-.062-1.012T19.75 10h-3.4q.075.5.113.988T16.5 12t-.038 1.013t-.112.987m-.4-6h2.95q-.725-1.25-1.812-2.175T14.6 4.45q.45.825.788 1.713T15.95 8M10.1 8h3.8q-.3-1.1-.775-2.075T12 4.05q-.65.9-1.125 1.875T10.1 8m-5 0h2.95q.225-.95.563-1.838T9.4 4.45Q8 4.9 6.912 5.825T5.1 8"/></svg>
                         </span>
-                        <span class="info-text">${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null && item.canale !== "0" ? ' - Canale ' + formatCanaleDisplay(item.canale) : ''}</span>
+                        <span class="info-text">${item.language || 'N/A'}${item.canale !== undefined && item.canale !== null ? ' - Canale ' + formatCanaleDisplay(item.canale) : ''}</span>
                     </div>
                     <div class="document-info-item" title="Anno Accademico: ${item.academic_year || 'N/A'}">
                         <span class="info-icon">calendar_today</span>
@@ -3830,8 +3796,8 @@ async function purchaseDocument(fileId) {
 // Replace the performSearch function to use backend search instead of client-side
 async function performSearch(query) {
     try {
-        // Show loading cards immediately
-        showLoadingCards(6);
+        // Show loading cards immediately for search (show more cards for better UX)
+        showLoadingCards(12);
         showStatus('Ricerca in corso... 🔍');
         
         // If no query, load all files with current filters
@@ -3845,51 +3811,168 @@ async function performSearch(query) {
         searchParams.append('text', query.trim());
         
         // Add any active filters to the search
-        if (activeFilters.course_name) {
-            searchParams.append('course_name', activeFilters.course_name);
+        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
+        // Client-side only filters: vetrinaType, minRating, priceType, sizeType, timeType
+        if (activeFilters.course) {
+            const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
+            searchParams.append('course_name', courseValue);
         }
-        if (activeFilters.faculty_name) {
-            searchParams.append('faculty', activeFilters.faculty_name);
+        if (activeFilters.faculty) {
+            const facultyValue = Array.isArray(activeFilters.faculty) ? activeFilters.faculty[0] : activeFilters.faculty;
+            searchParams.append('faculty', facultyValue);
+        }
+        if (activeFilters.canale) {
+            // Handle "Canale Unico" mapping to "0" for backend
+            const canaleValue = Array.isArray(activeFilters.canale) ? activeFilters.canale[0] : activeFilters.canale;
+            const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
+            searchParams.append('canale', backendCanaleValue);
+        }
+        if (activeFilters.language) {
+            const languageValue = Array.isArray(activeFilters.language) ? activeFilters.language[0] : activeFilters.language;
+            searchParams.append('language', languageValue);
+        }
+        if (activeFilters.tag) {
+            const tagValue = Array.isArray(activeFilters.tag) ? activeFilters.tag[0] : activeFilters.tag;
+            searchParams.append('tag', tagValue);
+        }
+        if (activeFilters.documentType) {
+            const docTypeValue = Array.isArray(activeFilters.documentType) ? activeFilters.documentType[0] : activeFilters.documentType;
+            searchParams.append('extension', docTypeValue);
+        }
+        // Note: file_count parameter not supported by backend yet, keeping vetrinaType as client-side filter
+        if (activeFilters.academicYear) {
+            // Extract year from academic year format (e.g., "2024/2025" -> 2024)
+            const yearValue = Array.isArray(activeFilters.academicYear) ? activeFilters.academicYear[0] : activeFilters.academicYear;
+            const year = yearValue.split('/')[0];
+            searchParams.append('date_year', year);
+        }
+        if (activeFilters.courseYear) {
+            // Add course year filter (e.g., 1, 2, 3 for first, second, third year)
+            const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
+            searchParams.append('course_year', courseYearValue);
         }
         
         // Make backend search request with fallback
         let response;
         try {
+            console.log('🔍 Making backend search request with params:', searchParams.toString());
             // Use authenticated request for GET search to include favorite status
             response = await makeAuthenticatedRequest(`/vetrine?${searchParams.toString()}`);
+            console.log('✅ Backend search successful:', response);
         } catch (error) {
-            console.warn('Backend search failed, falling back to client-side search:', error);
-            // Fallback to client-side search if backend fails
-            await performClientSideSearch(query);
-        return;
-    }
+            console.warn('⚠️ Backend search failed:', error);
+            showStatus('Ricerca backend non disponibile. Riprova più tardi.');
+            // Show empty state if backend fails
+            currentFiles = [];
+            renderDocuments([]);
+            return;
+        }
     
         if (!response) {
-            console.warn('Empty response from backend, falling back to client-side search');
-            await performClientSideSearch(query);
+            console.warn('Empty response from backend, showing empty state');
+            currentFiles = [];
+            renderDocuments([]);
+            showStatus('Nessun risultato trovato');
             return;
         }
         
         const searchResults = response.vetrine || [];
-        console.log('Backend search results:', searchResults);
+        const totalCount = response.count || searchResults.length;
+        console.log('Backend search results:', searchResults, 'Total count:', totalCount);
         
-        // Transform search results into display format
-        const transformedResults = await transformSearchResults(searchResults);
+        // If backend search returns 0 results, show empty state
+        if (searchResults.length === 0) {
+            console.log('🔄 Backend search returned 0 results, showing empty state...');
+            currentFiles = [];
+            renderDocuments([]);
+            showStatus(`Nessun risultato trovato per "${query}" 🔍`);
+            return;
+        }
         
-        // Apply any remaining client-side filters (except course/faculty which are handled by backend)
+        // Transform backend vetrine results directly into display format (no file loading)
+        const transformedResults = searchResults.map(vetrina => {
+            // Create mock files for UI display (same as initial page load)
+            const mockFileCount = Math.floor(Math.random() * 5) + 1; // 1-5 files
+            const mockFiles = Array.from({ length: mockFileCount }, (_, i) => ({
+                id: `${vetrina.vetrina_id}-file-${i}`,
+                filename: `file${i + 1}.pdf`,
+                title: `File ${i + 1}`,
+                size: Math.floor(Math.random() * 1000000) + 100000,
+                price: Math.random() > 0.7 ? Math.floor(Math.random() * 10) + 1 : 0,
+                document_type: ['PDF', 'DOCX', 'PPTX'][Math.floor(Math.random() * 3)],
+                created_at: vetrina.created_at || new Date().toISOString(),
+                download_count: Math.floor(Math.random() * 100),
+                owned: false,
+                tag: ['appunti', 'dispense', 'esercizi'][Math.floor(Math.random() * 3)]
+            }));
+            
+            // Calculate totals for the vetrina
+            const totalSize = mockFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+            const totalPrice = mockFiles.reduce((sum, file) => sum + (file.price || 0), 0);
+            
+            // Create a card item with mock file data for proper UI display (same as initial page load)
+            const vetrineCard = {
+                id: vetrina.vetrina_id,
+                isVetrina: true,
+                filesLoaded: true, // Mark as loaded so it shows file stack UI
+                fileCount: mockFileCount,
+                files: mockFiles,
+                // Use vetrina info for the card
+                filename: mockFileCount > 1 ? `${mockFileCount} files` : mockFiles[0].filename,
+                title: vetrina.name || 'Vetrina Senza Nome',
+                description: vetrina.description || 'No description available',
+                size: totalSize,
+                price: totalPrice,
+                created_at: vetrina.created_at || new Date().toISOString(),
+                download_count: mockFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
+                rating: Math.random() * 2 + 3, // Generate random rating between 3-5
+                review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
+                course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
+                faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
+                language: vetrina.course_instance?.language || 'Italiano',
+                canale: vetrina.course_instance?.canale || 'A',
+                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                document_types: Array.from(new Set(mockFiles.map(file => file.document_type))),
+                document_type: mockFileCount > 1 ? 'BUNDLE' : mockFiles[0].document_type,
+                author_username: vetrina.author?.username || 'Unknown',
+                owned: mockFiles.every(file => file.owned),
+                favorite: vetrina.favorite === true, // Use the real favorite status from backend
+                tags: mockFiles.map(file => file.tag).filter(tag => tag !== null),
+                primary_tag: mockFiles.find(file => file.tag)?.tag || null,
+                vetrina_info: {
+                    id: vetrina.vetrina_id,
+                    name: vetrina.name,
+                    description: vetrina.description,
+                    course_instance_id: vetrina.course_instance?.course_instance_id,
+                    owner_id: vetrina.author?.user_id,
+                    owner_username: vetrina.author?.username || 'Unknown'
+                }
+            };
+            return vetrineCard;
+        });
+        
+        // Apply any remaining client-side filters (except backend-handled ones)
+        console.log('🔍 Applying client-side filters to', transformedResults.length, 'results...');
         const filteredResults = applyClientSideFilters(transformedResults);
+        console.log('📊 After client-side filtering:', filteredResults.length, 'results remaining');
         
         // Update current files and render
         currentFiles = filteredResults;
         renderDocuments(filteredResults);
         
-        // Show search results status
+        // Show enhanced search results status
         const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
         const searchSummary = searchTerms.length > 1 
             ? `"${searchTerms.join('" + "')}"` 
             : `"${query}"`;
         
-        showStatus(`Trovati ${filteredResults.length} documenti per ${searchSummary} 🎉`);
+        // Enhanced status message with backend count information
+        if (totalCount > filteredResults.length) {
+            showStatus(`Trovati ${filteredResults.length} di ${totalCount} documenti per ${searchSummary} 🎯`);
+        } else {
+            showStatus(`Trovati ${filteredResults.length} documenti per ${searchSummary} 🎉`);
+        }
         
     } catch (error) {
         console.error('Search error:', error);
@@ -3899,85 +3982,7 @@ async function performSearch(query) {
     }
 }
 
-// New function to transform backend search results into frontend display format
-async function transformSearchResults(vetrine) {
-    const transformedResults = [];
-    
-    for (const vetrina of vetrine) {
-        try {
-            // Load files for this vetrina
-                            const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.id}/files`);
-            if (!filesResponse || !filesResponse.files || filesResponse.files.length === 0) {
-                continue; // Skip vetrine with no files
-            }
-            
-            const files = filesResponse.files;
-            
-            // Calculate totals for the vetrina
-            const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
-            const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
-            
-                                // Transform the vetrina into a card item (same format as loadAllFiles)
-                    const vetrineCard = {
-                        id: vetrina.id || vetrina.vetrina_id,
-                        isVetrina: true,
-                        fileCount: files.length,
-                        files: files.map(file => ({
-                            id: file.id,
-                            filename: file.filename,
-                            title: getOriginalFilename(file.filename),
-                            size: file.size || 0,
-                            price: file.price || 0,
-                            document_type: getFileTypeFromFilename(file.filename),
-                            created_at: file.created_at,
-                            download_count: file.download_count || 0,
-                            owned: file.owned || false,
-                            tag: file.tag || null
-                        })),
-                        // Use vetrina info for the card
-                        filename: files.length > 1 ? `${files.length} files` : files[0].filename,
-                        title: vetrina.name || 'Vetrina Senza Nome',
-                        description: vetrina.description || 'No description available',
-                        size: totalSize,
-                        price: totalPrice,
-                        created_at: vetrina.created_at,
-                        download_count: files.reduce((sum, file) => sum + (file.download_count || 0), 0),
-                        rating: Math.random() * 2 + 3, // Generate random rating between 3-5
-                        review_count: Math.floor(Math.random() * 30) + 5, // Random review count 5-35
-                        course_name: vetrina.course_instance?.course_name || 'Corso Generale',
-                        faculty_name: vetrina.course_instance?.faculty_name || 'Facoltà Generale',
-                        language: vetrina.course_instance?.language || 'Italiano',
-                        canale: vetrina.course_instance?.canale || 'A',
-                        course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                        academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                        document_types: files.length > 1 ? 
-                            Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
-                            : [getDocumentCategory(getOriginalFilename(files[0].filename), '')],
-                        document_type: files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename),
-                        author_username: vetrina.owner?.username || 'Unknown',
-                        owned: files.every(file => file.owned),
-                        favorite: vetrina.favorite || false,
-                        // Add tags from files
-                        tags: files.map(file => file.tag).filter(tag => tag !== null),
-                        primary_tag: files.find(file => file.tag)?.tag || null,
-                        vetrina_info: {
-                            id: vetrina.id || vetrina.vetrina_id,
-                            name: vetrina.name,
-                            description: vetrina.description,
-                            course_instance_id: vetrina.course_instance?.instance_id,
-                            owner_id: vetrina.owner?.id,
-                            owner_username: vetrina.owner?.username || 'Unknown'
-                        }
-                    };
-            transformedResults.push(vetrineCard);
-            
-        } catch (error) {
-            console.error(`Error loading files for vetrina ${vetrina.id}:`, error);
-        }
-    }
-    
-    return transformedResults;
-}
+
 
 // New function to apply remaining client-side filters (excluding course/faculty which backend handles)
 function applyClientSideFilters(files) {
@@ -3985,7 +3990,7 @@ function applyClientSideFilters(files) {
     
     // Apply filters that aren't handled by backend
     Object.entries(activeFilters).forEach(([key, value]) => {
-        if (!value || key === 'course_name' || key === 'faculty_name') return; // Skip backend-handled filters
+        if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear') return; // Skip backend-handled filters
         
         filtered = filtered.filter(file => {
             switch (key) {
@@ -4606,103 +4611,7 @@ function navigateQuickLookFile(direction) {
     }
 }
 
-// Fallback client-side search function when backend search fails
-async function performClientSideSearch(query) {
-    try {
-        // Load all files if not already loaded
-        if (originalFiles.length === 0) {
-            await loadAllFiles();
-        }
-        
-        let filesToSearch = originalFiles;
-        
-        // Apply current filters first
-        if (Object.keys(activeFilters).length > 0) {
-            filesToSearch = applyFiltersToFiles(originalFiles);
-        }
-        
-        if (!query.trim()) {
-            renderDocuments(filesToSearch);
-            return;
-        }
-        
-        // Split search query into individual terms and clean them
-        const searchTerms = query.toLowerCase()
-            .split(/\s+/)
-            .map(term => term.trim())
-            .filter(term => term.length > 0);
-        
-        // Calculate relevance score for each file
-        const scoredFiles = filesToSearch.map(file => {
-            let score = 0;
-            let hasMatch = false;
-            
-            // Helper function to check if terms match in a field
-            const checkFieldMatch = (fieldValue, multiplier) => {
-                if (!fieldValue) return false;
-                
-                const fieldText = fieldValue.toLowerCase()
-                    .replace(/[^\w\s]/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-                
-                let fieldMatches = 0;
-                searchTerms.forEach(term => {
-                    if (fieldText.includes(term) || 
-                        fieldText.split(' ').some(word => 
-                            word.startsWith(term) || word.includes(term)
-                        )) {
-                        fieldMatches++;
-                    }
-                });
-                
-                if (fieldMatches === searchTerms.length) {
-                    score += multiplier * fieldMatches;
-                    return true;
-                }
-                return false;
-            };
-            
-            // Priority scoring (higher multiplier = higher priority)
-            if (checkFieldMatch(file.title, 100)) hasMatch = true;
-            if (checkFieldMatch(file.course_name, 80)) hasMatch = true;
-            if (checkFieldMatch(file.description, 60)) hasMatch = true;
-            if (checkFieldMatch(file.faculty_name, 50)) hasMatch = true;
-            if (checkFieldMatch(file.author_username, 40)) hasMatch = true;
-            if (checkFieldMatch(file.vetrina_info?.name, 30)) hasMatch = true;
-            if (checkFieldMatch(file.vetrina_info?.description, 20)) hasMatch = true;
-            if (checkFieldMatch(file.document_type, 15)) hasMatch = true;
-            if (checkFieldMatch(file.language, 10)) hasMatch = true;
-            
-            return {
-                file,
-                score,
-                hasMatch
-            };
-        });
-        
-        // Filter files that have matches and sort by score (descending)
-        const filtered = scoredFiles
-            .filter(item => item.hasMatch)
-            .sort((a, b) => b.score - a.score)
-            .map(item => item.file);
-        
-        currentFiles = filtered;
-        renderDocuments(filtered);
-        
-        // Show search results status
-        const searchSummary = searchTerms.length > 1 
-            ? `"${searchTerms.join('" + "')}"` 
-            : `"${query}"`;
-        
-        showStatus(`Trovati ${filtered.length} documenti per ${searchSummary} 🔍 (ricerca locale)`);
-        
-    } catch (error) {
-        console.error('Client-side search error:', error);
-        showError('Errore durante la ricerca. Riprova più tardi.');
-        renderDocuments(currentFiles);
-    }
-}
+
 
 // ===========================
 // PROFESSIONAL SCROLL TO TOP FUNCTIONALITY
@@ -4728,46 +4637,24 @@ function initializeScrollToTop() {
                     scrollToTopBtn.classList.add('pulse');
                     setTimeout(() => {
                         scrollToTopBtn.classList.remove('pulse');
-                    }, 1500); // Reduced pulse duration
-                }, 50); // Reduced delay
+                    }, 1000); // Reduced pulse duration for faster feedback
+                }, 25); // Reduced delay for immediate response
             }
         } else {
             scrollToTopBtn.classList.remove('visible');
         }
     }
 
-    // Smooth scroll to top
+    // Smooth scroll to top using native smooth scrolling
     function scrollToTop() {
         // Remove pulse animation if active
         scrollToTopBtn.classList.remove('pulse');
         
-        // Smooth scroll to top with optimized easing
-        const startPosition = window.scrollY || window.pageYOffset;
-        const startTime = performance.now();
-        const duration = 500; // Reduced to 500ms for faster animation
-        
-        // Use a smoother easing function
-        function easeOutQuart(t) {
-            return 1 - Math.pow(1 - t, 4);
-        }
-        
-        function animateScroll(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easedProgress = easeOutQuart(progress);
-            
-            const newPosition = startPosition - (startPosition * easedProgress);
-            window.scrollTo(0, newPosition);
-            
-            if (progress < 1) {
-                requestAnimationFrame(animateScroll);
-            } else {
-                // Ensure we reach exactly the top
-                window.scrollTo(0, 0);
-            }
-        }
-        
-        requestAnimationFrame(animateScroll);
+        // Use native smooth scrolling for better performance and smoother animation
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     }
 
     // Event listeners
@@ -4826,96 +4713,6 @@ function initializeScrollToTop() {
 // Initialize scroll to top functionality when page loads
 document.addEventListener('DOMContentLoaded', initializeScrollToTop);
 
-// STICKY SEARCH CONTAINER FUNCTIONALITY
-function initializeStickySearchContainer() {
-    const searchContainer = document.getElementById('searchContainer');
-    const searchContainerPlaceholder = document.getElementById('searchContainerPlaceholder');
-    const header = document.querySelector('.header');
-    
-    if (!searchContainer || !searchContainerPlaceholder || !header) return;
-    
-    let isSticky = false;
-    let searchContainerOriginalTop = 0;
-    let headerHeight = 72; // Header height in pixels
-    
-    // Calculate the original position of the search container
-    function calculateOriginalPosition() {
-        if (!isSticky) {
-            const rect = searchContainer.getBoundingClientRect();
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            searchContainerOriginalTop = rect.top + scrollTop;
-        }
-    }
-    
-    // Handle scroll events for sticky behavior
-    function handleStickyScroll() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const shouldBeSticky = scrollTop >= (searchContainerOriginalTop - headerHeight);
-        
-        if (shouldBeSticky && !isSticky) {
-            // Make sticky
-            isSticky = true;
-            searchContainer.classList.add('sticky');
-            searchContainerPlaceholder.classList.add('active');
-            
-            // Add subtle entrance animation
-            searchContainer.style.opacity = '0';
-            searchContainer.style.transform = 'translateX(-50%) translateY(-10px)';
-            
-            requestAnimationFrame(() => {
-                searchContainer.style.opacity = '1';
-                searchContainer.style.transform = 'translateX(-50%) translateY(0)';
-            });
-            
-        } else if (!shouldBeSticky && isSticky) {
-            // Remove sticky
-            isSticky = false;
-            searchContainer.classList.remove('sticky');
-            searchContainerPlaceholder.classList.remove('active');
-            
-            // Reset transform
-            searchContainer.style.opacity = '';
-            searchContainer.style.transform = '';
-        }
-    }
-    
-    // Throttled scroll handler for better performance
-    let scrollTimeout;
-    function throttledStickyScroll() {
-        if (scrollTimeout) return;
-        
-        scrollTimeout = setTimeout(() => {
-            handleStickyScroll();
-            scrollTimeout = null;
-        }, 16); // ~60fps
-    }
-    
-    // Initialize
-    calculateOriginalPosition();
-    
-    // Event listeners
-    window.addEventListener('scroll', throttledStickyScroll, { passive: true });
-    window.addEventListener('resize', () => {
-        calculateOriginalPosition();
-        handleStickyScroll();
-    });
-    
-    // Recalculate position when page content changes
-    const observer = new MutationObserver(() => {
-        if (!isSticky) {
-            calculateOriginalPosition();
-        }
-    });
-    
-    observer.observe(document.getElementById('searchSection'), {
-        childList: true,
-        subtree: true
-    });
-}
-
-// Initialize sticky search container when page loads
-document.addEventListener('DOMContentLoaded', initializeStickySearchContainer);
-
 // ===========================
 // DYNAMIC BACKGROUND POSITIONING
 // ===========================
@@ -4928,6 +4725,10 @@ function adjustBackgroundPosition() {
     if (!bgElement || !title || !searchContainer) {
         return;
     }
+
+    // Remove transition temporarily for immediate positioning
+    const originalTransition = bgElement.style.transition;
+    bgElement.style.transition = 'none';
 
     // Use an Image object to get the natural dimensions and calculate aspect ratio.
     // This is the key to making the calculation reliable.
@@ -4963,14 +4764,24 @@ function adjustBackgroundPosition() {
         const finalTopOffset = pageAnchorY - imageAnchorInPixels;
         
         bgElement.style.top = `${finalTopOffset}px`;
+
+        // Restore transition after positioning
+        setTimeout(() => {
+            bgElement.style.transition = originalTransition;
+        }, 0);
     };
 
-    // This handles both cached and uncached images
-    if (tempImage.complete) {
+    // Since image is preloaded, it should be available immediately
+    // But we still handle both cases for reliability
+    if (tempImage.complete || tempImage.naturalWidth > 0) {
         calculatePosition();
     } else {
         tempImage.onload = calculatePosition;
-        tempImage.onerror = () => console.error("Background image failed to load, cannot position it.");
+        tempImage.onerror = () => {
+            console.error("Background image failed to load, cannot position it.");
+            // Restore transition even on error
+            bgElement.style.transition = originalTransition;
+        };
     }
 }
 
@@ -4987,6 +4798,58 @@ function debounce(func, wait) {
     };
 }
 
-// Add event listeners for dynamic background
+// Initialize background positioning immediately when DOM is ready
+document.addEventListener('DOMContentLoaded', adjustBackgroundPosition);
+
+// Also run on window load to ensure everything is fully loaded
 window.addEventListener('load', adjustBackgroundPosition);
+
+// Add event listeners for dynamic background
 window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
+
+
+
+function initializeStickySearch() {
+    const searchContainerWrapper = document.querySelector('.search-container-wrapper');
+    const header = document.querySelector('.header');
+    
+    if (!searchContainerWrapper || !header) {
+        return;
+    }
+
+    function setStickyTop() {
+        const headerHeight = header.offsetHeight;
+        const searchContainer = searchContainerWrapper.querySelector('.search-container');
+        const searchContainerHeight = searchContainer.offsetHeight;
+        
+        // Make the search bar stick at the top of the header (0px)
+        // Then use CSS to center it within the header area
+        const stickyTopValue = 0;
+        
+        // Use a more robust way to set the custom property on the root.
+        document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);
+        console.log('Sticky top set to:', stickyTopValue + 'px', 'Header height:', headerHeight, 'Search height:', searchContainerHeight);
+    }
+
+    // This observer will watch the sticky element itself.
+    // It triggers when the element's position changes from 'relative' to 'sticky' (stuck) and back.
+    const observer = new IntersectionObserver(
+        ([e]) => {
+            // e.intersectionRatio < 1 means the element is "stuck" at the top or bottom of its container.
+            // We only care about when it's stuck at the top.
+            if (e.boundingClientRect.top <= parseFloat(getComputedStyle(e.target).top)) {
+                 e.target.classList.toggle('is-stuck', e.intersectionRatio < 1);
+            }
+        },
+        { threshold: [1.0] } // Trigger when the element is fully in view (unstuck) or not (stuck).
+    );
+
+    // Start observing the wrapper.
+    observer.observe(searchContainerWrapper);
+
+    // Set the initial value and update on resize.
+    setStickyTop();
+    window.addEventListener('resize', setStickyTop);
+}
+
+document.addEventListener('DOMContentLoaded', initializeStickySearch);

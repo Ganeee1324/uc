@@ -430,8 +430,8 @@ function renderDocumentInfo(docData) {
     if (docTypeTag) docTypeTag.textContent = documentType;
     
     // Update all details (reordered to match new HTML structure)
-    updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
+    updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
     
     // Handle canale display - show "Unico" if canale is "0"
@@ -1569,11 +1569,11 @@ async function initializeDocumentPreview() {
                         </h3>
                         <div class="doc-details">
                             <div class="detail-item-vertical">
-                                <span class="detail-label">Corso</span>
+                                <span class="detail-label">Facoltà</span>
                                 <span class="detail-value">Caricamento...</span>
                             </div>
                             <div class="detail-item-vertical">
-                                <span class="detail-label">Facoltà</span>
+                                <span class="detail-label">Corso</span>
                                 <span class="detail-value">Caricamento...</span>
                             </div>
                             <div class="detail-item-vertical">

@@ -875,15 +875,20 @@ function renderReviews(reviews) {
     `;
 }
 
-// Related Documents Renderer
+// Related Documents Renderer - Enhanced with Professional Placeholder Cards
 function renderRelatedDocuments(relatedDocs) {
     const relatedContainer = document.querySelector('.related-docs');
     
     if (!relatedDocs || relatedDocs.length === 0) {
+        // Show professional placeholder cards instead of empty state
+        const placeholderCards = generatePlaceholderCards();
         relatedContainer.innerHTML = `
-            <h3>Documenti Correlati</h3>
-            <div class="no-related">
-                <p>Nessun documento correlato trovato.</p>
+            <h3>
+                <span class="material-symbols-outlined">library_books</span>
+                Documenti Correlati
+            </h3>
+            <div class="related-docs-grid">
+                ${placeholderCards}
             </div>
         `;
         return;
@@ -891,22 +896,95 @@ function renderRelatedDocuments(relatedDocs) {
     
     const relatedHTML = relatedDocs.slice(0, 3).map(doc => `
         <div class="related-doc-item" onclick="window.location.href='document-preview.html?id=${doc.file_id || doc.id}'">
-            <div class="related-doc-preview"></div>
+            <div class="related-doc-preview">
+                <div class="doc-preview-icon">
+                    <span class="material-symbols-outlined">description</span>
+                </div>
+                <div class="doc-preview-badge">${getDocumentTypeFromFilename(doc.name || doc.title || 'document.pdf')}</div>
+            </div>
             <div class="related-doc-info">
                 <h4>${doc.name || doc.title || 'Documento Senza Titolo'}</h4>
-                <p>${doc.owner_username || doc.author_username || 'Autore Sconosciuto'} • €${(doc.price || 0).toFixed(2)}</p>
-                <div class="related-doc-rating">
-                    <span class="stars">${generateStars(Math.floor(doc.rating || 0))}</span>
-                    <span>${(doc.rating || 0).toFixed(1)}</span>
+                <p class="doc-author">${doc.owner_username || doc.author_username || 'Autore Sconosciuto'}</p>
+                <div class="doc-meta">
+                    <div class="doc-rating">
+                        <span class="stars">${generateStars(Math.floor(doc.rating || 0))}</span>
+                        <span class="rating-text">${(doc.rating || 0).toFixed(1)}</span>
+                    </div>
+                    <div class="doc-price ${(doc.price || 0) === 0 ? 'free' : 'paid'}">
+                        ${doc.price === 0 ? 'Gratuito' : `€${doc.price.toFixed(2)}`}
+                    </div>
                 </div>
             </div>
         </div>
     `).join('');
     
     relatedContainer.innerHTML = `
-        <h3>Documenti Correlati</h3>
-        ${relatedHTML}
+        <h3>
+            <span class="material-symbols-outlined">library_books</span>
+            Documenti Correlati
+        </h3>
+        <div class="related-docs-grid">
+            ${relatedHTML}
+        </div>
     `;
+}
+
+// Generate professional placeholder cards
+function generatePlaceholderCards() {
+    const placeholderData = [
+        {
+            title: 'Appunti di Analisi Matematica',
+            author: 'Marco Rossi',
+            type: 'Appunti',
+            rating: 4.5,
+            price: 8.50,
+            icon: 'functions'
+        },
+        {
+            title: 'Esercizi di Fisica I',
+            author: 'Laura Bianchi',
+            type: 'Esercizi',
+            rating: 4.2,
+            price: 0,
+            icon: 'science'
+        },
+        {
+            title: 'Formulario Chimica',
+            author: 'Giuseppe Verdi',
+            type: 'Formulario',
+            rating: 4.8,
+            price: 5.00,
+            icon: 'chemistry'
+        }
+    ];
+    
+    return placeholderData.map(doc => `
+        <div class="related-doc-item placeholder-card">
+            <div class="related-doc-preview">
+                <div class="doc-preview-icon">
+                    <span class="material-symbols-outlined">${doc.icon}</span>
+                </div>
+                <div class="doc-preview-badge">${doc.type}</div>
+            </div>
+            <div class="related-doc-info">
+                <h4>${doc.title}</h4>
+                <p class="doc-author">${doc.author}</p>
+                <div class="doc-meta">
+                    <div class="doc-rating">
+                        <span class="stars">${generateStars(Math.floor(doc.rating))}</span>
+                        <span class="rating-text">${doc.rating.toFixed(1)}</span>
+                    </div>
+                    <div class="doc-price ${doc.price === 0 ? 'free' : 'paid'}">
+                        ${doc.price === 0 ? 'Gratuito' : `€${doc.price.toFixed(2)}`}
+                    </div>
+                </div>
+            </div>
+            <div class="placeholder-overlay">
+                <span class="material-symbols-outlined">visibility_off</span>
+                <span>Anteprima</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 // Navigation System

@@ -943,7 +943,7 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 280px; /* Fixed height for symmetry */
+    height: 320px; /* Fixed height for symmetry with button */
 }
 
 .related-doc-item:hover {
@@ -998,6 +998,21 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+.doc-content {
+    flex: 1;
+    cursor: pointer;
+}
+
+.doc-content:hover .doc-title {
+    color: var(--primary-600);
+}
+
+.doc-actions {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--neutral-100);
 }
 
 .related-doc-info .doc-title {
@@ -1071,6 +1086,101 @@ body {
     text-align: center;
 }
 
+/* Professional Cart Button for Related Documents */
+.related-cart-btn {
+    width: 100%;
+    background: var(--primary-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-out);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    position: relative;
+    overflow: hidden;
+}
+
+.related-cart-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.related-cart-btn:hover::before {
+    left: 100%;
+}
+
+.related-cart-btn:hover {
+    background: var(--primary-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.related-cart-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.related-cart-btn .material-symbols-outlined {
+    font-size: 18px;
+    transition: transform 0.3s var(--ease-out);
+}
+
+.related-cart-btn:hover .material-symbols-outlined {
+    transform: scale(1.1);
+}
+
+/* Button States */
+.related-cart-btn.adding {
+    background: var(--warning-500);
+    cursor: not-allowed;
+}
+
+.related-cart-btn.adding .material-symbols-outlined {
+    animation: spin 1s linear infinite;
+}
+
+.related-cart-btn.added {
+    background: var(--success-600);
+    cursor: default;
+}
+
+.related-cart-btn.added .material-symbols-outlined {
+    transform: scale(1.2);
+}
+
+.related-cart-btn.error {
+    background: var(--danger-500);
+    cursor: default;
+}
+
+.related-cart-btn.error .material-symbols-outlined {
+    transform: scale(1.1);
+}
+
+/* Button Text Animation */
+.related-cart-btn .btn-text {
+    transition: all 0.3s var(--ease-out);
+    font-weight: 600;
+}
+
+.related-cart-btn.adding .btn-text,
+.related-cart-btn.added .btn-text,
+.related-cart-btn.error .btn-text {
+    font-weight: 700;
+}
+
 /* Responsive Design for Related Documents */
 @media (max-width: 768px) {
     .related-docs-grid {
@@ -1079,7 +1189,7 @@ body {
     }
     
     .related-doc-item {
-        height: 260px; /* Slightly smaller on mobile */
+        height: 300px; /* Increased height to accommodate button */
     }
     
     .related-doc-preview {

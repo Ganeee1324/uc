@@ -882,8 +882,8 @@ function renderRelatedDocuments(relatedDocs) {
     const placeholderDocs = generatePlaceholderDocuments();
     
     const relatedHTML = placeholderDocs.map(doc => `
-        <div class="related-doc-item" onclick="window.location.href='document-preview.html?id=${doc.id}'">
-            <div class="related-doc-preview">
+        <div class="related-doc-item">
+            <div class="related-doc-preview" onclick="window.location.href='document-preview.html?id=${doc.id}'">
                 <div class="doc-preview-icon">
                     <span class="material-symbols-outlined">${doc.icon}</span>
                 </div>
@@ -892,16 +892,24 @@ function renderRelatedDocuments(relatedDocs) {
                 </div>
             </div>
             <div class="related-doc-info">
-                <h4 class="doc-title">${doc.title}</h4>
-                <p class="doc-author">${doc.author}</p>
-                <div class="doc-meta">
-                    <div class="doc-rating">
-                        <span class="stars">${generateStars(doc.rating)}</span>
-                        <span class="rating-score">${doc.rating.toFixed(1)}</span>
+                <div class="doc-content" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+                    <h4 class="doc-title">${doc.title}</h4>
+                    <p class="doc-author">${doc.author}</p>
+                    <div class="doc-meta">
+                        <div class="doc-rating">
+                            <span class="stars">${generateStars(doc.rating)}</span>
+                            <span class="rating-score">${doc.rating.toFixed(1)}</span>
+                        </div>
+                        <div class="doc-type">
+                            <span class="type-badge">${doc.type}</span>
+                        </div>
                     </div>
-                    <div class="doc-type">
-                        <span class="type-badge">${doc.type}</span>
-                    </div>
+                </div>
+                <div class="doc-actions">
+                    <button class="related-cart-btn" onclick="addRelatedToCart(${doc.id}, event)">
+                        <span class="material-symbols-outlined">add_shopping_cart</span>
+                        <span class="btn-text">Aggiungi</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -962,6 +970,63 @@ function generatePlaceholderDocuments() {
     }
     
     return documents;
+}
+
+// Add Related Document to Cart
+async function addRelatedToCart(docId, event) {
+    event.stopPropagation(); // Prevent card click
+    
+    const button = event.currentTarget;
+    const btnText = button.querySelector('.btn-text');
+    const icon = button.querySelector('.material-symbols-outlined');
+    
+    // Optimistic UI update
+    button.classList.add('adding');
+    btnText.textContent = 'Aggiungendo...';
+    icon.textContent = 'hourglass_empty';
+    
+    try {
+        // Simulate API call (replace with actual cart API)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Success state
+        button.classList.remove('adding');
+        button.classList.add('added');
+        btnText.textContent = 'Aggiunto!';
+        icon.textContent = 'check_circle';
+        
+        // Update cart count
+        updateCartCount();
+        
+        // Show success notification
+        showNotification('Documento aggiunto al carrello! 🛒', 'success');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.classList.remove('added');
+            btnText.textContent = 'Aggiungi';
+            icon.textContent = 'add_shopping_cart';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        
+        // Error state
+        button.classList.remove('adding');
+        button.classList.add('error');
+        btnText.textContent = 'Errore';
+        icon.textContent = 'error';
+        
+        // Show error notification
+        showNotification('Errore nell\'aggiunta al carrello. Riprova.', 'error');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.classList.remove('error');
+            btnText.textContent = 'Aggiungi';
+            icon.textContent = 'add_shopping_cart';
+        }, 2000);
+    }
 }
 
 // Navigation System

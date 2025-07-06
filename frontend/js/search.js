@@ -4774,9 +4774,9 @@ function adjustBackgroundPosition() {
     const calculatePosition = () => {
         const imageAspectRatio = bgImageDimensions.aspectRatio;
 
-        // Calculate the rendered height of the background based on viewport width
-        const viewportWidth = window.innerWidth;
-        const bgRenderedHeight = viewportWidth / imageAspectRatio;
+        // Calculate the rendered height of the background based on viewport width + 2px
+        const bgWidth = window.innerWidth + 2;
+        const bgRenderedHeight = bgWidth / imageAspectRatio;
 
         // Set the container's height to match the image's rendered height
         bgElement.style.height = `${bgRenderedHeight}px`;

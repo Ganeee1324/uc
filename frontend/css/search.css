@@ -195,7 +195,7 @@ html {
 /* Background Image as Element */
 .background-image {
     position: absolute;
-    left: 0;
+    left: -2px; /* Offset left by 2px to center the extra 4px width */
     width: calc(100vw + 4px); /* Span the full viewport width plus 4px */
     /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
     background-image: url('../images/bg.png');

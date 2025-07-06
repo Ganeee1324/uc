@@ -769,6 +769,9 @@ function renderDocumentPages(pages) {
         return;
     }
 
+    // Clear the documentPages array
+    documentPages = [];
+    
     pages.forEach((pageData, index) => {
         const pageElement = document.createElement('div');
         pageElement.className = 'document-page';
@@ -807,9 +810,18 @@ function renderDocumentPages(pages) {
         
         pageElement.appendChild(pageContent);
         viewerContainer.appendChild(pageElement);
+        
+        // Add to documentPages array for navigation
+        documentPages.push(pageElement);
     });
 
     totalPages = pages.length;
+    
+    // Initialize page display
+    if (totalPages > 0) {
+        currentPage = 1; // Reset to first page
+        updatePageDisplay();
+    }
 }
 
 // Reviews Renderer
@@ -892,16 +904,33 @@ function renderRelatedDocuments(relatedDocs) {
 }
 
 // Navigation System
+function initializeNavigationElements() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (prevBtn && !prevBtn.hasAttribute('data-initialized')) {
+        prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+        prevBtn.setAttribute('data-initialized', 'true');
+    }
+    if (nextBtn && !nextBtn.hasAttribute('data-initialized')) {
+        nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+        nextBtn.setAttribute('data-initialized', 'true');
+    }
+}
+
 function updateNavigationElements() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const currentPageSpan = document.querySelector('.current-page');
     const totalPagesSpan = document.querySelector('.total-pages');
     
-    if (prevBtn) prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
-    if (nextBtn) nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+    // Update navigation button states
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
     
-    updatePageDisplay();
+    // Update page indicators
+    if (currentPageSpan) currentPageSpan.textContent = currentPage;
+    if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
 }
 
 function goToPage(pageNumber) {
@@ -1350,12 +1379,8 @@ function toggleView() {
     // Regenerate pages with new mode
     setTimeout(() => {
         const pages = generateDocumentPages(documentData);
-        renderDocumentPages(pages);
+        renderDocumentPages(pages); // This will handle page display initialization
         updateToggleButton();
-        
-        // Reset page position
-        currentPage = 1;
-        updatePageDisplay();
     }, 300);
 }
 
@@ -1643,6 +1668,7 @@ async function initializeDocumentPreview() {
         initializeBackButton();
         initializeFullscreen();
         initializeViewToggle();
+        initializeNavigationElements();
         
         // Initialize other systems
         initializeKeyboardNavigation();

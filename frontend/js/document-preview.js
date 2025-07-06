@@ -384,6 +384,14 @@ async function fetchDocumentData(fileId) {
     }
 }
 
+// Helper function to format canale display
+function formatCanaleDisplay(canale) {
+    if (canale === "0" || canale === 0 || canale === "Canale Unico") {
+        return "Unico";
+    }
+    return canale;
+}
+
 // Premium Document Renderer - Enhanced with complete information
 function renderDocumentInfo(docData) {
     const { document: fileData, vetrina: vetrinaData } = docData;
@@ -433,7 +441,7 @@ function renderDocumentInfo(docData) {
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
-    updateDetailValue('Canale', courseInfo.canale || 'Non specificato');
+    updateDetailValue('Canale', formatCanaleDisplay(courseInfo.canale) || 'Non specificato');
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
 
     // Update description - use vetrina description or generate one based on document type
@@ -1344,8 +1352,6 @@ function handlePurchase(fileId) {
         }
     }
 }
-
-
 
 // Notification System
 function showNotification(message, type = 'info') {

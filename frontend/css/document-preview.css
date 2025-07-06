@@ -491,55 +491,202 @@ body {
     gap: var(--space-6); /* Space between sections */
 }
 
-/* Document Details Section - Contains document metadata only */
+/* Document Details Section - Enhanced Professional Style */
 .doc-details-section {
-    background: var(--neutral-25);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    border: 1px solid var(--neutral-100);
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(248, 250, 252, 0.9) 100%);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    border: 1px solid var(--neutral-150);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s var(--ease-out);
+    position: relative;
+    overflow: hidden;
 }
 
-.doc-details {
-    overflow: visible;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
+.doc-details-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        var(--primary-500) 0%, 
+        var(--primary-600) 50%, 
+        var(--primary-700) 100%);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
 }
 
-/* Detail items with vertical layout - label above value */
-.detail-item-vertical {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    margin-bottom: var(--space-2);
-}
-
-.detail-item-vertical .detail-label {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--neutral-600);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: var(--space-1);
-}
-
-.detail-item-vertical .detail-value {
-    font-size: var(--text-base);
-    font-weight: 500;
-    color: var(--neutral-900);
-    line-height: 1.4;
+.doc-details-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-200);
 }
 
 .doc-details-section h3 {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--neutral-900);
+    margin: 0 0 var(--space-8) 0;
+    padding-bottom: var(--space-4);
+    border-bottom: 2px solid var(--primary-100);
+    position: relative;
+}
+
+.doc-details-section h3 .material-symbols-outlined {
+    font-size: 24px;
+    color: var(--primary-600);
+    background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 100%);
+    padding: var(--space-2);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--primary-200);
+}
+
+.doc-details-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-600), var(--primary-500));
+    border-radius: var(--radius-full);
+}
+
+.doc-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+}
+
+/* Enhanced detail items with professional styling */
+.detail-item-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--neutral-100);
+    transition: all 0.2s var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.detail-item-vertical::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, 
+        var(--primary-500) 0%, 
+        var(--primary-600) 100%);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+}
+
+.detail-item-vertical:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--primary-200);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.detail-item-vertical:hover::before {
+    opacity: 1;
+}
+
+.detail-item-vertical .detail-label {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--neutral-600);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-1);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.detail-item-vertical .detail-label::before {
+    content: '•';
+    color: var(--primary-500);
+    font-weight: 900;
+    font-size: var(--text-base);
+}
+
+.detail-item-vertical .detail-value {
     font-size: var(--text-lg);
     font-weight: 600;
-    color: var(--neutral-800);
-    margin: 0 0 var(--space-6) 0;
-    padding-bottom: var(--space-3);
-    border-bottom: 2px solid var(--primary-100);
+    color: var(--neutral-900);
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Special styling for specific detail types */
+.detail-item-vertical:has(.detail-label:contains("Canale")) .detail-value {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.detail-item-vertical:has(.detail-label:contains("Facoltà")) .detail-value {
+    color: var(--amber-700);
+    font-weight: 700;
+}
+
+.detail-item-vertical:has(.detail-label:contains("Corso")) .detail-value {
+    color: var(--emerald-700);
+    font-weight: 700;
+}
+
+.detail-item-vertical:has(.detail-label:contains("Anno")) .detail-value {
+    color: var(--blue-700);
+    font-weight: 700;
+}
+
+.detail-item-vertical:has(.detail-label:contains("Lingua")) .detail-value {
+    color: var(--purple-700);
+    font-weight: 700;
+}
+
+/* Add subtle animation for loading state */
+.doc-details-section.loading .detail-item-vertical {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    .doc-details-section {
+        padding: var(--space-6);
+    }
+    
+    .doc-details {
+        gap: var(--space-4);
+    }
+    
+    .detail-item-vertical {
+        padding: var(--space-3) var(--space-4);
+    }
+    
+    .detail-item-vertical .detail-value {
+        font-size: var(--text-base);
+    }
 }
 
 /* Main Document Info - Back outside details section */

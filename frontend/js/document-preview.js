@@ -894,6 +894,7 @@ function renderRelatedDocuments(relatedDocs) {
             <div class="related-doc-info">
                 <div class="doc-content" onclick="window.location.href='document-preview.html?id=${doc.id}'">
                     <h4 class="doc-title">${doc.title}</h4>
+                    <p class="doc-description">${doc.description}</p>
                     <p class="doc-author">${doc.author}</p>
                     <div class="doc-meta">
                         <div class="doc-rating">
@@ -940,14 +941,14 @@ function generatePlaceholderDocuments() {
     ];
     
     const authors = [
-        'Prof. Rossi M.',
-        'Prof.ssa Bianchi A.',
-        'Prof. Verdi L.',
-        'Prof.ssa Neri S.',
-        'Prof. Gialli P.',
-        'Prof.ssa Marroni E.',
-        'Prof. Azzurri R.',
-        'Prof.ssa Viola M.'
+        'Rossi M.',
+        'Bianchi A.',
+        'Verdi L.',
+        'Neri S.',
+        'Gialli P.',
+        'Marroni E.',
+        'Azzurri R.',
+        'Viola M.'
     ];
     
     const documents = [];
@@ -960,6 +961,7 @@ function generatePlaceholderDocuments() {
         documents.push({
             id: 200 + i,
             title: `${docType.type} - ${course}`,
+            description: generateDocumentDescription(docType.type, course),
             author: author,
             type: docType.type,
             icon: docType.icon,
@@ -970,6 +972,22 @@ function generatePlaceholderDocuments() {
     }
     
     return documents;
+}
+
+// Generate Document Description
+function generateDocumentDescription(docType, course) {
+    const descriptions = {
+        'Appunti': `Appunti completi e dettagliati per ${course}. Include tutti gli argomenti principali trattati durante il corso.`,
+        'Esame': `Raccolta di esami precedenti per ${course}. Include soluzioni dettagliate e spiegazioni.`,
+        'Progetto': `Progetto completo per ${course}. Include documentazione, codice e presentazione finale.`,
+        'Tesi': `Tesi di laurea su ${course}. Ricerca approfondita con analisi dettagliate.`,
+        'Slide': `Presentazioni complete per ${course}. Materiale didattico ben strutturato.`,
+        'Esercizi': `Esercizi pratici per ${course}. Include soluzioni e metodi di risoluzione.`,
+        'Riassunto': `Riassunto completo di ${course}. Concetti chiave e formule principali.`,
+        'Laboratorio': `Guide di laboratorio per ${course}. Procedure sperimentali dettagliate.`
+    };
+    
+    return descriptions[docType] || `Materiale didattico per ${course}.`;
 }
 
 // Add Related Document to Cart

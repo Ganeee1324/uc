@@ -1025,6 +1025,7 @@ body {
     text-overflow: ellipsis;
     min-height: 1.2em; /* Single line height */
     position: relative;
+    transition: none; /* Remove any transitions */
 }
 
 /* Custom Tooltip for Title */
@@ -1041,11 +1042,12 @@ body {
     font-weight: 500;
     white-space: nowrap;
     z-index: 1000;
-    box-shadow: var(--shadow-lg);
     margin-bottom: var(--space-1);
     max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: none; /* Remove any transitions */
+    animation: none; /* Remove any animations */
 }
 
 .related-doc-info .doc-title:hover::before {

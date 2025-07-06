@@ -79,6 +79,10 @@ def foreign_key_violation_error(e):
 def method_not_allowed_error(e):
     return jsonify({"error": "method_not_allowed", "msg": str(e)}), 405
 
+@app.errorhandler(werkzeug.exceptions.NotFound)
+def not_found_error(e):
+    return jsonify({"error": "not_found", "msg": str(e)}), 404
+
 
 @app.errorhandler(UniqueViolation)
 def unique_violation_error(e):

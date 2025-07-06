@@ -455,6 +455,9 @@ function renderDocumentInfo(docData) {
     
     // Set up action buttons with proper data
     setupActionButtons(fileData, vetrinaData);
+    
+    // Render related documents with professional placeholders
+    renderRelatedDocuments();
 }
 
 // Helper function to update detail values
@@ -871,38 +874,94 @@ function renderReviews(reviews) {
     `;
 }
 
-// Related Documents Renderer
+// Related Documents Renderer - Professional Placeholder Implementation
 function renderRelatedDocuments(relatedDocs) {
     const relatedContainer = document.querySelector('.related-docs');
     
-    if (!relatedDocs || relatedDocs.length === 0) {
-        relatedContainer.innerHTML = `
-            <h3>Documenti Correlati</h3>
-            <div class="no-related">
-                <p>Nessun documento correlato trovato.</p>
-            </div>
-        `;
-        return;
-    }
+    // Generate professional placeholder documents
+    const placeholderDocs = generatePlaceholderDocuments();
     
-    const relatedHTML = relatedDocs.slice(0, 3).map(doc => `
-        <div class="related-doc-item" onclick="window.location.href='document-preview.html?id=${doc.file_id || doc.id}'">
-            <div class="related-doc-preview"></div>
+    const relatedHTML = placeholderDocs.map(doc => `
+        <div class="related-doc-item" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+            <div class="related-doc-preview">
+                <div class="doc-preview-icon">
+                    <span class="material-symbols-outlined">${doc.icon}</span>
+                </div>
+                <div class="doc-preview-overlay">
+                    <span class="preview-price">€${doc.price}</span>
+                </div>
+            </div>
             <div class="related-doc-info">
-                <h4>${doc.name || doc.title || 'Documento Senza Titolo'}</h4>
-                <p>${doc.owner_username || doc.author_username || 'Autore Sconosciuto'} • €${(doc.price || 0).toFixed(2)}</p>
-                <div class="related-doc-rating">
-                    <span class="stars">${generateStars(Math.floor(doc.rating || 0))}</span>
-                    <span>${(doc.rating || 0).toFixed(1)}</span>
+                <h4 class="doc-title">${doc.title}</h4>
+                <p class="doc-author">${doc.author}</p>
+                <div class="doc-meta">
+                    <div class="doc-rating">
+                        <span class="stars">${generateStars(doc.rating)}</span>
+                        <span class="rating-score">${doc.rating.toFixed(1)}</span>
+                    </div>
+                    <div class="doc-type">
+                        <span class="type-badge">${doc.type}</span>
+                    </div>
                 </div>
             </div>
         </div>
     `).join('');
     
     relatedContainer.innerHTML = `
-        <h3>Documenti Correlati</h3>
-        ${relatedHTML}
+        <h3>
+            <span class="material-symbols-outlined">library_books</span>
+            Documenti Correlati
+        </h3>
+        <div class="related-docs-grid">
+            ${relatedHTML}
+        </div>
     `;
+}
+
+// Generate Professional Placeholder Documents
+function generatePlaceholderDocuments() {
+    const documentTypes = [
+        { type: 'Appunti', icon: 'edit_note', courses: ['Microeconomia', 'Macroeconomia', 'Statistica', 'Matematica Finanziaria'] },
+        { type: 'Esame', icon: 'quiz', courses: ['Economia Aziendale', 'Diritto Commerciale', 'Marketing', 'Contabilità'] },
+        { type: 'Progetto', icon: 'assignment', courses: ['Analisi dei Dati', 'Econometria', 'Finanza', 'Management'] },
+        { type: 'Tesi', icon: 'school', courses: ['Economia Politica', 'Storia Economica', 'Politica Economica', 'Sviluppo Economico'] },
+        { type: 'Slide', icon: 'slideshow', courses: ['Economia Internazionale', 'Commercio Estero', 'Economia Monetaria', 'Banca e Finanza'] },
+        { type: 'Esercizi', icon: 'calculate', courses: ['Matematica', 'Statistica Applicata', 'Economia Matematica', 'Ricerca Operativa'] },
+        { type: 'Riassunto', icon: 'summarize', courses: ['Teoria dei Giochi', 'Organizzazione Aziendale', 'Economia del Lavoro', 'Economia Pubblica'] },
+        { type: 'Laboratorio', icon: 'science', courses: ['Econometria Applicata', 'Analisi Statistica', 'Modelli Econometrici', 'Data Science'] }
+    ];
+    
+    const authors = [
+        'Prof. Rossi M.',
+        'Prof.ssa Bianchi A.',
+        'Prof. Verdi L.',
+        'Prof.ssa Neri S.',
+        'Prof. Gialli P.',
+        'Prof.ssa Marroni E.',
+        'Prof. Azzurri R.',
+        'Prof.ssa Viola M.'
+    ];
+    
+    const documents = [];
+    
+    for (let i = 0; i < 8; i++) {
+        const docType = documentTypes[i % documentTypes.length];
+        const course = docType.courses[i % docType.courses.length];
+        const author = authors[i % authors.length];
+        
+        documents.push({
+            id: 200 + i,
+            title: `${docType.type} - ${course}`,
+            author: author,
+            type: docType.type,
+            icon: docType.icon,
+            price: (Math.random() * 15 + 5).toFixed(2),
+            rating: Math.random() * 2 + 3, // 3.0 to 5.0
+            course: course
+        });
+    }
+    
+    return documents;
 }
 
 // Navigation System
@@ -1593,14 +1652,8 @@ async function initializeDocumentPreview() {
 
                     <!-- Related Documents Section -->
                     <div class="related-docs-section">
-                        <h3>
-                            <span class="material-symbols-outlined">library_books</span>
-                            Documenti Correlati
-                        </h3>
-                        <div class="related-docs-list">
-                            <div class="no-related">
-                                <p>Nessun documento correlato trovato.</p>
-                            </div>
+                        <div class="related-docs">
+                            <!-- Content will be populated by renderRelatedDocuments -->
                         </div>
                     </div>
                 </div>

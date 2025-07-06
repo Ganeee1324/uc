@@ -37,315 +37,62 @@
 
     <!-- Main Content -->
     <main class="preview-main">
-        <!-- Document Viewer Section -->
-        <section class="document-viewer-section">
-            <!-- Overlay Controls -->
-            <div class="viewer-overlay-controls">
-                <button class="back-btn-overlay" id="backBtn">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                    Torna alla ricerca
-                </button>
-                
-                <div class="viewer-controls-overlay">
-                    <button class="zoom-btn" id="zoomOut">
-                        <span class="material-symbols-outlined">zoom_out</span>
-                    </button>
-                    <span class="zoom-level">100%</span>
-                    <button class="zoom-btn" id="zoomIn">
-                        <span class="material-symbols-outlined">zoom_in</span>
-                    </button>
-                    <button class="fullscreen-btn" id="fullscreenBtn">
-                        <span class="material-symbols-outlined">fullscreen</span>
-                    </button>
+        <!-- Initial Loading State - Shows immediately -->
+        <div class="document-preview-loader">
+            <div class="preview-loader-content">
+                <!-- Document Viewer Skeleton -->
+                <div class="preview-viewer-skeleton">
+                    <div class="viewer-header-skeleton">
+                        <div class="skeleton-title-large"></div>
+                        <div class="skeleton-subtitle"></div>
+                    </div>
+                    <div class="viewer-pages-skeleton">
+                        <div class="skeleton-page"></div>
+                        <div class="skeleton-page"></div>
+                        <div class="skeleton-page"></div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Page Indicator Overlay -->
-            <div class="page-indicator-overlay">
-                <span id="pageIndicator">1 di 5</span>
-            </div>
-
-            <div class="document-viewer" id="documentViewer">
-                <div class="viewer-container">
-                    <!-- Document Pages -->
-                    <div class="document-page active" data-page="1">
-                        <div class="page-content">
-                            <div class="page-header">
-                                <h1>Analisi Matematica I</h1>
-                                <h2>Appunti delle Lezioni</h2>
-                                <p class="page-subtitle">Prof. Giuseppe Rossi - Università di Milano</p>
-                            </div>
-                            <div class="page-text">
-                                <h3>1. Introduzione alle Funzioni</h3>
-                                <p>Le funzioni matematiche rappresentano uno dei concetti fondamentali dell'analisi matematica. In questa sezione introduciamo le definizioni base e le proprietà principali.</p>
-                                
-                                <h4>1.1 Definizione di Funzione</h4>
-                                <p>Una funzione f: A → B è una regola che associa ad ogni elemento x ∈ A esattamente un elemento f(x) ∈ B.</p>
-                                
-                                <h4>1.2 Dominio e Codominio</h4>
-                                <p>Il dominio di una funzione è l'insieme di tutti i valori per cui la funzione è definita, mentre il codominio è l'insieme di arrivo della funzione.</p>
-                                
-                                <div class="formula-box">
-                                    <p><strong>Esempio:</strong> f(x) = x² + 2x - 1</p>
-                                    <p>Dominio: ℝ (tutti i numeri reali)</p>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Sidebar Skeleton -->
+                <div class="preview-sidebar-skeleton">
+                    <div class="sidebar-header-skeleton">
+                        <div class="skeleton-doc-title"></div>
+                        <div class="skeleton-doc-meta">
+                            <div class="skeleton-rating"></div>
+                            <div class="skeleton-price"></div>
                     </div>
+                </div>
 
-                    <div class="document-page" data-page="2">
-                        <div class="page-content">
-                            <div class="page-text">
-                                <h3>2. Limiti di Funzioni</h3>
-                                <p>Il concetto di limite è cruciale per comprendere il comportamento delle funzioni in prossimità di determinati punti.</p>
-                                
-                                <h4>2.1 Definizione di Limite</h4>
-                                <p>Si dice che lim(x→a) f(x) = L se per ogni ε > 0 esiste δ > 0 tale che se 0 < |x - a| < δ allora |f(x) - L| < ε.</p>
-                                
-                                <div class="formula-box">
-                                    <p><strong>Teorema:</strong> Se il limite esiste, allora è unico.</p>
-                                </div>
-                                
-                                <h4>2.2 Proprietà dei Limiti</h4>
-                                <ul>
-                                    <li>Linearità: lim[af(x) + bg(x)] = a·lim f(x) + b·lim g(x)</li>
-                                    <li>Prodotto: lim[f(x)·g(x)] = lim f(x) · lim g(x)</li>
-                                    <li>Quoziente: lim[f(x)/g(x)] = lim f(x) / lim g(x) (se lim g(x) ≠ 0)</li>
-                                </ul>
-                                
-                                <h4>2.3 Esempi Pratici</h4>
-                                <p>Calcoliamo alcuni limiti fondamentali:</p>
-                                <div class="formula-box">
-                                    <p>lim(x→0) sin(x)/x = 1</p>
-                                    <p>lim(x→∞) (1 + 1/x)ˣ = e</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="sidebar-details-skeleton">
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                        <div class="skeleton-detail-item"></div>
+                </div>
+
+                    <div class="sidebar-actions-skeleton">
+                        <div class="skeleton-action-btn primary"></div>
+                        <div class="skeleton-action-buttons">
+                            <div class="skeleton-action-btn secondary"></div>
+                            <div class="skeleton-action-btn secondary"></div>
                     </div>
+                </div>
 
-                    <div class="document-page" data-page="3">
-                        <div class="page-content">
-                            <div class="page-text">
-                                <h3>3. Derivate</h3>
-                                <p>La derivata di una funzione rappresenta il tasso di variazione istantaneo della funzione stessa.</p>
-                                
-                                <h4>3.1 Definizione di Derivata</h4>
-                                <p>La derivata di f(x) nel punto a è definita come:</p>
-                                <div class="formula-box">
-                                    <p>f'(a) = lim(h→0) [f(a+h) - f(a)]/h</p>
-                                </div>
-                                
-                                <h4>3.2 Regole di Derivazione</h4>
-                                <ul>
-                                    <li>Regola della potenza: (xⁿ)' = n·xⁿ⁻¹</li>
-                                    <li>Regola del prodotto: (f·g)' = f'·g + f·g'</li>
-                                    <li>Regola del quoziente: (f/g)' = (f'·g - f·g')/g²</li>
-                                    <li>Regola della catena: (f∘g)' = f'(g(x))·g'(x)</li>
-                                </ul>
-                                
-                                <h4>3.3 Interpretazione Geometrica</h4>
-                                <p>La derivata in un punto rappresenta la pendenza della retta tangente alla curva in quel punto.</p>
-                                
-                                <div class="formula-box">
-                                    <p><strong>Esempio:</strong> f(x) = x³ - 2x + 1</p>
-                                    <p>f'(x) = 3x² - 2</p>
-                                    <p>Nel punto x = 1: f'(1) = 3(1)² - 2 = 1</p>
-                                </div>
-                            </div>
+                    <div class="sidebar-sections-skeleton">
+                        <div class="skeleton-section">
+                            <div class="skeleton-section-title"></div>
+                            <div class="skeleton-section-content"></div>
                         </div>
-                    </div>
-
-                    <div class="document-page" data-page="4">
-                        <div class="page-content">
-                            <div class="page-text">
-                                <h3>4. Integrali</h3>
-                                <p>L'integrale rappresenta l'operazione inversa della derivazione e ha molteplici interpretazioni geometriche e fisiche.</p>
-                                
-                                <h4>4.1 Integrale Indefinito</h4>
-                                <p>L'integrale indefinito di f(x) è l'insieme di tutte le primitive di f(x):</p>
-                                <div class="formula-box">
-                                    <p>∫ f(x) dx = F(x) + C</p>
-                                    <p>dove F'(x) = f(x) e C è una costante arbitraria</p>
-                                </div>
-                                
-                                <h4>4.2 Integrale Definito</h4>
-                                <p>L'integrale definito rappresenta l'area sottesa dalla curva f(x) nell'intervallo [a,b]:</p>
-                                <div class="formula-box">
-                                    <p>∫ₐᵇ f(x) dx = F(b) - F(a)</p>
-                                </div>
-                                
-                                <h4>4.3 Tecniche di Integrazione</h4>
-                                <ul>
-                                    <li>Integrazione per parti: ∫ u dv = uv - ∫ v du</li>
-                                    <li>Sostituzione: ∫ f(g(x))g'(x) dx = ∫ f(u) du</li>
-                                    <li>Frazioni parziali per funzioni razionali</li>
-                                </ul>
-                                
-                                <h4>4.4 Teorema Fondamentale del Calcolo</h4>
-                                <p>Questo teorema stabilisce la connessione tra derivazione e integrazione.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="document-page" data-page="5">
-                        <div class="page-content">
-                            <div class="page-text">
-                                <h3>5. Serie e Successioni</h3>
-                                <p>Le serie e le successioni sono strumenti fondamentali per approssimare funzioni e risolvere equazioni complesse.</p>
-                                
-                                <h4>5.1 Successioni</h4>
-                                <p>Una successione è una funzione definita sui numeri naturali: a: ℕ → ℝ</p>
-                                <div class="formula-box">
-                                    <p>aₙ = f(n) per n ∈ ℕ</p>
-                                </div>
-                                
-                                <h4>5.2 Convergenza di Successioni</h4>
-                                <p>Una successione {aₙ} converge a L se:</p>
-                                <div class="formula-box">
-                                    <p>lim(n→∞) aₙ = L</p>
-                                </div>
-                                
-                                <h4>5.3 Serie Numeriche</h4>
-                                <p>Una serie è la somma dei termini di una successione:</p>
-                                <div class="formula-box">
-                                    <p>Σ(n=1 to ∞) aₙ = a₁ + a₂ + a₃ + ...</p>
-                                </div>
-                                
-                                <h4>5.4 Criteri di Convergenza</h4>
-                                <ul>
-                                    <li>Criterio del confronto</li>
-                                    <li>Criterio della radice</li>
-                                    <li>Criterio del rapporto</li>
-                                    <li>Criterio di Leibniz per serie alternate</li>
-                                </ul>
-                                
-                                <p><strong>Fine degli Appunti</strong></p>
-                            </div>
+                        <div class="skeleton-section">
+                            <div class="skeleton-section-title"></div>
+                            <div class="skeleton-section-content"></div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Document Info Sidebar - PROFESSIONAL SINGLE CONTAINER -->
-        <aside class="document-info-sidebar">
-            <div class="doc-info-content">
-                <!-- Main Info & CTA -->
-                <div class="doc-main-info">
-                    <div class="doc-title-container">
-                        <h1 class="doc-title">Analisi Matematica I - Appunti Completi</h1>
-                        <div class="doc-header-actions">
-                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                                <span class="material-symbols-outlined">favorite</span>
-                            </button>
-                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                                <span class="material-symbols-outlined">share</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="doc-type-tag">Appunti</div>
-                    <div class="doc-meta-header">
-                        <div class="doc-rating">
-                            <div class="stars">
-                                <span class="star">★</span>
-                                <span class="star">★</span>
-                                <span class="star">★</span>
-                                <span class="star">★</span>
-                                <span class="star">☆</span>
-                            </div>
-                            <span class="rating-score">4.2</span>
-                            <span class="rating-count">(127 recensioni)</span>
-                        </div>
-                        <div class="doc-price">
-                            <span class="price-value">Gratuito</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Premium Action Buttons -->
-                <div class="doc-actions">
-                    <button class="action-btn primary" id="purchaseBtn">
-                        <span class="material-symbols-outlined">shopping_cart</span>
-                        Acquista Ora
-                    </button>
-                    <!-- Hidden download button (controlled by JS) -->
-                    <button class="action-btn secondary" id="downloadBtn" style="display: none;">
-                        <span class="material-symbols-outlined">download</span>
-                        <span>Download</span>
-                    </button>
-                </div>
-
-                <!-- Document Description Section -->
-                <div class="doc-description-section">
-                    <h3>
-                        <span class="material-symbols-outlined">description</span>
-                        Descrizione
-                    </h3>
-                    <div class="doc-description">
-                        <p>Appunti completi e dettagliati del corso di Analisi Matematica I. Include tutti gli argomenti fondamentali: funzioni, limiti, derivate, integrali e serie numeriche.</p>
-                        <p>Gli appunti sono stati redatti con cura durante le lezioni e includono esempi pratici, dimostrazioni complete e esercizi svolti.</p>
-                        <p>Perfetti per la preparazione dell'esame e per un ripasso completo della materia.</p>
-                    </div>
-                </div>
-
-                <!-- Document Details Section -->
-                <div class="doc-details-section">
-                    <h3>
-                        <span class="material-symbols-outlined">info</span>
-                        Dettagli Documento
-                    </h3>
-                    <div class="doc-details">
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Facoltà</span>
-                            <span class="detail-value">Università di Milano</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Corso</span>
-                            <span class="detail-value">Analisi Matematica I</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Lingua</span>
-                            <span class="detail-value">Italiano</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Canale</span>
-                            <span class="detail-value">A</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Anno Accademico</span>
-                            <span class="detail-value">2023/2024</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reviews Section -->
-                <div class="doc-reviews-section">
-                    <h3>
-                        <span class="material-symbols-outlined">star</span>
-                        Recensioni
-                    </h3>
-                    <div class="reviews-section">
-                        <div class="no-reviews">
-                            <p>Nessuna recensione disponibile per questo documento.</p>
-                            <p>Sii il primo a lasciare una recensione!</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Related Documents Section -->
-                <div class="related-docs-section">
-                    <h3>
-                        <span class="material-symbols-outlined">library_books</span>
-                        Documenti Correlati
-                    </h3>
-                    <div class="related-docs-list">
-                        <div class="no-related">
-                            <p>Nessun documento correlato trovato.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        </div>
     </main>
 
     <script src="js/document-preview.js"></script>

@@ -13,6 +13,8 @@ let totalPages = 1;
 let currentZoom = 100;
 let documentPages = [];
 let isLoading = false;
+let isRedactedMode = true; // Flag to determine if we should show redacted content
+let documentData = null; // Store document data for toggling
 
 // Configuration
 const ZOOM_CONFIG = {
@@ -156,6 +158,80 @@ async function makeRequest(url, options = {}) {
     } catch (error) {
         console.error('API Request failed:', error);
         throw error;
+    }
+}
+
+// Fetch redacted PDF URL
+function getRedactedPdfUrl(fileId) {
+    return `${API_BASE}/files/${fileId}/download/redacted`;
+}
+
+// Check if file is a PDF
+function isPdfFile(filename) {
+    return filename && filename.toLowerCase().endsWith('.pdf');
+}
+
+// Load redacted PDF with authentication
+async function loadRedactedPdf(fileId, viewerElementId) {
+    const viewerElement = document.getElementById(viewerElementId);
+    if (!viewerElement) {
+        console.error('PDF viewer element not found:', viewerElementId);
+        return;
+    }
+    
+    try {
+        console.log('🔒 Fetching redacted PDF for file ID:', fileId);
+        
+        // Fetch PDF with authentication
+        const response = await fetch(getRedactedPdfUrl(fileId), {
+            headers: {
+                'Authorization': authToken ? `Bearer ${authToken}` : ''
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Create blob from response
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        
+        console.log('✅ PDF loaded successfully, creating viewer');
+        
+        // Replace loading content with PDF viewer
+        viewerElement.innerHTML = `
+            <embed src="${objectUrl}" type="application/pdf" width="100%" height="800px">
+            <div class="pdf-fallback">
+                <p>Il tuo browser non supporta la visualizzazione PDF.</p>
+                <a href="${objectUrl}" target="_blank" class="pdf-download-btn">
+                    <span class="material-symbols-outlined">download</span>
+                    Scarica PDF
+                </a>
+            </div>
+        `;
+        
+        // Clean up object URL after some time to prevent memory leaks
+        setTimeout(() => {
+            URL.revokeObjectURL(objectUrl);
+        }, 60000); // Clean up after 1 minute
+        
+    } catch (error) {
+        console.error('❌ Failed to load redacted PDF:', error);
+        
+        // Show error message
+        viewerElement.innerHTML = `
+            <div class="pdf-error">
+                <div class="error-icon">📄</div>
+                <h3>Errore nel caricamento</h3>
+                <p>Non è stato possibile caricare il documento redatto.</p>
+                <p class="error-details">${error.message}</p>
+                <button class="retry-btn" onclick="loadRedactedPdf(${fileId}, '${viewerElementId}')">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Riprova
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -438,10 +514,16 @@ function getAcademicYear(courseInfo) {
 
 // Dynamic Document Pages Generator
 function generateDocumentPages(docData) {
+    const { document: fileData, vetrina: vetrinaData } = docData;
+    
+    // Check if we should show redacted content for PDFs
+    if (isRedactedMode && isPdfFile(fileData.original_filename || fileData.filename)) {
+        console.log('📄 Using redacted PDF mode for:', fileData.original_filename || fileData.filename);
+        return generateRedactedPdfPages(fileData);
+    }
+    
     // For now, we'll generate placeholder pages based on document type
     // In a real implementation, this would extract actual pages from the PDF/document
-    
-    const { document: fileData, vetrina: vetrinaData } = docData;
     const courseInfo = vetrinaData?.course_instance || {};
     
     const documentType = getFileExtension(fileData.original_filename || fileData.filename);
@@ -457,6 +539,52 @@ function generateDocumentPages(docData) {
     totalPages = pages.length;
     
     return pages;
+}
+
+// Generate redacted PDF pages
+function generateRedactedPdfPages(fileData) {
+    const fileId = fileData.file_id || fileData.id;
+    if (!fileId) {
+        console.error('No file ID available for redacted PDF');
+        return generateFallbackContent(fileData);
+    }
+    
+    console.log('🔒 Creating redacted PDF page for file ID:', fileId);
+    
+    // Return a single page with PDF fetching functionality
+    totalPages = 1;
+    return [{
+        type: 'pdf',
+        content: fileId, // Pass file ID instead of URL
+        title: 'Documento Redatto',
+        description: 'Visualizzazione del documento con contenuti sensibili oscurati'
+    }];
+}
+
+// Generate fallback content if redacted PDF fails
+function generateFallbackContent(fileData) {
+    console.log('⚠️ Generating fallback content for:', fileData.filename || fileData.original_filename);
+    
+    totalPages = 1;
+    return [{
+        type: 'fallback',
+        content: `
+            <div class="pdf-fallback">
+                <div class="fallback-icon">📄</div>
+                <h3>Documento non disponibile</h3>
+                <p>Il documento redatto non può essere visualizzato al momento.</p>
+                <p><strong>Nome file:</strong> ${fileData.filename || fileData.original_filename || 'Sconosciuto'}</p>
+                <p><strong>Tipo:</strong> ${fileData.tag || 'Documento'}</p>
+                <div class="fallback-actions">
+                    <button class="retry-btn" onclick="location.reload()">
+                        <span class="material-symbols-outlined">refresh</span>
+                        Riprova
+                    </button>
+                </div>
+            </div>
+        `,
+        title: 'Documento Non Disponibile'
+    }];
 }
 
 // Realistic Content Generator
@@ -648,7 +776,34 @@ function renderDocumentPages(pages) {
 
         const pageContent = document.createElement('div');
         pageContent.className = 'page-content';
-        pageContent.innerHTML = pageData.content; // Use the 'content' property
+        
+        // Handle different content types
+        if (pageData.type === 'pdf') {
+            // Render PDF content with authentication
+            pageContent.innerHTML = `
+                <div class="pdf-container">
+                    <div class="pdf-header">
+                        <h3>${pageData.title}</h3>
+                        <p>${pageData.description}</p>
+                    </div>
+                    <div class="pdf-viewer" id="pdfViewer-${pageData.content}">
+                        <div class="pdf-loading">
+                            <div class="loader-spinner"></div>
+                            <p>Caricamento documento redatto...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Load PDF with authentication
+            loadRedactedPdf(pageData.content, `pdfViewer-${pageData.content}`);
+        } else if (pageData.type === 'fallback') {
+            // Render fallback content
+            pageContent.innerHTML = pageData.content;
+        } else {
+            // Render regular content
+            pageContent.innerHTML = pageData.content;
+        }
         
         pageElement.appendChild(pageContent);
         viewerContainer.appendChild(pageElement);
@@ -1163,6 +1318,63 @@ function handlePurchase(fileId) {
     }
 }
 
+// View Toggle System
+function initializeViewToggle() {
+    const toggleBtn = document.getElementById('viewToggleBtn');
+    if (!toggleBtn) return;
+    
+    toggleBtn.addEventListener('click', toggleView);
+    updateToggleButton();
+}
+
+function toggleView() {
+    if (!documentData) {
+        console.error('Document data not available for toggle');
+        return;
+    }
+    
+    isRedactedMode = !isRedactedMode;
+    console.log('🔄 Toggling view mode. Redacted mode:', isRedactedMode);
+    
+    // Show loading state
+    const documentViewer = document.querySelector('.document-viewer');
+    if (documentViewer) {
+        documentViewer.innerHTML = `
+            <div class="view-toggle-loading">
+                <div class="loader-spinner"></div>
+                <p>Cambiando modalità di visualizzazione...</p>
+            </div>
+        `;
+    }
+    
+    // Regenerate pages with new mode
+    setTimeout(() => {
+        const pages = generateDocumentPages(documentData);
+        renderDocumentPages(pages);
+        updateToggleButton();
+        
+        // Reset page position
+        currentPage = 1;
+        updatePageDisplay();
+    }, 300);
+}
+
+function updateToggleButton() {
+    const toggleBtn = document.getElementById('viewToggleBtn');
+    if (!toggleBtn) return;
+    
+    const icon = toggleBtn.querySelector('.material-symbols-outlined');
+    if (isRedactedMode) {
+        icon.textContent = 'visibility_off';
+        toggleBtn.title = 'Passa a vista contenuto';
+        toggleBtn.classList.add('redacted-mode');
+    } else {
+        icon.textContent = 'visibility';
+        toggleBtn.title = 'Passa a vista redatta';
+        toggleBtn.classList.remove('redacted-mode');
+    }
+}
+
 // Notification System
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
@@ -1276,7 +1488,8 @@ async function initializeDocumentPreview() {
 
         currentDocument = docData.document;
         currentVetrina = docData.vetrina;
-        
+        documentData = docData; // Store for toggling
+
         // Debug logging
         console.log('🔍 Document data loaded:', {
             documentId: currentDocument?.file_id,
@@ -1304,6 +1517,9 @@ async function initializeDocumentPreview() {
                     </button>
                     
                     <div class="viewer-controls-overlay">
+                        <button class="toggle-btn" id="viewToggleBtn" title="Passa a vista contenuto">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
                         <button class="zoom-btn" id="zoomOut" title="Zoom Out">
                             <span class="material-symbols-outlined">zoom_out</span>
                         </button>
@@ -1426,6 +1642,7 @@ async function initializeDocumentPreview() {
         initializeZoom();
         initializeBackButton();
         initializeFullscreen();
+        initializeViewToggle();
         
         // Initialize other systems
         initializeKeyboardNavigation();
@@ -1545,7 +1762,7 @@ async function handleFavorite() {
         console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${vetrinaId}`);
         const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
             method: isActive ? 'POST' : 'DELETE'
-        });
+            });
 
         if (response) {
             // Update the favorite state in the UI based on the action
@@ -1580,8 +1797,8 @@ async function handleFavorite() {
         } else if (error.message.includes('500')) {
             showNotification('Errore del server. Il servizio preferiti è temporaneamente non disponibile. Riprova più tardi.', 'error');
         } else {
-            showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
-        }
+        showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
+    }
     }
 }
 

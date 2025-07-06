@@ -13,8 +13,7 @@ let totalPages = 1;
 let currentZoom = 100;
 let documentPages = [];
 let isLoading = false;
-let isRedactedMode = true; // Flag to determine if we should show redacted content
-let documentData = null; // Store document data for toggling
+let documentData = null; // Store document data
 
 // Configuration
 const ZOOM_CONFIG = {
@@ -516,14 +515,13 @@ function getAcademicYear(courseInfo) {
 function generateDocumentPages(docData) {
     const { document: fileData, vetrina: vetrinaData } = docData;
     
-    // Check if we should show redacted content for PDFs
-    if (isRedactedMode && isPdfFile(fileData.original_filename || fileData.filename)) {
-        console.log('📄 Using redacted PDF mode for:', fileData.original_filename || fileData.filename);
+    // Always show redacted content for PDFs (marketplace business logic)
+    if (isPdfFile(fileData.original_filename || fileData.filename)) {
+        console.log('📄 Using redacted PDF (marketplace mode) for:', fileData.original_filename || fileData.filename);
         return generateRedactedPdfPages(fileData);
     }
     
-    // For now, we'll generate placeholder pages based on document type
-    // In a real implementation, this would extract actual pages from the PDF/document
+    // For non-PDF files, generate placeholder content
     const courseInfo = vetrinaData?.course_instance || {};
     
     const documentType = getFileExtension(fileData.original_filename || fileData.filename);
@@ -541,7 +539,7 @@ function generateDocumentPages(docData) {
     return pages;
 }
 
-// Generate redacted PDF pages
+// Generate redacted PDF pages for marketplace preview
 function generateRedactedPdfPages(fileData) {
     const fileId = fileData.file_id || fileData.id;
     if (!fileId) {
@@ -549,15 +547,15 @@ function generateRedactedPdfPages(fileData) {
         return generateFallbackContent(fileData);
     }
     
-    console.log('🔒 Creating redacted PDF page for file ID:', fileId);
+    console.log('🔒 Creating marketplace redacted PDF preview for file ID:', fileId);
     
     // Return a single page with PDF fetching functionality
     totalPages = 1;
     return [{
         type: 'pdf',
         content: fileId, // Pass file ID instead of URL
-        title: 'Documento Redatto',
-        description: 'Visualizzazione del documento con contenuti sensibili oscurati'
+        title: 'Anteprima Documento',
+        description: 'Anteprima con contenuti protetti. Acquista per accesso completo.'
     }];
 }
 
@@ -1347,58 +1345,7 @@ function handlePurchase(fileId) {
     }
 }
 
-// View Toggle System
-function initializeViewToggle() {
-    const toggleBtn = document.getElementById('viewToggleBtn');
-    if (!toggleBtn) return;
-    
-    toggleBtn.addEventListener('click', toggleView);
-    updateToggleButton();
-}
 
-function toggleView() {
-    if (!documentData) {
-        console.error('Document data not available for toggle');
-        return;
-    }
-    
-    isRedactedMode = !isRedactedMode;
-    console.log('🔄 Toggling view mode. Redacted mode:', isRedactedMode);
-    
-    // Show loading state
-    const documentViewer = document.querySelector('.document-viewer');
-    if (documentViewer) {
-        documentViewer.innerHTML = `
-            <div class="view-toggle-loading">
-                <div class="loader-spinner"></div>
-                <p>Cambiando modalità di visualizzazione...</p>
-            </div>
-        `;
-    }
-    
-    // Regenerate pages with new mode
-    setTimeout(() => {
-        const pages = generateDocumentPages(documentData);
-        renderDocumentPages(pages); // This will handle page display initialization
-        updateToggleButton();
-    }, 300);
-}
-
-function updateToggleButton() {
-    const toggleBtn = document.getElementById('viewToggleBtn');
-    if (!toggleBtn) return;
-    
-    const icon = toggleBtn.querySelector('.material-symbols-outlined');
-    if (isRedactedMode) {
-        icon.textContent = 'visibility_off';
-        toggleBtn.title = 'Passa a vista contenuto';
-        toggleBtn.classList.add('redacted-mode');
-    } else {
-        icon.textContent = 'visibility';
-        toggleBtn.title = 'Passa a vista redatta';
-        toggleBtn.classList.remove('redacted-mode');
-    }
-}
 
 // Notification System
 function showNotification(message, type = 'info') {
@@ -1542,9 +1489,6 @@ async function initializeDocumentPreview() {
                     </button>
                     
                     <div class="viewer-controls-overlay">
-                        <button class="toggle-btn" id="viewToggleBtn" title="Passa a vista contenuto">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
                         <button class="zoom-btn" id="zoomOut" title="Zoom Out">
                             <span class="material-symbols-outlined">zoom_out</span>
                         </button>
@@ -1667,7 +1611,6 @@ async function initializeDocumentPreview() {
         initializeZoom();
         initializeBackButton();
         initializeFullscreen();
-        initializeViewToggle();
         initializeNavigationElements();
         
         // Initialize other systems

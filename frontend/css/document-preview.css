@@ -1026,7 +1026,6 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     min-height: 1.2em; /* Single line height */
-    cursor: help;
     position: relative;
 }
 

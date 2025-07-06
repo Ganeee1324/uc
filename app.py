@@ -392,7 +392,9 @@ def get_owned_vetrine():
 def get_hierarchy():
     if database.faculties_courses_cache is None:
         database.faculties_courses_cache = database.scrape_faculties_courses()
-        logging.info("Added faculties and courses to cache")
+        logging.debug("Added faculties and courses to cache")
+    else:
+        logging.debug("Faculties and courses retrieved from cache")
     return jsonify(database.faculties_courses_cache), 200
 
 

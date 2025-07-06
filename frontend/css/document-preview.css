@@ -997,12 +997,13 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
 .doc-content {
     flex: 1;
     cursor: pointer;
+    margin-bottom: var(--space-1);
 }
 
 .doc-content:hover .doc-title {
@@ -1010,8 +1011,8 @@ body {
 }
 
 .doc-actions {
-    margin-top: var(--space-2);
-    padding-top: var(--space-2);
+    margin-top: var(--space-1);
+    padding-top: var(--space-1);
     border-top: 1px solid var(--neutral-100);
 }
 
@@ -1019,31 +1020,31 @@ body {
     font-size: var(--text-sm);
     font-weight: 600;
     color: var(--neutral-800);
-    margin-bottom: var(--space-2);
-    line-height: 1.3;
+    margin-bottom: var(--space-1);
+    line-height: 1.2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 2.6em; /* Fixed height for 2 lines */
+    min-height: 2.4em; /* Reduced height for 2 lines */
 }
 
 .related-doc-info .doc-description {
     font-size: var(--text-xs);
     color: var(--neutral-600);
-    margin-bottom: var(--space-2);
-    line-height: 1.4;
+    margin-bottom: var(--space-1);
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 2.8em; /* Fixed height for 2 lines */
+    min-height: 2.6em; /* Reduced height for 2 lines */
 }
 
 .related-doc-info .doc-author {
     font-size: var(--text-xs);
     color: var(--neutral-600);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-1);
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
@@ -1055,7 +1056,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: var(--space-2);
-    margin-top: auto; /* Push to bottom */
+    margin-top: var(--space-1);
 }
 
 .doc-rating {
@@ -1222,11 +1223,11 @@ body {
     }
     
     .related-doc-info .doc-title {
-        min-height: 2.4em; /* Smaller on mobile */
+        min-height: 2.2em; /* Even smaller on mobile */
     }
     
     .related-doc-info .doc-description {
-        min-height: 2.6em; /* Smaller on mobile */
+        min-height: 2.4em; /* Even smaller on mobile */
     }
     
     .type-badge {

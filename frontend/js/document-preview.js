@@ -400,11 +400,14 @@ function renderDocumentInfo(docData) {
     // Determine document type from filename or tag
     const documentType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
     
+    // Initialize reviews overlay first to ensure reviewsData is available
+    initializeReviewsOverlay();
+    
     // Update rating and price (use reviews data if available)
-    const totalReviews = reviewsData.length;
+    const totalReviews = reviewsData && reviewsData.length ? reviewsData.length : 0;
     const rating = totalReviews > 0 
-        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
-        : '0.0';
+        ? parseFloat((reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1))
+        : 0.0;
     const reviewCount = totalReviews;
     const price = fileData.price || 0;
 
@@ -461,9 +464,6 @@ function renderDocumentInfo(docData) {
     
     // Render related documents with professional placeholders
     renderRelatedDocuments();
-    
-    // Initialize reviews overlay
-    initializeReviewsOverlay();
 }
 
 // Helper function to update detail values

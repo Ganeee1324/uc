@@ -400,9 +400,12 @@ function renderDocumentInfo(docData) {
     // Determine document type from filename or tag
     const documentType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
     
-    // Update rating and price (mock data for now since no rating system exists yet)
-    const rating = 4.2; // Mock rating
-    const reviewCount = 127; // Mock review count
+    // Update rating and price (use reviews data if available)
+    const totalReviews = reviewsData.length;
+    const rating = totalReviews > 0 
+        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
+        : '0.0';
+    const reviewCount = totalReviews;
     const price = fileData.price || 0;
 
     const starsContainer = document.querySelector('.stars');
@@ -458,6 +461,9 @@ function renderDocumentInfo(docData) {
     
     // Render related documents with professional placeholders
     renderRelatedDocuments();
+    
+    // Initialize reviews overlay
+    initializeReviewsOverlay();
 }
 
 // Helper function to update detail values
@@ -1666,11 +1672,14 @@ async function initializeDocumentPreview() {
                             <h1 class="doc-title">Caricamento...</h1>
                         </div>
                         <div class="doc-meta-header">
-                            <div class="doc-rating">
-                                <div class="stars"></div>
-                                <span class="rating-score">0.0</span>
-                                <span class="rating-count">(0 recensioni)</span>
-                            </div>
+                            <button class="reviews-button" onclick="openReviewsOverlay()">
+                                <div class="reviews-button-content">
+                                    <div class="stars"></div>
+                                    <span class="rating-score">0.0</span>
+                                    <span class="rating-count">(0 recensioni)</span>
+                                    <span class="material-symbols-outlined reviews-icon">rate_review</span>
+                                </div>
+                            </button>
                             <div class="doc-price">
                                 <span class="price-value">€0.00</span>
                             </div>
@@ -1737,6 +1746,63 @@ async function initializeDocumentPreview() {
                     <div class="related-docs-section">
                         <div class="related-docs">
                             <!-- Content will be populated by renderRelatedDocuments -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reviews Overlay -->
+            <div class="reviews-overlay" id="reviewsOverlay">
+                <div class="reviews-overlay-content">
+                    <div class="reviews-overlay-header">
+                        <h2>
+                            <span class="material-symbols-outlined">rate_review</span>
+                            Recensioni
+                        </h2>
+                        <button class="close-overlay-btn" onclick="closeReviewsOverlay()">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    
+                    <div class="reviews-overlay-body">
+                        <div class="reviews-summary">
+                            <div class="overall-rating">
+                                <div class="rating-display">
+                                    <div class="big-stars"></div>
+                                    <span class="big-rating-score">0.0</span>
+                                </div>
+                                <span class="total-reviews">Basato su 0 recensioni</span>
+                            </div>
+                            <button class="add-review-btn" onclick="showAddReviewForm()">
+                                <span class="material-symbols-outlined">add</span>
+                                Aggiungi Recensione
+                            </button>
+                        </div>
+                        
+                        <div class="reviews-list" id="reviewsList">
+                            <!-- Reviews will be populated here -->
+                        </div>
+                        
+                        <div class="add-review-form" id="addReviewForm" style="display: none;">
+                            <h3>Aggiungi la tua recensione</h3>
+                            <div class="rating-input">
+                                <label>Valutazione:</label>
+                                <div class="star-rating">
+                                    <span class="star-input" data-rating="1">★</span>
+                                    <span class="star-input" data-rating="2">★</span>
+                                    <span class="star-input" data-rating="3">★</span>
+                                    <span class="star-input" data-rating="4">★</span>
+                                    <span class="star-input" data-rating="5">★</span>
+                                </div>
+                            </div>
+                            <div class="review-text-input">
+                                <label for="reviewComment">Commento:</label>
+                                <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                            </div>
+                            <div class="review-form-actions">
+                                <button class="cancel-review-btn" onclick="hideAddReviewForm()">Annulla</button>
+                                <button class="submit-review-btn" onclick="submitReview()">Invia Recensione</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1832,6 +1898,240 @@ document.addEventListener('visibilitychange', () => {
 });
 
 console.log('Document Preview System - World Class Edition - Loaded Successfully');
+
+// Reviews Overlay System
+let currentUserRating = 0;
+let reviewsData = [];
+
+function initializeReviewsOverlay() {
+    // Generate sample reviews data
+    reviewsData = generateSampleReviews();
+    
+    // Initialize star rating input
+    initializeStarRating();
+    
+    // Close overlay when clicking outside
+    document.getElementById('reviewsOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'reviewsOverlay') {
+            closeReviewsOverlay();
+        }
+    });
+}
+
+function generateSampleReviews() {
+    const sampleReviews = [
+        {
+            id: 1,
+            author_name: 'Marco Rossi',
+            rating: 5,
+            comment: 'Documento eccellente! Molto chiaro e completo. Mi ha aiutato molto per l\'esame.',
+            created_at: '2024-01-15T10:30:00Z'
+        },
+        {
+            id: 2,
+            author_name: 'Laura Bianchi',
+            rating: 4,
+            comment: 'Buon materiale, ben strutturato. Alcune parti potrebbero essere più dettagliate.',
+            created_at: '2024-01-10T14:20:00Z'
+        },
+        {
+            id: 3,
+            author_name: 'Giuseppe Verdi',
+            rating: 5,
+            comment: 'Perfetto per il ripasso. Le spiegazioni sono molto chiare e i concetti ben organizzati.',
+            created_at: '2024-01-05T09:15:00Z'
+        },
+        {
+            id: 4,
+            author_name: 'Anna Neri',
+            rating: 4,
+            comment: 'Documento utile e ben fatto. Lo consiglio a tutti gli studenti del corso.',
+            created_at: '2024-01-01T16:45:00Z'
+        },
+        {
+            id: 5,
+            author_name: 'Paolo Gialli',
+            rating: 3,
+            comment: 'Materiale discreto, ma alcune sezioni potrebbero essere migliorate.',
+            created_at: '2023-12-28T11:30:00Z'
+        }
+    ];
+    
+    return sampleReviews;
+}
+
+function openReviewsOverlay() {
+    const overlay = document.getElementById('reviewsOverlay');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Update overlay content
+    updateReviewsOverlay();
+}
+
+function closeReviewsOverlay() {
+    const overlay = document.getElementById('reviewsOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Hide add review form if open
+    hideAddReviewForm();
+}
+
+function updateReviewsOverlay() {
+    const totalReviews = reviewsData.length;
+    const averageRating = totalReviews > 0 
+        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
+        : '0.0';
+    
+    // Update summary
+    document.querySelector('.big-stars').innerHTML = generateStars(Math.floor(parseFloat(averageRating)));
+    document.querySelector('.big-rating-score').textContent = averageRating;
+    document.querySelector('.total-reviews').textContent = `Basato su ${totalReviews} recensioni`;
+    
+    // Update reviews list
+    const reviewsList = document.getElementById('reviewsList');
+    if (totalReviews === 0) {
+        reviewsList.innerHTML = `
+            <div class="no-reviews-message">
+                <span class="material-symbols-outlined">rate_review</span>
+                <p>Nessuna recensione disponibile per questo documento.</p>
+                <p>Sii il primo a lasciare una recensione!</p>
+            </div>
+        `;
+    } else {
+        const reviewsHTML = reviewsData.map(review => `
+            <div class="review-item-overlay">
+                <div class="review-header-overlay">
+                    <div class="reviewer-info-overlay">
+                        <div class="reviewer-avatar-overlay">${review.author_name.charAt(0).toUpperCase()}</div>
+                        <div class="reviewer-details-overlay">
+                            <span class="reviewer-name-overlay">${review.author_name}</span>
+                            <div class="review-rating-overlay">
+                                ${generateStars(review.rating)}
+                            </div>
+                        </div>
+                    </div>
+                    <span class="review-date-overlay">${formatDate(review.created_at)}</span>
+                </div>
+                <p class="review-text-overlay">${review.comment}</p>
+            </div>
+        `).join('');
+        
+        reviewsList.innerHTML = reviewsHTML;
+    }
+}
+
+function showAddReviewForm() {
+    document.getElementById('addReviewForm').style.display = 'block';
+    document.getElementById('reviewsList').style.display = 'none';
+    document.querySelector('.reviews-summary').style.display = 'none';
+}
+
+function hideAddReviewForm() {
+    document.getElementById('addReviewForm').style.display = 'none';
+    document.getElementById('reviewsList').style.display = 'block';
+    document.querySelector('.reviews-summary').style.display = 'flex';
+    
+    // Reset form
+    currentUserRating = 0;
+    document.getElementById('reviewComment').value = '';
+    updateStarRatingDisplay();
+}
+
+function initializeStarRating() {
+    const starInputs = document.querySelectorAll('.star-input');
+    starInputs.forEach(star => {
+        star.addEventListener('click', () => {
+            currentUserRating = parseInt(star.dataset.rating);
+            updateStarRatingDisplay();
+        });
+        
+        star.addEventListener('mouseenter', () => {
+            const rating = parseInt(star.dataset.rating);
+            highlightStars(rating);
+        });
+        
+        star.addEventListener('mouseleave', () => {
+            updateStarRatingDisplay();
+        });
+    });
+}
+
+function updateStarRatingDisplay() {
+    const starInputs = document.querySelectorAll('.star-input');
+    starInputs.forEach((star, index) => {
+        if (index < currentUserRating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+function highlightStars(rating) {
+    const starInputs = document.querySelectorAll('.star-input');
+    starInputs.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('hover');
+        } else {
+            star.classList.remove('hover');
+        }
+    });
+}
+
+async function submitReview() {
+    const comment = document.getElementById('reviewComment').value.trim();
+    
+    if (currentUserRating === 0) {
+        showNotification('Seleziona una valutazione', 'error');
+        return;
+    }
+    
+    if (comment.length < 10) {
+        showNotification('Il commento deve contenere almeno 10 caratteri', 'error');
+        return;
+    }
+    
+    // Simulate API call
+    const newReview = {
+        id: reviewsData.length + 1,
+        author_name: 'Tu',
+        rating: currentUserRating,
+        comment: comment,
+        created_at: new Date().toISOString()
+    };
+    
+    reviewsData.unshift(newReview);
+    
+    // Update the main page rating
+    updateMainPageRating();
+    
+    // Hide form and show reviews
+    hideAddReviewForm();
+    
+    // Show success message
+    showNotification('Recensione inviata con successo!', 'success');
+    
+    // Update overlay
+    updateReviewsOverlay();
+}
+
+function updateMainPageRating() {
+    const totalReviews = reviewsData.length;
+    const averageRating = totalReviews > 0 
+        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
+        : '0.0';
+    
+    // Update main page elements
+    const starsContainer = document.querySelector('.stars');
+    const ratingScore = document.querySelector('.rating-score');
+    const ratingCount = document.querySelector('.rating-count');
+    
+    if (starsContainer) starsContainer.innerHTML = generateStars(Math.floor(parseFloat(averageRating)));
+    if (ratingScore) ratingScore.textContent = averageRating;
+    if (ratingCount) ratingCount.textContent = `(${totalReviews} recensioni)`;
+}
 
 // Action Handlers
 async function handleFavorite() {

@@ -1048,18 +1048,6 @@ body {
     max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
-    animation: tooltipFadeIn 0.2s ease-out;
-}
-
-@keyframes tooltipFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .related-doc-info .doc-title:hover::before {

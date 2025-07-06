@@ -197,9 +197,7 @@ html {
     position: absolute;
     left: 0;
     width: 100vw; /* Span the full viewport width */
-    /* Initial fallback positioning - will be adjusted by JavaScript */
-    height: 787.5px; /* Default height for immediate display */
-    top: -91.75px; /* Default top position for immediate display */
+    /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
     background-image: url('../images/bg.png');
     background-size: 100% 100%; /* Stretch to fill the element */
     background-repeat: no-repeat;
@@ -211,8 +209,7 @@ html {
     /* Optimize image loading */
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
-    /* Ensure smooth transitions when JavaScript adjusts position */
-    transition: height 0.2s ease-out, top 0.2s ease-out;
+    /* No transitions - we want instant positioning */
 }
 
 /* Header - New Layout to Match Image */

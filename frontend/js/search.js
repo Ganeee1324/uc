@@ -4717,6 +4717,34 @@ document.addEventListener('DOMContentLoaded', initializeScrollToTop);
 // DYNAMIC BACKGROUND POSITIONING
 // ===========================
 
+// Global variable to store image dimensions for immediate access
+let bgImageDimensions = null;
+
+// Preload and cache image dimensions immediately
+function preloadBackgroundImage() {
+    const tempImage = new Image();
+    tempImage.src = 'images/bg.png';
+    
+    const storeImageDimensions = () => {
+        if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
+            bgImageDimensions = {
+                width: tempImage.naturalWidth,
+                height: tempImage.naturalHeight,
+                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
+            };
+            // Position immediately if DOM elements are ready
+            adjustBackgroundPosition();
+        }
+    };
+    
+    if (tempImage.complete && tempImage.naturalWidth > 0) {
+        storeImageDimensions();
+    } else {
+        tempImage.onload = storeImageDimensions;
+        tempImage.onerror = () => console.error("Background image failed to load");
+    }
+}
+
 function adjustBackgroundPosition() {
     const bgElement = document.querySelector('.background-image');
     const title = document.querySelector('.search-title');
@@ -4726,22 +4754,25 @@ function adjustBackgroundPosition() {
         return;
     }
 
-    // Remove transition temporarily for immediate positioning
-    const originalTransition = bgElement.style.transition;
-    bgElement.style.transition = 'none';
-
-    // Use an Image object to get the natural dimensions and calculate aspect ratio.
-    // This is the key to making the calculation reliable.
-    const tempImage = new Image();
-    // The path must be relative to the HTML file that loads the script.
-    tempImage.src = 'images/bg.png'; 
-
-    const calculatePosition = () => {
-        if (tempImage.naturalWidth === 0 || tempImage.naturalHeight === 0) {
-            // Avoid division by zero if image fails to load
+    // If we don't have image dimensions yet, try to get them
+    if (!bgImageDimensions) {
+        const tempImage = new Image();
+        tempImage.src = 'images/bg.png';
+        
+        if (tempImage.complete && tempImage.naturalWidth > 0) {
+            bgImageDimensions = {
+                width: tempImage.naturalWidth,
+                height: tempImage.naturalHeight,
+                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
+            };
+        } else {
+            // Image not ready yet, will be called again when it loads
             return;
         }
-        const imageAspectRatio = tempImage.naturalWidth / tempImage.naturalHeight;
+    }
+
+    const calculatePosition = () => {
+        const imageAspectRatio = bgImageDimensions.aspectRatio;
 
         // Calculate the rendered height of the background based on viewport width
         const viewportWidth = window.innerWidth;
@@ -4764,25 +4795,9 @@ function adjustBackgroundPosition() {
         const finalTopOffset = pageAnchorY - imageAnchorInPixels;
         
         bgElement.style.top = `${finalTopOffset}px`;
-
-        // Restore transition after positioning
-        setTimeout(() => {
-            bgElement.style.transition = originalTransition;
-        }, 0);
     };
 
-    // Since image is preloaded, it should be available immediately
-    // But we still handle both cases for reliability
-    if (tempImage.complete || tempImage.naturalWidth > 0) {
-        calculatePosition();
-    } else {
-        tempImage.onload = calculatePosition;
-        tempImage.onerror = () => {
-            console.error("Background image failed to load, cannot position it.");
-            // Restore transition even on error
-            bgElement.style.transition = originalTransition;
-        };
-    }
+    calculatePosition();
 }
 
 // Debounce function to limit how often a function can run.
@@ -4798,8 +4813,14 @@ function debounce(func, wait) {
     };
 }
 
+// Start preloading image immediately - even before DOM is ready
+preloadBackgroundImage();
+
 // Initialize background positioning immediately when DOM is ready
-document.addEventListener('DOMContentLoaded', adjustBackgroundPosition);
+document.addEventListener('DOMContentLoaded', () => {
+    // Position immediately when DOM is ready
+    adjustBackgroundPosition();
+});
 
 // Also run on window load to ensure everything is fully loaded
 window.addEventListener('load', adjustBackgroundPosition);

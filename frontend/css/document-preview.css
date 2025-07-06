@@ -1006,9 +1006,7 @@ body {
     margin-bottom: var(--space-1);
 }
 
-.doc-content:hover .doc-title {
-    color: var(--primary-600);
-}
+
 
 .doc-actions {
     margin-top: var(--space-1);

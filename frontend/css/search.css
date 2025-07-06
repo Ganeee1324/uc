@@ -196,7 +196,7 @@ html {
 .background-image {
     position: absolute;
     left: 0;
-    width: calc(100vw + 2px); /* Span the full viewport width plus 2px */
+    width: calc(100vw + 4px); /* Span the full viewport width plus 4px */
     /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
     background-image: url('../images/bg.png');
     background-size: 100% 100%; /* Stretch to fill the element */

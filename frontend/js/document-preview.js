@@ -893,7 +893,7 @@ function renderRelatedDocuments(relatedDocs) {
             </div>
             <div class="related-doc-info">
                 <div class="doc-content" onclick="window.location.href='document-preview.html?id=${doc.id}'">
-                    <h4 class="doc-title">${doc.title}</h4>
+                    <h4 class="doc-title" data-full-title="${doc.title}">${doc.title}</h4>
                     <p class="doc-description">${doc.description}</p>
                     <p class="doc-author">${doc.author}</p>
                     <div class="doc-meta">

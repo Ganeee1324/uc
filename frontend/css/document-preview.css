@@ -1022,11 +1022,56 @@ body {
     color: var(--neutral-800);
     margin-bottom: var(--space-1);
     line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     overflow: hidden;
-    min-height: 2.4em; /* Reduced height for 2 lines */
+    text-overflow: ellipsis;
+    min-height: 1.2em; /* Single line height */
+    cursor: help;
+    position: relative;
+}
+
+/* Custom Tooltip for Title */
+.related-doc-info .doc-title:hover::after {
+    content: attr(data-full-title);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: var(--neutral-800);
+    color: white;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--space-1);
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.related-doc-info .doc-title:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 10px;
+    border: 5px solid transparent;
+    border-top-color: var(--neutral-800);
+    margin-bottom: -5px;
+    z-index: 1001;
 }
 
 .related-doc-info .doc-description {
@@ -1223,7 +1268,7 @@ body {
     }
     
     .related-doc-info .doc-title {
-        min-height: 2.2em; /* Even smaller on mobile */
+        min-height: 1.2em; /* Single line on mobile */
     }
     
     .related-doc-info .doc-description {

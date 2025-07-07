@@ -411,14 +411,14 @@ function renderDocumentInfo(docData) {
     const reviewCount = totalReviews;
     const price = fileData.price || 0;
 
-    const starsContainer = document.querySelector('.stars');
+    const starsContainer = document.querySelector('.rating-stars');
     if(starsContainer) starsContainer.innerHTML = generateStars(Math.floor(rating));
     
     const ratingScore = document.querySelector('.rating-score');
     if(ratingScore) ratingScore.textContent = rating.toFixed(1);
 
     const ratingCount = document.querySelector('.rating-count');
-    if(ratingCount) ratingCount.textContent = `(${reviewCount} recensioni)`;
+    if(ratingCount) ratingCount.textContent = `(${reviewCount})`;
 
     const priceElement = document.querySelector('.price-value');
     if (priceElement) {
@@ -1672,14 +1672,13 @@ async function initializeDocumentPreview() {
                             <h1 class="doc-title">Caricamento...</h1>
                         </div>
                         <div class="doc-meta-header">
-                            <button class="reviews-button" onclick="openReviewsOverlay()">
-                                <div class="reviews-button-content">
-                                    <div class="stars"></div>
+                            <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
+                                <div class="rating-stars"></div>
+                                <div class="rating-details">
                                     <span class="rating-score">0.0</span>
-                                    <span class="rating-count">(0 recensioni)</span>
-                                    <span class="material-symbols-outlined reviews-icon">rate_review</span>
+                                    <span class="rating-count">(0)</span>
                                 </div>
-                            </button>
+                            </div>
                             <div class="doc-price">
                                 <span class="price-value">€0.00</span>
                             </div>

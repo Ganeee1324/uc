@@ -3041,9 +3041,11 @@ function updateDocumentCardTags(vetrinaId, tags) {
     
     // Update the badges with the new tags
     if (tags && tags.length > 0) {
-        badgesContainer.innerHTML = tags.map(tag => 
-            `<div class="document-type-badge">${getTagDisplayName(tag)}</div>`
-        ).join('');
+        if (tags.length === 1) {
+            badgesContainer.innerHTML = `<div class="document-type-badge">${getTagDisplayName(tags[0])}</div>`;
+        } else {
+            badgesContainer.innerHTML = `<div class="document-type-badge">${getTagDisplayName(tags[0])} +${tags.length - 1}</div>`;
+        }
     } else {
         badgesContainer.innerHTML = '<div class="document-type-badge">Appunti</div>';
     }
@@ -3391,7 +3393,10 @@ function renderDocuments(files) {
                 ${viewFilesButton}
                 <div class="document-type-badges">
                     ${item.tags && item.tags.length > 0 ?
-                        item.tags.map(tag => `<div class="document-type-badge">${getTagDisplayName(tag)}</div>`).join('')
+                        (item.tags.length === 1 ? 
+                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` :
+                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])} +${item.tags.length - 1}</div>`
+                        )
                         : '<div class="document-type-badge">Appunti</div>'
                     }
                 </div>

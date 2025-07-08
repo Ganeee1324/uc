@@ -368,8 +368,10 @@ async function fetchDocumentData(fileId) {
             }
         }
 
-        // Mock related documents for now
-        const mockRelated = [];
+        // TODO: Integrate real related documents endpoint when available
+        // For now, related documents are not shown (empty array for security)
+        // SECURITY: Never render user-generated content with innerHTML unless sanitized
+        const relatedDocs = [];
 
         // Ensure we have vetrina data for favorite functionality
         if (!vetrinaData && fileResponse.vetrina_id) {
@@ -387,7 +389,7 @@ async function fetchDocumentData(fileId) {
             document: fileResponse,
             vetrina: vetrinaData,
             reviews: reviewsData,
-            related: mockRelated,
+            related: relatedDocs,
             vetrinaFiles: vetrinaFiles
         };
     } catch (error) {

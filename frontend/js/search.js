@@ -41,6 +41,9 @@ let isFiltersOpen = false;
         initializeFilters();
         initializeScrollToTop();
         
+        // Load valid tags from backend first
+        await loadValidTags();
+        
         // Load files first, then restore filters
         await loadAllFiles();
         
@@ -1039,8 +1042,8 @@ function filterDropdownOptions(type, searchTerm) {
         });
         items = allTypes;
     } else if (type === 'tag') {
-        // Always show all tag options
-        items = ['appunti', 'dispense', 'esercizi'];
+        // Use backend tags
+        items = window.allTags || ['appunti', 'dispense', 'esercizi'];
     } else if (type === 'language') {
         items = ['Italian', 'English'];
     } else if (type === 'academicYear') {
@@ -2946,7 +2949,7 @@ function extractTagsFromVetrina(vetrina) {
     const name = (vetrina.name || '').toLowerCase();
     const description = (vetrina.description || '').toLowerCase();
     
-    // Check for common document types in name and description
+    // Check for backend-valid document types in name and description
     if (name.includes('appunti') || description.includes('appunti')) {
         tags.push('appunti');
     }
@@ -2956,36 +2959,28 @@ function extractTagsFromVetrina(vetrina) {
     if (name.includes('esercizi') || description.includes('esercizi')) {
         tags.push('esercizi');
     }
-    if (name.includes('formulario') || description.includes('formulario')) {
-        tags.push('formulario');
-    }
-    if (name.includes('progetto') || description.includes('progetto')) {
-        tags.push('progetto');
-    }
-    if (name.includes('esame') || description.includes('esame')) {
-        tags.push('esame');
-    }
-    if (name.includes('slide') || description.includes('slide')) {
-        tags.push('slide');
-    }
-    if (name.includes('riassunto') || description.includes('riassunto')) {
-        tags.push('riassunto');
-    }
     
-    // If no specific tags found, add a generic one based on content
+    // If no backend-valid tags found, try to infer from content
     if (tags.length === 0) {
-        if (name.includes('matematica') || name.includes('analisi') || name.includes('calcolo')) {
-            tags.push('matematica');
-        } else if (name.includes('fisica')) {
-            tags.push('fisica');
-        } else if (name.includes('chimica')) {
-            tags.push('chimica');
-        } else if (name.includes('informatica') || name.includes('programmazione')) {
-            tags.push('informatica');
-        } else if (name.includes('economia') || name.includes('business')) {
-            tags.push('economia');
+        // Look for synonyms or related terms that map to valid tags
+        if (name.includes('formulario') || description.includes('formulario') || 
+            name.includes('formula') || description.includes('formula')) {
+            tags.push('dispense'); // Formulario maps to dispense
+        } else if (name.includes('slide') || description.includes('slide') || 
+                   name.includes('presentazione') || description.includes('presentazione')) {
+            tags.push('dispense'); // Slides map to dispense
+        } else if (name.includes('riassunto') || description.includes('riassunto') || 
+                   name.includes('summary') || description.includes('summary')) {
+            tags.push('appunti'); // Riassunto maps to appunti
+        } else if (name.includes('esame') || description.includes('esame') || 
+                   name.includes('exam') || description.includes('exam')) {
+            tags.push('esercizi'); // Esame maps to esercizi
+        } else if (name.includes('progetto') || description.includes('progetto') || 
+                   name.includes('project') || description.includes('project')) {
+            tags.push('esercizi'); // Progetto maps to esercizi
         } else {
-            tags.push('documento');
+            // Default to appunti as the most common type
+            tags.push('appunti');
         }
     }
     
@@ -2996,6 +2991,20 @@ function extractTagsFromVetrina(vetrina) {
 function extractPrimaryTagFromVetrina(vetrina) {
     const tags = extractTagsFromVetrina(vetrina);
     return tags.length > 0 ? tags[0] : null;
+}
+
+// Function to load valid tags from backend
+async function loadValidTags() {
+    try {
+        const response = await makeSimpleRequest('/tags');
+        if (response && response.tags) {
+            window.allTags = response.tags;
+            console.log('✅ Loaded valid tags from backend:', window.allTags);
+        }
+    } catch (error) {
+        console.warn('⚠️ Could not load tags from backend, using defaults:', error);
+        // Keep default tags: ['appunti', 'dispense', 'esercizi']
+    }
 }
 
 // Helper function to get file type from filename

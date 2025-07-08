@@ -3392,13 +3392,18 @@ function renderDocuments(files) {
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
-                    ${item.tags && item.tags.length > 0 ?
-                        (item.tags.length === 1 ? 
-                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` :
-                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])} +${item.tags.length - 1}</div>`
-                        )
-                        : '<div class="document-type-badge">Appunti</div>'
-                    }
+                    ${(() => {
+                        console.log(`🎨 Rendering tags for item ${item.id}:`, item.tags);
+                        if (item.tags && item.tags.length > 0) {
+                            if (item.tags.length === 1) {
+                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
+                            } else {
+                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])} +${item.tags.length - 1}</div>`;
+                            }
+                        } else {
+                            return '<div class="document-type-badge">Appunti</div>';
+                        }
+                    })()}
                 </div>
                 <div class="rating-badge">
                     <div class="rating-stars">${stars}</div>

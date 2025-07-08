@@ -3527,7 +3527,7 @@ function renderDocuments(files) {
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             } else {
-                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div><div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
+                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             }
                         }
                         
@@ -3548,6 +3548,13 @@ function renderDocuments(files) {
             </button>
             
             <div class="document-content">
+                ${(() => {
+                    // Add more-types container to document content area if there are multiple tags
+                    if (item.tags && item.tags.length > 1) {
+                        return `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
+                    }
+                    return '';
+                })()}
                 <div class="document-header">
                     <div class="document-title-section">
                         <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>

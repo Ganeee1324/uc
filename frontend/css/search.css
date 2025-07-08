@@ -1496,13 +1496,16 @@ html {
     font-size: 10px;
     font-weight: 600;
     color: var(--white);
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-1);
     border-radius: var(--radius-md);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     height: 24px;
     white-space: nowrap;
-    margin-left: var(--space-2);
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 10;
 }
 
 /* Style for the bullet points between document types */

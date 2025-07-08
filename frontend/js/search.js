@@ -21,6 +21,11 @@ let originalFiles = []; // Keep original unfiltered data
 let activeFilters = {};
 let isFiltersOpen = false;
 
+// OPTIMIZATION: Add caching for file metadata to avoid repeated API calls
+let fileMetadataCache = new Map();
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
     // Initialize the page
     window.onload = async function() {
         console.log('🚀 Page loading started...');
@@ -2860,47 +2865,97 @@ async function loadAllFiles() {
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));
         
-        // Fetch file metadata for all vetrine (not the actual files)
+        // Fetch file metadata for all vetrine (not the actual files) - OPTIMIZED VERSION
         showStatus('Caricamento metadati file... 📁');
         const allFilesData = {};
         
-        try {
-            // Fetch file metadata for all vetrine in parallel
+        // 🚀 NEW BACKEND FEATURE: Vetrina now includes tags, ratings, and review counts directly!
+        // No need to fetch file metadata separately - everything is in the vetrina response!
+        console.log('🚀 Using new backend features: tags, ratings, and reviews included in vetrina response');
+        showStatus('Caricamento completato! ⚡');
+        
+        // The backend now provides all the data we need in the vetrina response:
+        // - tags: array of unique tags from all files
+        // - average_rating: average rating of the vetrina
+        // - reviews_count: number of reviews
+        // - All file metadata is calculated server-side
+        
+        // We still need file metadata for size, price, and file count calculations
+        // But we can use the tags from the vetrina response instead of extracting from files
+        const now = Date.now();
+        const isCacheValid = (now - cacheTimestamp) < CACHE_DURATION;
+        
+        if (isCacheValid && fileMetadataCache.size > 0) {
+            console.log('🚀 Using cached file metadata for faster loading');
+            showStatus('Caricamento da cache... ⚡');
+            
+            // Use cached data
+            currentVetrine.forEach(vetrina => {
+                const cachedData = fileMetadataCache.get(vetrina.vetrina_id);
+                if (cachedData) {
+                    allFilesData[vetrina.vetrina_id] = cachedData;
+                } else {
+                    allFilesData[vetrina.vetrina_id] = [];
+                }
+            });
+            
+            console.log(`📊 Using cached metadata for ${Object.keys(allFilesData).length} vetrine`);
+        } else {
+            // Cache is invalid or empty, fetch fresh data
+            console.log('🔄 Cache invalid or empty, fetching fresh file metadata');
+            
+            // OPTIMIZATION: Use Promise.allSettled for better error handling and performance
+            // This ensures that if one request fails, others continue
             const fileMetadataPromises = currentVetrine.map(async (vetrina) => {
                 try {
                     const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
                     return {
+                        status: 'fulfilled',
                         vetrinaId: vetrina.vetrina_id,
                         files: filesResponse?.files || []
                     };
                 } catch (error) {
                     console.warn(`⚠️ Error fetching file metadata for vetrina ${vetrina.vetrina_id}:`, error);
                     return {
+                        status: 'rejected',
                         vetrinaId: vetrina.vetrina_id,
-                        files: []
+                        files: [],
+                        error: error.message
                     };
                 }
             });
             
-            const fileResults = await Promise.all(fileMetadataPromises);
+            // Use Promise.allSettled for better performance and error handling
+            const fileResults = await Promise.allSettled(fileMetadataPromises);
             
-            // Organize file metadata by vetrina ID
-            fileResults.forEach(result => {
-                allFilesData[result.vetrinaId] = result.files;
+            // Process results efficiently
+            let successCount = 0;
+            let errorCount = 0;
+            
+            fileResults.forEach((result, index) => {
+                if (result.status === 'fulfilled') {
+                    const data = result.value;
+                    allFilesData[data.vetrinaId] = data.files;
+                    // Cache the successful results
+                    fileMetadataCache.set(data.vetrinaId, data.files);
+                    successCount++;
+                } else {
+                    // Handle rejected promises
+                    const vetrina = currentVetrine[index];
+                    allFilesData[vetrina.vetrina_id] = [];
+                    errorCount++;
+                    console.warn(`⚠️ Failed to fetch metadata for vetrina ${vetrina.vetrina_id}:`, result.reason);
+                }
             });
             
-            console.log('📊 Fetched file metadata for all vetrine:', Object.keys(allFilesData).length, 'vetrine with file metadata');
-        } catch (error) {
-            console.warn('⚠️ Error fetching file metadata in bulk, falling back to individual requests:', error);
-            // Fallback: fetch file metadata individually if bulk approach fails
-            for (const vetrina of currentVetrine) {
-                try {
-                    const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
-                    allFilesData[vetrina.vetrina_id] = filesResponse?.files || [];
-                } catch (error) {
-                    console.warn(`⚠️ Error fetching file metadata for vetrina ${vetrina.vetrina_id}:`, error);
-                    allFilesData[vetrina.vetrina_id] = [];
-                }
+            // Update cache timestamp
+            cacheTimestamp = now;
+            
+            console.log(`📊 Fetched file metadata: ${successCount} successful, ${errorCount} failed out of ${currentVetrine.length} vetrine`);
+            
+            // OPTIMIZATION: Show progress for better UX
+            if (currentVetrine.length > 10) {
+                showStatus(`Caricamento completato: ${successCount}/${currentVetrine.length} vetrine caricate con successo! 🚀`);
             }
         }
         
@@ -2913,32 +2968,29 @@ async function loadAllFiles() {
             
             // Get file metadata for this vetrina
             const fileMetadata = allFilesData[vetrina.vetrina_id] || [];
-            let actualTags = [];
             let fileCount = fileMetadata.length;
             let totalSize = 0;
             let totalPrice = 0;
             let documentTypes = [];
+            
+            // 🚀 NEW: Use tags directly from vetrina response (backend now provides this!)
+            let actualTags = vetrina.tags || [];
             
             if (fileMetadata.length > 0) {
                 // Calculate totals from file metadata (not actual files)
                 totalSize = fileMetadata.reduce((sum, file) => sum + (file.size || 0), 0);
                 totalPrice = fileMetadata.reduce((sum, file) => sum + (file.price || 0), 0);
                 
-                // Extract actual tags from file metadata
-                const fileTags = fileMetadata.map(file => file.tag).filter(tag => tag !== null && tag !== undefined);
-                actualTags = Array.from(new Set(fileTags)); // Remove duplicates
-                
                 // Extract document types from file extensions in metadata
                 documentTypes = Array.from(new Set(fileMetadata.map(file => getFileTypeFromFilename(file.filename))));
                 
-                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with actual tags:`, actualTags);
+                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with backend tags:`, actualTags);
             } else {
-                console.log(`⚠️ No file metadata found for vetrina ${vetrina.vetrina_id}, using fallback tags`);
-                // Fallback to extracted tags if no file metadata found
-                actualTags = extractTagsFromVetrina(vetrina);
+                console.log(`⚠️ No file metadata found for vetrina ${vetrina.vetrina_id}, using backend tags:`, actualTags);
+                // If no file metadata, we still have tags from the backend vetrina response
             }
             
-            console.log(`🏷️ Final actual tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
+            console.log(`🏷️ Using backend tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
             
             // Create a card item using vetrina metadata and file metadata (not actual files)
             const vetrineCard = {
@@ -2955,8 +3007,8 @@ async function loadAllFiles() {
                 price: totalPrice,
                 created_at: vetrina.created_at,
                 download_count: fileMetadata.reduce((sum, file) => sum + (file.download_count || 0), 0),
-                rating: 0, // Will be updated when reviews are loaded
-                review_count: 0, // Will be updated when reviews are loaded
+                rating: vetrina.average_rating || 0, // 🚀 NEW: Use backend rating data
+                review_count: vetrina.reviews_count || 0, // 🚀 NEW: Use backend review count
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
                 faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
                 language: vetrina.course_instance?.language || 'Italiano',

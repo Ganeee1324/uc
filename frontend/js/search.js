@@ -2860,14 +2860,13 @@ async function loadAllFiles() {
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));
         
-        // Fetch all files for all vetrine in a single request
-        showStatus('Caricamento file... 📁');
+        // Fetch file metadata for all vetrine (not the actual files)
+        showStatus('Caricamento metadati file... 📁');
         const allFilesData = {};
         
         try {
-            // Fetch files for all vetrine at once using a more efficient approach
-            // We'll fetch files for each vetrina but in parallel to improve performance
-            const filePromises = currentVetrine.map(async (vetrina) => {
+            // Fetch file metadata for all vetrine in parallel
+            const fileMetadataPromises = currentVetrine.map(async (vetrina) => {
                 try {
                     const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
                     return {
@@ -2875,7 +2874,7 @@ async function loadAllFiles() {
                         files: filesResponse?.files || []
                     };
                 } catch (error) {
-                    console.warn(`⚠️ Error fetching files for vetrina ${vetrina.vetrina_id}:`, error);
+                    console.warn(`⚠️ Error fetching file metadata for vetrina ${vetrina.vetrina_id}:`, error);
                     return {
                         vetrinaId: vetrina.vetrina_id,
                         files: []
@@ -2883,70 +2882,71 @@ async function loadAllFiles() {
                 }
             });
             
-            const fileResults = await Promise.all(filePromises);
+            const fileResults = await Promise.all(fileMetadataPromises);
             
-            // Organize files by vetrina ID
+            // Organize file metadata by vetrina ID
             fileResults.forEach(result => {
                 allFilesData[result.vetrinaId] = result.files;
             });
             
-            console.log('📊 Fetched files for all vetrine:', Object.keys(allFilesData).length, 'vetrine with files');
+            console.log('📊 Fetched file metadata for all vetrine:', Object.keys(allFilesData).length, 'vetrine with file metadata');
         } catch (error) {
-            console.warn('⚠️ Error fetching files in bulk, falling back to individual requests:', error);
-            // Fallback: fetch files individually if bulk approach fails
+            console.warn('⚠️ Error fetching file metadata in bulk, falling back to individual requests:', error);
+            // Fallback: fetch file metadata individually if bulk approach fails
             for (const vetrina of currentVetrine) {
                 try {
                     const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
                     allFilesData[vetrina.vetrina_id] = filesResponse?.files || [];
                 } catch (error) {
-                    console.warn(`⚠️ Error fetching files for vetrina ${vetrina.vetrina_id}:`, error);
+                    console.warn(`⚠️ Error fetching file metadata for vetrina ${vetrina.vetrina_id}:`, error);
                     allFilesData[vetrina.vetrina_id] = [];
                 }
             }
         }
         
-        // Transform vetrine into card items using the fetched file data
+        // Transform vetrine into card items using file metadata (not actual files)
         console.log('🔄 Processing vetrina metadata for UI...');
         const allFiles = [];
         
         for (const vetrina of currentVetrine) {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
-            // Get files for this vetrina from our fetched data
-            const realFiles = allFilesData[vetrina.vetrina_id] || [];
+            // Get file metadata for this vetrina
+            const fileMetadata = allFilesData[vetrina.vetrina_id] || [];
             let actualTags = [];
-            let fileCount = realFiles.length;
+            let fileCount = fileMetadata.length;
             let totalSize = 0;
             let totalPrice = 0;
             let documentTypes = [];
             
-            if (realFiles.length > 0) {
-                totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
-                totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
+            if (fileMetadata.length > 0) {
+                // Calculate totals from file metadata (not actual files)
+                totalSize = fileMetadata.reduce((sum, file) => sum + (file.size || 0), 0);
+                totalPrice = fileMetadata.reduce((sum, file) => sum + (file.price || 0), 0);
                 
-                // Extract actual tags from files
-                const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null && tag !== undefined);
+                // Extract actual tags from file metadata
+                const fileTags = fileMetadata.map(file => file.tag).filter(tag => tag !== null && tag !== undefined);
                 actualTags = Array.from(new Set(fileTags)); // Remove duplicates
                 
-                // Extract document types from file extensions
-                documentTypes = Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename))));
+                // Extract document types from file extensions in metadata
+                documentTypes = Array.from(new Set(fileMetadata.map(file => getFileTypeFromFilename(file.filename))));
                 
-                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with tags:`, actualTags);
+                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with actual tags:`, actualTags);
             } else {
-                console.log(`⚠️ No files found for vetrina ${vetrina.vetrina_id}, using fallback tags`);
-                // Fallback to extracted tags if no files found
+                console.log(`⚠️ No file metadata found for vetrina ${vetrina.vetrina_id}, using fallback tags`);
+                // Fallback to extracted tags if no file metadata found
                 actualTags = extractTagsFromVetrina(vetrina);
             }
             
-            console.log(`🏷️ Final tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
+            console.log(`🏷️ Final actual tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
             
-            // Create a card item using vetrina metadata and actual file data
+            // Create a card item using vetrina metadata and file metadata (not actual files)
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
-                filesLoaded: true, // Mark as loaded since we fetched the data
+                filesLoaded: false, // Mark as NOT loaded - actual files will be loaded on demand
                 fileCount: fileCount,
-                files: realFiles, // Store the actual files for preview purposes
+                files: [], // Empty array - actual files will be loaded on demand
                 // Use vetrina info for the card
                 filename: 'Vetrina', // Generic name until files are loaded
                 title: vetrina.name || 'Vetrina Senza Nome',
@@ -2954,7 +2954,7 @@ async function loadAllFiles() {
                 size: totalSize,
                 price: totalPrice,
                 created_at: vetrina.created_at,
-                download_count: 0, // Will be calculated when files are fetched
+                download_count: fileMetadata.reduce((sum, file) => sum + (file.download_count || 0), 0),
                 rating: 0, // Will be updated when reviews are loaded
                 review_count: 0, // Will be updated when reviews are loaded
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
@@ -2966,9 +2966,9 @@ async function loadAllFiles() {
                 document_types: documentTypes,
                 document_type: fileCount > 1 ? 'BUNDLE' : (documentTypes.length > 0 ? documentTypes[0] : 'Documento'),
                 author_username: vetrina.owner?.username || 'Unknown',
-                owned: false, // Will be determined when files are fetched
+                owned: fileMetadata.length > 0 ? fileMetadata.every(file => file.owned) : false,
                 favorite: vetrina.favorite === true,
-                tags: actualTags, // Use the actual file tags
+                tags: actualTags, // Use the actual file tags from metadata
                 primary_tag: actualTags.length > 0 ? actualTags[0] : null, // Use first actual tag
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
@@ -3168,28 +3168,7 @@ async function loadVetrinaFiles(vetrinaId) {
     try {
         console.log(`🔄 Fetching files for vetrina ${vetrinaId}...`);
         
-        // Check if we already have the file data from loadAllFiles
-        const existingVetrina = currentFiles.find(item => 
-            (item.vetrina_id || item.id) === parseInt(vetrinaId)
-        );
-        
-        if (existingVetrina && existingVetrina.filesLoaded) {
-            console.log(`✅ File data already loaded for vetrina ${vetrinaId}, using cached data`);
-            // Return the data we already have
-            return {
-                files: [], // We don't store full file data in the card, but we have the metadata
-                fileCount: existingVetrina.fileCount,
-                totalSize: existingVetrina.size,
-                totalPrice: existingVetrina.price,
-                totalDownloads: existingVetrina.download_count,
-                documentTypes: existingVetrina.document_types,
-                tags: existingVetrina.tags,
-                primaryTag: existingVetrina.primary_tag,
-                owned: existingVetrina.owned
-            };
-        }
-        
-        // Fetch files for this specific vetrina if not already loaded
+        // Always fetch fresh data from the redacted endpoint
         const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/files`);
         const realFiles = filesResponse?.files || [];
         
@@ -3527,7 +3506,7 @@ function renderDocuments(files) {
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             } else {
-                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
+                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div><div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
                             }
                         }
                         
@@ -3548,13 +3527,6 @@ function renderDocuments(files) {
             </button>
             
             <div class="document-content">
-                ${(() => {
-                    // Add more-types container to document content area if there are multiple tags
-                    if (item.tags && item.tags.length > 1) {
-                        return `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
-                    }
-                    return '';
-                })()}
                 <div class="document-header">
                     <div class="document-title-section">
                         <h3 class="document-title" title="${documentTitle}">${documentTitle}</h3>
@@ -3884,47 +3856,45 @@ async function previewDocument(fileId) {
     const file = currentFiles.find(f => f.id === fileId);
     if (!file) return;
 
-    // If files haven't been loaded yet, load them now
-    if (!file.filesLoaded) {
-        try {
-            showStatus('Caricamento dettagli documento... 📚');
+    // Always load files when preview is clicked (on-demand loading)
+    try {
+        showStatus('Caricamento dettagli documento... 📚');
+        
+        // Load files for this specific vetrina using the redacted endpoint
+        const fileData = await loadVetrinaFiles(file.id);
+        if (fileData && fileData.files.length > 0) {
+            // Update the file object with loaded data
+            file.fileCount = fileData.fileCount;
+            file.files = fileData.files;
+            file.size = fileData.totalSize;
+            file.price = fileData.totalPrice;
+            file.download_count = fileData.totalDownloads;
+            file.document_types = fileData.documentTypes;
+            file.document_type = fileData.fileCount > 1 ? 'BUNDLE' : fileData.documentTypes[0] || 'FILE';
+            file.owned = fileData.owned;
+            file.tags = fileData.tags;
+            file.primary_tag = fileData.primaryTag;
+            file.filesLoaded = true;
             
-            // Load files for this specific vetrina using the new function
-            const fileData = await loadVetrinaFiles(file.id);
-            if (fileData && fileData.files.length > 0) {
-                // Update the file object with loaded data
-                file.fileCount = fileData.fileCount;
-                file.files = fileData.files;
-                file.size = fileData.totalSize;
-                file.price = fileData.totalPrice;
-                file.download_count = fileData.totalDownloads;
-                file.document_types = fileData.documentTypes;
-                file.document_type = fileData.fileCount > 1 ? 'BUNDLE' : fileData.documentTypes[0] || 'FILE';
-                file.owned = fileData.owned;
-                file.tags = fileData.tags;
-                file.primary_tag = fileData.primaryTag;
-                file.filesLoaded = true;
-                
-                // Update the filename to show actual file count
-                file.filename = fileData.fileCount > 1 ? `${fileData.fileCount} files` : fileData.files[0].filename;
-                
-                // Update the UI to show the new tags
-                updateDocumentCardTags(file.id, fileData.tags);
-            } else {
-                showError('Nessun file trovato per questa vetrina.');
-                return;
-            }
-        } catch (error) {
-            console.error(`Error loading files for vetrina ${file.id}:`, error);
+            // Update the filename to show actual file count
+            file.filename = fileData.fileCount > 1 ? `${fileData.fileCount} files` : fileData.files[0].filename;
             
-            // Check if it's a CORS/preflight error
-            if (error.message.includes('CORS error') || error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
-                showError('Errore CORS: Il server non permette richieste cross-origin per questo endpoint. Contatta l\'amministratore.');
-            } else {
-                showError('Errore nel caricamento dei dettagli del documento.');
-            }
+            // Update the UI to show the new tags
+            updateDocumentCardTags(file.id, fileData.tags);
+        } else {
+            showError('Nessun file trovato per questa vetrina.');
             return;
         }
+    } catch (error) {
+        console.error(`Error loading files for vetrina ${file.id}:`, error);
+        
+        // Check if it's a CORS/preflight error
+        if (error.message.includes('CORS error') || error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
+            showError('Errore CORS: Il server non permette richieste cross-origin per questo endpoint. Contatta l\'amministratore.');
+        } else {
+            showError('Errore nel caricamento dei dettagli del documento.');
+        }
+        return;
     }
 
     // Use REAL database information for preview
@@ -4024,11 +3994,11 @@ async function previewDocument(fileId) {
     const modalLoading = document.getElementById(`modalPreviewLoading-${file.id}`);
     
     if (modalLoading) {
-        // Replace loading with document icon
+        // Show loading state
         modalLoading.innerHTML = `
-            <div class="preview-icon">
-                <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
-                <div class="file-extension">${file.document_type}</div>
+            <div class="preview-loading">
+                <span class="material-symbols-outlined">hourglass_empty</span>
+                <p>Caricamento anteprima...</p>
             </div>
         `;
         modalLoading.style.display = 'flex';
@@ -4036,6 +4006,67 @@ async function previewDocument(fileId) {
     
     if (modalImg) {
         modalImg.style.display = 'none';
+    }
+    
+    // Load redacted preview for the first file in the vetrina
+    if (file.files && file.files.length > 0) {
+        try {
+            const firstFile = file.files[0];
+            const previewResponse = await makeAuthenticatedRequest(`/files/${firstFile.id}/redacted`);
+            
+            if (previewResponse && previewResponse.preview_url) {
+                // Show the redacted preview
+                if (modalImg) {
+                    modalImg.src = previewResponse.preview_url;
+                    modalImg.style.display = 'block';
+                    modalImg.onload = () => {
+                        if (modalLoading) modalLoading.style.display = 'none';
+                    };
+                    modalImg.onerror = () => {
+                        // Fallback to icon if image fails to load
+                        if (modalLoading) {
+                            modalLoading.innerHTML = `
+                                <div class="preview-icon">
+                                    <span class="document-icon">${getDocumentPreviewIcon(firstFile.filename)}</span>
+                                    <div class="file-extension">${getFileTypeFromFilename(firstFile.filename)}</div>
+                                </div>
+                            `;
+                        }
+                    };
+                }
+            } else {
+                // Fallback to icon if no preview available
+                if (modalLoading) {
+                    modalLoading.innerHTML = `
+                        <div class="preview-icon">
+                            <span class="document-icon">${getDocumentPreviewIcon(firstFile.filename)}</span>
+                            <div class="file-extension">${getFileTypeFromFilename(firstFile.filename)}</div>
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading redacted preview:', error);
+            // Fallback to icon on error
+            if (modalLoading) {
+                modalLoading.innerHTML = `
+                    <div class="preview-icon">
+                        <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
+                        <div class="file-extension">${file.document_type}</div>
+                    </div>
+                `;
+            }
+        }
+    } else {
+        // No files available, show generic icon
+        if (modalLoading) {
+            modalLoading.innerHTML = `
+                <div class="preview-icon">
+                    <span class="document-icon">${getDocumentPreviewIcon(file.filename)}</span>
+                    <div class="file-extension">${file.document_type}</div>
+                </div>
+            `;
+        }
     }
     
     showStatus('Anteprima caricata! 👁️');

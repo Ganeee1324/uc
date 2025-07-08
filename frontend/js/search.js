@@ -2825,9 +2825,9 @@ function showLoadingCards(count = 8) {
 async function loadAllFiles() {
     try {
         // Loading cards are already shown from HTML
-        showStatus('Caricamento documenti... 📚');
+        showStatus('Caricamento vetrine... 📚');
         
-        // Get vetrine metadata initially (this is fast - single API call)
+        // Get vetrine metadata only - NO file fetching here!
         const vetrineResponse = await makeAuthenticatedRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
@@ -2836,45 +2836,44 @@ async function loadAllFiles() {
         currentVetrine = vetrineResponse.vetrine || [];
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         console.log('🔍 Raw vetrine data sample:', currentVetrine.slice(0, 3));
-        console.log('🔍 First vetrina structure:', currentVetrine[0] ? Object.keys(currentVetrina[0]) : 'No vetrine found');
         
-        // Transform vetrine into card items using ONLY metadata (no individual file fetching)
-        console.log('🔄 Processing vetrine data for UI (optimized - no individual file fetching)...');
+        // Transform vetrine into card items using ONLY metadata (no file fetching)
+        console.log('🔄 Processing vetrine metadata for UI...');
         const allFiles = [];
         
         for (const vetrina of currentVetrine) {
-            console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}`);
+            console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
-            // Create a card item using ONLY vetrina metadata (no file fetching)
+            // Create a card item using ONLY vetrina metadata (no file data yet)
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
-                filesLoaded: false, // Mark as not loaded - files will be fetched on demand
-                fileCount: vetrina.file_count || vetrina.files_count || 1, // Use metadata if available
-                files: [], // Empty array - files will be loaded when needed
+                filesLoaded: false, // Mark as NOT loaded - files will be fetched on demand
+                fileCount: 0, // Will be updated when files are fetched
+                files: [], // Empty array - files will be fetched on demand
                 // Use vetrina info for the card
-                filename: vetrina.name || 'Vetrina Senza Nome',
+                filename: 'Vetrina', // Generic name until files are loaded
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
-                size: vetrina.total_size || vetrina.size || 0, // Use metadata if available
-                price: vetrina.total_price || vetrina.price || 0, // Use metadata if available
+                size: 0, // Will be calculated when files are fetched
+                price: 0, // Will be calculated when files are fetched
                 created_at: vetrina.created_at,
-                download_count: vetrina.total_downloads || vetrina.download_count || 0, // Use metadata if available
-                rating: vetrina.average_rating || vetrina.rating || 0, // Use metadata if available
-                review_count: vetrina.review_count || 0, // Use metadata if available
+                download_count: 0, // Will be calculated when files are fetched
+                rating: 0, // Will be updated when reviews are loaded
+                review_count: 0, // Will be updated when reviews are loaded
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
                 faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
                 language: vetrina.course_instance?.language || 'Italiano',
                 canale: vetrina.course_instance?.canale || 'A',
                 course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                document_types: vetrina.document_types || ['DOCUMENT'], // Use metadata if available
-                document_type: (vetrina.file_count || vetrina.files_count || 1) > 1 ? 'BUNDLE' : 'DOCUMENT',
+                document_types: [], // Will be populated when files are fetched
+                document_type: 'BUNDLE', // Generic type until files are loaded
                 author_username: vetrina.owner?.username || 'Unknown',
-                owned: vetrina.owned || false,
+                owned: false, // Will be determined when files are fetched
                 favorite: vetrina.favorite === true,
-                tags: vetrina.tags || [], // Use metadata if available
-                primary_tag: vetrina.primary_tag || null, // Use metadata if available
+                tags: [], // Will be populated when files are fetched
+                primary_tag: null, // Will be set when files are fetched
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
                     name: vetrina.name,
@@ -2894,9 +2893,6 @@ async function loadAllFiles() {
         renderDocuments(currentFiles);
         populateFilterOptions();
         showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);
-        
-        // Load file details on demand when user interacts with cards
-        console.log('✅ Optimized loading complete - file details will be loaded on demand');
         
     } catch (error) {
         console.error('Error loading vetrine:', error);
@@ -2944,51 +2940,6 @@ function extractFacultyFromVetrina(vetrinaName) {
     return 'Facoltà Generale';
 }
 
-// Load file details on demand for a specific vetrina
-async function loadVetrinaFileDetails(vetrinaId) {
-    try {
-        console.log(`🔄 Loading file details for vetrina ${vetrinaId} on demand...`);
-        
-        const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/files`);
-        const realFiles = filesResponse?.files || [];
-        
-        if (realFiles.length === 0) {
-            console.log(`⚠️ No files found for vetrina ${vetrinaId}`);
-            return null;
-        }
-        
-        // Calculate totals for the vetrina using REAL data
-        const totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
-        const totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
-        
-        return {
-            files: realFiles.map(file => ({
-                id: file.file_id,
-                filename: file.filename,
-                title: file.original_filename || file.filename,
-                size: file.size || 0,
-                price: file.price || 0,
-                document_type: getFileTypeFromFilename(file.filename),
-                created_at: file.created_at,
-                download_count: file.download_count || 0,
-                owned: file.owned || false,
-                tag: file.tag || null
-            })),
-            totalSize,
-            totalPrice,
-            fileCount: realFiles.length,
-            documentTypes: Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename)))),
-            tags: realFiles.map(file => file.tag).filter(tag => tag !== null),
-            primaryTag: realFiles.find(file => file.tag)?.tag || null,
-            owned: realFiles.every(file => file.owned)
-        };
-        
-    } catch (error) {
-        console.error(`Error loading file details for vetrina ${vetrinaId}:`, error);
-        return null;
-    }
-}
-
 // Helper function to get file type from filename
 function getFileTypeFromFilename(filename) {
     const extension = filename.split('.').pop()?.toLowerCase();
@@ -3004,6 +2955,54 @@ function getFileTypeFromFilename(filename) {
         'txt': 'TXT'
     };
     return typeMap[extension] || 'FILE';
+}
+
+// Function to fetch files for a specific vetrina on demand
+async function loadVetrinaFiles(vetrinaId) {
+    try {
+        console.log(`🔄 Fetching files for vetrina ${vetrinaId}...`);
+        
+        // Fetch files for this specific vetrina
+        const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/files`);
+        const realFiles = filesResponse?.files || [];
+        
+        if (realFiles.length === 0) {
+            console.log(`⚠️ No files found for vetrina ${vetrinaId}`);
+            return null;
+        }
+        
+        // Calculate totals for the vetrina using REAL data
+        const totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+        const totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
+        
+        // Return processed file data
+        return {
+            files: realFiles.map(file => ({
+                id: file.file_id,
+                filename: file.filename,
+                title: file.original_filename || file.filename,
+                size: file.size || 0,
+                price: file.price || 0,
+                document_type: getFileTypeFromFilename(file.filename),
+                created_at: file.created_at,
+                download_count: file.download_count || 0,
+                owned: file.owned || false,
+                tag: file.tag || null
+            })),
+            fileCount: realFiles.length,
+            totalSize: totalSize,
+            totalPrice: totalPrice,
+            totalDownloads: realFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
+            documentTypes: Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename)))),
+            tags: realFiles.map(file => file.tag).filter(tag => tag !== null),
+            primaryTag: realFiles.find(file => file.tag)?.tag || null,
+            owned: realFiles.every(file => file.owned)
+        };
+        
+    } catch (error) {
+        console.error(`Error loading files for vetrina ${vetrinaId}:`, error);
+        return null;
+    }
 }
 
 function getDocumentPreviewIcon(filename) {
@@ -3165,48 +3164,68 @@ function renderDocuments(files) {
         const stars = generateStars(Math.floor(rating));
         const documentCategory = getDocumentCategory(documentTitle, description);
         
-        // Determine if this is a multi-file vetrina
+        // Determine if this is a multi-file vetrina and if files have been loaded
         const isMultiFile = item.isVetrina && item.fileCount > 1;
+        const filesLoaded = item.filesLoaded;
         const fileStackClass = isMultiFile ? 'file-stack' : '';
         const stackCountBadge = isMultiFile ? `<div class="file-count-badge">${item.fileCount}</div>` : '';
         
-        // Generate preview using metadata (optimized approach)
+        // Generate preview based on whether files have been loaded
         let previewContent;
-        if (isMultiFile) {
-            // Show professional file stack for multi-file vetrine
+        if (item.isVetrina && !filesLoaded) {
+            // Show placeholder for vetrina that hasn't been loaded yet
+            previewContent = `
+                <div class="preview-icon">
+                    <span class="document-icon">📁</span>
+                    <div class="file-extension">VETRINA</div>
+                </div>
+            `;
+        } else if (isMultiFile && filesLoaded) {
+            // Show professional file stack with uniform grid on hover
             const fileCount = item.fileCount;
+            const files = item.files;
             
-            // Use document types from metadata if available, otherwise show generic stack
-            const documentTypes = item.document_types || ['DOCUMENT'];
-            const primaryType = documentTypes[0] || 'DOCUMENT';
-            const secondaryType = documentTypes[1] || primaryType;
-            const tertiaryType = documentTypes[2] || secondaryType;
-            
+            // Generate dynamic stack layers based on file count
             let stackLayers = '';
             if (fileCount === 2) {
                 stackLayers = `
                     <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(`file.${secondaryType.toLowerCase()}`)}</span>
-                        <div class="file-extension">${secondaryType}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                        <div class="file-extension">${files[1].document_type}</div>
                     </div>
                     <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(`file.${primaryType.toLowerCase()}`)}</span>
-                        <div class="file-extension">${primaryType}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                        <div class="file-extension">${files[0].document_type}</div>
+                    </div>
+                `;
+            } else if (fileCount === 3) {
+                stackLayers = `
+                    <div class="stack-layer stack-back">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
+                        <div class="file-extension">${files[2].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-middle">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                        <div class="file-extension">${files[1].document_type}</div>
+                    </div>
+                    <div class="stack-layer stack-front">
+                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                        <div class="file-extension">${files[0].document_type}</div>
                     </div>
                 `;
             } else {
                 stackLayers = `
                     <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(`file.${tertiaryType.toLowerCase()}`)}</span>
-                        <div class="file-extension">${tertiaryType}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
+                        <div class="file-extension">${files[2].document_type}</div>
                     </div>
                     <div class="stack-layer stack-middle">
-                        <span class="document-icon">${getDocumentPreviewIcon(`file.${secondaryType.toLowerCase()}`)}</span>
-                        <div class="file-extension">${secondaryType}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                        <div class="file-extension">${files[1].document_type}</div>
                     </div>
                     <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(`file.${primaryType.toLowerCase()}`)}</span>
-                        <div class="file-extension">${primaryType}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                        <div class="file-extension">${files[0].document_type}</div>
                     </div>
                 `;
             }
@@ -3220,9 +3239,8 @@ function renderDocuments(files) {
                 </div>
             `;
         } else {
-            // Single file preview - use metadata to determine type
-            const documentType = item.document_type || 'DOCUMENT';
-            const filename = item.filename || 'document';
+            // Single file preview or loaded vetrina
+            const filename = item.isVetrina && filesLoaded ? item.files[0].filename : item.filename;
             previewContent = `
                 <div class="preview-icon">
                     <span class="document-icon">${getDocumentPreviewIcon(filename)}</span>
@@ -3242,10 +3260,13 @@ function renderDocuments(files) {
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
-                    ${item.tags && item.tags.length > 0 ?
-                        `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
-                        (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
-                        : (item.primary_tag ? `<div class="document-type-badge">${getTagDisplayName(item.primary_tag)}</div>` : '')
+                    ${item.isVetrina && !filesLoaded ? 
+                        '<div class="document-type-badge">Vetrina</div>' :
+                        (item.tags && item.tags.length > 0 ?
+                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
+                            (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
+                            : ''
+                        )
                     }
                 </div>
                 <div class="rating-badge">
@@ -3595,45 +3616,27 @@ async function previewDocument(fileId) {
         try {
             showStatus('Caricamento dettagli documento... 📚');
             
-            // Load files for this specific vetrina
-            const filesResponse = await makeAuthenticatedRequest(`/vetrine/${file.id}/files`);
-            if (filesResponse && filesResponse.files) {
-                const files = filesResponse.files;
+            // Load files for this specific vetrina using the new function
+            const fileData = await loadVetrinaFiles(file.id);
+            if (fileData && fileData.files.length > 0) {
+                // Update the file object with loaded data
+                file.fileCount = fileData.fileCount;
+                file.files = fileData.files;
+                file.size = fileData.totalSize;
+                file.price = fileData.totalPrice;
+                file.download_count = fileData.totalDownloads;
+                file.document_types = fileData.documentTypes;
+                file.document_type = fileData.fileCount > 1 ? 'BUNDLE' : fileData.documentTypes[0] || 'FILE';
+                file.owned = fileData.owned;
+                file.tags = fileData.tags;
+                file.primary_tag = fileData.primaryTag;
+                file.filesLoaded = true;
                 
-                if (files.length > 0) {
-                    // Calculate total size and price for the vetrina
-                    const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
-                    const totalPrice = files.reduce((sum, file) => sum + (file.price || 0), 0);
-                    
-                    // Update the file object with loaded data
-                    file.fileCount = files.length;
-                    file.files = files.map(file => ({
-                        id: file.id,
-                        filename: file.filename,
-                        title: getOriginalFilename(file.filename),
-                        size: file.size || 0,
-                        price: file.price || 0,
-                        document_type: getFileTypeFromFilename(file.filename),
-                        created_at: file.created_at,
-                        download_count: file.download_count || 0,
-                        owned: file.owned || false,
-                        tag: file.tag || null
-                    }));
-                    file.size = totalSize;
-                    file.price = totalPrice;
-                    file.download_count = files.reduce((sum, file) => sum + (file.download_count || 0), 0);
-                    file.document_types = files.length > 1 ? 
-                        Array.from(new Set(files.map(file => getDocumentCategory(getOriginalFilename(file.filename), ''))))
-                        : [getDocumentCategory(getOriginalFilename(files[0].filename), '')];
-                    file.document_type = files.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(files[0].filename);
-                    file.owned = files.every(file => file.owned);
-                    file.tags = files.map(file => file.tag).filter(tag => tag !== null);
-                    file.primary_tag = files.find(file => file.tag)?.tag || null;
-                    file.filesLoaded = true;
-                    
-                    // Update the filename to show actual file count
-                    file.filename = files.length > 1 ? `${files.length} files` : files[0].filename;
-                }
+                // Update the filename to show actual file count
+                file.filename = fileData.fileCount > 1 ? `${fileData.fileCount} files` : fileData.files[0].filename;
+            } else {
+                showError('Nessun file trovato per questa vetrina.');
+                return;
             }
         } catch (error) {
             console.error(`Error loading files for vetrina ${file.id}:`, error);
@@ -4460,7 +4463,6 @@ async function openQuickLook(vetrina) {
     // Prevent multiple modals
     if (document.getElementById('quick-look-overlay')) return;
 
-    // Show loading state
     const modalHTML = `
         <div id="quick-look-overlay" class="quick-look-overlay">
             <div class="quick-look-modal">
@@ -4470,7 +4472,7 @@ async function openQuickLook(vetrina) {
                         <h2 class="quick-look-title">${vetrina.title || vetrina.name}</h2>
                         <p class="quick-look-description">${vetrina.description || ''}</p>
                         <div class="quick-look-meta">
-                            <span class="quick-look-file-count">${vetrina.fileCount || 1} file${(vetrina.fileCount || 1) !== 1 ? 's' : ''}</span>
+                            <span class="quick-look-file-count">Caricamento...</span>
                             <span class="quick-look-separator">•</span>
                             <span class="quick-look-author">Caricato da ${vetrina.author_username || 'Unknown'}</span>
                         </div>
@@ -4485,7 +4487,7 @@ async function openQuickLook(vetrina) {
                 <div class="quick-look-body">
                     <div class="quick-look-main-preview">
                         <div class="preview-placeholder">
-                            <span class="material-symbols-outlined">hourglass_empty</span>
+                            <span class="material-symbols-outlined">visibility</span>
                             <p>Caricamento file...</p>
                         </div>
                     </div>
@@ -4495,8 +4497,8 @@ async function openQuickLook(vetrina) {
                         </div>
                         <ul class="quick-look-file-list">
                             <li class="quick-look-loading">
-                                <span class="material-symbols-outlined">hourglass_empty</span>
-                                Caricamento...
+                                <div class="loading-spinner"></div>
+                                <span>Caricamento file...</span>
                             </li>
                         </ul>
                     </div>
@@ -4511,11 +4513,81 @@ async function openQuickLook(vetrina) {
     const closeButton = overlay.querySelector('.quick-look-close-button');
     const fileList = overlay.querySelector('.quick-look-file-list');
 
+    // Load files if not already loaded
+    if (!vetrina.filesLoaded) {
+        try {
+            const fileData = await loadVetrinaFiles(vetrina.id);
+            if (fileData && fileData.files.length > 0) {
+                // Update the vetrina object with loaded data
+                vetrina.files = fileData.files;
+                vetrina.fileCount = fileData.fileCount;
+                vetrina.size = fileData.totalSize;
+                vetrina.price = fileData.totalPrice;
+                vetrina.download_count = fileData.totalDownloads;
+                vetrina.document_types = fileData.documentTypes;
+                vetrina.document_type = fileData.fileCount > 1 ? 'BUNDLE' : fileData.documentTypes[0] || 'FILE';
+                vetrina.owned = fileData.owned;
+                vetrina.tags = fileData.tags;
+                vetrina.primary_tag = fileData.primaryTag;
+                vetrina.filesLoaded = true;
+                vetrina.filename = fileData.fileCount > 1 ? `${fileData.fileCount} files` : fileData.files[0].filename;
+            } else {
+                // Show error state
+                fileList.innerHTML = '<li class="quick-look-error">Nessun file trovato</li>';
+                return;
+            }
+        } catch (error) {
+            console.error(`Error loading files for quick look:`, error);
+            fileList.innerHTML = '<li class="quick-look-error">Errore nel caricamento dei file</li>';
+            return;
+        }
+    }
+
+    // Update file count in header
+    const fileCountElement = overlay.querySelector('.quick-look-file-count');
+    if (fileCountElement) {
+        fileCountElement.textContent = `${vetrina.files.length} file${vetrina.files.length !== 1 ? 's' : ''}`;
+    }
+
+    // Clear loading state and populate file list
+    fileList.innerHTML = '';
+    vetrina.files.forEach((file, index) => {
+        const fileItem = document.createElement('li');
+        fileItem.className = 'quick-look-file-item';
+        fileItem.dataset.index = index;
+        
+        // Get file type and size
+        const fileType = getFileTypeFromFilename(file.filename);
+        const fileSize = formatFileSize(file.size || 0);
+        
+        fileItem.innerHTML = `
+            <div class="file-item-icon">${getDocumentPreviewIcon(file.filename)}</div>
+            <div class="file-item-content">
+                <div class="file-item-name" title="${file.filename}">${file.filename}</div>
+                <div class="file-item-details">
+                    <span class="file-item-type">${fileType}</span>
+                    <span class="file-item-separator">•</span>
+                    <span class="file-item-size">${fileSize}</span>
+                </div>
+            </div>
+        `;
+        fileList.appendChild(fileItem);
+    });
+    
+    // Show first file by default
+    switchQuickLookPreview(vetrina, 0);
+
     // Event listeners
     closeButton.addEventListener('click', closeQuickLook);
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             closeQuickLook();
+        }
+    });
+    fileList.addEventListener('click', (e) => {
+        const item = e.target.closest('.quick-look-file-item');
+        if (item) {
+            switchQuickLookPreview(vetrina, parseInt(item.dataset.index, 10));
         }
     });
 
@@ -4524,68 +4596,6 @@ async function openQuickLook(vetrina) {
 
     // Animate in
     setTimeout(() => overlay.classList.add('visible'), 10);
-
-    try {
-        // Load file details on demand
-        console.log(`🔄 Loading file details for quick look: vetrina ${vetrina.id}`);
-        const fileDetails = await loadVetrinaFileDetails(vetrina.id);
-        
-        if (!fileDetails || !fileDetails.files || fileDetails.files.length === 0) {
-            // Show error state
-            fileList.innerHTML = `
-                <li class="quick-look-error">
-                    <span class="material-symbols-outlined">error</span>
-                    Nessun file trovato
-                </li>
-            `;
-            return;
-        }
-
-        // Clear loading state and populate file list
-        fileList.innerHTML = '';
-        fileDetails.files.forEach((file, index) => {
-            const fileItem = document.createElement('li');
-            fileItem.className = 'quick-look-file-item';
-            fileItem.dataset.index = index;
-            
-            // Get file type and size
-            const fileType = getFileTypeFromFilename(file.filename);
-            const fileSize = formatFileSize(file.size || 0);
-            
-            fileItem.innerHTML = `
-                <div class="file-item-icon">${getDocumentPreviewIcon(file.filename)}</div>
-                <div class="file-item-content">
-                    <div class="file-item-name" title="${file.filename}">${file.filename}</div>
-                    <div class="file-item-details">
-                        <span class="file-item-type">${fileType}</span>
-                        <span class="file-item-separator">•</span>
-                        <span class="file-item-size">${fileSize}</span>
-                    </div>
-                </div>
-            `;
-            fileList.appendChild(fileItem);
-        });
-
-        // Add click handler for file list
-        fileList.addEventListener('click', (e) => {
-            const item = e.target.closest('.quick-look-file-item');
-            if (item) {
-                switchQuickLookPreview(fileDetails.files, parseInt(item.dataset.index, 10));
-            }
-        });
-        
-        // Show first file by default
-        switchQuickLookPreview(fileDetails.files, 0);
-
-    } catch (error) {
-        console.error('Error loading file details for quick look:', error);
-        fileList.innerHTML = `
-            <li class="quick-look-error">
-                <span class="material-symbols-outlined">error</span>
-                Errore nel caricamento dei file
-            </li>
-        `;
-    }
 }
 
 function closeQuickLook() {
@@ -4601,8 +4611,8 @@ function closeQuickLook() {
     }
 }
 
-function switchQuickLookPreview(files, index) {
-    const file = files[index];
+function switchQuickLookPreview(vetrina, index) {
+    const file = vetrina.files[index];
     if (!file) return;
 
     const previewContainer = document.querySelector('.quick-look-main-preview');

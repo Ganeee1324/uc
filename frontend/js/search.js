@@ -2860,46 +2860,81 @@ async function loadAllFiles() {
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));
         
-        // Transform vetrine into card items using ONLY metadata (no file fetching)
+        // Fetch all files for all vetrine in a single request
+        showStatus('Caricamento file... 📁');
+        const allFilesData = {};
+        
+        try {
+            // Fetch files for all vetrine at once using a more efficient approach
+            // We'll fetch files for each vetrina but in parallel to improve performance
+            const filePromises = currentVetrine.map(async (vetrina) => {
+                try {
+                    const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
+                    return {
+                        vetrinaId: vetrina.vetrina_id,
+                        files: filesResponse?.files || []
+                    };
+                } catch (error) {
+                    console.warn(`⚠️ Error fetching files for vetrina ${vetrina.vetrina_id}:`, error);
+                    return {
+                        vetrinaId: vetrina.vetrina_id,
+                        files: []
+                    };
+                }
+            });
+            
+            const fileResults = await Promise.all(filePromises);
+            
+            // Organize files by vetrina ID
+            fileResults.forEach(result => {
+                allFilesData[result.vetrinaId] = result.files;
+            });
+            
+            console.log('📊 Fetched files for all vetrine:', Object.keys(allFilesData).length, 'vetrine with files');
+        } catch (error) {
+            console.warn('⚠️ Error fetching files in bulk, falling back to individual requests:', error);
+            // Fallback: fetch files individually if bulk approach fails
+            for (const vetrina of currentVetrine) {
+                try {
+                    const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
+                    allFilesData[vetrina.vetrina_id] = filesResponse?.files || [];
+                } catch (error) {
+                    console.warn(`⚠️ Error fetching files for vetrina ${vetrina.vetrina_id}:`, error);
+                    allFilesData[vetrina.vetrina_id] = [];
+                }
+            }
+        }
+        
+        // Transform vetrine into card items using the fetched file data
         console.log('🔄 Processing vetrina metadata for UI...');
         const allFiles = [];
         
         for (const vetrina of currentVetrine) {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
-            // Fetch actual file tags for this vetrina
+            // Get files for this vetrina from our fetched data
+            const realFiles = allFilesData[vetrina.vetrina_id] || [];
             let actualTags = [];
-            let fileCount = 0;
+            let fileCount = realFiles.length;
             let totalSize = 0;
             let totalPrice = 0;
             let documentTypes = [];
             
-            try {
-                console.log(`🔄 Fetching actual file data for vetrina ${vetrina.vetrina_id}...`);
-                const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
-                const realFiles = filesResponse?.files || [];
+            if (realFiles.length > 0) {
+                totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+                totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
                 
-                if (realFiles.length > 0) {
-                    fileCount = realFiles.length;
-                    totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
-                    totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
-                    
-                    // Extract actual tags from files
-                    const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null && tag !== undefined);
-                    actualTags = Array.from(new Set(fileTags)); // Remove duplicates
-                    
-                    // Extract document types from file extensions
-                    documentTypes = Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename))));
-                    
-                    console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with tags:`, actualTags);
-                } else {
-                    console.log(`⚠️ No files found for vetrina ${vetrina.vetrina_id}, using fallback tags`);
-                    // Fallback to extracted tags if no files found
-                    actualTags = extractTagsFromVetrina(vetrina);
-                }
-            } catch (error) {
-                console.warn(`⚠️ Error fetching files for vetrina ${vetrina.vetrina_id}:`, error);
-                // Fallback to extracted tags if API call fails
+                // Extract actual tags from files
+                const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null && tag !== undefined);
+                actualTags = Array.from(new Set(fileTags)); // Remove duplicates
+                
+                // Extract document types from file extensions
+                documentTypes = Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename))));
+                
+                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with tags:`, actualTags);
+            } else {
+                console.log(`⚠️ No files found for vetrina ${vetrina.vetrina_id}, using fallback tags`);
+                // Fallback to extracted tags if no files found
                 actualTags = extractTagsFromVetrina(vetrina);
             }
             
@@ -2911,7 +2946,7 @@ async function loadAllFiles() {
                 isVetrina: true,
                 filesLoaded: true, // Mark as loaded since we fetched the data
                 fileCount: fileCount,
-                files: [], // We don't need to store all file data here, just the metadata
+                files: realFiles, // Store the actual files for preview purposes
                 // Use vetrina info for the card
                 filename: 'Vetrina', // Generic name until files are loaded
                 title: vetrina.name || 'Vetrina Senza Nome',
@@ -3383,21 +3418,30 @@ function renderDocuments(files) {
         } else if (isMultiFile && filesLoaded) {
             // Show professional file stack with uniform grid on hover
             const fileCount = item.fileCount;
-            const files = item.files;
+            const files = item.files || [];
             
-            // Generate dynamic stack layers based on file count
-            let stackLayers = '';
-            if (fileCount === 2) {
-                stackLayers = `
-                    <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
-                        <div class="file-extension">${files[1].document_type}</div>
-                    </div>
-                    <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
-                        <div class="file-extension">${files[0].document_type}</div>
+            // Safety check: ensure we have files to display
+            if (files.length === 0) {
+                previewContent = `
+                    <div class="preview-icon">
+                        <span class="document-icon">📁</span>
+                        <div class="file-extension">VETRINA</div>
                     </div>
                 `;
+            } else {
+                // Generate dynamic stack layers based on file count
+                let stackLayers = '';
+                if (fileCount === 2 && files.length >= 2) {
+                    stackLayers = `
+                        <div class="stack-layer stack-back">
+                            <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
+                            <div class="file-extension">${files[1].document_type}</div>
+                        </div>
+                        <div class="stack-layer stack-front">
+                            <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
+                            <div class="file-extension">${files[0].document_type}</div>
+                        </div>
+                    `;
             } else if (fileCount === 3) {
                 stackLayers = `
                     <div class="stack-layer stack-back">
@@ -3414,18 +3458,20 @@ function renderDocuments(files) {
                     </div>
                 `;
             } else {
+                // For 4+ files, show first 3 files in stack
+                const filesToShow = files.slice(0, 3);
                 stackLayers = `
                     <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
-                        <div class="file-extension">${files[2].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(filesToShow[2].filename)}</span>
+                        <div class="file-extension">${filesToShow[2].document_type}</div>
                     </div>
                     <div class="stack-layer stack-middle">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
-                        <div class="file-extension">${files[1].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(filesToShow[1].filename)}</span>
+                        <div class="file-extension">${filesToShow[1].document_type}</div>
                     </div>
                     <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
-                        <div class="file-extension">${files[0].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(filesToShow[0].filename)}</span>
+                        <div class="file-extension">${filesToShow[0].document_type}</div>
                     </div>
                 `;
             }
@@ -3438,9 +3484,15 @@ function renderDocuments(files) {
                     </div>
                 </div>
             `;
+            }
         } else {
             // Single file preview or loaded vetrina
-            const filename = item.isVetrina && filesLoaded ? item.files[0].filename : item.filename;
+            let filename;
+            if (item.isVetrina && filesLoaded && item.files && item.files.length > 0) {
+                filename = item.files[0].filename;
+            } else {
+                filename = item.filename;
+            }
             previewContent = `
                 <div class="preview-icon">
                     <span class="document-icon">${getDocumentPreviewIcon(filename)}</span>

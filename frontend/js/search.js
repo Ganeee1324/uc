@@ -3007,6 +3007,24 @@ async function loadValidTags() {
     }
 }
 
+// Function to update document card tags in the UI
+function updateDocumentCardTags(vetrinaId, tags) {
+    const card = document.querySelector(`[data-vetrina-id="${vetrinaId}"]`);
+    if (!card) return;
+    
+    const badgesContainer = card.querySelector('.document-type-badges');
+    if (!badgesContainer) return;
+    
+    // Update the badges with the new tags
+    if (tags && tags.length > 0) {
+        badgesContainer.innerHTML = tags.map(tag => 
+            `<div class="document-type-badge">${getTagDisplayName(tag)}</div>`
+        ).join('');
+    } else {
+        badgesContainer.innerHTML = '<div class="document-type-badge">Appunti</div>';
+    }
+}
+
 // Helper function to get file type from filename
 function getFileTypeFromFilename(filename) {
     const extension = filename.split('.').pop()?.toLowerCase();
@@ -3042,9 +3060,20 @@ async function loadVetrinaFiles(vetrinaId) {
         const totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
         const totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
         
-        // Get file tags and merge with vetrina-level tags
+        // Get all unique tags from all files in the vetrina
         const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null);
         const allTags = Array.from(new Set([...fileTags]));
+        
+        // If no file tags found, use vetrina-level extracted tags as fallback
+        if (allTags.length === 0) {
+            // Find the vetrina in currentFiles to get its extracted tags
+            const vetrinaInCurrentFiles = currentFiles.find(item => 
+                (item.vetrina_id || item.id) === parseInt(vetrinaId)
+            );
+            if (vetrinaInCurrentFiles && vetrinaInCurrentFiles.tags) {
+                allTags.push(...vetrinaInCurrentFiles.tags);
+            }
+        }
         
         // Return processed file data
         return {
@@ -3332,9 +3361,8 @@ function renderDocuments(files) {
                 ${viewFilesButton}
                 <div class="document-type-badges">
                     ${item.tags && item.tags.length > 0 ?
-                        `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
-                        (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
-                        : '<div class="document-type-badge">Documento</div>'
+                        item.tags.map(tag => `<div class="document-type-badge">${getTagDisplayName(tag)}</div>`).join('')
+                        : '<div class="document-type-badge">Appunti</div>'
                     }
                 </div>
                 <div class="rating-badge">
@@ -3702,6 +3730,9 @@ async function previewDocument(fileId) {
                 
                 // Update the filename to show actual file count
                 file.filename = fileData.fileCount > 1 ? `${fileData.fileCount} files` : fileData.files[0].filename;
+                
+                // Update the UI to show the new tags
+                updateDocumentCardTags(file.id, fileData.tags);
             } else {
                 showError('Nessun file trovato per questa vetrina.');
                 return;
@@ -4599,6 +4630,9 @@ async function openQuickLook(vetrina) {
                 vetrina.primary_tag = fileData.primaryTag;
                 vetrina.filesLoaded = true;
                 vetrina.filename = fileData.fileCount > 1 ? `${fileData.fileCount} files` : fileData.files[0].filename;
+                
+                // Update the UI to show the new tags
+                updateDocumentCardTags(vetrina.id, fileData.tags);
             } else {
                 // Show error state
                 fileList.innerHTML = '<li class="quick-look-error">Nessun file trovato</li>';

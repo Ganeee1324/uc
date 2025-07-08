@@ -8,6 +8,7 @@ let authToken = localStorage.getItem('authToken');
 // Document State Management
 let currentDocument = null;
 let currentVetrina = null;
+let currentVetrinaFiles = []; // Store vetrina files for bundle operations
 let currentUser = null; // Store current user data for review comparisons
 let currentPage = 1;
 let totalPages = 1;
@@ -407,35 +408,38 @@ async function fetchDocumentData(fileId) {
     }
 }
 
-// Premium Document Renderer - Enhanced with complete information
+// Premium Document Renderer - Enhanced with VETRINA-level information
 function renderDocumentInfo(docData) {
-    const { document: fileData, vetrina: vetrinaData } = docData;
+    const { document: fileData, vetrina: vetrinaData, vetrinaFiles } = docData;
     
     // Extract course information from vetrina if available
     const courseInfo = vetrinaData?.course_instance || {};
     
-    // Update document title - use original filename if available, otherwise use vetrina name
-    const title = fileData.original_filename || vetrinaData?.name || fileData.filename || 'Documento Senza Titolo';
+    // Update document title - use VETRINA name, not individual file name
+    const title = vetrinaData?.name || 'Vetrina Senza Nome';
     const titleElement = document.querySelector('.doc-title');
     if (titleElement) titleElement.textContent = title;
     document.title = `${title} - StudyHub`;
 
-    // Determine document type from filename or tag
-    const documentType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
+    // Determine document type from vetrina files (show bundle type if multiple files)
+    const fileCount = vetrinaFiles?.length || 1;
+    const documentType = fileCount > 1 ? 'Bundle' : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
     
-    // Get reviews data from docData
+    // Get reviews data from docData (reviews are at vetrina level)
     const reviews = docData.reviews || [];
     
     // Initialize reviews overlay with real data
     initializeReviewsOverlay(reviews);
     
-    // Update rating and price (use real reviews data)
+    // Update rating and price (use real reviews data for vetrina)
     const totalReviews = reviews.length;
     const rating = totalReviews > 0 
         ? parseFloat((reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1))
         : 0.0;
     const reviewCount = totalReviews;
-    const price = fileData.price || 0;
+    
+    // Calculate total price for the vetrina (sum of all files)
+    const totalPrice = vetrinaFiles?.reduce((sum, file) => sum + (file.price || 0), 0) || 0;
 
     const starsContainer = document.querySelector('.rating-stars');
     if(starsContainer) starsContainer.innerHTML = generateFractionalStars(rating);
@@ -448,11 +452,11 @@ function renderDocumentInfo(docData) {
 
     const priceElement = document.querySelector('.price-value');
     if (priceElement) {
-        if (price === 0) {
+        if (totalPrice === 0) {
             priceElement.textContent = 'Gratuito';
             priceElement.classList.remove('paid');
         } else {
-            priceElement.textContent = `€${price.toFixed(2)}`;
+            priceElement.textContent = `€${totalPrice.toFixed(2)}`;
             priceElement.classList.add('paid');
         }
     }
@@ -461,7 +465,7 @@ function renderDocumentInfo(docData) {
     const docTypeTag = document.querySelector('.doc-type-tag');
     if (docTypeTag) docTypeTag.textContent = documentType;
     
-    // Update all details (reordered to match new HTML structure)
+    // Update all details with VETRINA-level information
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
@@ -471,14 +475,15 @@ function renderDocumentInfo(docData) {
     updateDetailValue('Canale', canaleValue);
     
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
-    updateDetailValue('Pagine', totalPages);
+    
+    // Show file count instead of page count for vetrina
+    updateDetailValue('File', `${fileCount} ${fileCount === 1 ? 'file' : 'file'}`);
 
-    // Update description - use vetrina description or generate one based on document type
+    // Update description - use vetrina description
     let description = vetrinaData?.description;
     if (!description) {
-        const docType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : 'Documento';
         const courseName = courseInfo.course_name || 'questo corso';
-        description = `${docType} per ${courseName}. Materiale didattico completo e aggiornato.`;
+        description = `Raccolta di materiali didattici per ${courseName}. ${fileCount} ${fileCount === 1 ? 'file' : 'file'} inclusi.`;
     }
     
     const descriptionContainer = document.querySelector('.doc-description');
@@ -486,7 +491,7 @@ function renderDocumentInfo(docData) {
         descriptionContainer.innerHTML = `<p>${description}</p>`;
     }
     
-    // Set up action buttons with proper data
+    // Set up action buttons with vetrina data
     setupActionButtons(fileData, vetrinaData);
     
     // Render related documents with professional placeholders
@@ -1434,52 +1439,51 @@ function loadReadingPosition() {
     }
 }
 
-// Enhanced Action Buttons Setup with proper file handling
+// Enhanced Action Buttons Setup with VETRINA-level handling
 function setupActionButtons(fileData, vetrinaData = null) {
     const purchaseBtn = document.getElementById('purchaseBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const favoriteBtn = document.getElementById('favoriteBtn');
     const shareBtn = document.getElementById('shareBtn');
 
-    if (!fileData) return;
+    if (!vetrinaData) return;
 
-    const isFree = (parseFloat(fileData.price) || 0) === 0;
+    // Calculate total price for the vetrina using vetrinaFiles from docData
+    const totalPrice = currentVetrinaFiles?.reduce((sum, file) => sum + (file.price || 0), 0) || 0;
+    const isFree = totalPrice === 0;
 
-    // Purchase/Download button logic - Fix duplicate download buttons
+    // Purchase/Download button logic for VETRINA
     if (isFree) {
-        // For free documents: show primary button as download, hide secondary download
+        // For free vetrine: show primary button as download bundle, hide secondary download
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
                 <span class="material-symbols-outlined">download</span>
-                Download
+                Download Bundle
             `;
-            purchaseBtn.onclick = () => downloadDocument(fileData.file_id);
+            purchaseBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
         }
-        // Hide secondary download button for free documents
+        // Hide secondary download button for free vetrine
         if (downloadBtn) {
             downloadBtn.style.display = 'none';
         }
     } else {
-        // For paid documents: show primary as purchase, show secondary download
+        // For paid vetrine: show primary as purchase bundle, show secondary download
         if (purchaseBtn) {
-            purchaseBtn.innerHTML = `Acquista`;
-            purchaseBtn.onclick = () => handlePurchase(fileData.file_id);
+            purchaseBtn.innerHTML = `Acquista Bundle`;
+            purchaseBtn.onclick = () => handleVetrinaPurchase(vetrinaData.vetrina_id || vetrinaData.id, totalPrice);
         }
-        // Show secondary download button for paid documents (after purchase)
+        // Show secondary download button for paid vetrine (after purchase)
         if (downloadBtn) {
             downloadBtn.style.display = 'flex';
-            downloadBtn.onclick = () => downloadDocument(fileData.file_id);
+            downloadBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
         }
     }
 
-    // Setup favorite button with proper initial state
+    // Setup favorite button with vetrina-level state
     if (favoriteBtn) {
-        // Check both file and vetrina favorite status
-        const isFileFavorited = fileData.favorite === true;
-        const isVetrinaFavorited = vetrinaData && vetrinaData.favorite === true;
-        const isFavorited = isFileFavorited || isVetrinaFavorited;
+        const isVetrinaFavorited = vetrinaData.favorite === true;
         
-        if (isFavorited) {
+        if (isVetrinaFavorited) {
             favoriteBtn.classList.add('active');
             favoriteBtn.title = 'Rimuovi dai Preferiti';
         } else {
@@ -1489,36 +1493,35 @@ function setupActionButtons(fileData, vetrinaData = null) {
         favoriteBtn.onclick = handleFavorite;
     }
 
-    // Setup share button
+    // Setup share button for vetrina
     if (shareBtn) shareBtn.onclick = handleShare;
     
-    // Setup cart button
+    // Setup cart button for vetrina
     const addToCartBtn = document.getElementById('addToCartBtn');
     if (addToCartBtn) {
         addToCartBtn.onclick = handleAddToCart;
-        // Hide cart button for free documents
+        // Hide cart button for free vetrine
         if (isFree) {
             addToCartBtn.style.display = 'none';
         }
     }
 }
 
-// Enhanced Purchase Handler
-function handlePurchase(fileId) {
-    if (!fileId) {
-        showNotification('Errore: ID file non trovato', 'error');
+// Enhanced Vetrina Purchase Handler
+function handleVetrinaPurchase(vetrinaId, totalPrice) {
+    if (!vetrinaId) {
+        showNotification('Errore: ID vetrina non trovato', 'error');
         return;
     }
     
-    const currentData = currentDocument || { file_id: fileId };
     const purchaseBtn = document.getElementById('purchaseBtn');
     
-    if (currentData.price === 0) {
-        // Free document - direct download
-        downloadDocument(fileId);
+    if (totalPrice === 0) {
+        // Free vetrina - direct download
+        downloadVetrinaBundle(vetrinaId);
     } else {
-        // Paid document - show purchase confirmation
-        if (confirm(`Confermi l'acquisto di questo documento per €${currentData.price?.toFixed(2) || 'N/A'}?`)) {
+        // Paid vetrina - show purchase confirmation
+        if (confirm(`Confermi l'acquisto di questa vetrina per €${totalPrice?.toFixed(2) || 'N/A'}?`)) {
             // Optimistically update UI
             if (purchaseBtn) {
                 purchaseBtn.classList.add('purchased');
@@ -1527,20 +1530,46 @@ function handlePurchase(fileId) {
             }
             
             // Show success notification
-            showNotification('Acquisto completato con successo!', 'success');
+            showNotification('Acquisto vetrina completato con successo!', 'success');
             
             // In a real implementation, this would redirect to payment processor
-            // window.location.href = `payment.html?file=${fileId}&price=${currentData.price}`;
+            // window.location.href = `payment.html?vetrina=${vetrinaId}&price=${totalPrice}`;
             
             // Reset button after animation (in real app, this would happen after payment confirmation)
             setTimeout(() => {
                 if (purchaseBtn) {
                     purchaseBtn.classList.remove('purchased');
-                    purchaseBtn.innerHTML = 'Acquista';
+                    purchaseBtn.innerHTML = 'Acquista Bundle';
                     purchaseBtn.disabled = false;
                 }
             }, 3000);
         }
+    }
+}
+
+// Download vetrina bundle
+async function downloadVetrinaBundle(vetrinaId) {
+    if (!vetrinaId) {
+        showNotification('Errore: ID vetrina non trovato', 'error');
+        return;
+    }
+
+    showNotification('Inizio del download del bundle...', 'info');
+
+    try {
+        // In a real implementation, this would call the vetrina download endpoint
+        // For now, we'll simulate the download
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate download delay
+        
+        showNotification('Download del bundle completato!', 'success');
+        
+        // In a real implementation, this would trigger the actual download
+        // const url = `${API_BASE}/vetrine/${vetrinaId}/download`;
+        // window.open(url, '_blank');
+        
+    } catch (error) {
+        console.error('Download vetrina bundle error:', error);
+        showNotification('Errore nel download del bundle', 'error');
     }
 }
 
@@ -1690,6 +1719,7 @@ async function initializeDocumentPreview() {
 
         currentDocument = docData.document;
         currentVetrina = docData.vetrina;
+        currentVetrinaFiles = docData.vetrinaFiles || [];
         documentData = docData; // Store for toggling
 
         // Debug logging
@@ -2424,8 +2454,8 @@ async function handleFavorite() {
 }
 
 async function handleAddToCart() {
-    if (!currentDocument || !currentDocument.file_id) {
-        showNotification('Errore: ID file non trovato', 'error');
+    if (!currentVetrina || !(currentVetrina.vetrina_id || currentVetrina.id)) {
+        showNotification('Errore: ID vetrina non trovato', 'error');
         return;
     }
 
@@ -2437,15 +2467,15 @@ async function handleAddToCart() {
 
     // Optimistically update UI
     addToCartBtn.classList.add('added');
-    addToCartBtn.innerHTML = `Aggiunto al Carrello`;
+    addToCartBtn.innerHTML = `Bundle Aggiunto al Carrello`;
     addToCartBtn.disabled = true;
 
     try {
-        // In a real implementation, this would call the cart API
+        // In a real implementation, this would call the cart API for vetrine
         // For now, we'll simulate the API call
         await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
         
-        showNotification('Documento aggiunto al carrello!', 'success');
+        showNotification('Bundle aggiunto al carrello!', 'success');
         
         // Update cart count in header (if cart indicator exists)
         updateCartCount();
@@ -2458,7 +2488,7 @@ async function handleAddToCart() {
         addToCartBtn.innerHTML = `Aggiungi al Carrello`;
         addToCartBtn.disabled = false;
         
-        showNotification('Errore nell\'aggiunta al carrello. Riprova.', 'error');
+        showNotification('Errore nell\'aggiunta del bundle al carrello. Riprova.', 'error');
     }
 }
 
@@ -2478,8 +2508,8 @@ function updateCartCount() {
 function handleShare() {
     if (navigator.share) {
         navigator.share({
-            title: currentDocument?.original_filename || currentDocument?.filename || 'Documento StudyHub',
-            text: 'Guarda questo documento su StudyHub',
+            title: currentVetrina?.name || 'Vetrina StudyHub',
+            text: 'Guarda questa vetrina su StudyHub',
             url: window.location.href
         });
     } else {

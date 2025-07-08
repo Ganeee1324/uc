@@ -2,14 +2,14 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
-from bge import get_document_embedding
+# from bge import get_document_embedding
 from common import CourseInstance, File, Review, Transaction, User, Vetrina, VetrinaSubscription
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
 
-import numpy as np
+# import numpy as np
 
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 load_dotenv()
@@ -568,15 +568,15 @@ def add_file_to_vetrina(
             return File.from_dict(file_data)
 
 
-def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            logging.debug(f"Inserting {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
-            for i, embedding in enumerate(embeddings):
-                cursor.execute("INSERT INTO page_embeddings (vetrina_id, file_id, embedding) VALUES (%s, %s, %s)", (vetrina_id, file_id, embedding))
-                conn.commit()
-                logging.debug(f"Page {i} embedding inserted")
-            logging.debug(f"File {file_id} embeddings inserted")
+# def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
+#     with connect() as conn:
+#         with conn.cursor() as cursor:
+#             logging.debug(f"Inserting {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
+#             for i, embedding in enumerate(embeddings):
+#                 cursor.execute("INSERT INTO page_embeddings (vetrina_id, file_id, embedding) VALUES (%s, %s, %s)", (vetrina_id, file_id, embedding))
+#                 conn.commit()
+#                 logging.debug(f"Page {i} embedding inserted")
+#             logging.debug(f"File {file_id} embeddings inserted")
 
 
 def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[File]:

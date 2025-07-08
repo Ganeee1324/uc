@@ -2852,7 +2852,7 @@ async function loadAllFiles() {
                 fileCount: 0, // Will be updated when files are fetched
                 files: [], // Empty array - files will be fetched on demand
                 // Use vetrina info for the card
-                filename: extractVetrinaTags(vetrina), // Show tags from vetrina name/description
+                filename: 'Vetrina', // Generic name until files are loaded
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
                 size: 0, // Will be calculated when files are fetched
@@ -2872,8 +2872,8 @@ async function loadAllFiles() {
                 author_username: vetrina.owner?.username || 'Unknown',
                 owned: false, // Will be determined when files are fetched
                 favorite: vetrina.favorite === true,
-                tags: [], // Will be populated when files are fetched
-                primary_tag: null, // Will be set when files are fetched
+                tags: extractTagsFromVetrina(vetrina), // Extract tags from vetrina metadata
+                primary_tag: extractPrimaryTagFromVetrina(vetrina), // Extract primary tag from vetrina metadata
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
                     name: vetrina.name,
@@ -2940,78 +2940,62 @@ function extractFacultyFromVetrina(vetrinaName) {
     return 'Facoltà Generale';
 }
 
-// Function to extract meaningful tags from vetrina name and description
-function extractVetrinaTags(vetrina) {
-    const content = (vetrina.name + ' ' + (vetrina.description || '')).toLowerCase();
+// Helper function to extract tags from vetrina metadata
+function extractTagsFromVetrina(vetrina) {
+    const tags = [];
+    const name = (vetrina.name || '').toLowerCase();
+    const description = (vetrina.description || '').toLowerCase();
     
-    // Define tag keywords and their display names
-    const tagKeywords = {
-        'dispense': 'Dispense',
-        'appunti': 'Appunti', 
-        'esercizi': 'Esercizi',
-        'formulario': 'Formulario',
-        'progetto': 'Progetto',
-        'slide': 'Slides',
-        'presentazione': 'Presentazione',
-        'libro': 'Libro',
-        'manuale': 'Manuale',
-        'tesi': 'Tesi',
-        'elaborato': 'Elaborato',
-        'relazione': 'Relazione',
-        'riassunto': 'Riassunto',
-        'summary': 'Riassunto',
-        'notes': 'Appunti',
-        'exercise': 'Esercizi',
-        'handout': 'Dispense',
-        'guide': 'Guida',
-        'cheat': 'Formulario',
-        'formula': 'Formulario',
-        'project': 'Progetto',
-        'thesis': 'Tesi',
-        'report': 'Relazione',
-        'lecture': 'Lezione',
-        'course': 'Corso',
-        'class': 'Classe',
-        'material': 'Materiale',
-        'practice': 'Pratica',
-        'lab': 'Laboratorio',
-        'experiment': 'Esperimento'
-    };
+    // Check for common document types in name and description
+    if (name.includes('appunti') || description.includes('appunti')) {
+        tags.push('appunti');
+    }
+    if (name.includes('dispense') || description.includes('dispense')) {
+        tags.push('dispense');
+    }
+    if (name.includes('esercizi') || description.includes('esercizi')) {
+        tags.push('esercizi');
+    }
+    if (name.includes('formulario') || description.includes('formulario')) {
+        tags.push('formulario');
+    }
+    if (name.includes('progetto') || description.includes('progetto')) {
+        tags.push('progetto');
+    }
+    if (name.includes('esame') || description.includes('esame')) {
+        tags.push('esame');
+    }
+    if (name.includes('slide') || description.includes('slide')) {
+        tags.push('slide');
+    }
+    if (name.includes('riassunto') || description.includes('riassunto')) {
+        tags.push('riassunto');
+    }
     
-    // Find matching tags
-    const foundTags = [];
-    for (const [keyword, tagName] of Object.entries(tagKeywords)) {
-        if (content.includes(keyword)) {
-            foundTags.push(tagName);
+    // If no specific tags found, add a generic one based on content
+    if (tags.length === 0) {
+        if (name.includes('matematica') || name.includes('analisi') || name.includes('calcolo')) {
+            tags.push('matematica');
+        } else if (name.includes('fisica')) {
+            tags.push('fisica');
+        } else if (name.includes('chimica')) {
+            tags.push('chimica');
+        } else if (name.includes('informatica') || name.includes('programmazione')) {
+            tags.push('informatica');
+        } else if (name.includes('economia') || name.includes('business')) {
+            tags.push('economia');
+        } else {
+            tags.push('documento');
         }
     }
     
-    // If no specific tags found, try to extract from course name
-    if (foundTags.length === 0) {
-        const courseName = vetrina.course_instance?.course_name || '';
-        if (courseName) {
-            // Extract common course patterns
-            if (courseName.toLowerCase().includes('analisi')) return 'Analisi';
-            if (courseName.toLowerCase().includes('fisica')) return 'Fisica';
-            if (courseName.toLowerCase().includes('chimica')) return 'Chimica';
-            if (courseName.toLowerCase().includes('informatica')) return 'Informatica';
-            if (courseName.toLowerCase().includes('matematica')) return 'Matematica';
-            if (courseName.toLowerCase().includes('economia')) return 'Economia';
-            if (courseName.toLowerCase().includes('ingegneria')) return 'Ingegneria';
-            if (courseName.toLowerCase().includes('medicina')) return 'Medicina';
-            if (courseName.toLowerCase().includes('giurisprudenza')) return 'Diritto';
-            if (courseName.toLowerCase().includes('lettere')) return 'Lettere';
-        }
-        
-        // Fallback to first word of vetrina name
-        const firstWord = vetrina.name?.split(' ')[0];
-        if (firstWord && firstWord.length > 2) {
-            return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
-        }
-    }
-    
-    // Return the first found tag, or a default
-    return foundTags.length > 0 ? foundTags[0] : 'Documento';
+    return tags;
+}
+
+// Helper function to extract primary tag from vetrina metadata
+function extractPrimaryTagFromVetrina(vetrina) {
+    const tags = extractTagsFromVetrina(vetrina);
+    return tags.length > 0 ? tags[0] : null;
 }
 
 // Helper function to get file type from filename
@@ -3049,6 +3033,10 @@ async function loadVetrinaFiles(vetrinaId) {
         const totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
         const totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
         
+        // Get file tags and merge with vetrina-level tags
+        const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null);
+        const allTags = Array.from(new Set([...fileTags]));
+        
         // Return processed file data
         return {
             files: realFiles.map(file => ({
@@ -3068,8 +3056,8 @@ async function loadVetrinaFiles(vetrinaId) {
             totalPrice: totalPrice,
             totalDownloads: realFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
             documentTypes: Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename)))),
-            tags: realFiles.map(file => file.tag).filter(tag => tag !== null),
-            primaryTag: realFiles.find(file => file.tag)?.tag || null,
+            tags: allTags,
+            primaryTag: allTags.length > 0 ? allTags[0] : null,
             owned: realFiles.every(file => file.owned)
         };
         
@@ -3334,13 +3322,10 @@ function renderDocuments(files) {
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
-                    ${item.isVetrina && !filesLoaded ? 
-                        '<div class="document-type-badge">Vetrina</div>' :
-                        (item.tags && item.tags.length > 0 ?
-                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
-                            (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
-                            : ''
-                        )
+                    ${item.tags && item.tags.length > 0 ?
+                        `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
+                        (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
+                        : '<div class="document-type-badge">Documento</div>'
                     }
                 </div>
                 <div class="rating-badge">

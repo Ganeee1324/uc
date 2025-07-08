@@ -3403,18 +3403,41 @@ function renderDocuments(files) {
                             tags: item.tags,
                             tagsLength: item.tags ? item.tags.length : 0,
                             tagsType: typeof item.tags,
-                            itemKeys: Object.keys(item)
+                            itemKeys: Object.keys(item),
+                            itemId: item.id,
+                            itemVetrinaId: item.vetrina_id
                         });
-                        if (item.tags && item.tags.length > 0) {
+                        
+                        // Force refresh the tags if they seem incorrect
+                        if (!item.tags || item.tags.length === 0) {
+                            console.log(`⚠️ No tags found for item ${item.id}, extracting fresh tags`);
+                            const freshTags = extractTagsFromVetrina({
+                                name: item.title,
+                                description: item.description,
+                                course_instance: {
+                                    course_name: item.course_name
+                                }
+                            });
+                            console.log(`🔄 Fresh tags extracted:`, freshTags);
+                            
+                            if (freshTags && freshTags.length > 0) {
+                                if (freshTags.length === 1) {
+                                    return `<div class="document-type-badge">${getTagDisplayName(freshTags[0])}</div>`;
+                                } else {
+                                    return `<div class="document-type-badge">${getTagDisplayName(freshTags[0])}</div><div class="document-type-badge more-types">+${freshTags.length - 1}</div>`;
+                                }
+                            }
+                        } else {
+                            console.log(`✅ Using existing tags for item ${item.id}:`, item.tags);
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             } else {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div><div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
                             }
-                        } else {
-                            console.log(`⚠️ No tags found for item ${item.id}, using fallback`);
-                            return '<div class="document-type-badge">Appunti</div>';
                         }
+                        
+                        console.log(`⚠️ Fallback to default tag for item ${item.id}`);
+                        return '<div class="document-type-badge">Appunti</div>';
                     })()}
                 </div>
                 <div class="rating-badge">

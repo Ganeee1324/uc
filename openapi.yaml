@@ -65,6 +65,9 @@ paths:
                   access_token:
                     type: string
                     description: JWT access token for authentication
+                  user:
+                    $ref: "#/components/schemas/User"
+                    description: User information
         "409":
           description: Email or username already exists
           content:
@@ -122,6 +125,9 @@ paths:
                   access_token:
                     type: string
                     description: JWT access token for authentication
+                  user:
+                    $ref: "#/components/schemas/User"
+                    description: User information
         "401":
           description: Authentication failed
           content:
@@ -1074,6 +1080,21 @@ components:
         favorite:
           type: boolean
           description: Whether the current user has marked this vetrina as favorite
+        average_rating:
+          type: number
+          nullable: true
+          description: Average rating of the vetrina (null if no reviews)
+          example: 4.2
+        reviews_count:
+          type: integer
+          description: Number of reviews for this vetrina
+          example: 15
+        tags:
+          type: array
+          items:
+            type: string
+          description: List of unique tags from all files in this vetrina
+          example: ["appunti", "esercizi"]
 
     CourseInstance:
       type: object

@@ -1,7 +1,9 @@
 from datetime import timedelta
 import logging
+# import threading
 import traceback
 
+# from bge import get_document_embedding
 import werkzeug
 import database
 import redact
@@ -131,7 +133,7 @@ def register():
         surname=str(data.get("surname")),
     )
     access_token = create_access_token(identity=user.user_id)
-    return jsonify({"access_token": access_token}), 200
+    return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
 
 
 @app.route("/login", methods=["POST"])
@@ -142,7 +144,7 @@ def login():
 
     user = database.verify_user(email, password)
     access_token = create_access_token(identity=user.user_id)
-    return jsonify({"access_token": access_token}), 200
+    return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
 
 
 # ---------------------------------------------
@@ -273,6 +275,13 @@ def upload_file(vetrina_id):
             print(f"Error deleting file from database: {e}")
         return jsonify({"error": "save_failed", "msg": str(e)}), 500
     file.close()
+
+    # def thread_function():
+    #     embeddings = get_document_embedding(new_file_path)
+    #     database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
+
+    # thread = threading.Thread(target=thread_function)
+    # thread.start()
     return jsonify({"msg": "File uploaded"}), 200
 
 

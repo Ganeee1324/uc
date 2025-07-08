@@ -311,6 +311,51 @@ class Transaction:
         return cls(**args)
 
 
+class Review:
+    def __init__(self, user: User, vetrina_id: int, rating: int, review_text: str, review_date: datetime, review_subject: str | None = None):
+        self.user = user
+        self.vetrina_id = vetrina_id
+        self.rating = rating
+        self.review_text = review_text
+        self.review_date = review_date
+        self.review_subject = review_subject
+
+    def __str__(self) -> str:
+        return f"Review(user={self.user}, vetrina_id={self.vetrina_id}, rating={self.rating}, review_text={self.review_text}, review_subject={self.review_subject}, review_date={self.review_date})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Review):
+            return False
+        return self.user == other.user and self.vetrina_id == other.vetrina_id
+
+    def __hash__(self) -> int:
+        return hash("review" + str(self.user.user_id) + str(self.vetrina_id))
+
+    def to_dict(self) -> dict:
+        return {
+            "user": self.user.to_dict(),
+            "vetrina_id": self.vetrina_id,
+            "rating": self.rating,
+            "review_text": self.review_text,
+            "review_subject": self.review_subject,
+            "review_date": self.review_date,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Review":
+        """
+        Create a Review object from a dictionary.
+        Requires:
+            - Review object fields: user, vetrina_id, rating, review_text, review_subject, review_date
+        """
+        args = {key: data[key] for key in review_fields if key in data and key not in ["user"]}
+        args["user"] = User.from_dict(data)
+        return cls(**args)
+
+
 class SearchResultDocument:
     def __init__(self, filename: str, filepath: str, score: float):
         self.filename = filename
@@ -327,7 +372,7 @@ class SearchResultDocument:
         if not isinstance(other, SearchResultDocument):
             return False
         return self.filename == other.filename and self.filepath == other.filepath
-    
+
     def __hash__(self) -> int:
         return hash("search_result_document" + self.filename + self.filepath)
 
@@ -338,3 +383,4 @@ course_instance_fields = [key for key in inspect.signature(CourseInstance.__init
 vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.keys() if key != "self"]
 vetrina_subscription_fields = [key for key in inspect.signature(VetrinaSubscription.__init__).parameters.keys() if key != "self"]
 transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != "self"]
+review_fields = [key for key in inspect.signature(Review.__init__).parameters.keys() if key != "self"]

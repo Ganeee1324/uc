@@ -2,7 +2,7 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
-from common import CourseInstance, File, Transaction, User, Vetrina, VetrinaSubscription
+from common import CourseInstance, File, Review, Transaction, User, Vetrina, VetrinaSubscription
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
@@ -991,6 +991,75 @@ def get_favorites(user_id: int) -> List[Vetrina]:
             results = cursor.fetchall()
             logging.debug(f"Retrieved {len(results)} vetrine with favorite files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
+
+
+# ---------------------------------------------
+# Review management
+# ---------------------------------------------
+
+
+def add_review(user_id: int, vetrina_id: int, rating: int, review_text: str, review_subject: str | None = None) -> Review:
+    """
+    Add a review to a vetrina.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH new_review AS (
+                    INSERT INTO review (user_id, vetrina_id, rating, review_text, review_subject) 
+                    VALUES (%s, %s, %s, %s, %s) 
+                    RETURNING *
+                )
+                SELECT r.*, u.*
+                FROM new_review r
+                JOIN users u ON r.user_id = u.user_id
+                """,
+                (user_id, vetrina_id, rating, review_text, review_subject),
+            )
+            review_data = cursor.fetchone()
+            review = Review.from_dict(review_data)
+            logging.debug(f"Review added to vetrina {vetrina_id} by user {user_id}")
+            return review
+
+
+def get_reviews(vetrina_id: int) -> List[Review]:
+    """
+    Get all reviews for a vetrina.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.*, u.*
+                FROM review r
+                JOIN users u ON r.user_id = u.user_id
+                WHERE r.vetrina_id = %s
+                ORDER BY r.review_date DESC
+                """,
+                (vetrina_id,),
+            )
+            reviews_data = cursor.fetchall()
+            logging.debug(f"Retrieved {len(reviews_data)} reviews for vetrina {vetrina_id}")
+            return [Review.from_dict(row) for row in reviews_data]
+
+
+def delete_review(user_id: int, vetrina_id: int) -> None:
+    """
+    Delete a review from a vetrina.
+
+    Args:
+        user_id: ID of the user deleting the review
+        vetrina_id: ID of the vetrina to delete the review from
+
+    Raises:
+        NotFoundException: If the review doesn't exist
+        ForbiddenError: If the user is not the author of the review
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
+            logging.debug(f"Review deleted by user {user_id}")
 
 
 if __name__ == "__main__":

@@ -14,6 +14,8 @@ tags:
     description: Operations related to vetrine management
   - name: Files
     description: Operations related to file management
+  - name: Reviews
+    description: Operations related to review management
   - name: Courses
     description: Operations related to courses and faculty hierarchy
 
@@ -891,6 +893,151 @@ paths:
                     type: integer
                     description: Number of vetrine with owned files
 
+  /vetrine/{vetrina_id}/reviews:
+    post:
+      tags:
+        - Reviews
+      summary: Add a review to a vetrina
+      description: Submit a review with rating and text for a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+                - review_text
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Rating from 1 to 5 stars
+                  example: 4
+                review_text:
+                  type: string
+                  description: Text content of the review
+                  example: "Great vetrina with helpful materials!"
+                review_subject:
+                  type: string
+                  nullable: true
+                  description: Optional subject/title for the review
+                  example: "Excellent content quality"
+      responses:
+        "200":
+          description: Review added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Review added
+                  review:
+                    $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid rating or request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: invalid_rating
+                msg: Rating must be between 1 and 5
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already reviewed this vetrina
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags:
+        - Reviews
+      summary: Get reviews for a vetrina
+      description: Retrieve all reviews for a specific vetrina, ordered by most recent first
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to get reviews for
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                  count:
+                    type: integer
+                    description: Number of reviews
+                    example: 3
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Reviews
+      summary: Delete user's review for a vetrina
+      description: Delete the authenticated user's review for a specific vetrina
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to delete review from
+      responses:
+        "200":
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Review deleted
+        "404":
+          description: Review not found or user doesn't have permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: not_found
+                msg: Review not found or you don't have permission to delete it
+
 components:
   schemas:
     ErrorResponse:
@@ -1068,6 +1215,32 @@ components:
           type: string
           format: date-time
           description: Timestamp when the subscription was created
+
+    Review:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+          description: User who wrote the review
+        vetrina_id:
+          type: integer
+          description: ID of the vetrina being reviewed
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating from 1 to 5 stars
+        review_text:
+          type: string
+          description: Text content of the review
+        review_subject:
+          type: string
+          nullable: true
+          description: Optional subject/title for the review
+        review_date:
+          type: string
+          format: date-time
+          description: Timestamp when the review was created
 
   securitySchemes:
     BearerAuth:

@@ -79,6 +79,7 @@ def foreign_key_violation_error(e):
 def method_not_allowed_error(e):
     return jsonify({"error": "method_not_allowed", "msg": str(e)}), 405
 
+
 @app.errorhandler(werkzeug.exceptions.NotFound)
 def not_found_error(e):
     return jsonify({"error": "not_found", "msg": str(e)}), 404
@@ -384,6 +385,44 @@ def get_owned_vetrine():
 
 
 # ---------------------------------------------
+# Review routes
+# ---------------------------------------------
+
+
+@app.route("/vetrine/<int:vetrina_id>/reviews", methods=["POST"])
+@jwt_required()
+def add_review(vetrina_id):
+    user_id = get_jwt_identity()
+    data = request.json
+
+    rating = int(data.get("rating"))
+    if not 1 <= rating <= 5:
+        return jsonify({"error": "invalid_rating", "msg": "Rating must be between 1 and 5"}), 400
+
+    review_text = str(data.get("review_text"))
+    review_subject = data.get("review_subject")
+    if review_subject:
+        review_subject = str(review_subject)
+
+    review = database.add_review(user_id, vetrina_id, rating, review_text, review_subject)
+    return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
+
+
+@app.route("/vetrine/<int:vetrina_id>/reviews", methods=["GET"])
+def get_reviews(vetrina_id):
+    reviews = database.get_reviews(vetrina_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
+
+
+@app.route("/vetrine/<int:vetrina_id>/reviews", methods=["DELETE"])
+@jwt_required()
+def delete_review(vetrina_id):
+    user_id = get_jwt_identity()
+    database.delete_review(user_id, vetrina_id)
+    return jsonify({"msg": "Review deleted"}), 200
+
+
+# ---------------------------------------------
 # Courses routes
 # ---------------------------------------------
 
@@ -392,9 +431,13 @@ def get_owned_vetrine():
 def get_hierarchy():
     if database.faculties_courses_cache is None:
         database.faculties_courses_cache = database.scrape_faculties_courses()
-        logging.debug(f"Added {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses to cache")
+        logging.debug(
+            f"Added {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses to cache"
+        )
     else:
-        logging.debug(f"Retrieved {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses from cache")
+        logging.debug(
+            f"Retrieved {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses from cache"
+        )
     return jsonify(database.faculties_courses_cache), 200
 
 

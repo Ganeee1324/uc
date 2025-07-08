@@ -6,7 +6,7 @@ from PIL import Image
 model = None
 
 
-def get_document_embedding(document_path):
+def get_document_embedding(document_path: str) -> list[torch.Tensor]:
     global model
     print(f"Loading model")
     if model is None:
@@ -30,30 +30,9 @@ def get_document_embedding(document_path):
     print(f"All embeddings processed")
     return embeddings
 
-get_document_embedding(r"C:\Users\fdimo\Downloads\esercizi Ecolgia.pdf")
-
-# model = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=r"C:\Users\fdimo\Downloads\Visualized_m3.pth")
-# model.eval()
-# with torch.no_grad():
-#     query_emb = model.encode(image=r"data\schema.png")
-#     candidates = [
-#         "A schema of a database",
-#         "Image of a relational schema in postgres",
-#         "Text of a relational schema in postgres",
-#         "Lo schema di un database",
-#         "Lo schema relazionale in postgres",
-#         "A database",
-#         "A postgres relational schema",
-#         "Appunti sulla fisica",
-#         "Rendiconto di un corso universitario",
-#         "Iscrizione ad un corso universitario",
-#         "Biglietti per un concerto",
-#         "Appunti sulle derivate",
-#         "Immagine contenente rettangoli con testo collegati da linee nere con sfondo bianco",
-#     ]
-#     candi_emb = [model.encode(text=candi) for candi in candidates]
-
-# sims = [query_emb @ candi_emb.T for candi_emb in candi_emb]
-
-# for candi, sim in sorted(zip(candidates, sims), key=lambda x: x[1], reverse=True):
-#     print(candi, round(sim.item(), 2))
+embeddings = get_document_embedding(r"C:\Users\fdimo\Downloads\esercizi Ecolgia.pdf")
+query = "Esercizi sulle piramidi ecologiche"
+enc_query = model.encode(text=query)
+sims = [enc_query @ emb.T for emb in embeddings]
+for i, sim in enumerate(sims):
+    print(f"Similarity with {i}: {sim.item()}")

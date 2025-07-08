@@ -16,7 +16,7 @@ class File:
         download_count: int = 0,
         fact_mark: int | None = None,
         fact_mark_updated_at: datetime | None = None,
-        price: int = 0,
+        price: float = 0.0,
         owned: bool = False,
         favorite: bool = False,
         tag: str | None = None,
@@ -188,6 +188,7 @@ class Vetrina:
         reviews_count: int = 0,
         tags: List[str] = None,
         file_count: int = 0,
+        price: float = 0.0,
     ):
         self.vetrina_id = vetrina_id
         self.name = name
@@ -199,9 +200,10 @@ class Vetrina:
         self.reviews_count = reviews_count
         self.tags = tags or []
         self.file_count = file_count
+        self.price = price
 
     def __str__(self) -> str:
-        return f"Vetrina(vetrina_id={self.vetrina_id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance}, average_rating={self.average_rating}, reviews_count={self.reviews_count}, tags={self.tags}, file_count={self.file_count})"
+        return f"Vetrina(vetrina_id={self.vetrina_id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance}, average_rating={self.average_rating}, reviews_count={self.reviews_count}, tags={self.tags}, file_count={self.file_count}, price={self.price})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -226,6 +228,7 @@ class Vetrina:
             "reviews_count": self.reviews_count,
             "tags": self.tags,
             "file_count": self.file_count,
+            "price": self.price,
         }
         return res
 
@@ -236,7 +239,7 @@ class Vetrina:
         Requires:
             - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
             - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
-            - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional), tags (optional), file_count (optional)
+            - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional), tags (optional), file_count (optional), price (optional)
         """
         args = {key: data[key] for key in vetrina_fields if key in data and key not in ["author", "course_instance"]}
         args["author"] = User.from_dict(data)
@@ -245,7 +248,7 @@ class Vetrina:
 
 
 class VetrinaSubscription:
-    def __init__(self, subscriber_id: int, vetrina: Vetrina, price: int, subscription_date: datetime):
+    def __init__(self, subscriber_id: int, vetrina: Vetrina, price: float, subscription_date: datetime):
         self.subscriber_id = subscriber_id
         self.vetrina = vetrina
         self.price = price

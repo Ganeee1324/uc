@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS files (
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(user_id) NOT NULL,
-    amount INTEGER NOT NULL DEFAULT 0,
+    amount REAL NOT NULL DEFAULT 0,
     transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS owned_files (
 
 CREATE TABLE IF NOT EXISTS vetrina_subscriptions (
     subscriber_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
-    price INTEGER NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     subscription_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_id INTEGER REFERENCES transactions(transaction_id),

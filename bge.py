@@ -1,3 +1,8 @@
+import os
+os.environ['HF_HUB_OFFLINE'] = '1'
+os.environ['TRANSFORMERS_OFFLINE'] = '1'
+os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
+
 import torch
 from visual_bge.modeling import Visualized_BGE
 import pymupdf
@@ -29,15 +34,16 @@ def get_document_embedding(document_path: str) -> list[np.ndarray]:
     embeddings = []
     with torch.no_grad():
         for i, (image, text) in enumerate(images_text):
-            embeddings.append(np.array(model.encode(image=image, text=text)))
+            embeddings.append(model.encode(image=image, text=text))
             logging.debug(f"Embedding {i} processed")
     logging.debug(f"All embeddings processed")
-    return embeddings
+    return [emb.detach().cpu().numpy() for emb in embeddings]
 
 if __name__ == "__main__":
-    embeddings = get_document_embedding(r"C:\Users\fdimo\Downloads\esercizi Ecolgia.pdf")
-    query = "Esercizi sulle piramidi ecologiche"
-    enc_query = model.encode(text=query)
+    embeddings = get_document_embedding(r"C:\Users\fdimo\Desktop\Statistics Exam - DONE.pdf")
+    query = "Exercises on the bernoulli distribution"
+    with torch.no_grad():
+        enc_query = model.encode(text=query).detach().cpu().numpy()
     sims = [enc_query @ emb.T for emb in embeddings]
     for i, sim in enumerate(sims):
-        print(f"Similarity with {i}: {sim.item()}")
+        print(f"Similarity with {i + 1}: {round(sim.item(), 2)}")

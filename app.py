@@ -7,7 +7,7 @@ import traceback
 import werkzeug
 import database
 import redact
-from flask import Flask, Response, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os

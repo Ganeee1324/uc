@@ -1938,6 +1938,20 @@ async function populateFilterOptions() {
 
         // Update document type dropdown options
         populateDropdownFilter('documentType', sortedDocumentTypes);
+        
+        // Populate tag options from actual file tags
+        const allTags = [];
+        originalFiles.forEach(file => {
+            if (file.tags && Array.isArray(file.tags)) {
+                allTags.push(...file.tags);
+            }
+        });
+        
+        const uniqueTags = [...new Set(allTags)].sort();
+        console.log('📊 Available tags from files:', uniqueTags);
+        
+        // Update tag dropdown options
+        populateDropdownFilter('tag', uniqueTags);
     }
 }
 
@@ -2332,7 +2346,7 @@ function updateActiveFiltersDisplay() {
                         break;
                     case 'tag':
                         itemLabel = 'Tag';
-                        itemValue = item === 'appunti' ? 'Appunti' : item === 'dispense' ? 'Dispense' : item === 'esercizi' ? 'Esercizi' : item;
+                        itemValue = getTagDisplayName(item);
                         break;
                 }
                 
@@ -2512,16 +2526,10 @@ function removeSpecificFilterValueFromPill(filterKey, specificValue) {
                     'Italian': 'Italiano',
                     'English': 'Inglese'
                 };
-                const tagDisplayMap = {
-                    'appunti': 'Appunti',
-                    'dispense': 'Dispense',
-                    'esercizi': 'Esercizi'
-                };
-                
                 if (filterKey === 'language' && languageDisplayMap[remainingValue]) {
                     displayText = languageDisplayMap[remainingValue];
-                } else if (filterKey === 'tag' && tagDisplayMap[remainingValue]) {
-                    displayText = tagDisplayMap[remainingValue];
+                } else if (filterKey === 'tag') {
+                    displayText = getTagDisplayName(remainingValue);
                 }
                 
                 input.value = displayText;
@@ -2850,32 +2858,66 @@ async function loadAllFiles() {
         
         currentVetrine = vetrineResponse.vetrine || [];
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
-        console.log('🔍 Raw vetrine data sample:', currentVetrine.slice(0, 3));
+        console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));
         
         // Transform vetrine into card items using ONLY metadata (no file fetching)
-        console.log('🔄 Processing vetrine metadata for UI...');
+        console.log('🔄 Processing vetrina metadata for UI...');
         const allFiles = [];
         
         for (const vetrina of currentVetrine) {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
-            // Extract tags first for debugging
-            const extractedTags = extractTagsFromVetrina(vetrina);
-            console.log(`🏷️ Extracted tags for vetrina ${vetrina.vetrina_id}:`, extractedTags);
+            // Fetch actual file tags for this vetrina
+            let actualTags = [];
+            let fileCount = 0;
+            let totalSize = 0;
+            let totalPrice = 0;
+            let documentTypes = [];
             
-            // Create a card item using ONLY vetrina metadata (no file data yet)
+            try {
+                console.log(`🔄 Fetching actual file data for vetrina ${vetrina.vetrina_id}...`);
+                const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
+                const realFiles = filesResponse?.files || [];
+                
+                if (realFiles.length > 0) {
+                    fileCount = realFiles.length;
+                    totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+                    totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
+                    
+                    // Extract actual tags from files
+                    const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null && tag !== undefined);
+                    actualTags = Array.from(new Set(fileTags)); // Remove duplicates
+                    
+                    // Extract document types from file extensions
+                    documentTypes = Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename))));
+                    
+                    console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with tags:`, actualTags);
+                } else {
+                    console.log(`⚠️ No files found for vetrina ${vetrina.vetrina_id}, using fallback tags`);
+                    // Fallback to extracted tags if no files found
+                    actualTags = extractTagsFromVetrina(vetrina);
+                }
+            } catch (error) {
+                console.warn(`⚠️ Error fetching files for vetrina ${vetrina.vetrina_id}:`, error);
+                // Fallback to extracted tags if API call fails
+                actualTags = extractTagsFromVetrina(vetrina);
+            }
+            
+            console.log(`🏷️ Final tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
+            
+            // Create a card item using vetrina metadata and actual file data
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
-                filesLoaded: false, // Mark as NOT loaded - files will be fetched on demand
-                fileCount: 0, // Will be updated when files are fetched
-                files: [], // Empty array - files will be fetched on demand
+                filesLoaded: true, // Mark as loaded since we fetched the data
+                fileCount: fileCount,
+                files: [], // We don't need to store all file data here, just the metadata
                 // Use vetrina info for the card
                 filename: 'Vetrina', // Generic name until files are loaded
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
-                size: 0, // Will be calculated when files are fetched
-                price: 0, // Will be calculated when files are fetched
+                size: totalSize,
+                price: totalPrice,
                 created_at: vetrina.created_at,
                 download_count: 0, // Will be calculated when files are fetched
                 rating: 0, // Will be updated when reviews are loaded
@@ -2886,13 +2928,13 @@ async function loadAllFiles() {
                 canale: vetrina.course_instance?.canale || 'A',
                 course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                document_types: [], // Will be populated when files are fetched
-                document_type: 'BUNDLE', // Generic type until files are loaded
+                document_types: documentTypes,
+                document_type: fileCount > 1 ? 'BUNDLE' : (documentTypes.length > 0 ? documentTypes[0] : 'Documento'),
                 author_username: vetrina.owner?.username || 'Unknown',
                 owned: false, // Will be determined when files are fetched
                 favorite: vetrina.favorite === true,
-                tags: extractedTags, // Use the extracted tags
-                primary_tag: extractPrimaryTagFromVetrina(vetrina), // Extract primary tag from vetrina metadata
+                tags: actualTags, // Use the actual file tags
+                primary_tag: actualTags.length > 0 ? actualTags[0] : null, // Use first actual tag
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
                     name: vetrina.name,
@@ -2903,7 +2945,7 @@ async function loadAllFiles() {
                 }
             };
             
-            console.log(`✅ Created vetrineCard for ${vetrina.vetrina_id} with tags:`, vetrineCard.tags);
+            console.log(`✅ Created vetrineCard for ${vetrina.vetrina_id} with actual tags:`, vetrineCard.tags);
             
             console.log(`💖 Vetrina ${vetrina.vetrina_id} final favorite status: ${vetrineCard.favorite}`);
             allFiles.push(vetrineCard);
@@ -3065,7 +3107,7 @@ function updateDocumentCardTags(vetrinaId, tags) {
             badgesContainer.innerHTML = `<div class="document-type-badge">${getTagDisplayName(tags[0])}</div><div class="document-type-badge more-types">+${tags.length - 1}</div>`;
         }
     } else {
-        badgesContainer.innerHTML = '<div class="document-type-badge">Appunti</div>';
+        badgesContainer.innerHTML = '<div class="document-type-badge">Documento</div>';
     }
 }
 
@@ -3091,7 +3133,28 @@ async function loadVetrinaFiles(vetrinaId) {
     try {
         console.log(`🔄 Fetching files for vetrina ${vetrinaId}...`);
         
-        // Fetch files for this specific vetrina
+        // Check if we already have the file data from loadAllFiles
+        const existingVetrina = currentFiles.find(item => 
+            (item.vetrina_id || item.id) === parseInt(vetrinaId)
+        );
+        
+        if (existingVetrina && existingVetrina.filesLoaded) {
+            console.log(`✅ File data already loaded for vetrina ${vetrinaId}, using cached data`);
+            // Return the data we already have
+            return {
+                files: [], // We don't store full file data in the card, but we have the metadata
+                fileCount: existingVetrina.fileCount,
+                totalSize: existingVetrina.size,
+                totalPrice: existingVetrina.price,
+                totalDownloads: existingVetrina.download_count,
+                documentTypes: existingVetrina.document_types,
+                tags: existingVetrina.tags,
+                primaryTag: existingVetrina.primary_tag,
+                owned: existingVetrina.owned
+            };
+        }
+        
+        // Fetch files for this specific vetrina if not already loaded
         const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/files`);
         const realFiles = filesResponse?.files || [];
         
@@ -3111,19 +3174,6 @@ async function loadVetrinaFiles(vetrinaId) {
         console.log(`📁 Files in vetrina ${vetrinaId}:`, realFiles.map(f => ({ filename: f.filename, tag: f.tag })));
         console.log(`🏷️ File tags found: ${fileTags.join(', ')}`);
         console.log(`🏷️ Unique tags: ${allTags.join(', ')}`);
-        
-        // If no file tags found, use vetrina-level extracted tags as fallback
-        if (allTags.length === 0) {
-            console.log(`⚠️ No file tags found, using vetrina-level extracted tags as fallback`);
-            // Find the vetrina in currentFiles to get its extracted tags
-            const vetrinaInCurrentFiles = currentFiles.find(item => 
-                (item.vetrina_id || item.id) === parseInt(vetrinaId)
-            );
-            if (vetrinaInCurrentFiles && vetrinaInCurrentFiles.tags) {
-                allTags.push(...vetrinaInCurrentFiles.tags);
-                console.log(`🔄 Using fallback tags: ${vetrinaInCurrentFiles.tags.join(', ')}`);
-            }
-        }
         
         // Return processed file data
         return {
@@ -3415,32 +3465,13 @@ function renderDocuments(files) {
                             tags: item.tags,
                             tagsLength: item.tags ? item.tags.length : 0,
                             tagsType: typeof item.tags,
-                            itemKeys: Object.keys(item),
                             itemId: item.id,
                             itemVetrinaId: item.vetrina_id
                         });
                         
-                        // Force refresh the tags if they seem incorrect
-                        if (!item.tags || item.tags.length === 0) {
-                            console.log(`⚠️ No tags found for item ${item.id}, extracting fresh tags`);
-                            const freshTags = extractTagsFromVetrina({
-                                name: item.title,
-                                description: item.description,
-                                course_instance: {
-                                    course_name: item.course_name
-                                }
-                            });
-                            console.log(`🔄 Fresh tags extracted:`, freshTags);
-                            
-                            if (freshTags && freshTags.length > 0) {
-                                if (freshTags.length === 1) {
-                                    return `<div class="document-type-badge">${getTagDisplayName(freshTags[0])}</div>`;
-                                } else {
-                                    return `<div class="document-type-badge">${getTagDisplayName(freshTags[0])}</div><div class="document-type-badge more-types">+${freshTags.length - 1}</div>`;
-                                }
-                            }
-                        } else {
-                            console.log(`✅ Using existing tags for item ${item.id}:`, item.tags);
+                        // Use actual file tags (already fetched in loadAllFiles)
+                        if (item.tags && item.tags.length > 0) {
+                            console.log(`✅ Using actual file tags for item ${item.id}:`, item.tags);
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             } else {
@@ -3448,8 +3479,8 @@ function renderDocuments(files) {
                             }
                         }
                         
-                        console.log(`⚠️ Fallback to default tag for item ${item.id}`);
-                        return '<div class="document-type-badge">Appunti</div>';
+                        console.log(`⚠️ No tags found for item ${item.id}, showing default`);
+                        return '<div class="document-type-badge">Documento</div>';
                     })()}
                 </div>
                 <div class="rating-badge">
@@ -4335,12 +4366,7 @@ function updateFilterInputs() {
         'English': 'Inglese'
     };
     
-    // Tag display text mapping
-    const tagDisplayMap = {
-        'appunti': 'Appunti',
-        'dispense': 'Dispense',
-        'esercizi': 'Esercizi'
-    };
+    // Tag display text mapping - now using getTagDisplayName function
     
     // Clear all inputs first to ensure clean state
     const allInputs = ['facultyFilter', 'courseFilter', 'canaleFilter', 'documentTypeFilter', 'languageFilter', 'academicYearFilter', 'tagFilter'];
@@ -4379,8 +4405,8 @@ function updateFilterInputs() {
             // Use display text mapping for language and tag
             if (type === 'language' && languageDisplayMap[activeFilters[filterKey]]) {
                 displayValue = languageDisplayMap[activeFilters[filterKey]];
-            } else if (type === 'tag' && tagDisplayMap[activeFilters[filterKey]]) {
-                displayValue = tagDisplayMap[activeFilters[filterKey]];
+            } else if (type === 'tag') {
+                displayValue = getTagDisplayName(activeFilters[filterKey]);
             }
             
             input.value = displayValue;

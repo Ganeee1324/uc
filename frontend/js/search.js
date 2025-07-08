@@ -2847,6 +2847,10 @@ async function loadAllFiles() {
         for (const vetrina of currentVetrine) {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
+            // Extract tags first for debugging
+            const extractedTags = extractTagsFromVetrina(vetrina);
+            console.log(`🏷️ Extracted tags for vetrina ${vetrina.vetrina_id}:`, extractedTags);
+            
             // Create a card item using ONLY vetrina metadata (no file data yet)
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
@@ -2875,7 +2879,7 @@ async function loadAllFiles() {
                 author_username: vetrina.owner?.username || 'Unknown',
                 owned: false, // Will be determined when files are fetched
                 favorite: vetrina.favorite === true,
-                tags: extractTagsFromVetrina(vetrina), // Extract tags from vetrina metadata
+                tags: extractedTags, // Use the extracted tags
                 primary_tag: extractPrimaryTagFromVetrina(vetrina), // Extract primary tag from vetrina metadata
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
@@ -2886,6 +2890,8 @@ async function loadAllFiles() {
                     owner_username: vetrina.owner?.username || 'Unknown'
                 }
             };
+            
+            console.log(`✅ Created vetrineCard for ${vetrina.vetrina_id} with tags:`, vetrineCard.tags);
             
             console.log(`💖 Vetrina ${vetrina.vetrina_id} final favorite status: ${vetrineCard.favorite}`);
             allFiles.push(vetrineCard);
@@ -3393,7 +3399,12 @@ function renderDocuments(files) {
                 ${viewFilesButton}
                 <div class="document-type-badges">
                     ${(() => {
-                        console.log(`🎨 Rendering tags for item ${item.id}:`, item.tags);
+                        console.log(`🎨 Rendering tags for item ${item.id}:`, {
+                            tags: item.tags,
+                            tagsLength: item.tags ? item.tags.length : 0,
+                            tagsType: typeof item.tags,
+                            itemKeys: Object.keys(item)
+                        });
                         if (item.tags && item.tags.length > 0) {
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
@@ -3401,6 +3412,7 @@ function renderDocuments(files) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div><div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
                             }
                         } else {
+                            console.log(`⚠️ No tags found for item ${item.id}, using fallback`);
                             return '<div class="document-type-badge">Appunti</div>';
                         }
                     })()}

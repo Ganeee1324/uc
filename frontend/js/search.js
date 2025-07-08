@@ -2852,7 +2852,7 @@ async function loadAllFiles() {
                 fileCount: 0, // Will be updated when files are fetched
                 files: [], // Empty array - files will be fetched on demand
                 // Use vetrina info for the card
-                filename: 'Vetrina', // Generic name until files are loaded
+                filename: extractVetrinaTags(vetrina), // Show tags from vetrina name/description
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
                 size: 0, // Will be calculated when files are fetched
@@ -2938,6 +2938,80 @@ function extractFacultyFromVetrina(vetrinaName) {
         }
     }
     return 'Facoltà Generale';
+}
+
+// Function to extract meaningful tags from vetrina name and description
+function extractVetrinaTags(vetrina) {
+    const content = (vetrina.name + ' ' + (vetrina.description || '')).toLowerCase();
+    
+    // Define tag keywords and their display names
+    const tagKeywords = {
+        'dispense': 'Dispense',
+        'appunti': 'Appunti', 
+        'esercizi': 'Esercizi',
+        'formulario': 'Formulario',
+        'progetto': 'Progetto',
+        'slide': 'Slides',
+        'presentazione': 'Presentazione',
+        'libro': 'Libro',
+        'manuale': 'Manuale',
+        'tesi': 'Tesi',
+        'elaborato': 'Elaborato',
+        'relazione': 'Relazione',
+        'riassunto': 'Riassunto',
+        'summary': 'Riassunto',
+        'notes': 'Appunti',
+        'exercise': 'Esercizi',
+        'handout': 'Dispense',
+        'guide': 'Guida',
+        'cheat': 'Formulario',
+        'formula': 'Formulario',
+        'project': 'Progetto',
+        'thesis': 'Tesi',
+        'report': 'Relazione',
+        'lecture': 'Lezione',
+        'course': 'Corso',
+        'class': 'Classe',
+        'material': 'Materiale',
+        'practice': 'Pratica',
+        'lab': 'Laboratorio',
+        'experiment': 'Esperimento'
+    };
+    
+    // Find matching tags
+    const foundTags = [];
+    for (const [keyword, tagName] of Object.entries(tagKeywords)) {
+        if (content.includes(keyword)) {
+            foundTags.push(tagName);
+        }
+    }
+    
+    // If no specific tags found, try to extract from course name
+    if (foundTags.length === 0) {
+        const courseName = vetrina.course_instance?.course_name || '';
+        if (courseName) {
+            // Extract common course patterns
+            if (courseName.toLowerCase().includes('analisi')) return 'Analisi';
+            if (courseName.toLowerCase().includes('fisica')) return 'Fisica';
+            if (courseName.toLowerCase().includes('chimica')) return 'Chimica';
+            if (courseName.toLowerCase().includes('informatica')) return 'Informatica';
+            if (courseName.toLowerCase().includes('matematica')) return 'Matematica';
+            if (courseName.toLowerCase().includes('economia')) return 'Economia';
+            if (courseName.toLowerCase().includes('ingegneria')) return 'Ingegneria';
+            if (courseName.toLowerCase().includes('medicina')) return 'Medicina';
+            if (courseName.toLowerCase().includes('giurisprudenza')) return 'Diritto';
+            if (courseName.toLowerCase().includes('lettere')) return 'Lettere';
+        }
+        
+        // Fallback to first word of vetrina name
+        const firstWord = vetrina.name?.split(' ')[0];
+        if (firstWord && firstWord.length > 2) {
+            return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+        }
+    }
+    
+    // Return the first found tag, or a default
+    return foundTags.length > 0 ? foundTags[0] : 'Documento';
 }
 
 // Helper function to get file type from filename

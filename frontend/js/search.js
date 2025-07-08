@@ -3044,7 +3044,7 @@ function updateDocumentCardTags(vetrinaId, tags) {
         if (tags.length === 1) {
             badgesContainer.innerHTML = `<div class="document-type-badge">${getTagDisplayName(tags[0])}</div>`;
         } else {
-            badgesContainer.innerHTML = `<div class="document-type-badge">${getTagDisplayName(tags[0])} +${tags.length - 1}</div>`;
+            badgesContainer.innerHTML = `<div class="document-type-badge">${getTagDisplayName(tags[0])}</div><div class="document-type-badge more-types">+${tags.length - 1}</div>`;
         }
     } else {
         badgesContainer.innerHTML = '<div class="document-type-badge">Appunti</div>';
@@ -3398,7 +3398,7 @@ function renderDocuments(files) {
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             } else {
-                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])} +${item.tags.length - 1}</div>`;
+                                return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div><div class="document-type-badge more-types">+${item.tags.length - 1}</div>`;
                             }
                         } else {
                             return '<div class="document-type-badge">Appunti</div>';

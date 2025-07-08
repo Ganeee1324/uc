@@ -2949,6 +2949,8 @@ function extractTagsFromVetrina(vetrina) {
     const name = (vetrina.name || '').toLowerCase();
     const description = (vetrina.description || '').toLowerCase();
     
+    console.log(`🔍 Extracting tags from vetrina: "${name}" - "${description}"`);
+    
     // Check for backend-valid document types in name and description
     if (name.includes('appunti') || description.includes('appunti')) {
         tags.push('appunti');
@@ -2979,11 +2981,33 @@ function extractTagsFromVetrina(vetrina) {
                    name.includes('project') || description.includes('project')) {
             tags.push('esercizi'); // Progetto maps to esercizi
         } else {
-            // Default to appunti as the most common type
-            tags.push('appunti');
+            // For generic vetrina names, try to infer from course name
+            const courseName = (vetrina.course_instance?.course_name || '').toLowerCase();
+            console.log(`🎓 Course name: "${courseName}"`);
+            
+            if (courseName.includes('matematica') || courseName.includes('analisi') || courseName.includes('calcolo')) {
+                // Math courses often have exercises
+                tags.push('esercizi');
+            } else if (courseName.includes('fisica')) {
+                // Physics courses often have exercises and formulas
+                tags.push('esercizi', 'dispense');
+            } else if (courseName.includes('chimica')) {
+                // Chemistry courses often have exercises
+                tags.push('esercizi');
+            } else if (courseName.includes('informatica') || courseName.includes('programmazione')) {
+                // Computer science courses often have exercises and projects
+                tags.push('esercizi');
+            } else if (courseName.includes('economia') || courseName.includes('business')) {
+                // Economics courses often have notes and exercises
+                tags.push('appunti', 'esercizi');
+            } else {
+                // Default to a mix of common types for generic courses
+                tags.push('appunti', 'dispense');
+            }
         }
     }
     
+    console.log(`🏷️ Extracted tags: ${tags.join(', ')}`);
     return tags;
 }
 
@@ -3064,14 +3088,20 @@ async function loadVetrinaFiles(vetrinaId) {
         const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null);
         const allTags = Array.from(new Set([...fileTags]));
         
+        console.log(`📁 Files in vetrina ${vetrinaId}:`, realFiles.map(f => ({ filename: f.filename, tag: f.tag })));
+        console.log(`🏷️ File tags found: ${fileTags.join(', ')}`);
+        console.log(`🏷️ Unique tags: ${allTags.join(', ')}`);
+        
         // If no file tags found, use vetrina-level extracted tags as fallback
         if (allTags.length === 0) {
+            console.log(`⚠️ No file tags found, using vetrina-level extracted tags as fallback`);
             // Find the vetrina in currentFiles to get its extracted tags
             const vetrinaInCurrentFiles = currentFiles.find(item => 
                 (item.vetrina_id || item.id) === parseInt(vetrinaId)
             );
             if (vetrinaInCurrentFiles && vetrinaInCurrentFiles.tags) {
                 allTags.push(...vetrinaInCurrentFiles.tags);
+                console.log(`🔄 Using fallback tags: ${vetrinaInCurrentFiles.tags.join(', ')}`);
             }
         }
         

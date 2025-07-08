@@ -2860,7 +2860,7 @@ async function loadAllFiles() {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
             // Extract tags first for debugging
-            const extractedTags = extractTagsFromVetrina(vetrina);
+            const extractedTags = await extractTagsFromVetrina(vetrina);
             console.log(`🏷️ Extracted tags for vetrina ${vetrina.vetrina_id}:`, extractedTags);
             
             // Create a card item using ONLY vetrina metadata (no file data yet)
@@ -2892,7 +2892,7 @@ async function loadAllFiles() {
                 owned: false, // Will be determined when files are fetched
                 favorite: vetrina.favorite === true,
                 tags: extractedTags, // Use the extracted tags
-                primary_tag: extractPrimaryTagFromVetrina(vetrina), // Extract primary tag from vetrina metadata
+                primary_tag: await extractPrimaryTagFromVetrina(vetrina), // Extract primary tag from vetrina metadata
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
                     name: vetrina.name,
@@ -2962,12 +2962,42 @@ function extractFacultyFromVetrina(vetrinaName) {
 }
 
 // Helper function to extract tags from vetrina metadata
-function extractTagsFromVetrina(vetrina) {
+async function extractTagsFromVetrina(vetrina) {
+    console.log(`🔍 Extracting tags from vetrina: "${vetrina.name}" - "${vetrina.description}"`);
+    
+    try {
+        // Get the actual files from this vetrina to extract real tags
+        const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
+        
+        if (filesResponse && filesResponse.files && filesResponse.files.length > 0) {
+            // Extract unique tags from all files in the vetrina
+            const tags = new Set();
+            filesResponse.files.forEach(file => {
+                if (file.tag && file.tag.trim()) {
+                    tags.add(file.tag.trim());
+                }
+            });
+            
+            const result = Array.from(tags);
+            console.log('🏷️ Extracted tags from files:', result.join(', '));
+            return result;
+        } else {
+            console.log('⚠️ No files found for vetrina, using fallback tag extraction');
+            return extractTagsFromVetrinaFallback(vetrina);
+        }
+    } catch (error) {
+        console.error('❌ Error fetching files for tag extraction:', error);
+        console.log('🔄 Using fallback tag extraction');
+        return extractTagsFromVetrinaFallback(vetrina);
+    }
+}
+
+function extractTagsFromVetrinaFallback(vetrina) {
     const tags = [];
     const name = (vetrina.name || '').toLowerCase();
     const description = (vetrina.description || '').toLowerCase();
     
-    console.log(`🔍 Extracting tags from vetrina: "${name}" - "${description}"`);
+    console.log(`🔄 Using fallback tag extraction for vetrina: "${name}"`);
     
     // Check for backend-valid document types in name and description
     if (name.includes('appunti') || description.includes('appunti')) {
@@ -3025,13 +3055,13 @@ function extractTagsFromVetrina(vetrina) {
         }
     }
     
-    console.log(`🏷️ Extracted tags: ${tags.join(', ')}`);
+    console.log(`🏷️ Extracted tags (fallback): ${tags.join(', ')}`);
     return tags;
 }
 
 // Helper function to extract primary tag from vetrina metadata
-function extractPrimaryTagFromVetrina(vetrina) {
-    const tags = extractTagsFromVetrina(vetrina);
+async function extractPrimaryTagFromVetrina(vetrina) {
+    const tags = await extractTagsFromVetrina(vetrina);
     return tags.length > 0 ? tags[0] : null;
 }
 

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS vetrina (
     author_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
     course_instance_id INTEGER REFERENCES course_instances(instance_id) ON DELETE CASCADE NOT NULL,
     description TEXT NOT NULL,
-    average_rating REAL NOT NULL DEFAULT 0,
+    average_rating REAL,
     reviews_count INTEGER NOT NULL DEFAULT 0,
     UNIQUE (author_id, name, course_instance_id)
 );
@@ -128,7 +128,7 @@ BEGIN
                 WHERE vetrina_id = NEW.vetrina_id
             ),
             average_rating = (
-                SELECT COALESCE(AVG(rating), 0) 
+                SELECT AVG(rating) 
                 FROM review 
                 WHERE vetrina_id = NEW.vetrina_id
             )
@@ -146,7 +146,7 @@ BEGIN
                 WHERE vetrina_id = OLD.vetrina_id
             ),
             average_rating = (
-                SELECT COALESCE(AVG(rating), 0) 
+                SELECT AVG(rating) 
                 FROM review 
                 WHERE vetrina_id = OLD.vetrina_id
             )

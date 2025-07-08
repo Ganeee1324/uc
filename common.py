@@ -184,6 +184,8 @@ class Vetrina:
         description: str,
         course_instance: CourseInstance,
         favorite: bool = False,
+        average_rating: float | None = None,
+        reviews_count: int = 0,
     ):
         self.vetrina_id = vetrina_id
         self.name = name
@@ -191,9 +193,11 @@ class Vetrina:
         self.description = description
         self.course_instance = course_instance
         self.favorite = favorite
+        self.average_rating = average_rating
+        self.reviews_count = reviews_count
 
     def __str__(self) -> str:
-        return f"Vetrina(vetrina_id={self.vetrina_id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance})"
+        return f"Vetrina(vetrina_id={self.vetrina_id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance}, average_rating={self.average_rating}, reviews_count={self.reviews_count})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -214,6 +218,8 @@ class Vetrina:
             "description": self.description,
             "course_instance": self.course_instance.to_dict(),
             "favorite": self.favorite,
+            "average_rating": self.average_rating,
+            "reviews_count": self.reviews_count,
         }
         return res
 

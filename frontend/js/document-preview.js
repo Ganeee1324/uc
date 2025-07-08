@@ -8,6 +8,7 @@ let authToken = localStorage.getItem('authToken');
 // Document State Management
 let currentDocument = null;
 let currentVetrina = null;
+let currentUser = null; // Store current user data for review comparisons
 let currentPage = 1;
 let totalPages = 1;
 let currentZoom = 100;
@@ -350,8 +351,24 @@ async function fetchDocumentData(fileId) {
             }
         }
 
-        // For now, we'll use mock data for reviews and related since endpoints don't exist
-        const mockReviews = [];
+        // Fetch reviews for the vetrina if available
+        let reviewsData = [];
+        if (vetrinaData && (vetrinaData.vetrina_id || vetrinaData.id)) {
+            try {
+                const vetrinaId = vetrinaData.vetrina_id || vetrinaData.id;
+                const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
+                if (reviewsResponse && reviewsResponse.reviews) {
+                    reviewsData = reviewsResponse.reviews;
+                    console.log(`✅ Loaded ${reviewsData.length} reviews for vetrina ${vetrinaId}`);
+                }
+            } catch (error) {
+                console.warn('Could not fetch reviews:', error);
+                // Use empty array as fallback
+                reviewsData = [];
+            }
+        }
+
+        // Mock related documents for now
         const mockRelated = [];
 
         // Ensure we have vetrina data for favorite functionality
@@ -369,7 +386,7 @@ async function fetchDocumentData(fileId) {
         return {
             document: fileResponse,
             vetrina: vetrinaData,
-            reviews: mockReviews,
+            reviews: reviewsData,
             related: mockRelated,
             vetrinaFiles: vetrinaFiles
         };
@@ -404,13 +421,16 @@ function renderDocumentInfo(docData) {
     // Determine document type from filename or tag
     const documentType = fileData.tag ? getDocumentTypeFromTag(fileData.tag) : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
     
-    // Initialize reviews overlay first to ensure reviewsData is available
-    initializeReviewsOverlay();
+    // Get reviews data from docData
+    const reviews = docData.reviews || [];
     
-    // Update rating and price (use reviews data if available)
-    const totalReviews = reviewsData && reviewsData.length ? reviewsData.length : 0;
+    // Initialize reviews overlay with real data
+    initializeReviewsOverlay(reviews);
+    
+    // Update rating and price (use real reviews data)
+    const totalReviews = reviews.length;
     const rating = totalReviews > 0 
-        ? parseFloat((reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1))
+        ? parseFloat((reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1))
         : 0.0;
     const reviewCount = totalReviews;
     const price = fileData.price || 0;
@@ -1659,6 +1679,7 @@ async function initializeDocumentPreview() {
             fetchDocumentData(fileId)
         ]);
 
+        currentUser = userData; // Store for review comparisons
         updateHeaderUserInfo(userData);
 
         if (!docData) {
@@ -1987,62 +2008,25 @@ console.log('Document Preview System - World Class Edition - Loaded Successfully
 let currentUserRating = 0;
 let reviewsData = [];
 
-function initializeReviewsOverlay() {
-    // Generate sample reviews data
-    reviewsData = generateSampleReviews();
+function initializeReviewsOverlay(reviews = []) {
+    // Use real reviews data
+    reviewsData = reviews;
     
     // Initialize star rating input
     initializeStarRating();
     
     // Close overlay when clicking outside
-    document.getElementById('reviewsOverlay').addEventListener('click', (e) => {
-        if (e.target.id === 'reviewsOverlay') {
-            closeReviewsOverlay();
-        }
-    });
+    const reviewsOverlay = document.getElementById('reviewsOverlay');
+    if (reviewsOverlay) {
+        reviewsOverlay.addEventListener('click', (e) => {
+            if (e.target.id === 'reviewsOverlay') {
+                closeReviewsOverlay();
+            }
+        });
+    }
 }
 
-function generateSampleReviews() {
-    const sampleReviews = [
-        {
-            id: 1,
-            author_name: 'Marco Rossi',
-            rating: 5,
-            comment: 'Documento eccellente! Molto chiaro e completo. Mi ha aiutato molto per l\'esame.',
-            created_at: '2024-01-15T10:30:00Z'
-        },
-        {
-            id: 2,
-            author_name: 'Laura Bianchi',
-            rating: 4,
-            comment: 'Buon materiale, ben strutturato. Alcune parti potrebbero essere più dettagliate.',
-            created_at: '2024-01-10T14:20:00Z'
-        },
-        {
-            id: 3,
-            author_name: 'Giuseppe Verdi',
-            rating: 5,
-            comment: 'Perfetto per il ripasso. Le spiegazioni sono molto chiare e i concetti ben organizzati.',
-            created_at: '2024-01-05T09:15:00Z'
-        },
-        {
-            id: 4,
-            author_name: 'Anna Neri',
-            rating: 4,
-            comment: 'Documento utile e ben fatto. Lo consiglio a tutti gli studenti del corso.',
-            created_at: '2024-01-01T16:45:00Z'
-        },
-        {
-            id: 5,
-            author_name: 'Paolo Gialli',
-            rating: 3,
-            comment: 'Materiale discreto, ma alcune sezioni potrebbero essere migliorate.',
-            created_at: '2023-12-28T11:30:00Z'
-        }
-    ];
-    
-    return sampleReviews;
-}
+// Review generation function removed - now using real backend data
 
 function openReviewsOverlay() {
     const overlay = document.getElementById('reviewsOverlay');
@@ -2084,23 +2068,46 @@ function updateReviewsOverlay() {
             </div>
         `;
     } else {
-        const reviewsHTML = reviewsData.map(review => `
-            <div class="review-item-overlay">
-                <div class="review-header-overlay">
-                    <div class="reviewer-info-overlay">
-                        <div class="reviewer-avatar-overlay">${review.author_name.charAt(0).toUpperCase()}</div>
-                        <div class="reviewer-details-overlay">
-                            <span class="reviewer-name-overlay">${review.author_name}</span>
-                            <div class="review-rating-overlay">
-                                ${generateStars(review.rating)}
+        const reviewsHTML = reviewsData.map(review => {
+            // Handle different data structures from backend
+            const userName = review.user ? 
+                `${review.user.first_name || review.user.username || 'Utente'} ${review.user.last_name || ''}`.trim() :
+                'Utente Anonimo';
+            const userInitial = userName.charAt(0).toUpperCase();
+            const reviewText = review.review_text || review.comment || 'Nessun commento.';
+            const reviewDate = review.review_date || review.created_at;
+            const reviewSubject = review.review_subject;
+            
+            // Check if this is the current user's review (you could implement user comparison logic here)
+            const isCurrentUserReview = review.user && currentUser && 
+                (review.user.user_id === currentUser.user_id || review.user.username === currentUser.username);
+            
+            return `
+                <div class="review-item-overlay" data-review-id="${review.id || ''}">
+                    <div class="review-header-overlay">
+                        <div class="reviewer-info-overlay">
+                            <div class="reviewer-avatar-overlay">${userInitial}</div>
+                            <div class="reviewer-details-overlay">
+                                <span class="reviewer-name-overlay">${userName}</span>
+                                ${reviewSubject ? `<span class="review-subject-overlay">${reviewSubject}</span>` : ''}
+                                <div class="review-rating-overlay">
+                                    ${generateStars(review.rating)}
+                                </div>
                             </div>
                         </div>
+                        <div class="review-date-actions">
+                            <span class="review-date-overlay">${formatDate(reviewDate)}</span>
+                            ${isCurrentUserReview ? `
+                                <button class="delete-review-btn" onclick="deleteUserReview()" title="Elimina la tua recensione">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
-                    <span class="review-date-overlay">${formatDate(review.created_at)}</span>
+                    <p class="review-text-overlay">${reviewText}</p>
                 </div>
-                <p class="review-text-overlay">${review.comment}</p>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         reviewsList.innerHTML = reviewsHTML;
     }
@@ -2177,28 +2184,126 @@ async function submitReview() {
         return;
     }
     
-    // Simulate API call
-    const newReview = {
-        id: reviewsData.length + 1,
-        author_name: 'Tu',
-        rating: currentUserRating,
-        comment: comment,
-        created_at: new Date().toISOString()
-    };
+    if (!currentVetrina || (!currentVetrina.vetrina_id && !currentVetrina.id)) {
+        showNotification('Errore: impossibile identificare la vetrina', 'error');
+        return;
+    }
     
-    reviewsData.unshift(newReview);
+    const submitBtn = document.querySelector('.submit-review-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Invio in corso...';
+    }
     
-    // Update the main page rating
-    updateMainPageRating();
+    try {
+        const vetrinaId = currentVetrina.vetrina_id || currentVetrina.id;
+        
+        // Call the backend API to submit review
+        const response = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
+            method: 'POST',
+            body: JSON.stringify({
+                rating: currentUserRating,
+                review_text: comment,
+                review_subject: null // Could add subject field later
+            })
+        });
+        
+        if (response && response.review) {
+            // Add the new review to the beginning of the list
+            reviewsData.unshift(response.review);
+            
+            // Update the main page rating
+            updateMainPageRating();
+            
+            // Hide form and show reviews
+            hideAddReviewForm();
+            
+            // Show success message
+            showNotification('Recensione inviata con successo!', 'success');
+            
+            // Update overlay
+            updateReviewsOverlay();
+            
+            console.log('✅ Review submitted successfully:', response.review);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error submitting review:', error);
+        
+        let errorMessage = 'Errore durante l\'invio della recensione.';
+        
+        if (error.message.includes('409')) {
+            errorMessage = 'Hai già recensito questo documento.';
+        } else if (error.message.includes('404')) {
+            errorMessage = 'Documento non trovato.';
+        } else if (error.message.includes('400')) {
+            errorMessage = 'Dati della recensione non validi.';
+        }
+        
+        showNotification(errorMessage, 'error');
+    } finally {
+        // Reset submit button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Invia Recensione';
+        }
+    }
+}
+
+async function deleteUserReview() {
+    if (!currentVetrina || (!currentVetrina.vetrina_id && !currentVetrina.id)) {
+        showNotification('Errore: impossibile identificare la vetrina', 'error');
+        return;
+    }
     
-    // Hide form and show reviews
-    hideAddReviewForm();
+    if (!confirm('Sei sicuro di voler eliminare la tua recensione?')) {
+        return;
+    }
     
-    // Show success message
-    showNotification('Recensione inviata con successo!', 'success');
-    
-    // Update overlay
-    updateReviewsOverlay();
+    try {
+        const vetrinaId = currentVetrina.vetrina_id || currentVetrina.id;
+        
+        // Call the backend API to delete review
+        const response = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
+            method: 'DELETE'
+        });
+        
+        if (response) {
+            // Remove the user's review from the local data
+            // Note: Backend deletes by user ID, so we need to find and remove the current user's review
+            const currentUserData = await fetchCurrentUserData();
+            if (currentUserData) {
+                reviewsData = reviewsData.filter(review => 
+                    !(review.user && (
+                        review.user.user_id === currentUserData.user_id || 
+                        review.user.username === currentUserData.username
+                    ))
+                );
+            }
+            
+            // Update the main page rating
+            updateMainPageRating();
+            
+            // Show success message
+            showNotification('Recensione eliminata con successo!', 'success');
+            
+            // Update overlay
+            updateReviewsOverlay();
+            
+            console.log('✅ Review deleted successfully');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error deleting review:', error);
+        
+        let errorMessage = 'Errore durante l\'eliminazione della recensione.';
+        
+        if (error.message.includes('404')) {
+            errorMessage = 'Recensione non trovata o non hai i permessi per eliminarla.';
+        }
+        
+        showNotification(errorMessage, 'error');
+    }
 }
 
 function updateMainPageRating() {
@@ -2214,7 +2319,28 @@ function updateMainPageRating() {
     
     if (starsContainer) starsContainer.innerHTML = generateFractionalStars(averageRating);
     if (ratingScore) ratingScore.textContent = averageRating.toFixed(1);
-    if (ratingCount) ratingCount.textContent = `(${totalReviews} recensioni)`;
+    if (ratingCount) ratingCount.textContent = `(${totalReviews} ${totalReviews === 1 ? 'recensione' : 'recensioni'})`;
+}
+
+// Refresh reviews from backend
+async function refreshReviews() {
+    if (!currentVetrina || (!currentVetrina.vetrina_id && !currentVetrina.id)) {
+        return;
+    }
+    
+    try {
+        const vetrinaId = currentVetrina.vetrina_id || currentVetrina.id;
+        const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
+        
+        if (reviewsResponse && reviewsResponse.reviews) {
+            reviewsData = reviewsResponse.reviews;
+            updateMainPageRating();
+            updateReviewsOverlay();
+            console.log(`🔄 Refreshed ${reviewsData.length} reviews for vetrina ${vetrinaId}`);
+        }
+    } catch (error) {
+        console.warn('Could not refresh reviews:', error);
+    }
 }
 
 // Action Handlers

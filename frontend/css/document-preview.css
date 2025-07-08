@@ -3006,6 +3006,48 @@ button:focus-visible,
     padding-left: calc(44px + var(--space-3)); /* Align with name */
 }
 
+.review-date-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.review-subject-overlay {
+    font-size: var(--text-sm);
+    color: var(--primary-500);
+    font-weight: 600;
+    margin-bottom: var(--space-1);
+    display: block;
+}
+
+.delete-review-btn {
+    background: none;
+    border: none;
+    color: var(--neutral-400);
+    cursor: pointer;
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.review-item-overlay:hover .delete-review-btn {
+    opacity: 1;
+}
+
+.delete-review-btn:hover {
+    background: var(--error-50);
+    color: var(--error-600);
+    transform: scale(1.1);
+}
+
+.delete-review-btn .material-symbols-outlined {
+    font-size: 16px;
+}
+
 /* Add Review Form */
 .add-review-form {
     background: white;

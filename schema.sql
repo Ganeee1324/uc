@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS vetrina (
     reviews_count INTEGER NOT NULL DEFAULT 0,
     tags VARCHAR(50)[],
     file_count INTEGER NOT NULL DEFAULT 0,
-    price INTEGER NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
     UNIQUE (author_id, name, course_instance_id)
 );
 
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS files (
     fact_mark_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     size INTEGER NOT NULL DEFAULT 0,
     download_count INTEGER NOT NULL DEFAULT 0,
-    price INTEGER NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
     extension VARCHAR(10) NOT NULL,
     tag VARCHAR(50),
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE

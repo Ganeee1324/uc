@@ -1100,7 +1100,7 @@ components:
           description: Total number of files in this vetrina
           example: 5
         price:
-          type: integer
+          type: number
           description: Price of the vetrina
           example: 1000
 
@@ -1191,7 +1191,7 @@ components:
           nullable: true
           description: Timestamp when the factual accuracy mark was last updated
         price:
-          type: integer
+          type: number
           description: Price of the file
         owned:
           type: boolean

@@ -14,6 +14,7 @@ let currentZoom = 100;
 let documentPages = [];
 let isLoading = false;
 let documentData = null; // Store document data
+let bottomOverlayTimeout = null;
 
 // Configuration
 const ZOOM_CONFIG = {
@@ -306,6 +307,7 @@ async function fetchDocumentData(fileId) {
         // Fetch vetrina data to get course information
         let vetrinaData = null;
         let fileWithUserContext = null;
+        let vetrinaFiles = [];
         
         if (fileResponse.vetrina_id) {
             try {
@@ -330,6 +332,7 @@ async function fetchDocumentData(fileId) {
                 // Get file with user context (including favorite status) from the vetrina's files
                 const vetrinaFilesResponse = await makeRequest(`${API_BASE}/vetrine/${fileResponse.vetrina_id}/files`);
                 if (vetrinaFilesResponse && vetrinaFilesResponse.files) {
+                    vetrinaFiles = vetrinaFilesResponse.files;
                     fileWithUserContext = vetrinaFilesResponse.files.find(f => f.file_id === parseInt(fileId));
                     if (fileWithUserContext) {
                         // Merge the user context data with the original file data
@@ -367,7 +370,8 @@ async function fetchDocumentData(fileId) {
             document: fileResponse,
             vetrina: vetrinaData,
             reviews: mockReviews,
-            related: mockRelated
+            related: mockRelated,
+            vetrinaFiles: vetrinaFiles
         };
     } catch (error) {
         console.error('Failed to fetch document data:', error);
@@ -412,7 +416,7 @@ function renderDocumentInfo(docData) {
     const price = fileData.price || 0;
 
     const starsContainer = document.querySelector('.rating-stars');
-    if(starsContainer) starsContainer.innerHTML = generateStars(Math.floor(rating));
+    if(starsContainer) starsContainer.innerHTML = generateFractionalStars(rating);
     
     const ratingScore = document.querySelector('.rating-score');
     if(ratingScore) ratingScore.textContent = rating.toFixed(1);
@@ -445,6 +449,7 @@ function renderDocumentInfo(docData) {
     updateDetailValue('Canale', canaleValue);
     
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
+    updateDetailValue('Pagine', totalPages);
 
     // Update description - use vetrina description or generate one based on document type
     let description = vetrinaData?.description;
@@ -1115,6 +1120,8 @@ function updatePageDisplay() {
     
     // Update page indicator
     updatePageIndicator();
+    updateBottomPageIndicator();
+    showAndFadeBottomOverlay();
     
     // Save reading position
     saveReadingPosition();
@@ -1125,6 +1132,13 @@ function updatePageIndicator() {
     const pageIndicator = document.getElementById('pageIndicator');
     if (pageIndicator) {
         pageIndicator.textContent = `${currentPage} di ${totalPages}`;
+    }
+}
+
+function updateBottomPageIndicator() {
+    const indicator = document.getElementById('bottomPageIndicator');
+    if (indicator) {
+        indicator.textContent = `${currentPage} di ${totalPages}`;
     }
 }
 
@@ -1296,6 +1310,15 @@ function generateStars(rating) {
     ).join('');
 }
 
+function generateFractionalStars(rating) {
+    const ratingPercentage = (rating / 5) * 100;
+    return `
+        <div class="stars-outer">
+            <div class="stars-inner" style="width: ${ratingPercentage}%"></div>
+        </div>
+    `;
+}
+
 function generateDocumentTags(docData) {
     const tags = [];
     
@@ -1330,8 +1353,10 @@ function generateDocumentTags(docData) {
 }
 
 function getFileExtension(filename) {
-    if (!filename) return 'DOC';
-    const extension = filename.split('.').pop();
+    if (!filename || !filename.includes('.')) return 'DOC';
+    const parts = filename.split('.');
+    if (parts.length === 1) return 'DOC';
+    const extension = parts.pop();
     return extension ? extension.toUpperCase() : 'DOC';
 }
 
@@ -1584,6 +1609,36 @@ function initializeTouchNavigation() {
     }
 }
 
+// Professional File Switcher Dropdown and controls
+function renderViewerLeftControls(files, currentFileId) {
+    let fileSwitcherHtml = '';
+    if (files && files.length > 1) {
+        const options = files.map(file => {
+            const selected = file.file_id === currentFileId ? 'selected' : '';
+            const fileName = file.original_filename || file.filename || `File ${file.file_id}`;
+            return `<option value="${file.file_id}" ${selected}>${fileName}</option>`;
+        }).join('');
+
+        fileSwitcherHtml = `
+            <div class="custom-select-wrapper">
+                <select id="file-switcher" class="file-switcher-select" title="Switch between files in this collection">
+                    ${options}
+                </select>
+                <span class="material-symbols-outlined select-arrow">unfold_more</span>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="viewer-left-controls">
+            ${fileSwitcherHtml}
+            <button class="action-btn-icon" id="overlayDownloadBtn" title="Download Document" onclick="downloadRedactedDocument(${currentFileId})">
+                <span class="material-symbols-outlined">download</span>
+            </button>
+        </div>
+    `;
+}
+
 // Main Initialization
 async function initializeDocumentPreview() {
     if (!authToken) {
@@ -1625,6 +1680,8 @@ async function initializeDocumentPreview() {
 
         // Generate document pages
         const pages = generateDocumentPages(docData);
+        const vetrinaFiles = docData.vetrinaFiles || [];
+        const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, fileId);
         
         // Replace the entire main container content with the document viewer structure
         mainContainer.innerHTML = `
@@ -1635,11 +1692,7 @@ async function initializeDocumentPreview() {
                 
                 <!-- Viewer Controls Overlay -->
                 <div class="viewer-overlay-controls">
-                    <button class="back-btn-overlay" onclick="window.location.href='search.html'">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                        Torna alla ricerca
-                    </button>
-                    
+                    ${viewerLeftControlsHTML}
                     <div class="viewer-controls-overlay">
                         <button class="zoom-btn" id="zoomOut" title="Zoom Out">
                             <span class="material-symbols-outlined">zoom_out</span>
@@ -1652,6 +1705,12 @@ async function initializeDocumentPreview() {
                             <span class="material-symbols-outlined">fullscreen</span>
                         </button>
                     </div>
+                </div>
+
+                <!-- New Bottom Elements -->
+                <div class="viewer-bottom-overlay">
+                    <span class="bottom-page-indicator" id="bottomPageIndicator"></span>
+                    <div class="file-format-badge" id="fileFormatBadge"></div>
                 </div>
             </div>
             
@@ -1738,6 +1797,10 @@ async function initializeDocumentPreview() {
                                 <span class="detail-label">Anno Accademico</span>
                                 <span class="detail-value">Caricamento...</span>
                             </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Pagine</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
                         </div>
                     </div>
 
@@ -1812,11 +1875,33 @@ async function initializeDocumentPreview() {
         renderDocumentPages(pages);
         renderDocumentInfo(docData);
 
+        // Populate file format badge
+        const fileFormatBadge = document.getElementById('fileFormatBadge');
+        if (fileFormatBadge && currentDocument) {
+            const fileExtension = getFileExtension(currentDocument.original_filename || currentDocument.filename);
+            fileFormatBadge.textContent = fileExtension;
+        }
+
+        const documentViewerEl = document.getElementById('documentViewer');
+        if(documentViewerEl) {
+            documentViewerEl.addEventListener('scroll', showAndFadeBottomOverlay);
+        }
+        showAndFadeBottomOverlay(); // show on load
+
         // Initialize controls
         initializeZoom();
-        initializeBackButton();
         initializeFullscreen();
         initializeNavigationElements();
+        
+        const fileSwitcher = document.getElementById('file-switcher');
+        if (fileSwitcher) {
+            fileSwitcher.addEventListener('change', (event) => {
+                const newFileId = event.target.value;
+                if (newFileId) {
+                    window.location.href = `document-preview.html?id=${newFileId}`;
+                }
+            });
+        }
         
         // Initialize other systems
         initializeKeyboardNavigation();
@@ -1980,12 +2065,12 @@ function closeReviewsOverlay() {
 function updateReviewsOverlay() {
     const totalReviews = reviewsData.length;
     const averageRating = totalReviews > 0 
-        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
-        : '0.0';
+        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews)
+        : 0.0;
     
     // Update summary
-    document.querySelector('.big-stars').innerHTML = generateStars(Math.floor(parseFloat(averageRating)));
-    document.querySelector('.big-rating-score').textContent = averageRating;
+    document.querySelector('.big-stars').innerHTML = generateFractionalStars(averageRating);
+    document.querySelector('.big-rating-score').textContent = averageRating.toFixed(1);
     document.querySelector('.total-reviews').textContent = `Basato su ${totalReviews} recensioni`;
     
     // Update reviews list
@@ -2119,16 +2204,16 @@ async function submitReview() {
 function updateMainPageRating() {
     const totalReviews = reviewsData.length;
     const averageRating = totalReviews > 0 
-        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
-        : '0.0';
+        ? (reviewsData.reduce((sum, review) => sum + review.rating, 0) / totalReviews)
+        : 0.0;
     
     // Update main page elements
-    const starsContainer = document.querySelector('.stars');
+    const starsContainer = document.querySelector('.rating-stars');
     const ratingScore = document.querySelector('.rating-score');
     const ratingCount = document.querySelector('.rating-count');
     
-    if (starsContainer) starsContainer.innerHTML = generateStars(Math.floor(parseFloat(averageRating)));
-    if (ratingScore) ratingScore.textContent = averageRating;
+    if (starsContainer) starsContainer.innerHTML = generateFractionalStars(averageRating);
+    if (ratingScore) ratingScore.textContent = averageRating.toFixed(1);
     if (ratingCount) ratingCount.textContent = `(${totalReviews} recensioni)`;
 }
 
@@ -2277,6 +2362,53 @@ function handleShare() {
     }
 }
 
+async function downloadRedactedDocument(fileId) {
+    if (!fileId) {
+        showNotification('Nessun file disponibile per il download', 'error');
+        return;
+    }
+
+    showNotification('Inizio del download del documento redatto...', 'info');
+
+    try {
+        const url = `${API_BASE}/files/${fileId}/download/redacted`;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': authToken ? `Bearer ${authToken}` : ''
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `redacted-document-${fileId}.pdf`;
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+            if (filenameMatch && filenameMatch.length > 1) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+        showNotification('Download completato!', 'success');
+    } catch (error) {
+        console.error('Download redacted error:', error);
+        showNotification('Errore nel download del documento redatto', 'error');
+    }
+}
+
 async function downloadDocument(fileId) {
     if (!fileId) {
         showNotification('Nessun file disponibile per il download', 'error');
@@ -2298,4 +2430,20 @@ async function downloadDocument(fileId) {
         console.error('Download error:', error);
         showNotification('Errore nel download del documento', 'error');
     }
+}
+
+// Show and fade out bottom overlay elements
+function showAndFadeBottomOverlay() {
+    const bottomOverlay = document.querySelector('.viewer-bottom-overlay');
+    if (!bottomOverlay) return;
+
+    bottomOverlay.classList.add('visible');
+
+    if (bottomOverlayTimeout) {
+        clearTimeout(bottomOverlayTimeout);
+    }
+
+    bottomOverlayTimeout = setTimeout(() => {
+        bottomOverlay.classList.remove('visible');
+    }, 2000); // Hide after 2 seconds
 } 

@@ -711,14 +711,14 @@ body {
 }
 
 .doc-rating-display .rating-stars {
-    display: flex;
-    align-items: center;
-    gap: 2px;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.doc-rating-display .rating-stars .star {
-    font-size: 16px; /* Slightly bigger stars */
-    color: #f59e0b;
+.doc-rating-display .rating-stars .stars-outer,
+.doc-rating-display .rating-stars .stars-inner {
+    font-size: 16px;
 }
 
 .doc-rating-display .rating-details {
@@ -953,6 +953,41 @@ body {
     margin-bottom: var(--space-6);
     padding-bottom: var(--space-3);
     border-bottom: 2px solid var(--primary-100);
+}
+
+/* Document Description Section - Enhanced */
+.doc-description-section {
+    background: var(--neutral-25);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    border: 1px solid var(--neutral-100);
+    min-height: 240px; /* Increased minimum height */
+}
+
+.doc-description-section h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--neutral-800);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--primary-100);
+}
+
+.doc-description {
+    color: var(--neutral-700);
+    line-height: 1.6;
+    font-size: var(--text-base);
+}
+
+.doc-description p {
+    margin-bottom: var(--space-4);
+}
+
+.doc-description p:last-child {
+    margin-bottom: 0;
 }
 
 /* Related Documents Section - Enhanced */
@@ -2822,13 +2857,33 @@ button:focus-visible,
 }
 
 .big-stars {
-    display: flex;
-    gap: 2px;
+    font-size: 28px;
+    position: relative;
+    display: inline-block;
 }
 
-.big-stars .star {
-    font-size: 28px;
-    color: var(--warning-500);
+.stars-outer {
+  position: relative;
+  display: inline-block;
+}
+
+.stars-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0;
+}
+
+.stars-outer::before {
+  content: "★★★★★";
+  color: var(--neutral-300);
+}
+
+.stars-inner::before {
+  content: "★★★★★";
+  color: var(--warning-500);
 }
 
 .big-rating-score {
@@ -3118,6 +3173,292 @@ button:focus-visible,
         width: 100%;
         padding: var(--space-4);
     }
+}
+
+/* File Switcher Dropdown */
+.file-switcher-container {
+    margin: var(--space-4) 0;
+    padding: var(--space-4);
+    background: var(--primary-25);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--primary-100);
+}
+
+.file-switcher-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--primary-800);
+    margin-bottom: var(--space-3);
+}
+
+.custom-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.file-switcher-select {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    padding-right: var(--space-10); /* space for arrow */
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--neutral-800);
+    background-color: var(--neutral-0);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-switcher-select:hover {
+    border-color: var(--primary-400);
+}
+
+.file-switcher-select:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.custom-select-wrapper .select-arrow {
+    position: absolute;
+    right: var(--space-4);
+    pointer-events: none;
+    color: var(--neutral-500);
+    transition: transform 0.2s ease;
+}
+
+.custom-select-wrapper:hover .select-arrow {
+    color: var(--primary-600);
+}
+
+.file-switcher-select:focus + .select-arrow {
+    transform: rotate(180deg);
+}
+
+/* File Switcher Dropdown in Overlay */
+.file-switcher-container {
+    max-width: 300px;
+    pointer-events: auto;
+}
+
+.custom-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s var(--ease-out);
+}
+
+.custom-select-wrapper:hover {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: var(--neutral-300);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.file-switcher-select {
+    width: 100%;
+    padding: var(--space-3) var(--space-6);
+    padding-right: var(--space-10); /* space for arrow */
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--neutral-700);
+    background-color: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-switcher-select:focus {
+    outline: none;
+}
+
+.custom-select-wrapper .select-arrow {
+    position: absolute;
+    right: var(--space-3);
+    pointer-events: none;
+    color: var(--neutral-600);
+    transition: transform 0.2s ease;
+}
+
+.custom-select-wrapper:hover .select-arrow {
+    color: var(--primary-600);
+}
+
+.file-switcher-select:focus + .select-arrow {
+    transform: rotate(180deg);
+}
+
+/* Remove old file switcher styles from sidebar */
+.file-switcher-label {
+    display: none;
+}
+
+
+.preview-sidebar-skeleton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 20%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0.4) 80%,
+        transparent 100%
+    );
+    animation: cardShine 2.5s ease-in-out infinite;
+    animation-delay: 0.5s;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* File Switcher Dropdown in Overlay */
+.viewer-left-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    pointer-events: auto;
+}
+
+.custom-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s var(--ease-out);
+}
+
+.custom-select-wrapper:hover {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: var(--neutral-300);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.file-switcher-select {
+    width: 100%;
+    padding: var(--space-3) var(--space-6);
+    padding-right: var(--space-10); /* space for arrow */
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--neutral-700);
+    background-color: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-switcher-select:focus {
+    outline: none;
+}
+
+.custom-select-wrapper .select-arrow {
+    position: absolute;
+    right: var(--space-3);
+    pointer-events: none;
+    color: var(--neutral-600);
+    transition: transform 0.2s ease;
+}
+
+.custom-select-wrapper:hover .select-arrow {
+    color: var(--primary-600);
+}
+
+.file-switcher-select:focus + .select-arrow {
+    transform: rotate(180deg);
+}
+
+/* Remove old file switcher styles from sidebar */
+.file-switcher-label {
+    display: none;
+}
+
+.action-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-xl);
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-out);
+    box-shadow: var(--shadow-lg);
+}
+
+.action-btn-icon:hover {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: var(--neutral-300);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    color: var(--neutral-800);
+}
+
+/* Viewer Bottom Overlay */
+.viewer-bottom-overlay {
+    position: absolute;
+    bottom: var(--space-4);
+    left: var(--space-6);
+    right: var(--space-6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+}
+
+.viewer-bottom-overlay.visible {
+    opacity: 1;
+}
+
+.bottom-page-indicator {
+    color: var(--neutral-500);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.file-format-badge {
+    position: absolute;
+    right: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    text-transform: uppercase;
 }
 
 

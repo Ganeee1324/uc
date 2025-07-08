@@ -2836,6 +2836,7 @@ async function loadAllFiles() {
         currentVetrine = vetrineResponse.vetrine || [];
         console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
         console.log('🔍 Raw vetrine data sample:', currentVetrine.slice(0, 3));
+        console.log('🔍 First vetrina structure:', currentVetrine[0] ? Object.keys(currentVetrina[0]) : 'No vetrine found');
         
         // Transform vetrine into card items using ONLY metadata (no individual file fetching)
         console.log('🔄 Processing vetrine data for UI (optimized - no individual file fetching)...');
@@ -2849,17 +2850,17 @@ async function loadAllFiles() {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
                 filesLoaded: false, // Mark as not loaded - files will be fetched on demand
-                fileCount: vetrina.file_count || 1, // Use metadata if available
+                fileCount: vetrina.file_count || vetrina.files_count || 1, // Use metadata if available
                 files: [], // Empty array - files will be loaded when needed
                 // Use vetrina info for the card
                 filename: vetrina.name || 'Vetrina Senza Nome',
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
-                size: vetrina.total_size || 0, // Use metadata if available
-                price: vetrina.total_price || 0, // Use metadata if available
+                size: vetrina.total_size || vetrina.size || 0, // Use metadata if available
+                price: vetrina.total_price || vetrina.price || 0, // Use metadata if available
                 created_at: vetrina.created_at,
-                download_count: vetrina.total_downloads || 0, // Use metadata if available
-                rating: vetrina.average_rating || 0, // Use metadata if available
+                download_count: vetrina.total_downloads || vetrina.download_count || 0, // Use metadata if available
+                rating: vetrina.average_rating || vetrina.rating || 0, // Use metadata if available
                 review_count: vetrina.review_count || 0, // Use metadata if available
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
                 faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
@@ -2868,7 +2869,7 @@ async function loadAllFiles() {
                 course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
                 document_types: vetrina.document_types || ['DOCUMENT'], // Use metadata if available
-                document_type: vetrina.file_count > 1 ? 'BUNDLE' : 'DOCUMENT',
+                document_type: (vetrina.file_count || vetrina.files_count || 1) > 1 ? 'BUNDLE' : 'DOCUMENT',
                 author_username: vetrina.owner?.username || 'Unknown',
                 owned: vetrina.owned || false,
                 favorite: vetrina.favorite === true,
@@ -3164,68 +3165,48 @@ function renderDocuments(files) {
         const stars = generateStars(Math.floor(rating));
         const documentCategory = getDocumentCategory(documentTitle, description);
         
-        // Determine if this is a multi-file vetrina and if files have been loaded
+        // Determine if this is a multi-file vetrina
         const isMultiFile = item.isVetrina && item.fileCount > 1;
-        const filesLoaded = item.filesLoaded;
         const fileStackClass = isMultiFile ? 'file-stack' : '';
         const stackCountBadge = isMultiFile ? `<div class="file-count-badge">${item.fileCount}</div>` : '';
         
-        // Generate preview based on whether files have been loaded
+        // Generate preview using metadata (optimized approach)
         let previewContent;
-        if (item.isVetrina && !filesLoaded) {
-            // Show placeholder for vetrina that hasn't been loaded yet
-            previewContent = `
-                <div class="preview-icon">
-                    <span class="document-icon">📁</span>
-                    <div class="file-extension">VETRINA</div>
-                </div>
-            `;
-        } else if (isMultiFile && filesLoaded) {
-            // Show professional file stack with uniform grid on hover
+        if (isMultiFile) {
+            // Show professional file stack for multi-file vetrine
             const fileCount = item.fileCount;
-            const files = item.files;
             
-            // Generate dynamic stack layers based on file count
+            // Use document types from metadata if available, otherwise show generic stack
+            const documentTypes = item.document_types || ['DOCUMENT'];
+            const primaryType = documentTypes[0] || 'DOCUMENT';
+            const secondaryType = documentTypes[1] || primaryType;
+            const tertiaryType = documentTypes[2] || secondaryType;
+            
             let stackLayers = '';
             if (fileCount === 2) {
                 stackLayers = `
                     <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
-                        <div class="file-extension">${files[1].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(`file.${secondaryType.toLowerCase()}`)}</span>
+                        <div class="file-extension">${secondaryType}</div>
                     </div>
                     <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
-                        <div class="file-extension">${files[0].document_type}</div>
-                    </div>
-                `;
-            } else if (fileCount === 3) {
-                stackLayers = `
-                    <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
-                        <div class="file-extension">${files[2].document_type}</div>
-                    </div>
-                    <div class="stack-layer stack-middle">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
-                        <div class="file-extension">${files[1].document_type}</div>
-                    </div>
-                    <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
-                        <div class="file-extension">${files[0].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(`file.${primaryType.toLowerCase()}`)}</span>
+                        <div class="file-extension">${primaryType}</div>
                     </div>
                 `;
             } else {
                 stackLayers = `
                     <div class="stack-layer stack-back">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[2].filename)}</span>
-                        <div class="file-extension">${files[2].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(`file.${tertiaryType.toLowerCase()}`)}</span>
+                        <div class="file-extension">${tertiaryType}</div>
                     </div>
                     <div class="stack-layer stack-middle">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[1].filename)}</span>
-                        <div class="file-extension">${files[1].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(`file.${secondaryType.toLowerCase()}`)}</span>
+                        <div class="file-extension">${secondaryType}</div>
                     </div>
                     <div class="stack-layer stack-front">
-                        <span class="document-icon">${getDocumentPreviewIcon(files[0].filename)}</span>
-                        <div class="file-extension">${files[0].document_type}</div>
+                        <span class="document-icon">${getDocumentPreviewIcon(`file.${primaryType.toLowerCase()}`)}</span>
+                        <div class="file-extension">${primaryType}</div>
                     </div>
                 `;
             }
@@ -3239,8 +3220,9 @@ function renderDocuments(files) {
                 </div>
             `;
         } else {
-            // Single file preview or loaded vetrina
-            const filename = item.isVetrina && filesLoaded ? item.files[0].filename : item.filename;
+            // Single file preview - use metadata to determine type
+            const documentType = item.document_type || 'DOCUMENT';
+            const filename = item.filename || 'document';
             previewContent = `
                 <div class="preview-icon">
                     <span class="document-icon">${getDocumentPreviewIcon(filename)}</span>
@@ -3260,13 +3242,10 @@ function renderDocuments(files) {
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
-                    ${item.isVetrina && !filesLoaded ? 
-                        '<div class="document-type-badge">Vetrina</div>' :
-                        (item.tags && item.tags.length > 0 ?
-                            `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
-                            (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
-                            : ''
-                        )
+                    ${item.tags && item.tags.length > 0 ?
+                        `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>` +
+                        (item.tags.length > 1 ? `<div class="document-type-badge more-types">+${item.tags.length - 1}</div>` : '')
+                        : (item.primary_tag ? `<div class="document-type-badge">${getTagDisplayName(item.primary_tag)}</div>` : '')
                     }
                 </div>
                 <div class="rating-badge">

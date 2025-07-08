@@ -1089,6 +1089,12 @@ components:
           type: integer
           description: Number of reviews for this vetrina
           example: 15
+        tags:
+          type: array
+          items:
+            type: string
+          description: List of unique tags from all files in this vetrina
+          example: ["appunti", "esercizi"]
 
     CourseInstance:
       type: object

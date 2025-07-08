@@ -1095,6 +1095,14 @@ components:
             type: string
           description: List of unique tags from all files in this vetrina
           example: ["appunti", "esercizi"]
+        file_count:
+          type: integer
+          description: Total number of files in this vetrina
+          example: 5
+        price:
+          type: integer
+          description: Price of the vetrina
+          example: 1000
 
     CourseInstance:
       type: object

@@ -65,6 +65,9 @@ paths:
                   access_token:
                     type: string
                     description: JWT access token for authentication
+                  user:
+                    $ref: "#/components/schemas/User"
+                    description: User information
         "409":
           description: Email or username already exists
           content:
@@ -122,6 +125,9 @@ paths:
                   access_token:
                     type: string
                     description: JWT access token for authentication
+                  user:
+                    $ref: "#/components/schemas/User"
+                    description: User information
         "401":
           description: Authentication failed
           content:

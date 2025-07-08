@@ -1,7 +1,9 @@
 from datetime import timedelta
 import logging
+import threading
 import traceback
 
+from bge import get_document_embedding
 import werkzeug
 import database
 import redact
@@ -273,6 +275,13 @@ def upload_file(vetrina_id):
             print(f"Error deleting file from database: {e}")
         return jsonify({"error": "save_failed", "msg": str(e)}), 500
     file.close()
+
+    def thread_function():
+        embeddings = get_document_embedding(new_file_path)
+        database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
+
+    thread = threading.Thread(target=thread_function)
+    thread.start()
     return jsonify({"msg": "File uploaded"}), 200
 
 

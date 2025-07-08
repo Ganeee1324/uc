@@ -1,3 +1,7 @@
+// Add cache-busting timestamp to force browser refresh
+const CACHE_BUSTER = Date.now();
+console.log(`🔄 Cache buster timestamp: ${CACHE_BUSTER}`);
+
 const API_BASE = 'http://146.59.236.26:5000';
 let authToken = localStorage.getItem('authToken');
 
@@ -20,6 +24,14 @@ let isFiltersOpen = false;
     // Initialize the page
     window.onload = async function() {
         console.log('🚀 Page loading started...');
+        console.log(`🔄 Using cache buster: ${CACHE_BUSTER}`);
+        
+        // Force clear any cached data that might be causing issues
+        if (sessionStorage.getItem('lastCacheBuster') !== CACHE_BUSTER.toString()) {
+            console.log('🔄 Cache buster changed, clearing session storage');
+            sessionStorage.clear();
+            sessionStorage.setItem('lastCacheBuster', CACHE_BUSTER.toString());
+        }
         
         // Loading state is already set in HTML for immediate display
         // This ensures layout stability even on first load with empty cache

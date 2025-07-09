@@ -549,13 +549,9 @@ def add_file_to_vetrina(
                 if not vetrina:
                     raise NotFoundException("Vetrina not found")
 
-                logging.debug(f"Vetrina {vetrina_id} found")
-
                 # Then check if the requester is the author
                 if vetrina["author_id"] != requester_id:
                     raise ForbiddenError("Only the author can add files to this vetrina")
-
-                logging.debug(f"Requester {requester_id} is the author of vetrina {vetrina_id}")
 
                 # If all checks pass, insert the file
                 cursor.execute(

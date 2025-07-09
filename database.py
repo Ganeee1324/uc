@@ -560,7 +560,7 @@ def add_file_to_vetrina(
                 )
                 file_data = cursor.fetchone()
 
-                logging.debug(f"File {file_data['file_id']} added to vetrina {vetrina_id} by user {requester_id}")
+                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, tag: {tag}')
             return File.from_dict(file_data)
 
 

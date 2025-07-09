@@ -12,6 +12,7 @@ Usage:
 """
 
 import os
+import random
 import sys
 import requests
 import json
@@ -162,17 +163,7 @@ class MarketplaceUploader:
         if extension not in VALID_EXTENSIONS:
             print(f"✗ Invalid file extension '{extension}' for {file_path.name}. Valid extensions: {VALID_EXTENSIONS}")
             return False
-        
-        # Determine tag based on filename if not provided
-        if tag is None:
-            filename_lower = file_path.name.lower()
-            if any(word in filename_lower for word in ["dispense", "dispensa", "slide", "lecture"]):
-                tag = "dispense"
-            elif any(word in filename_lower for word in ["appunti", "appunto", "note"]):
-                tag = "appunti"
-            elif any(word in filename_lower for word in ["esercizi", "esercizio", "exercise", "homework"]):
-                tag = "esercizi"
-        
+                
         headers = {
             "Authorization": f"Bearer {self.access_token}"
         }
@@ -184,8 +175,7 @@ class MarketplaceUploader:
                 }
                 
                 data = {}
-                if tag and tag in VALID_TAGS:
-                    data['tag'] = tag
+                data['tag'] = random.choice(VALID_TAGS)
                 
                 response = self.session.post(
                     f"{self.base_url}/vetrine/{vetrina_id}/files",

@@ -13,13 +13,13 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 
 model = None
-
+model_path = r"C:\Users\fdimo\Downloads\Visualized_m3.pth" if os.name == "nt" else r"/home/ubuntu/Visualized_m3.pth"
 
 def get_document_embedding(document_path: str) -> list[np.ndarray]:
     global model
     logging.debug(f"Loading model")
     if model is None:
-        model = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=r"C:\Users\fdimo\Downloads\Visualized_m3.pth")
+        model = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path)
         model.eval()
     logging.debug(f"Model loaded")
     images_text = []
@@ -40,8 +40,9 @@ def get_document_embedding(document_path: str) -> list[np.ndarray]:
     return [emb.detach().cpu().numpy() for emb in embeddings]
 
 if __name__ == "__main__":
-    embeddings = get_document_embedding(r"C:\Users\fdimo\Desktop\Statistics Exam - DONE.pdf")
-    query = "Exercises on the bernoulli distribution"
+    path = r"C:\Users\fdimo\Desktop\Statistics Exam - DONE.pdf" if os.name == "nt" else r"/home/ubuntu/esercizi Ecolgia.pdf"
+    embeddings = get_document_embedding(path)
+    query = "bernoulli"
     with torch.no_grad():
         enc_query = model.encode(text=query).detach().cpu().numpy()
     sims = [enc_query @ emb.T for emb in embeddings]

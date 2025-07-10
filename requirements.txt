@@ -104,7 +104,6 @@ typing_extensions==4.13.2
 tzdata==2025.2
 unlzw3==0.2.3
 urllib3==2.5.0
--e git+https://github.com/xFrah/FlagEmbedding.git@b32fc10e0d2e8534925843dad18d80dfbd762e2c#egg=visual_bge&subdirectory=research\visual_bge
 warc3-wet==0.2.5
 warc3-wet-clueweb09==0.2.5
 wcwidth==0.2.13

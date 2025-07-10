@@ -34,7 +34,6 @@ def get_document_embedding(document_path: str) -> list[np.ndarray]:
             image: Image.Image = page.get_pixmap(matrix=mat).pil_image()
             images_text.append((image, text))
             logging.debug(f"Extracted text and image from page {i + 1}/{doc.page_count}")
-    logging.debug(f"All images and text extracted")
     embeddings = []
     with torch.no_grad():
         for i, (image, text) in enumerate(images_text):

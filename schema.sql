@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS files (
     price REAL NOT NULL DEFAULT 0,
     extension VARCHAR(10) NOT NULL,
     tag VARCHAR(50),
+    language VARCHAR(15) NOT NULL DEFAULT 'it',
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
 

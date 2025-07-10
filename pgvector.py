@@ -74,6 +74,6 @@ print(f"Detected language: {query_language}")
 embedding = get_sentence_embedding(query)
 k = 60
 results = conn.execute(sql, {'query': query, 'embedding': embedding, 'k': k, 'query_language': query_language}).fetchall()
-print("English query results:")
+print("Query results:")
 for row in results:
     print('document:', row[0], 'RRF score:', row[1])

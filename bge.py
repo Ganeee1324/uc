@@ -15,13 +15,17 @@ logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 model = None
 model_path = r"C:\Users\fdimo\Downloads\Visualized_m3.pth" if os.name == "nt" else r"/home/ubuntu/Visualized_m3.pth"
 
-def get_document_embedding(document_path: str) -> list[np.ndarray]:
+def load_model():
     global model
-    logging.debug(f"Loading model")
     if model is None:
+        logging.debug(f"Loading model")
         model = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path)
         model.eval()
-    logging.debug(f"Model loaded")
+    else:
+        logging.debug(f"Model already loaded")
+
+def get_document_embedding(document_path: str) -> list[np.ndarray]:
+    load_model()
     images_text = []
     with pymupdf.open(document_path) as doc:
         for i, page in enumerate(doc):
@@ -29,22 +33,25 @@ def get_document_embedding(document_path: str) -> list[np.ndarray]:
             mat: pymupdf.Matrix = pymupdf.Matrix(1, 1)
             image: Image.Image = page.get_pixmap(matrix=mat).pil_image()
             images_text.append((image, text))
-            logging.debug(f"Extracted text and image from page {i}")
+            logging.debug(f"Extracted text and image from page {i + 1}/{doc.page_count}")
     logging.debug(f"All images and text extracted")
     embeddings = []
     with torch.no_grad():
         for i, (image, text) in enumerate(images_text):
             embeddings.append(model.encode(image=image, text=text))
-            logging.debug(f"Embedding {i} processed")
-    logging.debug(f"All embeddings processed")
+            logging.debug(f"Embedding {i + 1}/{len(images_text)} processed")
     return [emb.detach().cpu().numpy() for emb in embeddings]
+
+def get_sentence_embedding(sentence: str) -> np.ndarray:
+    load_model()
+    with torch.no_grad():
+        return model.encode(text=sentence).detach().cpu().numpy()
 
 if __name__ == "__main__":
     path = r"C:\Users\fdimo\Desktop\Statistics Exam - DONE.pdf" if os.name == "nt" else r"/home/ubuntu/esercizi Ecolgia.pdf"
     embeddings = get_document_embedding(path)
     query = "bernoulli"
-    with torch.no_grad():
-        enc_query = model.encode(text=query).detach().cpu().numpy()
+    enc_query = get_sentence_embedding(query)
     sims = [enc_query @ emb.T for emb in embeddings]
     for i, sim in enumerate(sims):
         print(f"Similarity with {i + 1}: {round(sim.item(), 2)}")

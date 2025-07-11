@@ -1813,95 +1813,55 @@ function renderDocumentListView(docData) {
         return tagMap[tag?.toUpperCase()] || tag || 'Documento';
     };
     
-    // Generate professional documents list HTML
+    // Generate clean, simple documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
-        const fileType = getDocumentTypeFromFilename(file.filename);
         const fileExtension = getFileExtension(file.filename).toUpperCase();
         const fileSize = formatFileSize(file.size || 0);
         const documentIcon = getDocumentPreviewIcon(file.filename);
-        const fileTag = getTagDisplayName(file.tag);
-        const createdDate = file.created_at ? new Date(file.created_at).toLocaleDateString('it-IT') : '';
         
         return `
-            <div class="document-list-item professional" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
+            <div class="document-list-item clean" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
                 <div class="document-list-preview">
                     <div class="document-list-icon">
                         <span class="document-icon">${documentIcon}</span>
-                        <div class="file-extension-badge">${fileExtension}</div>
                     </div>
-                    ${file.tag ? `<div class="document-tag-badge">${fileTag}</div>` : ''}
                 </div>
                 <div class="document-list-content">
-                    <div class="document-list-header">
-                        <h3 class="document-list-title" title="${file.original_filename || file.filename}">
-                            ${file.original_filename || file.filename}
-                        </h3>
-                        <div class="document-list-type">${fileType}</div>
-                    </div>
-                    <div class="document-list-description">
-                        ${file.tag ? `Documento di tipo ${fileTag.toLowerCase()}` : 'Materiale didattico'}
-                        ${createdDate ? ` • Pubblicato il ${createdDate}` : ''}
-                    </div>
+                    <h3 class="document-list-title" title="${file.original_filename || file.filename}">
+                        ${file.original_filename || file.filename}
+                    </h3>
                     <div class="document-list-meta">
-                        <div class="meta-item">
-                            <span class="meta-icon material-symbols-outlined">storage</span>
-                            <span class="meta-text">${fileSize}</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-icon material-symbols-outlined">download</span>
-                            <span class="meta-text">${file.download_count || 0} download</span>
-                        </div>
-                        ${file.price && file.price > 0 ? `
-                            <div class="meta-item price">
-                                <span class="meta-icon material-symbols-outlined">euro</span>
-                                <span class="meta-text">€${file.price.toFixed(2)}</span>
-                            </div>
-                        ` : `
-                            <div class="meta-item free">
-                                <span class="meta-icon material-symbols-outlined">check_circle</span>
-                                <span class="meta-text">Gratuito</span>
-                            </div>
-                        `}
-                        ${file.owned ? `
-                            <div class="meta-item owned">
-                                <span class="meta-icon material-symbols-outlined">verified</span>
-                                <span class="meta-text">Posseduto</span>
-                            </div>
+                        <span class="meta-text">${fileSize}</span>
+                        <span class="meta-separator">•</span>
+                        <span class="meta-text">${fileExtension}</span>
+                        ${file.download_count ? `
+                            <span class="meta-separator">•</span>
+                            <span class="meta-text">${file.download_count} download</span>
                         ` : ''}
                     </div>
-                    <div class="document-list-actions">
-                        <button class="document-list-btn primary" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')" title="Visualizza documento">
-                            <span class="material-symbols-outlined">visibility</span>
-                            <span class="btn-text">Visualizza</span>
-                        </button>
-                        <button class="document-list-btn secondary" onclick="event.stopPropagation(); downloadSingleDocument('${file.file_id}')" title="Scarica documento">
-                            <span class="material-symbols-outlined">download</span>
-                            <span class="btn-text">Download</span>
-                        </button>
-                    </div>
+                </div>
+                <div class="document-list-actions">
+                    <button class="document-list-btn" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')" title="Visualizza documento">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
                 </div>
             </div>
         `;
     }).join('');
     
-    // Replace the entire main container content with the document list structure
+    // Replace the entire main container content with the clean document list structure
     mainContainer.innerHTML = `
-        <div class="document-list-section">
+        <div class="document-list-section clean">
             <div class="document-list-header-section">
                 <div class="document-list-title-container">
                     <h1 class="document-list-main-title">${vetrinaData?.name || 'Vetrina Documenti'}</h1>
                     <div class="document-list-meta-info">
                         <span class="document-list-count">${vetrinaFiles.length} documenti</span>
-                        <span class="document-list-separator">•</span>
-                        <span class="document-list-total-size">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
                         ${vetrinaData?.course_instance?.course_name ? `
                             <span class="document-list-separator">•</span>
                             <span class="document-list-course">${vetrinaData.course_instance.course_name}</span>
                         ` : ''}
                     </div>
-                    ${vetrinaData?.description ? `
-                        <p class="document-list-description">${vetrinaData.description}</p>
-                    ` : ''}
                 </div>
             </div>
             
@@ -1915,12 +1875,7 @@ function renderDocumentListView(docData) {
                 <!-- Main Info & CTA -->
                 <div class="doc-main-info">
                     <div class="doc-header-actions">
-                        <div class="doc-type-tags">
-                            ${finalTags.length > 0 ? 
-                                finalTags.map(tag => `<span class="doc-type-tag">${getTagDisplayName(tag)}</span>`).join('') :
-                                '<span class="doc-type-tag">Documenti</span>'
-                            }
-                        </div>
+                        <div class="doc-type-tag">${finalTags.length > 0 ? finalTags.map(getTagDisplayName).join(', ') : 'Documenti'}</div>
                         <div class="doc-action-buttons">
                             <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
                                 <span class="material-symbols-outlined">favorite</span>

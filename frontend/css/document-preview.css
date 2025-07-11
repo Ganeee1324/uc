@@ -4478,6 +4478,233 @@ button:focus-visible,
     }
 }
 
+/* ============================================
+   CLEAN DOCUMENT LIST STYLES - MODERN & MINIMAL
+   ============================================ */
+
+/* Clean Document List Section */
+.document-list-section.clean {
+    padding: var(--space-8);
+    background: var(--neutral-0);
+    min-height: calc(100vh - 72px);
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+}
+
+.document-list-section.clean .document-list-header-section {
+    margin-bottom: var(--space-8);
+    border-bottom: 1px solid var(--neutral-100);
+    padding-bottom: var(--space-6);
+}
+
+.document-list-section.clean .document-list-main-title {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--neutral-900);
+    margin-bottom: var(--space-2);
+    letter-spacing: -0.025em;
+}
+
+.document-list-section.clean .document-list-meta-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--neutral-600);
+}
+
+.document-list-section.clean .document-list-separator {
+    color: var(--neutral-400);
+}
+
+/* Clean Document List Container */
+.document-list-section.clean .document-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Clean Document List Items */
+.document-list-item.clean {
+    display: flex;
+    align-items: center;
+    padding: var(--space-4);
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.document-list-item.clean::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--neutral-25) 100%);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+    z-index: 0;
+}
+
+.document-list-item.clean:hover {
+    border-color: var(--primary-200);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.document-list-item.clean:hover::before {
+    opacity: 1;
+}
+
+.document-list-item.clean > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Clean Document List Preview */
+.document-list-item.clean .document-list-preview {
+    margin-right: var(--space-4);
+    flex-shrink: 0;
+}
+
+.document-list-item.clean .document-list-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-50);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s var(--ease-out);
+}
+
+.document-list-item.clean:hover .document-list-icon {
+    background: var(--primary-100);
+    transform: scale(1.05);
+}
+
+.document-list-item.clean .document-list-icon .document-icon {
+    font-size: 24px;
+    color: var(--primary-600);
+}
+
+/* Clean Document List Content */
+.document-list-item.clean .document-list-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.document-list-item.clean .document-list-title {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin: 0 0 var(--space-1) 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.document-list-item.clean:hover .document-list-title {
+    color: var(--primary-700);
+}
+
+.document-list-item.clean .document-list-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--neutral-500);
+}
+
+.document-list-item.clean .meta-text {
+    font-weight: 500;
+}
+
+.document-list-item.clean .meta-separator {
+    color: var(--neutral-400);
+}
+
+/* Clean Document List Actions */
+.document-list-item.clean .document-list-actions {
+    margin-left: var(--space-4);
+    flex-shrink: 0;
+}
+
+.document-list-item.clean .document-list-btn {
+    background: none;
+    border: none;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+    color: var(--neutral-500);
+}
+
+.document-list-item.clean .document-list-btn:hover {
+    background: var(--primary-50);
+    color: var(--primary-600);
+    transform: scale(1.1);
+}
+
+.document-list-item.clean .document-list-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Responsive Design for Clean List */
+@media (max-width: 768px) {
+    .document-list-section.clean {
+        padding: var(--space-4);
+    }
+    
+    .document-list-item.clean {
+        padding: var(--space-3);
+    }
+    
+    .document-list-item.clean .document-list-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .document-list-item.clean .document-list-icon .document-icon {
+        font-size: 20px;
+    }
+    
+    .document-list-item.clean .document-list-title {
+        font-size: var(--text-sm);
+    }
+    
+    .document-list-item.clean .document-list-meta {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 640px) {
+    .document-list-item.clean {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+    
+    .document-list-item.clean .document-list-preview {
+        margin-right: 0;
+    }
+    
+    .document-list-item.clean .document-list-content {
+        width: 100%;
+    }
+    
+    .document-list-item.clean .document-list-actions {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+}
+
 
 
 

@@ -555,12 +555,18 @@ body {
 .doc-header-actions {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    justify-content: space-between;
     margin-bottom: var(--space-3);
 }
 
 .doc-header-actions .doc-type-tag {
-    margin-right: auto; /* Push the tag to the left, buttons to the right */
+    /* Remove margin-right: auto since we're using justify-content: space-between */
+}
+
+.doc-header-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .doc-header-actions .action-btn.secondary {

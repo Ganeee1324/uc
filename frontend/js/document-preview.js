@@ -1036,12 +1036,14 @@ function renderDocumentListView(docData) {
                 <div class="doc-main-info">
                     <div class="doc-header-actions">
                         ${generateVetrinaDocumentTags(vetrinaFiles)}
-                        <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                            <span class="material-symbols-outlined">favorite</span>
-                        </button>
-                        <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                            <span class="material-symbols-outlined">share</span>
-                        </button>
+                        <div class="doc-header-buttons">
+                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="doc-title-container">
                         <h1 class="doc-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
@@ -1239,12 +1241,14 @@ function renderDocumentViewerMode(docData) {
                     <div class="doc-main-info">
                         <div class="doc-header-actions">
                             <div class="doc-type-tag">Caricamento...</div>
-                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                                <span class="material-symbols-outlined">favorite</span>
-                            </button>
-                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                                <span class="material-symbols-outlined">share</span>
-                            </button>
+                            <div class="doc-header-buttons">
+                                <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </button>
+                                <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                    <span class="material-symbols-outlined">share</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="doc-title-container">
                             <h1 class="doc-title">Caricamento...</h1>

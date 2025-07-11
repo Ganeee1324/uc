@@ -206,7 +206,9 @@ function adjustZoom(delta) {
         // Apply zoom to the PDF zoom container
         const zoomContainer = viewerElement.querySelector('.pdf-zoom-container');
         if (zoomContainer) {
-            const scale = currentZoom / 100;
+            // For zoom out (smaller numbers), we want to show more content (larger scale)
+            // For zoom in (larger numbers), we want to show less content (smaller scale)
+            const scale = 100 / currentZoom; // Inverted scale calculation
             
             // Apply zoom transformation to the container
             zoomContainer.style.transform = `scale(${scale})`;
@@ -308,38 +310,6 @@ function initializeFullscreen() {
     }, 100);
 }
 
-// Apple Style Controls Initialization
-function initializeAppleControls() {
-    // Open in Preview button
-    const openInPreviewBtn = document.getElementById('openInPreviewBtn');
-    if (openInPreviewBtn) {
-        openInPreviewBtn.addEventListener('click', () => {
-            if (currentDocument && currentDocument.file_id) {
-                const pdfUrl = getRedactedPdfUrl(currentDocument.file_id);
-                window.open(pdfUrl, '_blank');
-            }
-        });
-    }
-    
-    // Download PDF button
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-    if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', () => {
-            if (currentDocument && currentDocument.file_id) {
-                downloadRedactedDocument(currentDocument.file_id);
-            }
-        });
-    }
-    
-    // Share PDF button
-    const sharePdfBtn = document.getElementById('sharePdfBtn');
-    if (sharePdfBtn) {
-        sharePdfBtn.addEventListener('click', () => {
-            handleShare();
-        });
-    }
-}
-
 // Load redacted PDF with authentication
 async function loadRedactedPdf(fileId, viewerElementId) {
     const viewerElement = document.getElementById(viewerElementId);
@@ -371,7 +341,7 @@ async function loadRedactedPdf(fileId, viewerElementId) {
         // Replace loading content with PDF viewer
         viewerElement.innerHTML = `
             <div class="pdf-zoom-container">
-                <embed src="${objectUrl}" type="application/pdf" width="100%" height="800px">
+            <embed src="${objectUrl}" type="application/pdf" width="100%" height="800px">
             </div>
             <div class="pdf-fallback">
                 <p>Il tuo browser non supporta la visualizzazione PDF.</p>
@@ -706,7 +676,7 @@ function generateVetrinaDocumentTags(vetrinaFiles) {
     // Generate HTML for multiple tags
     if (uniqueTypes.length === 1) {
         return `<div class="doc-type-tag">${uniqueTypes[0]}</div>`;
-    } else {
+                } else {
         // Wrap multiple tags in a container to group them together
         const tagsHTML = uniqueTypes.map(type => `<div class="doc-type-tag">${type}</div>`).join('');
         return `<div class="doc-type-tags-container">${tagsHTML}</div>`;
@@ -1330,20 +1300,20 @@ function renderDocumentListView(docData) {
 // New function to handle normal single-file viewer mode
 function renderDocumentViewerMode(docData) {
     const mainContainer = document.querySelector('.preview-main');
-    const vetrinaFiles = docData.vetrinaFiles || [];
+        const vetrinaFiles = docData.vetrinaFiles || [];
     const currentDocument = docData.document;
 
     const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, currentDocument.file_id);
         
-    // Replace the entire main container content with the document viewer structure
-    mainContainer.innerHTML = `
-        <div class="document-viewer-section">
-            <div class="document-viewer" id="documentViewer">
+        // Replace the entire main container content with the document viewer structure
+        mainContainer.innerHTML = `
+            <div class="document-viewer-section">
+                <div class="document-viewer" id="documentViewer">
                 <div class="pdf-loading">
                     <div class="loader-spinner"></div>
                     <p>Caricamento documento...</p>
                 </div>
-            </div>
+                </div>
                 
                 <!-- Viewer Controls Overlay -->
                 <div class="viewer-overlay-controls">
@@ -1362,30 +1332,10 @@ function renderDocumentViewerMode(docData) {
                     </div>
                 </div>
 
-                <!-- Apple Style Bottom Overlay -->
+                <!-- New Bottom Elements -->
                 <div class="viewer-bottom-overlay">
-                    <div class="bottom-overlay-left">
-                        <span class="bottom-page-indicator" id="bottomPageIndicator">Pagina 1</span>
-                    </div>
-                    <div class="bottom-overlay-center">
-                        <div class="apple-style-controls">
-                            <button class="apple-control-btn" id="openInPreviewBtn" title="Apri in Anteprima">
-                                <span class="material-symbols-outlined">open_in_new</span>
-                                <span class="control-label">Anteprima</span>
-                            </button>
-                            <button class="apple-control-btn" id="downloadPdfBtn" title="Scarica PDF">
-                                <span class="material-symbols-outlined">download</span>
-                                <span class="control-label">Download</span>
-                            </button>
-                            <button class="apple-control-btn" id="sharePdfBtn" title="Condividi">
-                                <span class="material-symbols-outlined">share</span>
-                                <span class="control-label">Condividi</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="bottom-overlay-right">
-                        <div class="file-format-badge" id="fileFormatBadge">PDF</div>
-                    </div>
+                    <span class="bottom-page-indicator" id="bottomPageIndicator"></span>
+                    <div class="file-format-badge" id="fileFormatBadge"></div>
                 </div>
             </div>
             
@@ -1396,12 +1346,12 @@ function renderDocumentViewerMode(docData) {
                         <div class="doc-header-actions">
                             <div class="doc-type-tag">Caricamento...</div>
                             <div class="doc-header-buttons">
-                                <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                                    <span class="material-symbols-outlined">favorite</span>
-                                </button>
-                                <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                                    <span class="material-symbols-outlined">share</span>
-                                </button>
+                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
                             </div>
                         </div>
                         <div class="doc-title-container">
@@ -1568,7 +1518,6 @@ function renderDocumentViewerMode(docData) {
         // Initialize controls
         initializeZoom();
         initializeFullscreen();
-        initializeAppleControls();
         
         const fileSwitcher = document.getElementById('file-switcher');
         if (fileSwitcher) {
@@ -2254,7 +2203,7 @@ function showAndFadeBottomOverlay() {
     bottomOverlayTimeout = setTimeout(() => {
         bottomOverlay.classList.remove('visible');
     }, 2000); // Hide after 2 seconds
-}
+} 
 
 // Related Documents Renderer - Professional Placeholder Implementation
 function renderRelatedDocuments(relatedDocs) {

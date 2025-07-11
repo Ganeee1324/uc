@@ -644,7 +644,7 @@ body {
 
 /* Multiple doc-type-tags styling */
 .doc-header-actions .doc-type-tag + .doc-type-tag {
-    margin-left: var(--space-1); /* Add spacing between multiple tags */
+    margin-left: var(--space-px); /* Minimal spacing between multiple tags */
 }
 
 .doc-meta-header {

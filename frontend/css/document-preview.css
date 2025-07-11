@@ -268,7 +268,7 @@ body {
 .document-viewer {
     height: 100%; /* Take full height of section */
     overflow: hidden; /* Disable the viewer's scrollbar */
-    padding: var(--space-8);
+    padding: 0; /* Remove padding to fill the section */
     background: transparent;
 }
 

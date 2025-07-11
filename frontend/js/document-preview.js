@@ -300,13 +300,13 @@ async function fetchDocumentData(vetrinaId) {
 
         // 2. Fetch the details for this specific vetrina.
         // The backend doesn't have /vetrine/<id>, so we must fetch all and filter.
-        const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
+                const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
         if (!allVetrineResponse || !allVetrineResponse.vetrine) {
             throw new Error('Could not fetch vetrine list.');
         }
         const vetrinaData = allVetrineResponse.vetrine.find(v => v.id == vetrinaId || v.vetrina_id == vetrinaId);
-
-        if (!vetrinaData) {
+                    
+                    if (!vetrinaData) {
             throw new Error(`Vetrina with ID ${vetrinaId} not found.`);
         }
 
@@ -329,7 +329,7 @@ async function fetchDocumentData(vetrinaId) {
         }
 
         // 4. Fetch reviews for the vetrina.
-        const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
+                const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
         const reviewsData = (reviewsResponse && reviewsResponse.reviews) ? reviewsResponse.reviews : [];
 
         // 5. Assemble the final data structure that the rest of the page expects.
@@ -363,7 +363,7 @@ function renderDocumentInfo(docData) {
 
     // Get file count for conditional logic
     const fileCount = vetrinaFiles?.length || 1;
-
+    
     // Get reviews data from docData (reviews are at vetrina level)
     const reviews = docData.reviews || [];
     
@@ -538,7 +538,7 @@ function generateVetrinaDocumentTags(vetrinaFiles) {
     if (uniqueTypes.length === 1) {
         return `<div class="doc-type-tag">${uniqueTypes[0]}</div>`;
     } else {
-        // Wrap multiple tags in a container to treat them as a single flex item
+        // Wrap multiple tags in a container to group them together
         const tagsHTML = uniqueTypes.map(type => `<div class="doc-type-tag">${type}</div>`).join('');
         return `<div class="doc-type-tags-container">${tagsHTML}</div>`;
     }

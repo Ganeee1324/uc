@@ -569,6 +569,22 @@ function formatDate(dateString) {
     });
 }
 
+// Utility Functions
+function generateStars(rating) {
+    return Array.from({ length: 5 }, (_, i) => 
+        `<span class="star ${i < rating ? 'filled' : ''}">★</span>`
+    ).join('');
+}
+
+function generateFractionalStars(rating) {
+    const ratingPercentage = (rating / 5) * 100;
+    return `
+        <div class="stars-outer">
+            <div class="stars-inner" style="width: ${ratingPercentage}%"></div>
+        </div>
+    `;
+}
+
 // Reading Position Management
 function saveReadingPosition() {
     if (currentDocument) {

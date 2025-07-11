@@ -647,6 +647,17 @@ body {
     margin-left: var(--space-px); /* Minimal spacing between multiple tags */
 }
 
+/* Container for multiple doc-type-tags */
+.doc-type-tags-container {
+    display: flex;
+    align-items: center;
+    gap: 0; /* No gap between tags */
+}
+
+.doc-type-tags-container .doc-type-tag {
+    margin-left: 0; /* Remove any margin */
+}
+
 .doc-meta-header {
     display: flex;
     justify-content: space-between;

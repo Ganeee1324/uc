@@ -173,6 +173,37 @@ function isPdfFile(filename) {
     return filename && filename.toLowerCase().endsWith('.pdf');
 }
 
+// Zoom functionality for PDF viewer
+function adjustZoom(delta) {
+    const viewerElement = document.getElementById('documentViewer');
+    if (!viewerElement) return;
+    
+    // Calculate new zoom level
+    const newZoom = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, currentZoom + delta));
+    
+    if (newZoom !== currentZoom) {
+        currentZoom = newZoom;
+        
+        // Apply zoom to the PDF embed element
+        const pdfEmbed = viewerElement.querySelector('embed');
+        if (pdfEmbed) {
+            pdfEmbed.style.transform = `scale(${currentZoom / 100})`;
+            pdfEmbed.style.transformOrigin = 'top left';
+        }
+        
+        // Update zoom level display
+        const zoomLevelElement = document.getElementById('zoomLevel');
+        if (zoomLevelElement) {
+            zoomLevelElement.textContent = `${currentZoom}%`;
+        }
+        
+        // Save zoom level to localStorage
+        if (currentDocument && currentDocument.file_id) {
+            localStorage.setItem(`file-${currentDocument.file_id}-zoom`, currentZoom);
+        }
+    }
+}
+
 // Load redacted PDF with authentication
 async function loadRedactedPdf(fileId, viewerElementId) {
     const viewerElement = document.getElementById(viewerElementId);
@@ -781,22 +812,6 @@ function initializeKeyboardNavigation() {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         
         switch(e.key) {
-            case 'ArrowLeft':
-                e.preventDefault();
-                goToPage(currentPage - 1);
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                goToPage(currentPage + 1);
-                break;
-            case 'Home':
-                e.preventDefault();
-                goToPage(1);
-                break;
-            case 'End':
-                e.preventDefault();
-                goToPage(totalPages);
-                break;
             case '+':
             case '=':
                 e.preventDefault();
@@ -831,13 +846,7 @@ function initializeTouchNavigation() {
         const swipeThreshold = 50;
         const diff = touchStartX - touchEndX;
         
-        if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                goToPage(currentPage + 1); // Swipe left - next page
-            } else {
-                goToPage(currentPage - 1); // Swipe right - previous page
-            }
-        }
+        // Swipe navigation removed for PDF viewer - PDF has its own navigation
     }
 }
 

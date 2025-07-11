@@ -1407,7 +1407,7 @@ body {
 /* PDF Zoom Container */
 .pdf-zoom-container {
     width: 100%;
-    height: 800px;
+    /* Let height be determined by content */
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -1416,7 +1416,7 @@ body {
 
 .pdf-zoom-container embed {
     width: 100%;
-    height: 100%;
+    height: 110vh; /* Set a height larger than viewport to ensure scrolling */
     border: none;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);

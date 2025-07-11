@@ -206,27 +206,12 @@ function adjustZoom(delta) {
         // Apply zoom to the PDF zoom container
         const zoomContainer = viewerElement.querySelector('.pdf-zoom-container');
         if (zoomContainer) {
-            // For zoom out (smaller numbers), we want to show more content (larger scale)
-            // For zoom in (larger numbers), we want to show less content (smaller scale)
-            const scale = 100 / currentZoom; // Inverted scale calculation
+            // Correct scale calculation
+            const scale = currentZoom / 100;
             
             // Apply zoom transformation to the container
             zoomContainer.style.transform = `scale(${scale})`;
             zoomContainer.style.transformOrigin = 'center top';
-            
-            // Calculate the scaled dimensions
-            const originalHeight = 800; // Original PDF height
-            const scaledHeight = originalHeight * scale;
-            
-            // Set the container height to accommodate the scaled content
-            zoomContainer.style.height = `${scaledHeight}px`;
-            zoomContainer.style.minHeight = `${scaledHeight}px`;
-            
-            // Ensure the container takes full width and centers content
-            zoomContainer.style.width = '100%';
-            zoomContainer.style.display = 'flex';
-            zoomContainer.style.justifyContent = 'center';
-            zoomContainer.style.alignItems = 'flex-start';
         }
         
         // Update zoom level display and button states

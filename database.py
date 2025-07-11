@@ -381,17 +381,16 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
                 SELECT 
                     pe.vetrina_id,
                     pe.file_id,
-                    pe.page_id,
-                    RANK() OVER (ORDER BY pe.embedding <=> %(embedding)s) AS rank
+                    pe.page_number,
+                    RANK() OVER (ORDER BY pe.embedding <#> %(embedding)s) AS rank
                 FROM page_embeddings pe
-                ORDER BY pe.embedding <=> %(embedding)s
                 LIMIT 20
             ),
             keyword_search AS (
                 SELECT 
                     v.vetrina_id,
                     NULL::integer AS file_id,
-                    NULL::integer AS page_id,
+                    NULL::integer AS page_number,
                     RANK() OVER (ORDER BY ts_rank_cd(
                         CASE 
                             WHEN v.language = 'en' THEN to_tsvector('english', v.description)
@@ -417,7 +416,7 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
                 COALESCE(1.0 / (%(k)s + semantic_search.rank), 0.0) +
                 COALESCE(1.0 / (%(k)s + keyword_search.rank), 0.0) AS score,
                 semantic_search.file_id,
-                semantic_search.page_id,
+                semantic_search.page_number,
                 v.*,
                 u.*,
                 ci.*
@@ -441,7 +440,7 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
                 },
             ).fetchall()
 
-            return [(Vetrina.from_dict(row), (row["file_id"], row["page_id"])) for row in results]
+            return [(Vetrina.from_dict(row), (row["file_id"], row["page_number"])) for row in results]
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:
@@ -620,10 +619,10 @@ def add_file_to_vetrina(
 def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
-            for embedding in embeddings:
+            for page_number, embedding in enumerate(embeddings):
                 pg_vector_data = embedding.squeeze()
                 cursor.execute(
-                    "INSERT INTO page_embeddings (vetrina_id, file_id, embedding) VALUES (%s, %s, %s)", (vetrina_id, file_id, pg_vector_data)
+                    "INSERT INTO page_embeddings (vetrina_id, file_id, page_number, embedding) VALUES (%s, %s, %s, %s)", (vetrina_id, file_id, page_number, pg_vector_data)
                 )
                 conn.commit()
             logging.debug(f"Inserted {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")

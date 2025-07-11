@@ -104,10 +104,11 @@ CREATE TABLE IF NOT EXISTS favourite_file (
 );
 
 CREATE TABLE IF NOT EXISTS page_embeddings (
-    page_id SERIAL PRIMARY KEY,
+    page_number INTEGER NOT NULL,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
-    embedding vector(1024) NOT NULL
+    embedding vector(1024) NOT NULL,
+    PRIMARY KEY (page_number, vetrina_id, file_id)
 );
 
 CREATE TABLE IF NOT EXISTS review (

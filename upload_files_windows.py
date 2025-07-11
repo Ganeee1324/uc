@@ -21,7 +21,7 @@ import mimetypes
 from typing import Dict, List, Optional, Tuple
 
 # Configuration
-API_BASE_URL = "http://localhost:5000"  # Hardcoded IP as requested
+API_BASE_URL = "http://127.0.0.1:5000"  # Hardcoded IP as requested
 VALID_EXTENSIONS = ["pdf", "docx", "txt", "xlsx"]
 VALID_TAGS = ["dispense", "appunti", "esercizi"]
 

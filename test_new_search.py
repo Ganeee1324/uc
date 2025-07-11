@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any
 
 # Configuration
-BASE_URL = "http://localhost:5000"
+BASE_URL = "http://127.0.0.1:5000"
 SEARCH_ENDPOINT = f"{BASE_URL}/vetrine/search"
 
 
@@ -44,14 +44,14 @@ def test_search(query: str, description: str = "") -> Dict[str, Any]:
         # Display results
         vetrine = data.get("vetrine")
         # print the first 5 results
-        for i, vetrina in enumerate(vetrine[:5]):
+        for i, vetrina in enumerate(vetrine[:10]):
             print(f"\nResult {i+1}:")
             print(f"  Name: {vetrina.get('name')}")
             print(f"  Description: {vetrina.get('description', '')[:100]}...")
             if file_id := vetrina.get("file_id"):
-                print(f"  File ID: {file_id}")
-            if page_id := vetrina.get("page_id"):
-                print(f"  Page ID: {page_id}")
+                file_info = get_file_info(file_id)
+                print(f"  File name: {file_info.get('filename')}")
+                print(f"  Page number: {vetrina.get('page_number') + 1}")
 
         return data
     else:
@@ -64,22 +64,23 @@ def test_search(query: str, description: str = "") -> Dict[str, Any]:
         return {}
 
 
+def get_file_info(file_id: int) -> Dict[str, Any]:
+    """
+    Get the information of a file.
+    """
+    response = requests.get(f"{BASE_URL}/files/{file_id}")
+    return response.json()
+
+
 def test_server_connection():
     """Test if the server is running and accessible."""
     print("Testing server connection...")
-    try:
-        response = requests.get(f"{BASE_URL}/hierarchy", timeout=5)
-        if response.status_code == 200:
-            print("✅ Server is running and accessible")
-            return True
-        else:
-            print(f"⚠️  Server responded with status {response.status_code}")
-            return False
-    except requests.exceptions.ConnectionError:
-        print("❌ Cannot connect to server. Make sure Flask app is running on localhost:5000")
-        return False
-    except Exception as e:
-        print(f"❌ Error testing connection: {e}")
+    response = requests.get(f"{BASE_URL}/hierarchy", timeout=5)
+    if response.status_code == 200:
+        print("✅ Server is running and accessible")
+        return True
+    else:
+        print(f"⚠️  Server responded with status {response.status_code}")
         return False
 
 
@@ -95,12 +96,8 @@ def main():
 
     # Test queries
     test_queries = [
-        {"query": "bernoulli exercises", "description": "Testing English search for Bernoulli exercises"},
-        {"query": "esercizi sulle derivate", "description": "Testing Italian search for derivative exercises"},
-        {"query": "mathematics", "description": "Testing broad English search"},
-        {"query": "matematica", "description": "Testing broad Italian search"},
-        {"query": "probability theory", "description": "Testing specific English mathematical topic"},
-        {"query": "analisi matematica", "description": "Testing specific Italian mathematical topic"},
+        {"query": "bernoulli distribution", "description": "Testing English search for spectral decomposition"},
+        # {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy"},
     ]
 
     results = []

@@ -218,10 +218,10 @@ def new_search():
     
     results = database.new_search(query)
     vetrine = []
-    for vetrina, (file_id, page_id) in results:
+    for vetrina, (file_id, page_number) in results:
         vetrina_dict = vetrina.to_dict()
-        vetrina_dict.update({"file_id": file_id, "page_id": page_id})
-        logging.debug(f"Vetrina {vetrina_dict['vetrina_id']} found with file {file_id} and page {page_id}")
+        vetrina_dict.update({"file_id": file_id, "page_number": page_number})
+        logging.debug(f"Vetrina {vetrina_dict['vetrina_id']} found with file {file_id} and page {page_number}")
         vetrine.append(vetrina_dict)
     return jsonify({
         "vetrine": vetrine, 
@@ -364,7 +364,6 @@ def get_files_for_vetrina(vetrina_id):
 
 
 @app.route("/files/<int:file_id>", methods=["GET"])
-@jwt_required()
 def get_file(file_id):
     file = database.get_file(file_id)
     return jsonify(file.to_dict()), 200
@@ -500,4 +499,4 @@ def get_valid_tags():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", debug=True, threaded=True)
+    app.run(host="127.0.0.1", debug=False, threaded=True)

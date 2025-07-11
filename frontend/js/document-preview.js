@@ -1782,86 +1782,68 @@ async function initializeDocumentPreview() {
 // New function to render document list view for multiple files
 function renderDocumentListView(docData) {
     const mainContainer = document.querySelector('.preview-main');
-    const { vetrinaFiles, vetrina: vetrinaData } = docData;
+    const { vetrinaFiles } = docData;
     
-    // Get all unique tags from the vetrina files
-    const vetrinaTags = [];
-    if (vetrinaFiles && vetrinaFiles.length > 0) {
-        vetrinaFiles.forEach(file => {
-            if (file.tag && !vetrinaTags.includes(file.tag)) {
-                vetrinaTags.push(file.tag);
-            }
-        });
-    }
-    
-    // Use vetrina.tags if available from backend, otherwise use extracted tags
-    const finalTags = vetrinaData?.tags && vetrinaData.tags.length > 0 ? vetrinaData.tags : vetrinaTags;
-    
-    // Function to get tag display name
-    const getTagDisplayName = (tag) => {
-        const tagMap = {
-            'ESERCIZI': 'Esercizi',
-            'APPUNTI': 'Appunti',
-            'SLIDES': 'Slides',
-            'DISPENSE': 'Dispense',
-            'PROGETTI': 'Progetti',
-            'LABORATORIO': 'Laboratorio',
-            'ESAMI': 'Esami',
-            'TEORIA': 'Teoria',
-            'BOOK': 'Libri'
-        };
-        return tagMap[tag?.toUpperCase()] || tag || 'Documento';
-    };
-    
-    // Generate clean, simple documents list HTML
+    // Generate documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
-        const fileExtension = getFileExtension(file.filename).toUpperCase();
+        const fileType = getDocumentTypeFromFilename(file.filename);
+        const fileExtension = getFileExtension(file.filename);
         const fileSize = formatFileSize(file.size || 0);
         const documentIcon = getDocumentPreviewIcon(file.filename);
         
         return `
-            <div class="document-list-item clean" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
+            <div class="document-list-item" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
                 <div class="document-list-preview">
                     <div class="document-list-icon">
                         <span class="document-icon">${documentIcon}</span>
+                        <div class="file-extension-badge">${fileExtension}</div>
                     </div>
                 </div>
                 <div class="document-list-content">
-                    <h3 class="document-list-title" title="${file.original_filename || file.filename}">
-                        ${file.original_filename || file.filename}
-                    </h3>
+                    <div class="document-list-header">
+                        <h3 class="document-list-title">${file.original_filename || file.filename}</h3>
+                        <div class="document-list-type">${fileType}</div>
+                    </div>
                     <div class="document-list-meta">
-                        <span class="meta-text">${fileSize}</span>
-                        <span class="meta-separator">•</span>
-                        <span class="meta-text">${fileExtension}</span>
-                        ${file.download_count ? `
-                            <span class="meta-separator">•</span>
-                            <span class="meta-text">${file.download_count} download</span>
+                        <span class="document-list-size">${fileSize}</span>
+                        <span class="document-list-separator">•</span>
+                        <span class="document-list-downloads">${file.download_count || 0} download</span>
+                        ${file.price && file.price > 0 ? `
+                            <span class="document-list-separator">•</span>
+                            <span class="document-list-price">€${file.price.toFixed(2)}</span>
                         ` : ''}
                     </div>
-                </div>
-                <div class="document-list-actions">
-                    <button class="document-list-btn" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')" title="Visualizza documento">
-                        <span class="material-symbols-outlined">visibility</span>
-                    </button>
+                    <div class="document-list-actions">
+                        <button class="document-list-btn primary" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')">
+                            <span class="material-symbols-outlined">visibility</span>
+                            Visualizza
+                        </button>
+                        <button class="document-list-btn secondary" onclick="event.stopPropagation(); downloadSingleDocument('${file.file_id}')">
+                            <span class="material-symbols-outlined">download</span>
+                            Download
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
     }).join('');
+
+    // Generate tags HTML
+    const tagsHTML = currentVetrina?.tags?.map(tag => `<div class="doc-type-tag">${tag}</div>`).join('') || '<div class="doc-type-tag">Bundle</div>';
     
-    // Replace the entire main container content with the clean document list structure
+    // Replace the entire main container content with the document list structure
     mainContainer.innerHTML = `
-        <div class="document-list-section clean">
+        <div class="document-list-section">
             <div class="document-list-header-section">
                 <div class="document-list-title-container">
-                    <h1 class="document-list-main-title">${vetrinaData?.name || 'Vetrina Documenti'}</h1>
+                    <h1 class="document-list-main-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
                     <div class="document-list-meta-info">
                         <span class="document-list-count">${vetrinaFiles.length} documenti</span>
-                        ${vetrinaData?.course_instance?.course_name ? `
-                            <span class="document-list-separator">•</span>
-                            <span class="document-list-course">${vetrinaData.course_instance.course_name}</span>
-                        ` : ''}
+                        <span class="document-list-separator">•</span>
+                        <span class="document-list-total-size">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
                     </div>
+                </div>
+                <div class="document-list-header-actions">
                 </div>
             </div>
             
@@ -1875,18 +1857,16 @@ function renderDocumentListView(docData) {
                 <!-- Main Info & CTA -->
                 <div class="doc-main-info">
                     <div class="doc-header-actions">
-                        <div class="doc-type-tag">${finalTags.length > 0 ? finalTags.map(getTagDisplayName).join(', ') : 'Documenti'}</div>
-                        <div class="doc-action-buttons">
-                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                                <span class="material-symbols-outlined">favorite</span>
-                            </button>
-                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                                <span class="material-symbols-outlined">share</span>
-                            </button>
-                        </div>
+                        <div class="doc-type-tags-container">${tagsHTML}</div>
+                        <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                            <span class="material-symbols-outlined">favorite</span>
+                        </button>
+                        <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
                     </div>
                     <div class="doc-title-container">
-                        <h1 class="doc-title">${vetrinaData?.name || 'Vetrina Documenti'}</h1>
+                        <h1 class="doc-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
                     </div>
                     <div class="doc-meta-header">
                         <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
@@ -1905,12 +1885,15 @@ function renderDocumentListView(docData) {
                 <!-- Premium Action Buttons -->
                 <div class="doc-actions">
                     <button class="action-btn cart" id="addToCartBtn">
-                        <span class="material-symbols-outlined">shopping_cart</span>
                         Aggiungi al Carrello
                     </button>
                     <button class="action-btn primary" id="purchaseBtn">
-                        <span class="material-symbols-outlined">shopping_bag</span>
-                        Acquista Raccolta
+                        Acquista Bundle
+                    </button>
+                    <!-- Hidden download button (controlled by JS) -->
+                    <button class="action-btn secondary" id="downloadBtn" style="display: none;">
+                        <span class="material-symbols-outlined">download</span>
+                        <span>Download</span>
                     </button>
                 </div>
 
@@ -1921,7 +1904,7 @@ function renderDocumentListView(docData) {
                         Descrizione
                     </h3>
                     <div class="doc-description">
-                        <p>${vetrinaData?.description || 'Raccolta di materiali didattici per lo studio.'}</p>
+                        <p>${currentVetrina?.description || 'Raccolta di documenti di studio.'}</p>
                     </div>
                 </div>
 
@@ -1929,13 +1912,9 @@ function renderDocumentListView(docData) {
                 <div class="doc-details-section">
                     <h3>
                         <span class="material-symbols-outlined">info</span>
-                        Dettagli Raccolta
+                        Dettagli Bundle
                     </h3>
                     <div class="doc-details">
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Tipologie</span>
-                            <span class="detail-value">${finalTags.length > 0 ? finalTags.map(getTagDisplayName).join(', ') : 'Varie'}</span>
-                        </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Numero di file</span>
                             <span class="detail-value">${vetrinaFiles.length}</span>
@@ -1945,24 +1924,20 @@ function renderDocumentListView(docData) {
                             <span class="detail-value">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
                         </div>
                         <div class="detail-item-vertical">
-                            <span class="detail-label">Proprietario</span>
-                            <span class="detail-value">${vetrinaData?.owner?.username || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item-vertical">
                             <span class="detail-label">Facoltà</span>
-                            <span class="detail-value">${vetrinaData?.course_instance?.faculty_name || 'N/A'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.faculty_name || 'N/A'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Corso</span>
-                            <span class="detail-value">${vetrinaData?.course_instance?.course_name || 'N/A'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.course_name || 'N/A'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Lingua</span>
-                            <span class="detail-value">${vetrinaData?.course_instance?.language || 'Italiano'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.language || 'Italiano'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Anno Accademico</span>
-                            <span class="detail-value">${vetrinaData?.course_instance?.date_year ? `${vetrinaData.course_instance.date_year}/${vetrinaData.course_instance.date_year + 1}` : 'N/A'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.date_year ? `${currentVetrina.course_instance.date_year}/${currentVetrina.course_instance.date_year + 1}` : 'N/A'}</span>
                         </div>
                     </div>
                 </div>
@@ -2048,237 +2023,237 @@ function renderDocumentListView(docData) {
 function renderDocumentViewerMode(docData) {
     const mainContainer = document.querySelector('.preview-main');
     const vetrinaFiles = docData.vetrinaFiles || [];
-    
-    // Generate document pages
-    const pages = generateDocumentPages(docData);
+
+        // Generate document pages
+        const pages = generateDocumentPages(docData);
     const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, currentDocument.file_id);
-    
-    // Replace the entire main container content with the document viewer structure
-    mainContainer.innerHTML = `
-        <div class="document-viewer-section">
-            <div class="document-viewer" id="documentViewer">
-                <!-- Document pages will be rendered here -->
-            </div>
-            
-            <!-- Viewer Controls Overlay -->
-            <div class="viewer-overlay-controls">
-                ${viewerLeftControlsHTML}
-                <div class="viewer-controls-overlay">
-                    <button class="zoom-btn" id="zoomOut" title="Zoom Out">
-                        <span class="material-symbols-outlined">zoom_out</span>
-                    </button>
-                    <span class="zoom-level" id="zoomLevel">100%</span>
-                    <button class="zoom-btn" id="zoomIn" title="Zoom In">
-                        <span class="material-symbols-outlined">zoom_in</span>
-                    </button>
-                    <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
-                        <span class="material-symbols-outlined">fullscreen</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- New Bottom Elements -->
-            <div class="viewer-bottom-overlay">
-                <span class="bottom-page-indicator" id="bottomPageIndicator"></span>
-                <div class="file-format-badge" id="fileFormatBadge"></div>
-            </div>
-        </div>
         
-        <div class="document-info-sidebar">
-            <div class="doc-info-content">
-                <!-- Main Info & CTA -->
-                <div class="doc-main-info">
-                    <div class="doc-header-actions">
-                        <div class="doc-type-tag">Caricamento...</div>
-                        <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                            <span class="material-symbols-outlined">favorite</span>
-                        </button>
-                        <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                            <span class="material-symbols-outlined">share</span>
-                        </button>
-                    </div>
-                    <div class="doc-title-container">
-                        <h1 class="doc-title">Caricamento...</h1>
-                    </div>
-                    <div class="doc-meta-header">
-                        <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
-                            <div class="rating-stars"></div>
-                            <div class="rating-details">
-                                <span class="rating-score">0.0</span>
-                                <span class="rating-count">(0)</span>
-                            </div>
-                        </div>
-                        <div class="doc-price">
-                            <span class="price-value">€0.00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Premium Action Buttons -->
-                <div class="doc-actions">
-                    <button class="action-btn cart" id="addToCartBtn">
-                        Aggiungi al Carrello
-                    </button>
-                    <button class="action-btn primary" id="purchaseBtn">
-                        Acquista Ora
-                    </button>
-                    <!-- Hidden download button (controlled by JS) -->
-                    <button class="action-btn secondary" id="downloadBtn" style="display: none;">
-                        <span class="material-symbols-outlined">download</span>
-                        <span>Download</span>
-                    </button>
-                </div>
-
-                <!-- Document Description Section -->
-                <div class="doc-description-section">
-                    <h3>
-                        <span class="material-symbols-outlined">description</span>
-                        Descrizione
-                    </h3>
-                    <div class="doc-description">
-                        <p>Caricamento descrizione...</p>
-                    </div>
-                </div>
-
-                <!-- Document Details Section -->
-                <div class="doc-details-section">
-                    <h3>
-                        <span class="material-symbols-outlined">info</span>
-                        Dettagli Documento
-                    </h3>
-                    <div class="doc-details">
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Facoltà</span>
-                            <span class="detail-value">Caricamento...</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Corso</span>
-                            <span class="detail-value">Caricamento...</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Lingua</span>
-                            <span class="detail-value">Caricamento...</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Canale</span>
-                            <span class="detail-value">Caricamento...</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Anno Accademico</span>
-                            <span class="detail-value">Caricamento...</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Pagine</span>
-                            <span class="detail-value">Caricamento...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Related Documents Section -->
-                <div class="related-docs-section">
-                    <div class="related-docs">
-                        <!-- Content will be populated by renderRelatedDocuments -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Reviews Overlay -->
-        <div class="reviews-overlay" id="reviewsOverlay">
-            <div class="reviews-overlay-content">
-                <div class="reviews-overlay-header">
-                    <h2>
-                        <span class="material-symbols-outlined">rate_review</span>
-                        Recensioni
-                    </h2>
-                    <button class="close-overlay-btn" onclick="closeReviewsOverlay()">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
+        // Replace the entire main container content with the document viewer structure
+        mainContainer.innerHTML = `
+            <div class="document-viewer-section">
+                <div class="document-viewer" id="documentViewer">
+                    <!-- Document pages will be rendered here -->
                 </div>
                 
-                <div class="reviews-overlay-body">
-                    <div class="reviews-summary">
-                        <div class="overall-rating">
-                            <div class="rating-display">
-                                <div class="big-stars"></div>
-                                <span class="big-rating-score">0.0</span>
-                            </div>
-                            <span class="total-reviews">Basato su 0 recensioni</span>
-                        </div>
-                        <button class="add-review-btn" onclick="showAddReviewForm()">
-                            <span class="material-symbols-outlined">add</span>
-                            Aggiungi Recensione
+                <!-- Viewer Controls Overlay -->
+                <div class="viewer-overlay-controls">
+                    ${viewerLeftControlsHTML}
+                    <div class="viewer-controls-overlay">
+                        <button class="zoom-btn" id="zoomOut" title="Zoom Out">
+                            <span class="material-symbols-outlined">zoom_out</span>
+                        </button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="zoom-btn" id="zoomIn" title="Zoom In">
+                            <span class="material-symbols-outlined">zoom_in</span>
+                        </button>
+                        <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
+                            <span class="material-symbols-outlined">fullscreen</span>
                         </button>
                     </div>
-                    
-                    <div class="reviews-list" id="reviewsList">
-                        <!-- Reviews will be populated here -->
-                    </div>
-                    
-                    <div class="add-review-form" id="addReviewForm" style="display: none;">
-                        <h3>Aggiungi la tua recensione</h3>
-                        <div class="rating-input">
-                            <label>Valutazione:</label>
-                            <div class="star-rating">
-                                <span class="star-input" data-rating="1">★</span>
-                                <span class="star-input" data-rating="2">★</span>
-                                <span class="star-input" data-rating="3">★</span>
-                                <span class="star-input" data-rating="4">★</span>
-                                <span class="star-input" data-rating="5">★</span>
+                </div>
+
+                <!-- New Bottom Elements -->
+                <div class="viewer-bottom-overlay">
+                    <span class="bottom-page-indicator" id="bottomPageIndicator"></span>
+                    <div class="file-format-badge" id="fileFormatBadge"></div>
+                </div>
+            </div>
+            
+            <div class="document-info-sidebar">
+                <div class="doc-info-content">
+                    <!-- Main Info & CTA -->
+                    <div class="doc-main-info">
+                        <div class="doc-header-actions">
+                            <div class="doc-type-tag">Caricamento...</div>
+                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
+                        <div class="doc-title-container">
+                            <h1 class="doc-title">Caricamento...</h1>
+                        </div>
+                        <div class="doc-meta-header">
+                            <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
+                                <div class="rating-stars"></div>
+                                <div class="rating-details">
+                                    <span class="rating-score">0.0</span>
+                                    <span class="rating-count">(0)</span>
+                                </div>
+                            </div>
+                            <div class="doc-price">
+                                <span class="price-value">€0.00</span>
                             </div>
                         </div>
-                        <div class="review-text-input">
-                            <label for="reviewComment">Commento:</label>
-                            <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                    </div>
+
+                    <!-- Premium Action Buttons -->
+                    <div class="doc-actions">
+                        <button class="action-btn cart" id="addToCartBtn">
+                            Aggiungi al Carrello
+                        </button>
+                        <button class="action-btn primary" id="purchaseBtn">
+                            Acquista Ora
+                        </button>
+                        <!-- Hidden download button (controlled by JS) -->
+                        <button class="action-btn secondary" id="downloadBtn" style="display: none;">
+                            <span class="material-symbols-outlined">download</span>
+                            <span>Download</span>
+                        </button>
+                    </div>
+
+                    <!-- Document Description Section -->
+                    <div class="doc-description-section">
+                        <h3>
+                            <span class="material-symbols-outlined">description</span>
+                            Descrizione
+                        </h3>
+                        <div class="doc-description">
+                            <p>Caricamento descrizione...</p>
                         </div>
-                        <div class="review-form-actions">
-                            <button class="cancel-review-btn" onclick="hideAddReviewForm()">Annulla</button>
-                            <button class="submit-review-btn" onclick="submitReview()">Invia Recensione</button>
+                    </div>
+
+                    <!-- Document Details Section -->
+                    <div class="doc-details-section">
+                        <h3>
+                            <span class="material-symbols-outlined">info</span>
+                            Dettagli Documento
+                        </h3>
+                        <div class="doc-details">
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Facoltà</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Corso</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Lingua</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Canale</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Anno Accademico</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Pagine</span>
+                                <span class="detail-value">Caricamento...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Documents Section -->
+                    <div class="related-docs-section">
+                        <div class="related-docs">
+                            <!-- Content will be populated by renderRelatedDocuments -->
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
-    
-    // Now render the content into the newly created structure
-    renderDocumentPages(pages);
-    renderDocumentInfo(docData);
+            
+            <!-- Reviews Overlay -->
+            <div class="reviews-overlay" id="reviewsOverlay">
+                <div class="reviews-overlay-content">
+                    <div class="reviews-overlay-header">
+                        <h2>
+                            <span class="material-symbols-outlined">rate_review</span>
+                            Recensioni
+                        </h2>
+                        <button class="close-overlay-btn" onclick="closeReviewsOverlay()">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    
+                    <div class="reviews-overlay-body">
+                        <div class="reviews-summary">
+                            <div class="overall-rating">
+                                <div class="rating-display">
+                                    <div class="big-stars"></div>
+                                    <span class="big-rating-score">0.0</span>
+                                </div>
+                                <span class="total-reviews">Basato su 0 recensioni</span>
+                            </div>
+                            <button class="add-review-btn" onclick="showAddReviewForm()">
+                                <span class="material-symbols-outlined">add</span>
+                                Aggiungi Recensione
+                            </button>
+                        </div>
+                        
+                        <div class="reviews-list" id="reviewsList">
+                            <!-- Reviews will be populated here -->
+                        </div>
+                        
+                        <div class="add-review-form" id="addReviewForm" style="display: none;">
+                            <h3>Aggiungi la tua recensione</h3>
+                            <div class="rating-input">
+                                <label>Valutazione:</label>
+                                <div class="star-rating">
+                                    <span class="star-input" data-rating="1">★</span>
+                                    <span class="star-input" data-rating="2">★</span>
+                                    <span class="star-input" data-rating="3">★</span>
+                                    <span class="star-input" data-rating="4">★</span>
+                                    <span class="star-input" data-rating="5">★</span>
+                                </div>
+                            </div>
+                            <div class="review-text-input">
+                                <label for="reviewComment">Commento:</label>
+                                <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                            </div>
+                            <div class="review-form-actions">
+                                <button class="cancel-review-btn" onclick="hideAddReviewForm()">Annulla</button>
+                                <button class="submit-review-btn" onclick="submitReview()">Invia Recensione</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Now render the content into the newly created structure
+        renderDocumentPages(pages);
+        renderDocumentInfo(docData);
 
-    // Populate file format badge
-    const fileFormatBadge = document.getElementById('fileFormatBadge');
-    if (fileFormatBadge && currentDocument) {
-        const fileExtension = getFileExtension(currentDocument.original_filename || currentDocument.filename);
-        fileFormatBadge.textContent = fileExtension;
-    }
+        // Populate file format badge
+        const fileFormatBadge = document.getElementById('fileFormatBadge');
+        if (fileFormatBadge && currentDocument) {
+            const fileExtension = getFileExtension(currentDocument.original_filename || currentDocument.filename);
+            fileFormatBadge.textContent = fileExtension;
+        }
 
-    const documentViewerEl = document.getElementById('documentViewer');
-    if(documentViewerEl) {
-        documentViewerEl.addEventListener('scroll', showAndFadeBottomOverlay);
-    }
-    showAndFadeBottomOverlay(); // show on load
+        const documentViewerEl = document.getElementById('documentViewer');
+        if(documentViewerEl) {
+            documentViewerEl.addEventListener('scroll', showAndFadeBottomOverlay);
+        }
+        showAndFadeBottomOverlay(); // show on load
 
-    // Initialize controls
-    initializeZoom();
-    initializeFullscreen();
-    initializeNavigationElements();
-    
-    const fileSwitcher = document.getElementById('file-switcher');
-    if (fileSwitcher) {
-        fileSwitcher.addEventListener('change', (event) => {
-            const newFileId = event.target.value;
-            if (newFileId) {
-                window.location.href = `document-preview.html?id=${newFileId}`;
-            }
-        });
-    }
-    
-    // Initialize other systems
-    initializeKeyboardNavigation();
-    initializeTouchNavigation();
-    
-    // Load reading position
-    loadReadingPosition();
+        // Initialize controls
+        initializeZoom();
+        initializeFullscreen();
+        initializeNavigationElements();
+        
+        const fileSwitcher = document.getElementById('file-switcher');
+        if (fileSwitcher) {
+            fileSwitcher.addEventListener('change', (event) => {
+                const newFileId = event.target.value;
+                if (newFileId) {
+                    window.location.href = `document-preview.html?id=${newFileId}`;
+                }
+            });
+        }
+        
+        // Initialize other systems
+        initializeKeyboardNavigation();
+        initializeTouchNavigation();
+        
+        // Load reading position
+        loadReadingPosition();
 }
 
 // Function to open a specific document in viewer mode

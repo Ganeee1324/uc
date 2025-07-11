@@ -264,15 +264,12 @@ body {
     border: 1px solid var(--neutral-200);
 }
 
-/* Scrollable Document Viewer - Full height and properly scrollable */
+/* Document Viewer - Let PDF handle its own scrolling */
 .document-viewer {
     height: 100%; /* Take full height of section */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow: hidden; /* Let PDF embed handle scrolling */
     padding: var(--space-8);
     background: transparent;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .zoom-wrapper {
@@ -1385,25 +1382,7 @@ body {
     display: none;
 }
 
-/* Custom scrollbar for document viewer */
-.document-viewer::-webkit-scrollbar {
-    width: 8px;
-}
-
-.document-viewer::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: var(--radius-full);
-}
-
-.document-viewer::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--radius-full);
-    transition: background 0.2s ease;
-}
-
-.document-viewer::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
-}
+/* PDF embed will handle its own scrollbar styling */
 
 /* Remove outdated zoom constraints */
 .document-viewer.zoomed-out-50,

@@ -620,10 +620,6 @@ function generateFractionalStars(rating) {
 function saveReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.file_id;
-        const scrollable = document.querySelector('.document-viewer-section');
-        if (scrollable) {
-            localStorage.setItem(`file-${fileId}-scroll`, scrollable.scrollTop);
-        }
         localStorage.setItem(`file-${fileId}-zoom`, currentZoom);
     }
 }
@@ -631,22 +627,11 @@ function saveReadingPosition() {
 function loadReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.file_id;
-        const savedScroll = localStorage.getItem(`file-${fileId}-scroll`);
         const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
         
         if (savedZoom) {
             currentZoom = parseInt(savedZoom);
             adjustZoom(0); // Apply zoom
-        }
-
-        if (savedScroll) {
-            const scrollable = document.querySelector('.document-viewer-section');
-            if (scrollable) {
-                // Use a timeout to ensure content is rendered before scrolling
-                setTimeout(() => {
-                    scrollable.scrollTop = parseInt(savedScroll);
-                }, 100);
-            }
         }
     }
 }
@@ -1420,10 +1405,6 @@ function renderDocumentViewerMode(docData) {
             fileFormatBadge.textContent = fileExtension;
         }
 
-        const documentViewerEl = document.getElementById('documentViewer');
-        if(documentViewerEl) {
-            documentViewerEl.addEventListener('scroll', showAndFadeBottomOverlay);
-        }
         showAndFadeBottomOverlay(); // show on load
 
         // Initialize controls (removed non-existent functions)

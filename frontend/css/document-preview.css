@@ -1382,6 +1382,24 @@ body {
     display: none;
 }
 
+/* PDF Zoom Container */
+.pdf-zoom-container {
+    width: 100%;
+    height: 800px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    transition: transform 0.3s ease;
+}
+
+.pdf-zoom-container embed {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
 /* PDF embed will handle its own scrollbar styling */
 
 /* Remove outdated zoom constraints */

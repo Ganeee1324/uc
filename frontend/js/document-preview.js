@@ -203,11 +203,28 @@ function adjustZoom(delta) {
     if (newZoom !== currentZoom) {
         currentZoom = newZoom;
         
-        // Apply zoom to the PDF embed element
-        const pdfEmbed = viewerElement.querySelector('embed');
-        if (pdfEmbed) {
-            pdfEmbed.style.transform = `scale(${currentZoom / 100})`;
-            pdfEmbed.style.transformOrigin = 'top left';
+        // Apply zoom to the PDF zoom container
+        const zoomContainer = viewerElement.querySelector('.pdf-zoom-container');
+        if (zoomContainer) {
+            const scale = currentZoom / 100;
+            
+            // Apply zoom transformation to the container
+            zoomContainer.style.transform = `scale(${scale})`;
+            zoomContainer.style.transformOrigin = 'center top';
+            
+            // Calculate the scaled dimensions
+            const originalHeight = 800; // Original PDF height
+            const scaledHeight = originalHeight * scale;
+            
+            // Set the container height to accommodate the scaled content
+            zoomContainer.style.height = `${scaledHeight}px`;
+            zoomContainer.style.minHeight = `${scaledHeight}px`;
+            
+            // Ensure the container takes full width and centers content
+            zoomContainer.style.width = '100%';
+            zoomContainer.style.display = 'flex';
+            zoomContainer.style.justifyContent = 'center';
+            zoomContainer.style.alignItems = 'flex-start';
         }
         
         // Update zoom level display and button states
@@ -321,7 +338,9 @@ async function loadRedactedPdf(fileId, viewerElementId) {
         
         // Replace loading content with PDF viewer
         viewerElement.innerHTML = `
-            <embed src="${objectUrl}" type="application/pdf" width="100%" height="800px">
+            <div class="pdf-zoom-container">
+                <embed src="${objectUrl}" type="application/pdf" width="100%" height="800px">
+            </div>
             <div class="pdf-fallback">
                 <p>Il tuo browser non supporta la visualizzazione PDF.</p>
                 <a href="${objectUrl}" target="_blank" class="pdf-download-btn">

@@ -3620,7 +3620,7 @@ function renderDocuments(files) {
                         </div>
                     </div>
                     <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: ${formatPrice(price)}`}">
-                        ${item.isVetrina && !filesLoaded ? 'View' : formatPrice(price)}
+                        ${formatPrice(price)}
                     </div>
                 </div>
             </div>

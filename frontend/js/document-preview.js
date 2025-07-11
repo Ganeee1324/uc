@@ -1199,17 +1199,19 @@ function renderDocumentListView(docData) {
 function renderDocumentViewerMode(docData) {
     const mainContainer = document.querySelector('.preview-main');
     const vetrinaFiles = docData.vetrinaFiles || [];
+    const currentDocument = docData.document;
 
-        // Generate document pages
-        const pages = generateDocumentPages(docData);
     const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, currentDocument.file_id);
         
-        // Replace the entire main container content with the document viewer structure
-        mainContainer.innerHTML = `
-            <div class="document-viewer-section">
-                <div class="document-viewer" id="documentViewer">
-                    <!-- Document pages will be rendered here -->
+    // Replace the entire main container content with the document viewer structure
+    mainContainer.innerHTML = `
+        <div class="document-viewer-section">
+            <div class="document-viewer" id="documentViewer">
+                <div class="pdf-loading">
+                    <div class="loader-spinner"></div>
+                    <p>Caricamento documento...</p>
                 </div>
+            </div>
                 
                 <!-- Viewer Controls Overlay -->
                 <div class="viewer-overlay-controls">
@@ -1395,8 +1397,12 @@ function renderDocumentViewerMode(docData) {
         `;
         
         // Now render the content into the newly created structure
-        renderDocumentPages(pages);
         renderDocumentInfo(docData);
+        
+        // Load the redacted PDF for the current document
+        if (currentDocument && currentDocument.file_id) {
+            loadRedactedPdf(currentDocument.file_id, 'documentViewer');
+        }
 
         // Populate file format badge
         const fileFormatBadge = document.getElementById('fileFormatBadge');
@@ -1411,10 +1417,7 @@ function renderDocumentViewerMode(docData) {
         }
         showAndFadeBottomOverlay(); // show on load
 
-        // Initialize controls
-        initializeZoom();
-        initializeFullscreen();
-        initializeNavigationElements();
+        // Initialize controls (removed non-existent functions)
         
         const fileSwitcher = document.getElementById('file-switcher');
         if (fileSwitcher) {

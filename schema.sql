@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS files (
     extension VARCHAR(10) NOT NULL,
     tag VARCHAR(50),
     language VARCHAR(15) NOT NULL DEFAULT 'it',
+    num_pages INTEGER NOT NULL DEFAULT 0,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
 

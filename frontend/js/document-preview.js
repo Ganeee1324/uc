@@ -1859,28 +1859,24 @@ function renderDocumentListView(docData) {
                     </h3>
                     <div class="doc-details">
                         <div class="detail-item-vertical">
-                            <span class="detail-label">Numero di file</span>
-                            <span class="detail-value">${vetrinaFiles.length}</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Dimensione totale</span>
-                            <span class="detail-value">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
-                        </div>
-                        <div class="detail-item-vertical">
                             <span class="detail-label">Facoltà</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.faculty_name || 'N/A'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.faculty_name || 'Non specificata'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Corso</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.course_name || 'N/A'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.course_name || 'Non specificato'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Lingua</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.language || 'Italiano'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.language || 'Non specificata'}</span>
+                        </div>
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Canale</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.canale === "0" ? "Unico" : (currentVetrina?.course_instance?.canale || 'Non specificato')}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Anno Accademico</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.date_year ? `${currentVetrina.course_instance.date_year}/${currentVetrina.course_instance.date_year + 1}` : 'N/A'}</span>
+                            <span class="detail-value">${currentVetrina?.course_instance?.date_year ? `${currentVetrina.course_instance.date_year}/${currentVetrina.course_instance.date_year + 1}` : 'Non specificato'}</span>
                         </div>
                     </div>
                 </div>

@@ -405,7 +405,7 @@ function renderDocumentInfo(docData) {
     const docTypeTag = document.querySelector('.doc-type-tag');
     if (docTypeTag) docTypeTag.textContent = documentType;
     
-    // Update all details with VETRINA-level information
+    // Update all details with VETRINA-level information in the specified order
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
@@ -416,8 +416,14 @@ function renderDocumentInfo(docData) {
     
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
     
-    // Show file count instead of page count for vetrina
-    updateDetailValue('File', `${fileCount} ${fileCount === 1 ? 'file' : 'file'}`);
+    // For single-file vetrine, add "Pagine" field after "Anno Accademico"
+    if (fileCount === 1) {
+        // For single files, we need to determine page count
+        // Since we're using redacted PDFs, we'll show a placeholder or estimate
+        const pageCount = fileData.pages || 'N/A';
+        updateDetailValue('Pagine', pageCount);
+    }
+    // For multi-file vetrine, we don't show any additional fields (no "File" count)
 
     // Update description - use vetrina description
     let description = vetrinaData?.description;

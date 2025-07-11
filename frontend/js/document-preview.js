@@ -450,7 +450,7 @@ function renderDocumentInfo(docData) {
     setupActionButtons(fileData, vetrinaData);
     
     // Render related documents with professional placeholders
-    renderRelatedDocuments();
+    renderRelatedDocuments(docData.related);
 }
 
 // Helper function to update detail values
@@ -2096,4 +2096,181 @@ function showAndFadeBottomOverlay() {
     bottomOverlayTimeout = setTimeout(() => {
         bottomOverlay.classList.remove('visible');
     }, 2000); // Hide after 2 seconds
-} 
+}
+
+// Related Documents Renderer - Professional Placeholder Implementation
+function renderRelatedDocuments(relatedDocs) {
+    const relatedContainer = document.querySelector('.related-docs');
+    
+    if (!relatedContainer) return;
+    
+    // Generate professional placeholder documents
+    const placeholderDocs = generatePlaceholderDocuments();
+    
+    const relatedHTML = placeholderDocs.map(doc => `
+        <div class="related-doc-item">
+            <div class="related-doc-preview" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+                <div class="doc-preview-icon">
+                    <span class="material-symbols-outlined">${doc.icon}</span>
+                </div>
+                <div class="doc-preview-overlay">
+                    <span class="preview-price">€${doc.price}</span>
+                </div>
+            </div>
+            <div class="related-doc-info">
+                <div class="doc-content" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+                    <h4 class="doc-title" data-full-title="${doc.title}">${doc.title}</h4>
+                    <p class="doc-description">${doc.description}</p>
+                    <p class="doc-author">${doc.author}</p>
+                    <div class="doc-meta">
+                        <div class="doc-rating">
+                            <span class="stars">${generateStars(doc.rating)}</span>
+                            <span class="rating-score">${doc.rating.toFixed(1)}</span>
+                        </div>
+                        <div class="doc-type">
+                            <span class="type-badge">${doc.type}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    <button class="related-cart-btn" onclick="addRelatedToCart(${doc.id}, event)">
+                        <span class="material-symbols-outlined">add_shopping_cart</span>
+                        <span class="btn-text">Aggiungi</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    relatedContainer.innerHTML = `
+        <h3>
+            <span class="material-symbols-outlined">library_books</span>
+            Documenti Correlati
+        </h3>
+        <div class="related-docs-grid">
+            ${relatedHTML}
+        </div>
+    `;
+}
+
+// Generate Professional Placeholder Documents
+function generatePlaceholderDocuments() {
+    const documentTypes = [
+        { type: 'Appunti', icon: 'edit_note', courses: ['Microeconomia', 'Macroeconomia', 'Statistica', 'Matematica Finanziaria'] },
+        { type: 'Esame', icon: 'quiz', courses: ['Economia Aziendale', 'Diritto Commerciale', 'Marketing', 'Contabilità'] },
+        { type: 'Progetto', icon: 'assignment', courses: ['Analisi dei Dati', 'Econometria', 'Finanza', 'Management'] },
+        { type: 'Tesi', icon: 'school', courses: ['Economia Politica', 'Storia Economica', 'Politica Economica', 'Sviluppo Economico'] },
+        { type: 'Slide', icon: 'slideshow', courses: ['Economia Internazionale', 'Commercio Estero', 'Economia Monetaria', 'Banca e Finanza'] },
+        { type: 'Esercizi', icon: 'calculate', courses: ['Matematica', 'Statistica Applicata', 'Economia Matematica', 'Ricerca Operativa'] },
+        { type: 'Riassunto', icon: 'summarize', courses: ['Teoria dei Giochi', 'Organizzazione Aziendale', 'Economia del Lavoro', 'Economia Pubblica'] },
+        { type: 'Laboratorio', icon: 'science', courses: ['Econometria Applicata', 'Analisi Statistica', 'Modelli Econometrici', 'Data Science'] }
+    ];
+    
+    const authors = [
+        'Rossi M.',
+        'Bianchi A.',
+        'Verdi L.',
+        'Neri S.',
+        'Gialli P.',
+        'Marroni E.',
+        'Azzurri R.',
+        'Viola M.'
+    ];
+    
+    const documents = [];
+    
+    for (let i = 0; i < 8; i++) {
+        const docType = documentTypes[i % documentTypes.length];
+        const course = docType.courses[i % docType.courses.length];
+        const author = authors[i % authors.length];
+        
+        documents.push({
+            id: 200 + i,
+            title: `${docType.type} - ${course}`,
+            description: generateDocumentDescription(docType.type, course),
+            author: author,
+            type: docType.type,
+            icon: docType.icon,
+            price: (Math.random() * 15 + 5).toFixed(2),
+            rating: Math.random() * 2 + 3, // 3.0 to 5.0
+            course: course
+        });
+    }
+    
+    return documents;
+}
+
+// Generate Document Description
+function generateDocumentDescription(docType, course) {
+    const descriptions = {
+        'Appunti': `Appunti completi e dettagliati per ${course}. Include tutti gli argomenti principali trattati durante il corso.`,
+        'Esame': `Raccolta di esami precedenti per ${course}. Include soluzioni dettagliate e spiegazioni.`,
+        'Progetto': `Progetto completo per ${course}. Include documentazione, codice e presentazione finale.`,
+        'Tesi': `Tesi di laurea su ${course}. Ricerca approfondita con analisi dettagliate.`,
+        'Slide': `Presentazioni complete per ${course}. Materiale didattico ben strutturato.`,
+        'Esercizi': `Esercizi pratici per ${course}. Include soluzioni e metodi di risoluzione.`,
+        'Riassunto': `Riassunto completo di ${course}. Concetti chiave e formule principali.`,
+        'Laboratorio': `Guide di laboratorio per ${course}. Procedure sperimentali dettagliate.`
+    };
+    
+    return descriptions[docType] || `Materiale didattico per ${course}.`;
+}
+
+// Add Related Document to Cart
+async function addRelatedToCart(docId, event) {
+    event.stopPropagation(); // Prevent card click
+    
+    const button = event.currentTarget;
+    const btnText = button.querySelector('.btn-text');
+    const icon = button.querySelector('.material-symbols-outlined');
+    
+    // Optimistic UI update
+    button.classList.add('adding');
+    btnText.textContent = 'Aggiungendo...';
+    icon.textContent = 'hourglass_empty';
+    
+    try {
+        // Simulate API call (replace with actual cart API)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Success state
+        button.classList.remove('adding');
+        button.classList.add('added');
+        btnText.textContent = 'Aggiunto!';
+        icon.textContent = 'check_circle';
+        
+        // Update cart count
+        updateCartCount();
+        
+        // Show success notification
+        showNotification('Documento aggiunto al carrello! 🛒', 'success');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.classList.remove('added');
+            btnText.textContent = 'Aggiungi';
+            icon.textContent = 'add_shopping_cart';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        
+        // Error state
+        button.classList.remove('adding');
+        button.classList.add('error');
+        btnText.textContent = 'Errore';
+        icon.textContent = 'error';
+        
+        // Show error notification
+        showNotification('Errore nell\'aggiunta al carrello. Riprova.', 'error');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.classList.remove('error');
+            btnText.textContent = 'Aggiungi';
+            icon.textContent = 'add_shopping_cart';
+        }, 2000);
+    }
+}
+
+// Reading Position Management

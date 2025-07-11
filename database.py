@@ -2,14 +2,17 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
+from pgvector.psycopg import register_vector
+
 # from bge import get_document_embedding
+from bge import get_sentence_embedding
 from common import CourseInstance, File, Review, Transaction, User, Vetrina, VetrinaSubscription
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
-
-# import numpy as np
+import numpy as np
+from langdetect import detect
 
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 load_dotenv()
@@ -19,12 +22,16 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 
-def connect(autocommit: bool = False, no_dict_row_factory: bool = False) -> psycopg.Connection:
-    return psycopg.connect(
+def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector: bool = False) -> psycopg.Connection:
+    conn = psycopg.connect(
         f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
         autocommit=autocommit,
         row_factory=psycopg.rows.dict_row if not no_dict_row_factory else None,
     )
+    # Register vector extension for this connection
+    if vector:
+        register_vector(conn)
+    return conn
 
 
 def create_tables(debug: bool = False) -> None:
@@ -58,55 +65,6 @@ def fill_courses(debug: bool = False) -> None:
                 cursor.execute("SELECT * FROM course_instances")
                 course_instances = cursor.fetchall()
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
-
-
-def insert_sample_data():
-    # create a sample user, then for each course instance create a vetrina and add 3 files with random inputs
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            # Insert user and get the actual user_id
-            cursor.execute(
-                "INSERT INTO users (username, email, password, first_name, last_name) VALUES (%s, %s, %s, %s, %s) RETURNING user_id",
-                ("mario_rossi", "mario@example.com", "password123", "Mario", "Rossi"),
-            )
-            user_id = cursor.fetchone()["user_id"]
-            conn.commit()
-
-            logging.info(f"User {user_id} created")
-
-            cursor.execute("SELECT * FROM course_instances")
-            course_instances = cursor.fetchall()
-
-            for course_instance in course_instances:
-                # Insert vetrina and get the vetrina_id
-                cursor.execute(
-                    "INSERT INTO vetrina (author_id, course_instance_id, name, description) VALUES (%s, %s, %s, %s) RETURNING vetrina_id",
-                    (
-                        user_id,
-                        course_instance["instance_id"],
-                        "Vetrina for " + course_instance["course_name"],
-                        "Description for " + course_instance["course_name"],
-                    ),
-                )
-                vetrina_id = cursor.fetchone()["vetrina_id"]
-                conn.commit()
-
-                logging.info(f"Vetrina {vetrina_id} created")
-                for i in range(3):
-                    # Use correct column names: filename instead of name, and provide required sha256
-                    cursor.execute(
-                        "INSERT INTO files (vetrina_id, filename, price, tag, extension, sha256) VALUES (%s, %s, %s, %s, %s, %s)",
-                        (
-                            vetrina_id,
-                            "File " + str(i),
-                            random.randint(1, 100),
-                            random.choice(["dispense", "appunti", "esercizi"]),
-                            random.choice(["pdf", "docx", "txt"]),
-                            "dummy_sha256_" + str(i),
-                        ),
-                    )
-                    conn.commit()
-                    logging.info(f"File {i} added to vetrina {vetrina_id}")
 
 
 # ---------------------------------------------
@@ -403,6 +361,89 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
+def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            lang = detect(query)
+            if lang not in ["it", "en"]:
+                lang = "en"
+            
+            # Create the appropriate tsquery based on detected language
+            if lang == "en":
+                tsquery_func = "plainto_tsquery('english', %(query)s)"
+            elif lang == "it":
+                tsquery_func = "plainto_tsquery('italian', %(query)s)"
+            else:
+                tsquery_func = "plainto_tsquery('simple', %(query)s)"
+            
+            sql = f"""
+            WITH semantic_search AS (
+                SELECT 
+                    pe.vetrina_id,
+                    pe.file_id,
+                    pe.page_id,
+                    RANK() OVER (ORDER BY pe.embedding <=> %(embedding)s) AS rank
+                FROM page_embeddings pe
+                ORDER BY pe.embedding <=> %(embedding)s
+                LIMIT 20
+            ),
+            keyword_search AS (
+                SELECT 
+                    v.vetrina_id,
+                    NULL::integer AS file_id,
+                    NULL::integer AS page_id,
+                    RANK() OVER (ORDER BY ts_rank_cd(
+                        CASE 
+                            WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                            WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                            ELSE to_tsvector('simple', v.description)
+                        END, {tsquery_func}) DESC) AS rank
+                FROM vetrina v
+                WHERE CASE 
+                        WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                        WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                        ELSE to_tsvector('simple', v.description)
+                    END @@ {tsquery_func}
+                ORDER BY ts_rank_cd(
+                    CASE 
+                        WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                        WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                        ELSE to_tsvector('simple', v.description)
+                    END, {tsquery_func}) DESC
+                LIMIT 20
+            )
+            SELECT 
+                COALESCE(semantic_search.vetrina_id, keyword_search.vetrina_id) AS vetrina_id,
+                COALESCE(1.0 / (%(k)s + semantic_search.rank), 0.0) +
+                COALESCE(1.0 / (%(k)s + keyword_search.rank), 0.0) AS score,
+                semantic_search.file_id,
+                semantic_search.page_id,
+                v.*,
+                u.*,
+                ci.*
+            FROM semantic_search
+            FULL OUTER JOIN keyword_search ON semantic_search.vetrina_id = keyword_search.vetrina_id
+            JOIN vetrina v ON COALESCE(semantic_search.vetrina_id, keyword_search.vetrina_id) = v.vetrina_id
+            JOIN users u ON v.author_id = u.user_id
+            JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+            ORDER BY score DESC
+            LIMIT 10
+            """
+            embedding = get_sentence_embedding(query).squeeze()
+            k = 60
+
+            results = cursor.execute(
+                sql,
+                {
+                    "query": query,
+                    "embedding": embedding,
+                    "k": k,
+                },
+            ).fetchall()
+
+            return [(Vetrina.from_dict(row), (row["file_id"], row["page_id"])) for row in results]
+
+
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:
     """
     Create a new vetrina.
@@ -520,7 +561,16 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
-    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None, language: str = "it", num_pages: int = 0
+    requester_id: int,
+    vetrina_id: int,
+    file_name: str,
+    sha256: str,
+    extension: str,
+    price: int = 0,
+    size: int = 0,
+    tag: str | None = None,
+    language: str = "it",
+    num_pages: int = 0,
 ) -> File:
     """
     Add a file to a vetrina.
@@ -561,20 +611,22 @@ def add_file_to_vetrina(
                     (vetrina_id, file_name, sha256, price, size, tag, extension, language, num_pages),
                 )
                 file_data = cursor.fetchone()
+                file = File.from_dict(file_data)
 
-                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, tag: {tag}')
-            return File.from_dict(file_data)
+                logging.debug(f'File "{file.file_id}" added to vetrina {vetrina_id} by user {requester_id}, tag: {tag}')
+            return file
 
 
-# def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             logging.debug(f"Inserting {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
-#             for i, embedding in enumerate(embeddings):
-#                 cursor.execute("INSERT INTO page_embeddings (vetrina_id, file_id, embedding) VALUES (%s, %s, %s)", (vetrina_id, file_id, embedding))
-#                 conn.commit()
-#                 logging.debug(f"Page {i} embedding inserted")
-#             logging.debug(f"File {file_id} embeddings inserted")
+def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            for embedding in embeddings:
+                pg_vector_data = embedding.squeeze()
+                cursor.execute(
+                    "INSERT INTO page_embeddings (vetrina_id, file_id, embedding) VALUES (%s, %s, %s)", (vetrina_id, file_id, pg_vector_data)
+                )
+                conn.commit()
+            logging.debug(f"Inserted {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
 
 
 def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[File]:
@@ -1072,7 +1124,3 @@ def delete_review(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
             logging.debug(f"Review deleted by user {user_id}")
-
-
-if __name__ == "__main__":
-    insert_sample_data()

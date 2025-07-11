@@ -1,9 +1,11 @@
 from datetime import timedelta
 import logging
 # import threading
+import random
 import traceback
 
 # from bge import get_document_embedding
+from bge import get_document_embedding
 import werkzeug
 import database
 import redact
@@ -203,6 +205,31 @@ def search_vetrine():
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
 
 
+@app.route("/vetrine/search", methods=["GET"])
+@jwt_required(optional=True)
+def new_search():
+    """
+    New semantic + keyword search endpoint using vector embeddings and full-text search.
+    Query parameter: 'q' - the search query string
+    """
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify({"error": "missing_query", "msg": "Query parameter 'q' is required"}), 400
+    
+    results = database.new_search(query)
+    vetrine = []
+    for vetrina, (file_id, page_id) in results:
+        vetrina_dict = vetrina.to_dict()
+        vetrina_dict.update({"file_id": file_id, "page_id": page_id})
+        logging.debug(f"Vetrina {vetrina_dict['vetrina_id']} found with file {file_id} and page {page_id}")
+        vetrine.append(vetrina_dict)
+    return jsonify({
+        "vetrine": vetrine, 
+        "count": len(results),
+        "query": query
+    }), 200
+
+
 # ---------------------------------------------
 # File routes
 # ---------------------------------------------
@@ -261,7 +288,7 @@ def upload_file(vetrina_id):
         file_name=new_file_name,
         sha256=file_hash,
         extension=extension,
-        price=0,
+        price=random.uniform(0.5, 1.0),
         size=file_size,
         tag=tag,
         num_pages=num_pages,
@@ -280,24 +307,24 @@ def upload_file(vetrina_id):
         try:
             os.remove(new_file_path)
         except Exception as e:
-            print(f"Error deleting file: {e}")
+            logging.error(f"Error deleting file: {e}")
         try:
             os.remove(new_file_path.replace(".pdf", "_redacted.pdf"))
         except Exception as e:
-            print(f"Error deleting redacted file: {e}")
+            logging.error(f"Error deleting redacted file: {e}")
         try:
             database.delete_file(requester_id, db_file.file_id)
         except Exception as e:
-            print(f"Error deleting file from database: {e}")
+            logging.error(f"Error deleting file from database: {e}")
         return jsonify({"error": "redaction_failed", "msg": str(e)}), 500
-    file.close()
+    try:
+        file.close()
+    except Exception as e:
+        logging.error(f"Error closing file: {e}")
 
-    # def thread_function():
-    #     embeddings = get_document_embedding(new_file_path)
-    #     database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
+    embeddings = get_document_embedding(new_file_path)
+    database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
 
-    # thread = threading.Thread(target=thread_function)
-    # thread.start()
     return jsonify({"msg": "File uploaded"}), 200
 
 
@@ -473,4 +500,4 @@ def get_valid_tags():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="127.0.0.1", debug=True, threaded=True)

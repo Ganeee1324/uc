@@ -1890,30 +1890,31 @@ html {
  
 t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  .owner-avatar, .author-avatar {
-    min-width: 60px;
+    width: 24px;
     height: 24px;
-    border-radius: 12px;
+    border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     flex-shrink: 0;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     border: 1.5px solid var(--white);
-    padding: 0 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
  }
  
  .owner-avatar:hover, .author-avatar:hover {
     transform: scale(1.05);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+ }
+ 
+ .owner-avatar .material-symbols-outlined, .author-avatar .material-symbols-outlined {
+    font-size: 14px;
+    font-variation-settings: 'FILL' 1;
  }
  
  /* Alternative color schemes */
@@ -1925,6 +1926,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  .owner-avatar.variant-6, .author-avatar.variant-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
  .owner-avatar.variant-7, .author-avatar.variant-7 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
  .owner-avatar.variant-8, .author-avatar.variant-8 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+ .owner-avatar.variant-9, .author-avatar.variant-9 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+ .owner-avatar.variant-10, .author-avatar.variant-10 { background: linear-gradient(135deg, #a8caba 0%, #5d4e75 100%); }
+ .owner-avatar.variant-11, .author-avatar.variant-11 { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); }
+ .owner-avatar.variant-12, .author-avatar.variant-12 { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
  
  /* Document Footer - PROFESSIONAL LAYOUT WITH PROPER SPACING */
  .document-footer {
@@ -3688,10 +3693,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    
    /* Mobile owner avatar adjustments */
    .owner-avatar, .author-avatar {
-       min-width: 50px;
+       width: 20px;
        height: 20px;
-       font-size: 9px;
-       padding: 0 6px;
+       font-size: 10px;
+   }
+   
+   .owner-avatar .material-symbols-outlined, .author-avatar .material-symbols-outlined {
+       font-size: 12px;
    }
    
    /* Professional Mobile Filter Panel */

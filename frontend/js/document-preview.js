@@ -361,10 +361,9 @@ function renderDocumentInfo(docData) {
     if (titleElement) titleElement.textContent = title;
     document.title = `${title} - StudyHub`;
 
-    // Determine document type from vetrina files (show bundle type if multiple files)
+    // Get file count for conditional logic
     const fileCount = vetrinaFiles?.length || 1;
-    const documentType = fileCount > 1 ? 'Bundle' : getDocumentTypeFromFilename(fileData.original_filename || fileData.filename);
-    
+
     // Get reviews data from docData (reviews are at vetrina level)
     const reviews = docData.reviews || [];
     
@@ -401,9 +400,19 @@ function renderDocumentInfo(docData) {
         }
     }
     
-    // Update document type tag
+    // Update document type tag - use the generateVetrinaDocumentTags function
     const docTypeTag = document.querySelector('.doc-type-tag');
-    if (docTypeTag) docTypeTag.textContent = documentType;
+    if (docTypeTag) {
+        // For multi-file vetrine, we'll let the generateVetrinaDocumentTags handle it
+        // For single-file vetrine, use the actual tag from the file
+        const fileCount = vetrinaFiles?.length || 1;
+        if (fileCount === 1) {
+            const fileTag = fileData.tag;
+            const displayTag = fileTag ? getDocumentTypeFromTag(fileTag) : 'Documento';
+            docTypeTag.textContent = displayTag;
+        }
+        // For multi-file vetrine, the tags will be handled by generateVetrinaDocumentTags in the list view
+    }
     
     // Update all details with VETRINA-level information in the specified order
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
@@ -508,11 +517,18 @@ function generateVetrinaDocumentTags(vetrinaFiles) {
         return '<div class="doc-type-tag">Documento</div>';
     }
     
-    // Extract unique document types from all files
+    // Extract unique document types from all files using the actual tag field
     const documentTypes = new Set();
     vetrinaFiles.forEach(file => {
-        const fileType = getDocumentTypeFromFilename(file.filename || file.original_filename);
-        documentTypes.add(fileType);
+        // Use the actual tag field from the backend, fallback to filename analysis if not available
+        if (file.tag) {
+            const displayTag = getDocumentTypeFromTag(file.tag);
+            documentTypes.add(displayTag);
+        } else {
+            // Fallback to filename analysis only if tag is not available
+            const fileType = getDocumentTypeFromFilename(file.filename || file.original_filename);
+            documentTypes.add(fileType);
+        }
     });
     
     // Convert to array and sort for consistent display

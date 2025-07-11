@@ -1,3 +1,8 @@
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.93/build/pdf.mjs';
+
+// Set the worker script path for PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.93/build/pdf.worker.mjs`;
+
 // ============================================
 // WORLD-CLASS DYNAMIC DOCUMENT PREVIEW SYSTEM
 // ============================================
@@ -12,7 +17,14 @@ let currentVetrinaFiles = []; // Store vetrina files for bundle operations
 let currentUser = null; // Store current user data for review comparisons
 let currentPage = 1;
 let totalPages = 1;
-let currentZoom = 100;
+
+// PDF.js state
+let pdfDoc = null; 
+let pdfPageNum = 1;
+let pdfTotalPages = 1;
+let pdfZoom = 1.0; // Default zoom scale for PDF.js
+let isPdfLoading = false;
+
 let documentPages = [];
 let isLoading = false;
 let documentData = null; // Store document data
@@ -20,9 +32,9 @@ let bottomOverlayTimeout = null;
 
 // Configuration
 const ZOOM_CONFIG = {
-    min: 50,
-    max: 200,
-    step: 25
+    min: 0.5,
+    max: 3.0,
+    step: 0.25 // Step for PDF.js scale
 };
 
 // Professional Loading States
@@ -173,195 +185,422 @@ function isPdfFile(filename) {
     return filename && filename.toLowerCase().endsWith('.pdf');
 }
 
+// PDF.js Viewer Implementation
+async function loadPdfWithPdfJs(fileId, viewerElementId) {
+    const viewerElement = document.getElementById(viewerElementId);
+    if (!viewerElement) return;
+
+    viewerElement.innerHTML = '';
+    const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
+
+    try {
+        const url = getRedactedPdfUrl(fileId);
+        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
+
+        const pdfData = await response.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+        pdfDoc = await loadingTask.promise;
+        pdfTotalPages = pdfDoc.numPages;
+        
+        LoadingManager.hide(loader);
+        
+        pdfPageNum = 1;
+        await renderPdfPage(viewerElement, pdfPageNum);
+        updatePageIndicator();
+    } catch (error) {
+        console.error('Error loading PDF with PDF.js:', error);
+        LoadingManager.hide(loader);
+        LoadingManager.showError(viewerElement, 'Impossibile caricare l\'anteprima del documento.');
+    }
+}
+
+async function renderPdfPage(container, pageNum) {
+    if (!pdfDoc) return;
+
+    isPdfLoading = true;
+    const page = await pdfDoc.getPage(pageNum);
+
+    // Calculate the scale to fit the page width to the container width
+    const containerWidth = container.clientWidth;
+    const unscaledViewport = page.getViewport({ scale: 1.0 });
+    const baseScale = containerWidth / unscaledViewport.width;
+    
+    const displayScale = baseScale * pdfZoom;
+    const viewport = page.getViewport({ scale: displayScale });
+    
+    container.innerHTML = '';
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    container.appendChild(canvas);
+
+    const renderContext = { canvasContext: context, viewport: viewport };
+    await page.render(renderContext).promise;
+    isPdfLoading = false;
+}
+
 // Zoom System
 function initializeZoom() {
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
     
     if (zoomInBtn) {
-        zoomInBtn.addEventListener('click', () => {
-            adjustZoom(ZOOM_CONFIG.step);
-        });
+        zoomInBtn.addEventListener('click', () => adjustZoom(ZOOM_CONFIG.step));
     }
     
     if (zoomOutBtn) {
-        zoomOutBtn.addEventListener('click', () => {
-            adjustZoom(-ZOOM_CONFIG.step);
-        });
+        zoomOutBtn.addEventListener('click', () => adjustZoom(-ZOOM_CONFIG.step));
     }
     
     updateZoomDisplay();
 }
 
 function adjustZoom(delta) {
-    const viewerElement = document.getElementById('documentViewer');
-    if (!viewerElement) return;
+    if (!pdfDoc) return;
     
-    // Calculate new zoom level
-    const newZoom = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, currentZoom + delta));
+    const newZoom = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, pdfZoom + delta));
     
-    if (newZoom !== currentZoom) {
-        currentZoom = newZoom;
-        
-        // Apply zoom to the PDF zoom container
-        const zoomContainer = viewerElement.querySelector('.pdf-zoom-container');
-        if (zoomContainer) {
-            // Correct scale calculation
-            const scale = currentZoom / 100;
-            
-            // Apply zoom transformation to the container
-            zoomContainer.style.transform = `scale(${scale})`;
-            zoomContainer.style.transformOrigin = 'center top';
+    if (newZoom !== pdfZoom) {
+        pdfZoom = newZoom;
+        const viewerElement = document.getElementById('documentViewer');
+        if (viewerElement) {
+             renderPdfPage(viewerElement, pdfPageNum);
         }
-        
-        // Update zoom level display and button states
         updateZoomDisplay();
-        
-        // Save zoom level to localStorage
-        if (currentDocument && currentDocument.file_id) {
-            localStorage.setItem(`file-${currentDocument.file_id}-zoom`, currentZoom);
-        }
     }
 }
 
-// Update zoom level and apply transformations
 function updateZoomDisplay() {
     const zoomLevelText = document.querySelector('.zoom-level');
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
 
     if (zoomLevelText) {
-        zoomLevelText.textContent = `${currentZoom}%`;
+        zoomLevelText.textContent = `${Math.round(pdfZoom * 100)}%`;
     }
     
-    // Update zoom button states
     if (zoomInBtn) {
-        zoomInBtn.disabled = currentZoom >= ZOOM_CONFIG.max;
+        zoomInBtn.disabled = pdfZoom >= ZOOM_CONFIG.max;
     }
     
     if (zoomOutBtn) {
-        zoomOutBtn.disabled = currentZoom <= ZOOM_CONFIG.min;
+        zoomOutBtn.disabled = pdfZoom <= ZOOM_CONFIG.min;
     }
+}
+
+// Page Navigation
+function initializePageNavigation() {
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+
+    if(prevPageBtn) {
+        prevPageBtn.addEventListener('click', () => {
+            if (pdfPageNum > 1 && !isPdfLoading) {
+                pdfPageNum--;
+                const viewerElement = document.getElementById('documentViewer');
+                if (viewerElement) renderPdfPage(viewerElement, pdfPageNum);
+                updatePageIndicator();
+            }
+        });
+    }
+
+    if(nextPageBtn) {
+        nextPageBtn.addEventListener('click', () => {
+            if (pdfPageNum < pdfTotalPages && !isPdfLoading) {
+                pdfPageNum++;
+                const viewerElement = document.getElementById('documentViewer');
+                if (viewerElement) renderPdfPage(viewerElement, pdfPageNum);
+                updatePageIndicator();
+            }
+        });
+    }
+
+    updatePageIndicator();
+}
+
+function updatePageIndicator() {
+    const pageIndicator = document.getElementById('pageIndicator');
+    if (pageIndicator) pageIndicator.textContent = `Pagina ${pdfPageNum} di ${pdfTotalPages}`;
+    
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    if(prevPageBtn) prevPageBtn.disabled = pdfPageNum <= 1;
+    if(nextPageBtn) nextPageBtn.disabled = pdfPageNum >= pdfTotalPages;
 }
 
 // Fullscreen System
 function initializeFullscreen() {
     // Add a small delay to ensure DOM is ready
-    setTimeout(() => {
+        setTimeout(() => {
         const fullscreenBtn = document.getElementById('fullscreenBtn');
-        console.log('Initializing fullscreen button:', fullscreenBtn);
-        
-        if (fullscreenBtn) {
-            fullscreenBtn.addEventListener('click', (e) => {
-                console.log('Fullscreen button clicked!');
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const documentViewer = document.querySelector('.document-viewer-section');
-                
+        const documentViewer = document.querySelector('.document-viewer-container');
+
+        if (fullscreenBtn && documentViewer) {
+            fullscreenBtn.addEventListener('click', () => {
+                toggleFullscreen(documentViewer);
+            });
+
+            document.addEventListener('fullscreenchange', () => {
                 if (!document.fullscreenElement) {
-                    // Enter fullscreen with animation
-                    if (documentViewer.requestFullscreen) {
-                        documentViewer.requestFullscreen();
-                    } else if (documentViewer.webkitRequestFullscreen) {
-                        documentViewer.webkitRequestFullscreen();
-                    } else if (documentViewer.msRequestFullscreen) {
-                        documentViewer.msRequestFullscreen();
-                    }
-                    
-                    // Add smooth transition class
-                    setTimeout(() => {
-                        documentViewer.classList.add('fullscreen-active');
-                    }, 100);
-                    
-                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
-                } else {
-                    // Exit fullscreen
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                    
-                    // Remove smooth transition class
-                    documentViewer.classList.remove('fullscreen-active');
-                    
                     fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                    fullscreenBtn.title = 'Schermo intero';
+                } else {
+                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+                    fullscreenBtn.title = 'Esci da schermo intero';
                 }
             });
         }
-    }, 100);
+    }, 500);
 }
 
-// Load redacted PDF with authentication
+function toggleFullscreen(element) {
+    if (!document.fullscreenElement) {
+        try {
+            element.requestFullscreen();
+        } catch (err) {
+            console.error('Fullscreen request failed:', err);
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+// Load redacted PDF from a given file ID
 async function loadRedactedPdf(fileId, viewerElementId) {
     const viewerElement = document.getElementById(viewerElementId);
     if (!viewerElement) {
-        console.error('PDF viewer element not found:', viewerElementId);
+        console.error(`Viewer element '${viewerElementId}' not found.`);
         return;
     }
-    
+
+    const filename = currentDocument ? (currentDocument.original_filename || currentDocument.filename) : null;
+
+    if (!currentDocument || !isPdfFile(filename)) {
+        viewerElement.innerHTML = `
+            <div class="unsupported-preview">
+                <span class="material-symbols-outlined">description</span>
+                <p>L'anteprima non è disponibile per questo tipo di file.</p>
+                <p>(${(filename || 'File non trovato')})</p>
+            </div>
+        `;
+        const controls = document.querySelector('.viewer-header .viewer-actions');
+        if(controls) controls.style.display = 'none';
+        return;
+    }
+
+    await loadEmbeddedPdfViewer(fileId, viewerElementId);
+}
+
+async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
+    const viewerElement = document.getElementById(viewerElementId);
+    if (!viewerElement) {
+        console.error(`Viewer element '${viewerElementId}' not found.`);
+        return;
+    }
+
+    viewerElement.innerHTML = ''; // Clear previous content
+    const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
+
     try {
-        console.log('🔒 Fetching redacted PDF for file ID:', fileId);
+        // 1. Fetch the PDF data as an ArrayBuffer
+        const pdfUrl = getRedactedPdfUrl(fileId);
+        const response = await fetch(pdfUrl, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Impossibile scaricare il PDF: ${response.statusText}`);
+        }
+
+        const pdfData = await response.arrayBuffer();
         
-        // Fetch PDF with authentication
-        const response = await fetch(getRedactedPdfUrl(fileId), {
-            headers: {
-                'Authorization': authToken ? `Bearer ${authToken}` : ''
+        const blob = new Blob([pdfData], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const container = document.createElement('div');
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.borderRadius = '8px';
+        container.style.overflow = 'hidden';
+        container.style.backgroundColor = '#525659';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        
+        // --- Professional Toolbar ---
+        const toolbar = document.createElement('div');
+        toolbar.style.padding = '8px 16px';
+        toolbar.style.backgroundColor = '#3c3f41';
+        toolbar.style.borderBottom = '1px solid #2a2c2e';
+        toolbar.style.display = 'flex';
+        toolbar.style.alignItems = 'center';
+        toolbar.style.justifyContent = 'space-between';
+        toolbar.style.flexShrink = '0';
+
+        const applyModernButtonStyles = (button) => {
+            button.style.backgroundColor = 'transparent';
+            button.style.border = 'none';
+            button.style.color = 'white';
+            button.style.cursor = 'pointer';
+            button.style.padding = '6px';
+            button.style.borderRadius = '50%';
+            button.style.display = 'flex';
+            button.style.alignItems = 'center';
+            button.style.justifyContent = 'center';
+            button.style.transition = 'background-color 0.2s ease-in-out';
+            button.onmouseenter = () => button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            button.onmouseleave = () => button.style.backgroundColor = 'transparent';
+        };
+
+        // Left Controls (Download)
+        const leftControls = document.createElement('div');
+        const downloadBtn = document.createElement('button');
+        applyModernButtonStyles(downloadBtn);
+        downloadBtn.title = 'Download';
+        downloadBtn.innerHTML = '<span class="material-symbols-outlined">download</span>';
+        downloadBtn.onclick = () => downloadRedactedDocument(fileId);
+        leftControls.appendChild(downloadBtn);
+
+        // Right Controls (Zoom, Fullscreen)
+        const rightControls = document.createElement('div');
+        rightControls.style.display = 'flex';
+        rightControls.style.alignItems = 'center';
+        rightControls.style.gap = '8px';
+
+        const zoomOutBtn = document.createElement('button');
+        applyModernButtonStyles(zoomOutBtn);
+        zoomOutBtn.title = 'Zoom Out';
+        zoomOutBtn.innerHTML = '<span class="material-symbols-outlined">zoom_out</span>';
+        
+        const zoomInfo = document.createElement('span');
+        zoomInfo.style.color = 'white';
+        zoomInfo.style.fontSize = '14px';
+        zoomInfo.style.minWidth = '45px';
+        zoomInfo.style.textAlign = 'center';
+        
+        const zoomInBtn = document.createElement('button');
+        applyModernButtonStyles(zoomInBtn);
+        zoomInBtn.title = 'Zoom In';
+        zoomInBtn.innerHTML = '<span class="material-symbols-outlined">zoom_in</span>';
+
+        const fullscreenBtn = document.createElement('button');
+        applyModernButtonStyles(fullscreenBtn);
+        fullscreenBtn.title = 'Fullscreen';
+        fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+        
+        rightControls.appendChild(zoomOutBtn);
+        rightControls.appendChild(zoomInfo);
+        rightControls.appendChild(zoomInBtn);
+        rightControls.appendChild(document.createElement('div')).style.width = '16px'; // separator
+        rightControls.appendChild(fullscreenBtn);
+        
+        toolbar.appendChild(leftControls);
+        toolbar.appendChild(rightControls);
+        container.appendChild(toolbar);
+        
+        const viewerArea = document.createElement('div');
+        viewerArea.style.flex = '1';
+        viewerArea.style.overflow = 'auto';
+        viewerArea.style.paddingTop = '20px';
+        viewerArea.style.textAlign = 'center';
+        container.appendChild(viewerArea);
+        
+        viewerElement.appendChild(container);
+        
+        const loadingTask = pdfjsLib.getDocument({ url: blobUrl });
+        const pdfDocument = await loadingTask.promise;
+        
+        let currentScale = 1.0;
+        const totalPages = pdfDocument.numPages;
+        
+        function updateZoomInfo() {
+            zoomInfo.textContent = `${Math.round(currentScale * 100)}%`;
+        }
+        
+        async function renderAllPages() {
+            viewerArea.innerHTML = '';
+            
+            for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                const page = await pdfDocument.getPage(pageNum);
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                const viewport = page.getViewport({ scale: currentScale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                canvas.style.display = 'block';
+                canvas.style.marginLeft = 'auto';
+                canvas.style.marginRight = 'auto';
+                canvas.style.marginBottom = '20px';
+                canvas.style.backgroundColor = 'white';
+                canvas.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                
+                viewerArea.appendChild(canvas);
+                
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                
+                await page.render(renderContext).promise;
+            }
+            updateZoomInfo();
+        }
+        
+        zoomOutBtn.addEventListener('click', () => {
+            if (currentScale > 0.5) {
+                currentScale -= 0.25;
+                renderAllPages();
             }
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        zoomInBtn.addEventListener('click', () => {
+            if (currentScale < 3.0) {
+                currentScale += 0.25;
+                renderAllPages();
+            }
+        });
         
-        // Create blob from response
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
+        fullscreenBtn.addEventListener('click', () => toggleFullscreen(container));
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+                fullscreenBtn.title = 'Exit Fullscreen';
+            } else {
+                fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                fullscreenBtn.title = 'Fullscreen';
+            }
+        });
         
-        console.log('✅ PDF loaded successfully, creating viewer');
+        await renderAllPages();
+        LoadingManager.hide(loader);
         
-        // Replace loading content with PDF viewer
-        viewerElement.innerHTML = `
-            <div class="pdf-zoom-container">
-            <embed src="${objectUrl}" type="application/pdf" width="100%" height="100%">
-            </div>
-            <div class="pdf-fallback">
-                <p>Il tuo browser non supporta la visualizzazione PDF.</p>
-                <a href="${objectUrl}" target="_blank" class="pdf-download-btn">
-                    <span class="material-symbols-outlined">download</span>
-                    Scarica PDF
-                </a>
-            </div>
-        `;
+        const cleanup = () => URL.revokeObjectURL(blobUrl);
+        window.addEventListener('beforeunload', cleanup);
         
-        // Clean up object URL after some time to prevent memory leaks
-        setTimeout(() => {
-            URL.revokeObjectURL(objectUrl);
-        }, 60000); // Clean up after 1 minute
-        
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.removedNodes.forEach((node) => {
+                    if (node === viewerElement) {
+                        cleanup();
+                        observer.disconnect();
+                    }
+                });
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
     } catch (error) {
-        console.error('❌ Failed to load redacted PDF:', error);
-        
-        // Show error message
-        viewerElement.innerHTML = `
-            <div class="pdf-error">
-                <div class="error-icon">📄</div>
-                <h3>Errore nel caricamento</h3>
-                <p>Non è stato possibile caricare il documento redatto.</p>
-                <p class="error-details">${error.message}</p>
-                <button class="retry-btn" onclick="loadRedactedPdf(${fileId}, '${viewerElementId}')">
-                    <span class="material-symbols-outlined">refresh</span>
-                    Riprova
-                </button>
-            </div>
-        `;
+        console.error('Errore durante il caricamento del PDF:', error);
+        LoadingManager.hide(loader);
+        LoadingManager.showError(viewerElement, `Impossibile caricare il PDF: ${error.message}`);
     }
 }
 
-// Authentication Handler
+// Auth & User
 function handleAuthError() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
@@ -551,9 +790,8 @@ function renderDocumentInfo(docData) {
     
     // For single-file vetrine, add "Pagine" field after "Anno Accademico"
     if (fileCount === 1) {
-        // For single files, we need to determine page count
-        // Since we're using redacted PDFs, we'll show a placeholder or estimate
-        const pageCount = fileData.pages || 'N/A';
+        // Use the num_pages field from the backend
+        const pageCount = fileData.num_pages && fileData.num_pages > 0 ? fileData.num_pages : 'N/A';
         updateDetailValue('Pagine', pageCount);
     }
     // For multi-file vetrine, we don't show any additional fields (no "File" count)
@@ -713,7 +951,7 @@ function generateFractionalStars(rating) {
 function saveReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.file_id;
-        localStorage.setItem(`file-${fileId}-zoom`, currentZoom);
+        localStorage.setItem(`file-${fileId}-zoom`, pdfZoom);
     }
 }
 
@@ -723,8 +961,11 @@ function loadReadingPosition() {
         const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
         
         if (savedZoom) {
-            currentZoom = parseInt(savedZoom);
-            adjustZoom(0); // Apply zoom
+            const zoomValue = parseFloat(savedZoom);
+            if (!isNaN(zoomValue)) {
+                pdfZoom = zoomValue;
+                updateZoomDisplay();
+            }
         }
     }
 }
@@ -951,9 +1192,6 @@ function renderViewerLeftControls(files, currentFileId) {
     return `
         <div class="viewer-left-controls">
             ${fileSwitcherHtml}
-            <button class="action-btn-icon" id="overlayDownloadBtn" title="Download Document" onclick="downloadRedactedDocument(${currentFileId})">
-                <span class="material-symbols-outlined">download</span>
-            </button>
         </div>
     `;
 }
@@ -1076,6 +1314,10 @@ function renderDocumentListView(docData) {
                         <span class="document-list-size">${fileSize}</span>
                         <span class="document-list-separator">•</span>
                         <span class="document-list-downloads">${file.download_count || 0} download</span>
+                        ${file.num_pages && file.num_pages > 0 && file.extension === 'pdf' ? `
+                            <span class="document-list-separator">•</span>
+                            <span class="document-list-pages">${file.num_pages} pagine</span>
+                        ` : ''}
                         ${file.price && file.price > 0 ? `
                             <span class="document-list-separator">•</span>
                             <span class="document-list-price">€${file.price.toFixed(2)}</span>
@@ -1297,23 +1539,6 @@ function renderDocumentViewerMode(docData) {
                 <div class="pdf-loading">
                     <div class="loader-spinner"></div>
                     <p>Caricamento documento...</p>
-                </div>
-                </div>
-                
-                <!-- Viewer Controls Overlay -->
-                <div class="viewer-overlay-controls">
-                    ${viewerLeftControlsHTML}
-                    <div class="viewer-controls-overlay">
-                        <button class="zoom-btn" id="zoomOut" title="Zoom Out">
-                            <span class="material-symbols-outlined">zoom_out</span>
-                        </button>
-                        <span class="zoom-level" id="zoomLevel">100%</span>
-                        <button class="zoom-btn" id="zoomIn" title="Zoom In">
-                            <span class="material-symbols-outlined">zoom_in</span>
-                        </button>
-                        <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
-                            <span class="material-symbols-outlined">fullscreen</span>
-                        </button>
                     </div>
                 </div>
 
@@ -1501,25 +1726,7 @@ function renderDocumentViewerMode(docData) {
         showAndFadeBottomOverlay(); // show on load
 
         // Initialize controls
-        initializeZoom();
         initializeFullscreen();
-        
-        const fileSwitcher = document.getElementById('file-switcher');
-        if (fileSwitcher) {
-            fileSwitcher.addEventListener('change', (event) => {
-                const newFileId = event.target.value;
-                if (newFileId) {
-                    window.location.href = `document-preview.html?id=${newFileId}`;
-                }
-            });
-        }
-        
-        // Initialize other systems
-        initializeKeyboardNavigation();
-        initializeTouchNavigation();
-        
-        // Load reading position
-        loadReadingPosition();
 }
 
 // Function to open a specific document in viewer mode

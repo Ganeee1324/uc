@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS vetrina (
     average_rating REAL,
     reviews_count INTEGER NOT NULL DEFAULT 0,
     tags VARCHAR(50)[],
+    file_count INTEGER NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
     UNIQUE (author_id, name, course_instance_id)
 );
 
@@ -57,16 +59,18 @@ CREATE TABLE IF NOT EXISTS files (
     fact_mark_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     size INTEGER NOT NULL DEFAULT 0,
     download_count INTEGER NOT NULL DEFAULT 0,
-    price INTEGER NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
     extension VARCHAR(10) NOT NULL,
     tag VARCHAR(50),
+    language VARCHAR(15) NOT NULL DEFAULT 'it',
+    num_pages INTEGER NOT NULL DEFAULT 0,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(user_id) NOT NULL,
-    amount INTEGER NOT NULL DEFAULT 0,
+    amount REAL NOT NULL DEFAULT 0,
     transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -79,7 +83,7 @@ CREATE TABLE IF NOT EXISTS owned_files (
 
 CREATE TABLE IF NOT EXISTS vetrina_subscriptions (
     subscriber_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
-    price INTEGER NOT NULL DEFAULT 0,
+    price REAL NOT NULL DEFAULT 0,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     subscription_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_id INTEGER REFERENCES transactions(transaction_id),
@@ -159,22 +163,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to update vetrina tags
-CREATE OR REPLACE FUNCTION update_vetrina_tags()
+-- Function to update vetrina tags and file count
+CREATE OR REPLACE FUNCTION update_vetrina_tags_and_file_count()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Handle INSERT and UPDATE operations
     IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
         UPDATE vetrina 
-        SET tags = (
-            SELECT ARRAY(
-                SELECT DISTINCT tag 
+        SET 
+            tags = (
+                SELECT ARRAY(
+                    SELECT DISTINCT tag 
+                    FROM files 
+                    WHERE vetrina_id = NEW.vetrina_id 
+                    AND tag IS NOT NULL
+                    ORDER BY tag
+                )
+            ),
+            file_count = (
+                SELECT COUNT(*) 
                 FROM files 
-                WHERE vetrina_id = NEW.vetrina_id 
-                AND tag IS NOT NULL
-                ORDER BY tag
+                WHERE vetrina_id = NEW.vetrina_id
             )
-        )
         WHERE vetrina_id = NEW.vetrina_id;
         RETURN NEW;
     END IF;
@@ -182,15 +192,21 @@ BEGIN
     -- Handle DELETE operation
     IF TG_OP = 'DELETE' THEN
         UPDATE vetrina 
-        SET tags = (
-            SELECT ARRAY(
-                SELECT DISTINCT tag 
+        SET 
+            tags = (
+                SELECT ARRAY(
+                    SELECT DISTINCT tag 
+                    FROM files 
+                    WHERE vetrina_id = OLD.vetrina_id 
+                    AND tag IS NOT NULL
+                    ORDER BY tag
+                )
+            ),
+            file_count = (
+                SELECT COUNT(*) 
                 FROM files 
-                WHERE vetrina_id = OLD.vetrina_id 
-                AND tag IS NOT NULL
-                ORDER BY tag
+                WHERE vetrina_id = OLD.vetrina_id
             )
-        )
         WHERE vetrina_id = OLD.vetrina_id;
         RETURN OLD;
     END IF;
@@ -219,7 +235,7 @@ CREATE TRIGGER trigger_update_vetrina_stats_delete
     FOR EACH ROW
     EXECUTE FUNCTION update_vetrina_review_stats();
 
--- Create triggers for files table to update vetrina tags
+-- Create triggers for files table to update vetrina tags and file count
 DROP TRIGGER IF EXISTS trigger_update_vetrina_tags_insert ON files;
 DROP TRIGGER IF EXISTS trigger_update_vetrina_tags_update ON files;
 DROP TRIGGER IF EXISTS trigger_update_vetrina_tags_delete ON files;
@@ -227,16 +243,16 @@ DROP TRIGGER IF EXISTS trigger_update_vetrina_tags_delete ON files;
 CREATE TRIGGER trigger_update_vetrina_tags_insert
     AFTER INSERT ON files
     FOR EACH ROW
-    EXECUTE FUNCTION update_vetrina_tags();
+    EXECUTE FUNCTION update_vetrina_tags_and_file_count();
 
 CREATE TRIGGER trigger_update_vetrina_tags_update
     AFTER UPDATE ON files
     FOR EACH ROW
-    EXECUTE FUNCTION update_vetrina_tags();
+    EXECUTE FUNCTION update_vetrina_tags_and_file_count();
 
 CREATE TRIGGER trigger_update_vetrina_tags_delete
     AFTER DELETE ON files
     FOR EACH ROW
-    EXECUTE FUNCTION update_vetrina_tags();
+    EXECUTE FUNCTION update_vetrina_tags_and_file_count();
 
 INSERT INTO users (username, first_name, last_name, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');

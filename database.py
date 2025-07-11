@@ -520,7 +520,7 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
-    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None
+    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None, language: str = "it", num_pages: int = 0
 ) -> File:
     """
     Add a file to a vetrina.
@@ -534,6 +534,8 @@ def add_file_to_vetrina(
         price: Price of the file
         size: Size of the file in bytes
         tag: Tag for the file
+        language: Language of the file
+        num_pages: Number of pages in the file
     Raises:
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
@@ -549,22 +551,18 @@ def add_file_to_vetrina(
                 if not vetrina:
                     raise NotFoundException("Vetrina not found")
 
-                logging.debug(f"Vetrina {vetrina_id} found")
-
                 # Then check if the requester is the author
                 if vetrina["author_id"] != requester_id:
                     raise ForbiddenError("Only the author can add files to this vetrina")
 
-                logging.debug(f"Requester {requester_id} is the author of vetrina {vetrina_id}")
-
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag, extension) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (vetrina_id, file_name, sha256, price, size, tag, extension),
+                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (vetrina_id, file_name, sha256, price, size, tag, extension, language, num_pages),
                 )
                 file_data = cursor.fetchone()
 
-                logging.debug(f"File {file_data['file_id']} added to vetrina {vetrina_id} by user {requester_id}")
+                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, tag: {tag}')
             return File.from_dict(file_data)
 
 

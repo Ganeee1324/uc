@@ -285,125 +285,65 @@ function updateHeaderUserInfo(user) {
 
 // URL Parameter Handler
 function getFileIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fileId = urlParams.get('id');
-    
-    if (!fileId) {
-        window.location.href = 'search.html';
-        return null;
-    }
-    
-    return parseInt(fileId);
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
 }
 
 // Document Data Fetcher - Enhanced to get complete information
-async function fetchDocumentData(fileId) {
+async function fetchDocumentData(vetrinaId) {
     try {
-        // Fetch file data using the correct backend endpoint
-        const fileResponse = await makeRequest(`${API_BASE}/files/${fileId}`);
-        
-        if (!fileResponse) {
-            throw new Error('File not found');
+        // The ID from the URL is a vetrinaId.
+
+        // 1. Fetch all files for this vetrina.
+        const vetrinaFilesResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/files`);
+        const vetrinaFiles = (vetrinaFilesResponse && vetrinaFilesResponse.files) ? vetrinaFilesResponse.files : [];
+
+        // 2. Fetch the details for this specific vetrina.
+        // The backend doesn't have /vetrine/<id>, so we must fetch all and filter.
+        const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
+        if (!allVetrineResponse || !allVetrineResponse.vetrine) {
+            throw new Error('Could not fetch vetrine list.');
+        }
+        const vetrinaData = allVetrineResponse.vetrine.find(v => v.id == vetrinaId || v.vetrina_id == vetrinaId);
+
+        if (!vetrinaData) {
+            throw new Error(`Vetrina with ID ${vetrinaId} not found.`);
         }
 
-        // Fetch vetrina data to get course information
-        let vetrinaData = null;
-        let fileWithUserContext = null;
-        let vetrinaFiles = [];
-        
-        if (fileResponse.vetrina_id) {
-            try {
-                // Get all vetrine and find the one we need since individual vetrina endpoint doesn't exist
-                const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
-                if (allVetrineResponse && allVetrineResponse.vetrine) {
-                    // Try to find the vetrina by different possible ID fields
-                    vetrinaData = allVetrineResponse.vetrine.find(v => 
-                        v.vetrina_id === fileResponse.vetrina_id || 
-                        v.id === fileResponse.vetrina_id ||
-                        v.vetrina_id === fileResponse.vetrina_id
-                    );
-                    
-                    if (!vetrinaData) {
-                        console.warn(`❌ Vetrina with ID ${fileResponse.vetrina_id} not found in the list. Available vetrine:`, 
-                            allVetrineResponse.vetrine.map(v => ({ id: v.id, vetrina_id: v.vetrina_id })));
-                    } else {
-                        console.log('✅ Found vetrina data:', vetrinaData);
-                    }
-                }
-                
-                // Get file with user context (including favorite status) from the vetrina's files
-                const vetrinaFilesResponse = await makeRequest(`${API_BASE}/vetrine/${fileResponse.vetrina_id}/files`);
-                if (vetrinaFilesResponse && vetrinaFilesResponse.files) {
-                    vetrinaFiles = vetrinaFilesResponse.files;
-                    fileWithUserContext = vetrinaFilesResponse.files.find(f => f.file_id === parseInt(fileId));
-                    if (fileWithUserContext) {
-                        // Merge the user context data with the original file data
-                        Object.assign(fileResponse, {
-                            favorite: fileWithUserContext.favorite,
-                            owned: fileWithUserContext.owned
-                        });
-                    }
-                }
-            } catch (error) {
-                console.warn('Could not fetch vetrina data:', error);
-                if (error.message.includes('CORS Error')) {
-                    console.warn('This is a CORS configuration issue on the server side');
-                }
-            }
-        }
-
-        // Fetch reviews for the vetrina if available
-        let reviewsData = [];
-        if (vetrinaData && (vetrinaData.vetrina_id || vetrinaData.id)) {
-            try {
-                const vetrinaId = vetrinaData.vetrina_id || vetrinaData.id;
-                const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
-                if (reviewsResponse && reviewsResponse.reviews) {
-                    reviewsData = reviewsResponse.reviews;
-                    console.log(`✅ Loaded ${reviewsData.length} reviews for vetrina ${vetrinaId}`);
-                }
-            } catch (error) {
-                console.warn('Could not fetch reviews:', error);
-                // Use empty array as fallback
-                reviewsData = [];
-            }
-        }
-
-        // TODO: Integrate real related documents endpoint when available
-        // For now, related documents are not shown (empty array for security)
-        // SECURITY: Never render user-generated content with innerHTML unless sanitized
-        const relatedDocs = [];
-
-        // Ensure we have vetrina data for favorite functionality
-        if (!vetrinaData && fileResponse.vetrina_id) {
-            // Create a minimal vetrina object with the ID for favorite functionality
-            vetrinaData = {
-                vetrina_id: fileResponse.vetrina_id,
-                id: fileResponse.vetrina_id,
-                name: fileResponse.original_filename || fileResponse.filename || 'Documento',
-                description: 'Documento caricato'
+        // 3. The rest of the page logic needs a "primary document" object for context.
+        // If the vetrina has files, we use the first one.
+        // If not, we create a fallback object from the vetrina data itself.
+        let primaryDocument;
+        if (vetrinaFiles.length > 0) {
+            // Use the first file as the primary document context
+            primaryDocument = vetrinaFiles[0];
+        } else {
+            // Create a fallback "document" from vetrina data if no files exist
+            primaryDocument = {
+                ...vetrinaData,
+                id: vetrinaData.id,
+                file_id: null,
+                original_filename: vetrinaData.name || 'Vetrina',
+                vetrina_id: vetrinaData.id
             };
-            console.log('🔄 Created fallback vetrina data for favorite functionality:', vetrinaData);
         }
 
+        // 4. Fetch reviews for the vetrina.
+        const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
+        const reviewsData = (reviewsResponse && reviewsResponse.reviews) ? reviewsResponse.reviews : [];
+
+        // 5. Assemble the final data structure that the rest of the page expects.
         return {
-            document: fileResponse,
+            document: primaryDocument,
             vetrina: vetrinaData,
             reviews: reviewsData,
-            related: relatedDocs,
+            related: [], // Related documents are not implemented
             vetrinaFiles: vetrinaFiles
         };
+
     } catch (error) {
-        console.error('Failed to fetch document data:', error);
-        
-        // If file not found, try to redirect to a valid file
-        if (error.message.includes('404') || error.message.includes('not found')) {
-            console.log('File not found, attempting to redirect to a valid file...');
-            // Redirect to a known valid file (teoria_insiemi.pdf - ID 117)
-            window.location.href = 'document-preview.html?id=117';
-            return null;
-        }
-        
+        console.error('Failed to fetch vetrina data:', error);
+        LoadingManager.showError(document.querySelector('.preview-main'), `Impossibile caricare i dati della vetrina. ${error.message}`);
         throw error;
     }
 }
@@ -1827,9 +1767,6 @@ function renderDocumentListView(docData) {
             </div>
         `;
     }).join('');
-
-    // Generate tags HTML
-    const tagsHTML = currentVetrina?.tags?.map(tag => `<div class="doc-type-tag">${tag}</div>`).join('') || '<div class="doc-type-tag">Bundle</div>';
     
     // Replace the entire main container content with the document list structure
     mainContainer.innerHTML = `
@@ -1857,7 +1794,7 @@ function renderDocumentListView(docData) {
                 <!-- Main Info & CTA -->
                 <div class="doc-main-info">
                     <div class="doc-header-actions">
-                        <div class="doc-type-tags-container">${tagsHTML}</div>
+                        <div class="doc-type-tag">Bundle</div>
                         <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
                             <span class="material-symbols-outlined">favorite</span>
                         </button>

@@ -323,13 +323,10 @@ async function loadRedactedPdf(fileId, viewerElementId) {
         
         console.log('✅ PDF loaded successfully, creating viewer');
         
-        // Append #scrollbar=0 to hide the default PDF scrollbar
-        const finalUrl = `${objectUrl}#toolbar=0&scrollbar=0`;
-
         // Replace loading content with PDF viewer
         viewerElement.innerHTML = `
             <div class="pdf-zoom-container">
-            <embed src="${finalUrl}" type="application/pdf" width="100%" height="100%">
+            <embed src="${objectUrl}" type="application/pdf" width="100%" height="100%">
             </div>
             <div class="pdf-fallback">
                 <p>Il tuo browser non supporta la visualizzazione PDF.</p>

@@ -173,7 +173,26 @@ function isPdfFile(filename) {
     return filename && filename.toLowerCase().endsWith('.pdf');
 }
 
-// Zoom functionality for PDF viewer
+// Zoom System
+function initializeZoom() {
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomOutBtn = document.getElementById('zoomOut');
+    
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => {
+            adjustZoom(ZOOM_CONFIG.step);
+        });
+    }
+    
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => {
+            adjustZoom(-ZOOM_CONFIG.step);
+        });
+    }
+    
+    updateZoomDisplay();
+}
+
 function adjustZoom(delta) {
     const viewerElement = document.getElementById('documentViewer');
     if (!viewerElement) return;
@@ -191,17 +210,85 @@ function adjustZoom(delta) {
             pdfEmbed.style.transformOrigin = 'top left';
         }
         
-        // Update zoom level display
-        const zoomLevelElement = document.getElementById('zoomLevel');
-        if (zoomLevelElement) {
-            zoomLevelElement.textContent = `${currentZoom}%`;
-        }
+        // Update zoom level display and button states
+        updateZoomDisplay();
         
         // Save zoom level to localStorage
         if (currentDocument && currentDocument.file_id) {
             localStorage.setItem(`file-${currentDocument.file_id}-zoom`, currentZoom);
         }
     }
+}
+
+// Update zoom level and apply transformations
+function updateZoomDisplay() {
+    const zoomLevelText = document.querySelector('.zoom-level');
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomOutBtn = document.getElementById('zoomOut');
+
+    if (zoomLevelText) {
+        zoomLevelText.textContent = `${currentZoom}%`;
+    }
+    
+    // Update zoom button states
+    if (zoomInBtn) {
+        zoomInBtn.disabled = currentZoom >= ZOOM_CONFIG.max;
+    }
+    
+    if (zoomOutBtn) {
+        zoomOutBtn.disabled = currentZoom <= ZOOM_CONFIG.min;
+    }
+}
+
+// Fullscreen System
+function initializeFullscreen() {
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        console.log('Initializing fullscreen button:', fullscreenBtn);
+        
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', (e) => {
+                console.log('Fullscreen button clicked!');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const documentViewer = document.querySelector('.document-viewer-section');
+                
+                if (!document.fullscreenElement) {
+                    // Enter fullscreen with animation
+                    if (documentViewer.requestFullscreen) {
+                        documentViewer.requestFullscreen();
+                    } else if (documentViewer.webkitRequestFullscreen) {
+                        documentViewer.webkitRequestFullscreen();
+                    } else if (documentViewer.msRequestFullscreen) {
+                        documentViewer.msRequestFullscreen();
+                    }
+                    
+                    // Add smooth transition class
+                    setTimeout(() => {
+                        documentViewer.classList.add('fullscreen-active');
+                    }, 100);
+                    
+                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen_exit</span>';
+                } else {
+                    // Exit fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                    
+                    // Remove smooth transition class
+                    documentViewer.classList.remove('fullscreen-active');
+                    
+                    fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
+                }
+            });
+        }
+    }, 100);
 }
 
 // Load redacted PDF with authentication
@@ -1407,7 +1494,9 @@ function renderDocumentViewerMode(docData) {
 
         showAndFadeBottomOverlay(); // show on load
 
-        // Initialize controls (removed non-existent functions)
+        // Initialize controls
+        initializeZoom();
+        initializeFullscreen();
         
         const fileSwitcher = document.getElementById('file-switcher');
         if (fileSwitcher) {

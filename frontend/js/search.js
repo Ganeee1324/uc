@@ -2880,13 +2880,14 @@ async function loadAllFiles() {
         // - reviews_count: number of reviews
         // - All file metadata is calculated server-side
         
-        // We still need file metadata for size, price, and file count calculations
-        // But we can use the tags from the vetrina response instead of extracting from files
+        // 🚀 OPTIMIZED APPROACH: Use existing backend efficiently
+        // The backend already provides tags, ratings, and reviews in the vetrina response
+        // We only need file metadata for size, price, and file count calculations
         const now = Date.now();
         const isCacheValid = (now - cacheTimestamp) < CACHE_DURATION;
         
         if (isCacheValid && fileMetadataCache.size > 0) {
-            console.log('🚀 Using cached file metadata for faster loading');
+            console.log('🚀 Using cached file metadata for instant loading');
             showStatus('Caricamento da cache... ⚡');
             
             // Use cached data
@@ -2901,11 +2902,11 @@ async function loadAllFiles() {
             
             console.log(`📊 Using cached metadata for ${Object.keys(allFilesData).length} vetrine`);
         } else {
-            // Cache is invalid or empty, fetch fresh data
-            console.log('🔄 Cache invalid or empty, fetching fresh file metadata');
+            // Cache is invalid or empty, fetch fresh data efficiently
+            console.log('🔄 Fetching file metadata for size, price, and file count calculations');
+            showStatus('Caricamento ottimizzato... ⚡');
             
-            // OPTIMIZATION: Use Promise.allSettled for better error handling and performance
-            // This ensures that if one request fails, others continue
+            // OPTIMIZATION: Use Promise.allSettled for parallel requests and better error handling
             const fileMetadataPromises = currentVetrine.map(async (vetrina) => {
                 try {
                     const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
@@ -2951,9 +2952,9 @@ async function loadAllFiles() {
             // Update cache timestamp
             cacheTimestamp = now;
             
-            console.log(`📊 Fetched file metadata: ${successCount} successful, ${errorCount} failed out of ${currentVetrine.length} vetrine`);
+            console.log(`📊 File metadata fetched: ${successCount} successful, ${errorCount} failed out of ${currentVetrine.length} vetrine`);
             
-            // OPTIMIZATION: Show progress for better UX
+            // Show progress for better UX
             if (currentVetrine.length > 10) {
                 showStatus(`Caricamento completato: ${successCount}/${currentVetrine.length} vetrine caricate con successo! 🚀`);
             }
@@ -2966,45 +2967,45 @@ async function loadAllFiles() {
         for (const vetrina of currentVetrine) {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
-            // Get file metadata for this vetrina
+            // Get file metadata for this vetrina (only for size and document types)
             const fileMetadata = allFilesData[vetrina.vetrina_id] || [];
-            let fileCount = fileMetadata.length;
             let totalSize = 0;
-            let totalPrice = 0;
             let documentTypes = [];
+            
+            // 🚀 NEW: Use backend-provided file_count and price directly from vetrina response!
+            const fileCount = vetrina.file_count || fileMetadata.length || 1;
+            const totalPrice = vetrina.price || 0;
             
             // 🚀 NEW: Use tags directly from vetrina response (backend now provides this!)
             let actualTags = vetrina.tags || [];
             
             if (fileMetadata.length > 0) {
-                // Calculate totals from file metadata (not actual files)
+                // Calculate size from file metadata (price and file_count now come from backend)
                 totalSize = fileMetadata.reduce((sum, file) => sum + (file.size || 0), 0);
-                totalPrice = fileMetadata.reduce((sum, file) => sum + (file.price || 0), 0);
                 
                 // Extract document types from file extensions in metadata
                 documentTypes = Array.from(new Set(fileMetadata.map(file => getFileTypeFromFilename(file.filename))));
                 
-                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with backend tags:`, actualTags);
+                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files (backend) with backend tags:`, actualTags);
             } else {
-                console.log(`⚠️ No file metadata found for vetrina ${vetrina.vetrina_id}, using backend tags:`, actualTags);
-                // If no file metadata, we still have tags from the backend vetrina response
+                console.log(`⚠️ No file metadata found for vetrina ${vetrina.vetrina_id}, using backend file_count: ${fileCount}, price: ${totalPrice}, tags:`, actualTags);
             }
             
             console.log(`🏷️ Using backend tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
             
-            // Create a card item using vetrina metadata and file metadata (not actual files)
+            // Create a card item using vetrina metadata and backend-provided values
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
                 filesLoaded: false, // Mark as NOT loaded - actual files will be loaded on demand
-                fileCount: fileCount,
+                fileCount: fileCount, // 🚀 Use backend-provided file_count
                 files: [], // Empty array - actual files will be loaded on demand
                 // Use vetrina info for the card
                 filename: 'Vetrina', // Generic name until files are loaded
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
                 size: totalSize,
-                price: totalPrice,
+                price: totalPrice, // 🚀 Use backend-provided price
                 created_at: vetrina.created_at,
                 download_count: fileMetadata.reduce((sum, file) => sum + (file.download_count || 0), 0),
                 rating: vetrina.average_rating || 0, // 🚀 NEW: Use backend rating data
@@ -3032,7 +3033,11 @@ async function loadAllFiles() {
                 }
             };
             
-            console.log(`✅ Created vetrineCard for ${vetrina.vetrina_id} with actual tags:`, vetrineCard.tags);
+            console.log(`✅ Created vetrineCard for ${vetrina.vetrina_id} with backend data:`, {
+                fileCount: vetrineCard.fileCount,
+                price: vetrineCard.price,
+                tags: vetrineCard.tags
+            });
             
             console.log(`💖 Vetrina ${vetrina.vetrina_id} final favorite status: ${vetrineCard.favorite}`);
             allFiles.push(vetrineCard);
@@ -3614,8 +3619,8 @@ function renderDocuments(files) {
                             ${item.isVetrina && !filesLoaded ? 'Click to view' : formatFileSize(item.size || 0)}
                         </div>
                     </div>
-                    <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: €${price}`}">
-                        ${item.isVetrina && !filesLoaded ? 'View' : (price === 0 ? 'Gratis' : `€${price}`)}
+                    <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: ${formatPrice(price)}`}">
+                        ${item.isVetrina && !filesLoaded ? 'View' : formatPrice(price)}
                     </div>
                 </div>
             </div>
@@ -3720,6 +3725,15 @@ function formatFileSize(bytes) {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function formatPrice(price) {
+    if (price === 0) return 'Gratis';
+    // Handle decimal prices properly (e.g., 10.50 -> €10.50, 10.00 -> €10)
+    const formattedPrice = parseFloat(price).toFixed(2);
+    // Remove trailing zeros after decimal point
+    const cleanPrice = formattedPrice.replace(/\.?0+$/, '');
+    return `€${cleanPrice}`;
 }
 
 function formatDate(dateString) {

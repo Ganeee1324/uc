@@ -502,6 +502,30 @@ function getAcademicYear(courseInfo) {
     return 'Non specificato';
 }
 
+// Generate multiple document type tags from vetrina files
+function generateVetrinaDocumentTags(vetrinaFiles) {
+    if (!vetrinaFiles || vetrinaFiles.length === 0) {
+        return '<div class="doc-type-tag">Documento</div>';
+    }
+    
+    // Extract unique document types from all files
+    const documentTypes = new Set();
+    vetrinaFiles.forEach(file => {
+        const fileType = getDocumentTypeFromFilename(file.filename || file.original_filename);
+        documentTypes.add(fileType);
+    });
+    
+    // Convert to array and sort for consistent display
+    const uniqueTypes = Array.from(documentTypes).sort();
+    
+    // Generate HTML for multiple tags
+    if (uniqueTypes.length === 1) {
+        return `<div class="doc-type-tag">${uniqueTypes[0]}</div>`;
+    } else {
+        return uniqueTypes.map(type => `<div class="doc-type-tag">${type}</div>`).join('');
+    }
+}
+
 // Dynamic Document Pages Generator
 function generateDocumentPages(docData) {
     const { document: fileData, vetrina: vetrinaData } = docData;
@@ -1800,7 +1824,7 @@ function renderDocumentListView(docData) {
                 <!-- Main Info & CTA -->
                 <div class="doc-main-info">
                     <div class="doc-header-actions">
-                        <div class="doc-type-tag">Bundle</div>
+                        ${generateVetrinaDocumentTags(vetrinaFiles)}
                         <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
                             <span class="material-symbols-outlined">favorite</span>
                         </button>

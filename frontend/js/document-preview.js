@@ -1782,45 +1782,101 @@ async function initializeDocumentPreview() {
 // New function to render document list view for multiple files
 function renderDocumentListView(docData) {
     const mainContainer = document.querySelector('.preview-main');
-    const { vetrinaFiles } = docData;
+    const { vetrinaFiles, vetrina: vetrinaData } = docData;
     
-    // Generate documents list HTML
+    // Get all unique tags from the vetrina files
+    const vetrinaTags = [];
+    if (vetrinaFiles && vetrinaFiles.length > 0) {
+        vetrinaFiles.forEach(file => {
+            if (file.tag && !vetrinaTags.includes(file.tag)) {
+                vetrinaTags.push(file.tag);
+            }
+        });
+    }
+    
+    // Use vetrina.tags if available from backend, otherwise use extracted tags
+    const finalTags = vetrinaData?.tags && vetrinaData.tags.length > 0 ? vetrinaData.tags : vetrinaTags;
+    
+    // Function to get tag display name
+    const getTagDisplayName = (tag) => {
+        const tagMap = {
+            'ESERCIZI': 'Esercizi',
+            'APPUNTI': 'Appunti',
+            'SLIDES': 'Slides',
+            'DISPENSE': 'Dispense',
+            'PROGETTI': 'Progetti',
+            'LABORATORIO': 'Laboratorio',
+            'ESAMI': 'Esami',
+            'TEORIA': 'Teoria',
+            'BOOK': 'Libri'
+        };
+        return tagMap[tag?.toUpperCase()] || tag || 'Documento';
+    };
+    
+    // Generate professional documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
         const fileType = getDocumentTypeFromFilename(file.filename);
-        const fileExtension = getFileExtension(file.filename);
+        const fileExtension = getFileExtension(file.filename).toUpperCase();
         const fileSize = formatFileSize(file.size || 0);
         const documentIcon = getDocumentPreviewIcon(file.filename);
+        const fileTag = getTagDisplayName(file.tag);
+        const createdDate = file.created_at ? new Date(file.created_at).toLocaleDateString('it-IT') : '';
         
         return `
-            <div class="document-list-item" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
+            <div class="document-list-item professional" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
                 <div class="document-list-preview">
                     <div class="document-list-icon">
                         <span class="document-icon">${documentIcon}</span>
                         <div class="file-extension-badge">${fileExtension}</div>
                     </div>
+                    ${file.tag ? `<div class="document-tag-badge">${fileTag}</div>` : ''}
                 </div>
                 <div class="document-list-content">
                     <div class="document-list-header">
-                        <h3 class="document-list-title">${file.original_filename || file.filename}</h3>
+                        <h3 class="document-list-title" title="${file.original_filename || file.filename}">
+                            ${file.original_filename || file.filename}
+                        </h3>
                         <div class="document-list-type">${fileType}</div>
                     </div>
+                    <div class="document-list-description">
+                        ${file.tag ? `Documento di tipo ${fileTag.toLowerCase()}` : 'Materiale didattico'}
+                        ${createdDate ? ` • Pubblicato il ${createdDate}` : ''}
+                    </div>
                     <div class="document-list-meta">
-                        <span class="document-list-size">${fileSize}</span>
-                        <span class="document-list-separator">•</span>
-                        <span class="document-list-downloads">${file.download_count || 0} download</span>
+                        <div class="meta-item">
+                            <span class="meta-icon material-symbols-outlined">storage</span>
+                            <span class="meta-text">${fileSize}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-icon material-symbols-outlined">download</span>
+                            <span class="meta-text">${file.download_count || 0} download</span>
+                        </div>
                         ${file.price && file.price > 0 ? `
-                            <span class="document-list-separator">•</span>
-                            <span class="document-list-price">€${file.price.toFixed(2)}</span>
+                            <div class="meta-item price">
+                                <span class="meta-icon material-symbols-outlined">euro</span>
+                                <span class="meta-text">€${file.price.toFixed(2)}</span>
+                            </div>
+                        ` : `
+                            <div class="meta-item free">
+                                <span class="meta-icon material-symbols-outlined">check_circle</span>
+                                <span class="meta-text">Gratuito</span>
+                            </div>
+                        `}
+                        ${file.owned ? `
+                            <div class="meta-item owned">
+                                <span class="meta-icon material-symbols-outlined">verified</span>
+                                <span class="meta-text">Posseduto</span>
+                            </div>
                         ` : ''}
                     </div>
                     <div class="document-list-actions">
-                        <button class="document-list-btn primary" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')">
+                        <button class="document-list-btn primary" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')" title="Visualizza documento">
                             <span class="material-symbols-outlined">visibility</span>
-                            Visualizza
+                            <span class="btn-text">Visualizza</span>
                         </button>
-                        <button class="document-list-btn secondary" onclick="event.stopPropagation(); downloadSingleDocument('${file.file_id}')">
+                        <button class="document-list-btn secondary" onclick="event.stopPropagation(); downloadSingleDocument('${file.file_id}')" title="Scarica documento">
                             <span class="material-symbols-outlined">download</span>
-                            Download
+                            <span class="btn-text">Download</span>
                         </button>
                     </div>
                 </div>
@@ -1833,22 +1889,19 @@ function renderDocumentListView(docData) {
         <div class="document-list-section">
             <div class="document-list-header-section">
                 <div class="document-list-title-container">
-                    <h1 class="document-list-main-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
+                    <h1 class="document-list-main-title">${vetrinaData?.name || 'Vetrina Documenti'}</h1>
                     <div class="document-list-meta-info">
                         <span class="document-list-count">${vetrinaFiles.length} documenti</span>
                         <span class="document-list-separator">•</span>
                         <span class="document-list-total-size">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
+                        ${vetrinaData?.course_instance?.course_name ? `
+                            <span class="document-list-separator">•</span>
+                            <span class="document-list-course">${vetrinaData.course_instance.course_name}</span>
+                        ` : ''}
                     </div>
-                </div>
-                <div class="document-list-header-actions">
-                    <button class="action-btn secondary" onclick="window.history.back()">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                        Torna indietro
-                    </button>
-                    <button class="action-btn primary" onclick="downloadVetrinaBundle('${currentVetrina?.vetrina_id || currentVetrina?.id}')">
-                        <span class="material-symbols-outlined">download</span>
-                        Scarica tutto
-                    </button>
+                    ${vetrinaData?.description ? `
+                        <p class="document-list-description">${vetrinaData.description}</p>
+                    ` : ''}
                 </div>
             </div>
             
@@ -1862,16 +1915,23 @@ function renderDocumentListView(docData) {
                 <!-- Main Info & CTA -->
                 <div class="doc-main-info">
                     <div class="doc-header-actions">
-                        <div class="doc-type-tag">Bundle</div>
-                        <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
-                            <span class="material-symbols-outlined">favorite</span>
-                        </button>
-                        <button class="action-btn secondary" id="shareBtn" title="Condividi">
-                            <span class="material-symbols-outlined">share</span>
-                        </button>
+                        <div class="doc-type-tags">
+                            ${finalTags.length > 0 ? 
+                                finalTags.map(tag => `<span class="doc-type-tag">${getTagDisplayName(tag)}</span>`).join('') :
+                                '<span class="doc-type-tag">Documenti</span>'
+                            }
+                        </div>
+                        <div class="doc-action-buttons">
+                            <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </button>
+                            <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="doc-title-container">
-                        <h1 class="doc-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
+                        <h1 class="doc-title">${vetrinaData?.name || 'Vetrina Documenti'}</h1>
                     </div>
                     <div class="doc-meta-header">
                         <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
@@ -1890,15 +1950,12 @@ function renderDocumentListView(docData) {
                 <!-- Premium Action Buttons -->
                 <div class="doc-actions">
                     <button class="action-btn cart" id="addToCartBtn">
+                        <span class="material-symbols-outlined">shopping_cart</span>
                         Aggiungi al Carrello
                     </button>
                     <button class="action-btn primary" id="purchaseBtn">
-                        Acquista Bundle
-                    </button>
-                    <!-- Hidden download button (controlled by JS) -->
-                    <button class="action-btn secondary" id="downloadBtn" style="display: none;">
-                        <span class="material-symbols-outlined">download</span>
-                        <span>Download</span>
+                        <span class="material-symbols-outlined">shopping_bag</span>
+                        Acquista Raccolta
                     </button>
                 </div>
 
@@ -1909,7 +1966,7 @@ function renderDocumentListView(docData) {
                         Descrizione
                     </h3>
                     <div class="doc-description">
-                        <p>${currentVetrina?.description || 'Raccolta di documenti di studio.'}</p>
+                        <p>${vetrinaData?.description || 'Raccolta di materiali didattici per lo studio.'}</p>
                     </div>
                 </div>
 
@@ -1917,9 +1974,13 @@ function renderDocumentListView(docData) {
                 <div class="doc-details-section">
                     <h3>
                         <span class="material-symbols-outlined">info</span>
-                        Dettagli Bundle
+                        Dettagli Raccolta
                     </h3>
                     <div class="doc-details">
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Tipologie</span>
+                            <span class="detail-value">${finalTags.length > 0 ? finalTags.map(getTagDisplayName).join(', ') : 'Varie'}</span>
+                        </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Numero di file</span>
                             <span class="detail-value">${vetrinaFiles.length}</span>
@@ -1929,20 +1990,24 @@ function renderDocumentListView(docData) {
                             <span class="detail-value">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
                         </div>
                         <div class="detail-item-vertical">
+                            <span class="detail-label">Proprietario</span>
+                            <span class="detail-value">${vetrinaData?.owner?.username || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item-vertical">
                             <span class="detail-label">Facoltà</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.faculty_name || 'N/A'}</span>
+                            <span class="detail-value">${vetrinaData?.course_instance?.faculty_name || 'N/A'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Corso</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.course_name || 'N/A'}</span>
+                            <span class="detail-value">${vetrinaData?.course_instance?.course_name || 'N/A'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Lingua</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.language || 'Italiano'}</span>
+                            <span class="detail-value">${vetrinaData?.course_instance?.language || 'Italiano'}</span>
                         </div>
                         <div class="detail-item-vertical">
                             <span class="detail-label">Anno Accademico</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.date_year ? `${currentVetrina.course_instance.date_year}/${currentVetrina.course_instance.date_year + 1}` : 'N/A'}</span>
+                            <span class="detail-value">${vetrinaData?.course_instance?.date_year ? `${vetrinaData.course_instance.date_year}/${vetrinaData.course_instance.date_year + 1}` : 'N/A'}</span>
                         </div>
                     </div>
                 </div>

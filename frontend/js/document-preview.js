@@ -308,6 +308,38 @@ function initializeFullscreen() {
     }, 100);
 }
 
+// Apple Style Controls Initialization
+function initializeAppleControls() {
+    // Open in Preview button
+    const openInPreviewBtn = document.getElementById('openInPreviewBtn');
+    if (openInPreviewBtn) {
+        openInPreviewBtn.addEventListener('click', () => {
+            if (currentDocument && currentDocument.file_id) {
+                const pdfUrl = getRedactedPdfUrl(currentDocument.file_id);
+                window.open(pdfUrl, '_blank');
+            }
+        });
+    }
+    
+    // Download PDF button
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', () => {
+            if (currentDocument && currentDocument.file_id) {
+                downloadRedactedDocument(currentDocument.file_id);
+            }
+        });
+    }
+    
+    // Share PDF button
+    const sharePdfBtn = document.getElementById('sharePdfBtn');
+    if (sharePdfBtn) {
+        sharePdfBtn.addEventListener('click', () => {
+            handleShare();
+        });
+    }
+}
+
 // Load redacted PDF with authentication
 async function loadRedactedPdf(fileId, viewerElementId) {
     const viewerElement = document.getElementById(viewerElementId);
@@ -1330,10 +1362,30 @@ function renderDocumentViewerMode(docData) {
                     </div>
                 </div>
 
-                <!-- New Bottom Elements -->
+                <!-- Apple Style Bottom Overlay -->
                 <div class="viewer-bottom-overlay">
-                    <span class="bottom-page-indicator" id="bottomPageIndicator"></span>
-                    <div class="file-format-badge" id="fileFormatBadge"></div>
+                    <div class="bottom-overlay-left">
+                        <span class="bottom-page-indicator" id="bottomPageIndicator">Pagina 1</span>
+                    </div>
+                    <div class="bottom-overlay-center">
+                        <div class="apple-style-controls">
+                            <button class="apple-control-btn" id="openInPreviewBtn" title="Apri in Anteprima">
+                                <span class="material-symbols-outlined">open_in_new</span>
+                                <span class="control-label">Anteprima</span>
+                            </button>
+                            <button class="apple-control-btn" id="downloadPdfBtn" title="Scarica PDF">
+                                <span class="material-symbols-outlined">download</span>
+                                <span class="control-label">Download</span>
+                            </button>
+                            <button class="apple-control-btn" id="sharePdfBtn" title="Condividi">
+                                <span class="material-symbols-outlined">share</span>
+                                <span class="control-label">Condividi</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bottom-overlay-right">
+                        <div class="file-format-badge" id="fileFormatBadge">PDF</div>
+                    </div>
                 </div>
             </div>
             
@@ -1516,6 +1568,7 @@ function renderDocumentViewerMode(docData) {
         // Initialize controls
         initializeZoom();
         initializeFullscreen();
+        initializeAppleControls();
         
         const fileSwitcher = document.getElementById('file-switcher');
         if (fileSwitcher) {

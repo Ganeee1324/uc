@@ -3637,7 +3637,7 @@ function renderDocuments(files) {
                 <div class="document-footer">
                     <div class="document-footer-left">
                         <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}">
-                            <span class="material-symbols-outlined">person</span>
+                            ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="document-meta">
                             ${item.isVetrina && !filesLoaded ? 'Click to view' : formatFileSize(item.size || 0)}

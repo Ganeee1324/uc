@@ -1912,10 +1912,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
  }
  
- .owner-avatar .material-symbols-outlined, .author-avatar .material-symbols-outlined {
-    font-size: 14px;
-    font-variation-settings: 'FILL' 1;
- }
+
  
  /* Alternative color schemes */
  .owner-avatar.variant-1, .author-avatar.variant-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
@@ -3698,9 +3695,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        font-size: 10px;
    }
    
-   .owner-avatar .material-symbols-outlined, .author-avatar .material-symbols-outlined {
-       font-size: 12px;
-   }
+
    
    /* Professional Mobile Filter Panel */
    .filters-header {

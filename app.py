@@ -446,7 +446,7 @@ def add_review(vetrina_id):
 
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["GET"])
-@jwt_required(optional=True)
+@jwt_required()
 def get_reviews(vetrina_id):
     reviews = database.get_reviews(vetrina_id)
     user_id = get_jwt_identity()

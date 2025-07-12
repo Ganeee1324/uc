@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniclarity - Upload Files</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fff;
+            color: #222;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 64px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 1px 40px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: #49c5eb;
+            color: white;
+        }
+
+        .user-menu svg {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu svg:hover {
+            transform: translateY(-1px);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 64px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 32px;
+        }
+
+        .upload-container h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .vetrina-selector {
+            margin-bottom: 32px;
+        }
+
+        .vetrina-selector label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .vetrina-selector select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .vetrina-selector select:focus {
+            outline: none;
+            border-color: #49c5eb;
+            box-shadow: 0 0 0 3px rgba(73, 197, 235, 0.1);
+        }
+
+        .vetrina-help {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Tag Selector */
+        .tag-selector {
+            margin-bottom: 32px;
+        }
+
+        .tag-selector label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .tag-selector select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .tag-selector select:focus {
+            outline: none;
+            border-color: #49c5eb;
+            box-shadow: 0 0 0 3px rgba(73, 197, 235, 0.1);
+        }
+
+        .tag-help {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+            margin-bottom: 24px;
+        }
+
+        .upload-area.dragover {
+            border-color: #49c5eb;
+            background: rgba(73, 197, 235, 0.05);
+        }
+
+        .upload-icon {
+            margin-bottom: 16px;
+        }
+
+        .upload-icon .material-symbols-outlined {
+            font-size: 48px;
+            color: #9ca3af;
+        }
+
+        .upload-area h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .upload-area p {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .browse-btn {
+            background: none;
+            border: none;
+            color: #49c5eb;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 16px;
+        }
+
+        .browse-btn:hover {
+            color: #2563eb;
+        }
+
+        /* File List */
+        .file-list {
+            margin-bottom: 24px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .file-size {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Upload Actions */
+        .upload-actions {
+            text-align: center;
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #49c5eb;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Upload Status */
+        .upload-status {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        .upload-status:not(:empty) {
+            display: block;
+        }
+
+        .upload-status h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .progress-item:last-child {
+            border-bottom: none;
+        }
+
+        .status {
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px 20px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .upload-container {
+                padding: 24px;
+            }
+
+            .upload-area {
+                padding: 40px 20px;
+            }
+
+            .nav-links {
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <img src="/images/Logo.png" alt="Uniclarity" style="height: 48px;" onerror="this.style.display='none'">
+        </div>
+        <nav class="nav-links">
+            <a href="search.html">Dashboard</a>
+            <a href="upload.html" class="active">Upload</a>
+        </nav>
+        <div class="user-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="#374151" style="cursor: pointer;" id="userIcon">
+                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
+            </svg>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="upload-container">
+            <h1>Upload Files to Vetrina</h1>
+            
+            <div class="vetrina-selector">
+                <label for="vetrinaSelect">Select Vetrina:</label>
+                <select id="vetrinaSelect">
+                    <option value="">Loading vetrine...</option>
+                </select>
+                <div class="vetrina-help">
+                    <p>Don't see your vetrina? Make sure you have created at least one vetrina first.</p>
+                </div>
+            </div>
+
+            <div class="tag-selector">
+                <label for="tagSelect">Document Type (Tag):</label>
+                <select id="tagSelect">
+                    <option value="">No tag (optional)</option>
+                    <option value="appunti">📝 Appunti (Notes)</option>
+                    <option value="dispense">📄 Dispense (Handouts)</option>
+                    <option value="esercizi">🎯 Esercizi (Exercises)</option>
+                </select>
+                <div class="tag-help">
+                    <p>Select the type of document to help others find your content more easily.</p>
+                </div>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <span class="material-symbols-outlined">cloud_upload</span>
+                </div>
+                <h3>Drag and drop files here</h3>
+                <p>or <button class="browse-btn" id="browseBtn">browse files</button></p>
+                <input type="file" id="fileInput" multiple accept="*/*" style="display: none;">
+            </div>
+
+            <div class="file-list" id="fileList">
+                <!-- Selected files will appear here -->
+            </div>
+
+            <div class="upload-actions">
+                <button class="upload-btn" id="uploadBtn" disabled>
+                    <span class="material-symbols-outlined">upload</span>
+                    Upload Files
+                </button>
+            </div>
+        </div>
+
+        <div class="upload-status" id="uploadStatus">
+            <!-- Upload progress will appear here -->
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/upload.js"></script>
+</body>
+</html>

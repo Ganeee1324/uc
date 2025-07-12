@@ -3658,7 +3658,9 @@ function renderDocuments(files) {
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}">
+                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" 
+                             title="Caricato da ${item.author_username || 'Unknown'}"
+                             onclick="navigateToVendorPage('${item.author_username || ''}', event)">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="document-meta">
@@ -5360,3 +5362,23 @@ function initializeStickySearch() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeStickySearch);
+
+// ===========================
+// VENDOR PAGE NAVIGATION
+// ===========================
+
+function navigateToVendorPage(username, event) {
+    // Prevent the event from bubbling up to the card click handler
+    event.stopPropagation();
+    
+    // Don't navigate if username is empty or undefined
+    if (!username || username.trim() === '') {
+        console.log('No username provided for vendor page navigation');
+        return;
+    }
+    
+    console.log(`Navigating to vendor page for user: ${username}`);
+    
+    // Navigate to vendor page with the username as a query parameter
+    window.location.href = `vendor-page.html?user=${encodeURIComponent(username)}`;
+}

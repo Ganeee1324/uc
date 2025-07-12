@@ -6,7 +6,7 @@ const config = {
     },
     // Production - update this with your actual backend URL
     production: {
-        API_BASE: 'https://your-backend-domain.com' // Update this
+        API_BASE: 'http://146.59.236.26:5000' // Your actual backend server
     }
 };
 

@@ -1,6 +1,5 @@
 // Add cache-busting timestamp to force browser refresh
 const CACHE_BUSTER = Date.now();
-console.log(`🔄 Cache buster timestamp: ${CACHE_BUSTER}`);
 
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
@@ -916,7 +915,6 @@ function getHierarchyCache() {
         
         // Check cache version
         if (cacheData.version !== HIERARCHY_CACHE_VERSION) {
-            console.log('🔄 Cache version mismatch, clearing old cache');
             clearHierarchyCache();
             return null;
         }
@@ -924,12 +922,10 @@ function getHierarchyCache() {
         // Check cache expiration
         const now = Date.now();
         if (now - cacheData.timestamp > HIERARCHY_CACHE_DURATION) {
-            console.log('🔄 Cache expired, clearing old cache');
             clearHierarchyCache();
             return null;
         }
         
-        console.log('✅ Using cached hierarchy data');
         return cacheData.data;
     } catch (error) {
         console.warn('⚠️ Error reading hierarchy cache:', error);
@@ -946,7 +942,6 @@ function setHierarchyCache(data) {
             data: data
         };
         localStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
-        console.log('💾 Hierarchy data cached successfully');
     } catch (error) {
         console.warn('⚠️ Error caching hierarchy data:', error);
         // Don't throw error - caching failure shouldn't break the app
@@ -956,7 +951,6 @@ function setHierarchyCache(data) {
 function clearHierarchyCache() {
     try {
         localStorage.removeItem(HIERARCHY_CACHE_KEY);
-        console.log('🗑️ Hierarchy cache cleared');
     } catch (error) {
         console.warn('⚠️ Error clearing hierarchy cache:', error);
     }
@@ -966,7 +960,6 @@ function clearHierarchyCache() {
 async function loadHierarchyData() {
     // First check if we already have data in memory
     if (window.facultyCoursesData) {
-        console.log('✅ Using in-memory hierarchy data');
         return;
     }
     
@@ -979,13 +972,11 @@ async function loadHierarchyData() {
     
     // If no cache, fetch from API
     try {
-        console.log('🔄 Fetching hierarchy data from API...');
         const data = await makeSimpleRequest('/hierarchy');
         
         // Validate the data structure
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             window.facultyCoursesData = data;
-            console.log('✅ Loaded hierarchy data:', Object.keys(data).length, 'faculties');
             
             // Cache the data for future use
             setHierarchyCache(data);
@@ -1000,7 +991,6 @@ async function loadHierarchyData() {
         // If API fails, try to use any available cached data (even if expired)
         const expiredCache = getExpiredHierarchyCache();
         if (expiredCache) {
-            console.log('🔄 Using expired cache as fallback');
             window.facultyCoursesData = expiredCache;
         }
     }
@@ -1029,7 +1019,6 @@ function getExpiredHierarchyCache() {
 
 // Force refresh hierarchy data (for manual cache invalidation)
 async function refreshHierarchyData() {
-    console.log('🔄 Force refreshing hierarchy data...');
     clearHierarchyCache();
     window.facultyCoursesData = null;
     await loadHierarchyData();
@@ -1503,8 +1492,6 @@ function removeSpecificFilterValue(type, value) {
 }
 
 function updateActiveFilterIndicators() {
-    console.log('updateActiveFilterIndicators called, activeFilters:', { ...activeFilters });
-    
     // Update indicators for all dropdown types
     const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     
@@ -1525,21 +1512,14 @@ function updateActiveFilterIndicators() {
         const filterKey = filterKeyMap[type] || type;
         const activeFilterValue = activeFilters[filterKey];
         
-        console.log(`Checking ${type}, filterKey: ${filterKey}, activeFilterValue: ${activeFilterValue}`);
-        
         options.querySelectorAll('.dropdown-option').forEach(option => {
             const hasActiveFilter = activeFilterValue === option.dataset.value;
             option.classList.toggle('has-active-filter', hasActiveFilter);
         });
     });
-    
-    console.log('updateActiveFilterIndicators finished, activeFilters:', { ...activeFilters });
 }
 
 function removeFilterFromDropdown(type, filterKey) {
-    console.log('=== REMOVE FILTER START ===');
-    console.log('Removing filter:', type, filterKey, 'Current activeFilters:', { ...activeFilters });
-    
     const input = document.getElementById(`${type}Filter`);
     const container = document.querySelector(`[data-dropdown="${type}"]`);
     
@@ -1549,8 +1529,6 @@ function removeFilterFromDropdown(type, filterKey) {
     
     // Remove from active filters
     delete activeFilters[filterKey];
-    
-    console.log('After removal, activeFilters:', { ...activeFilters });
     
     // Update visual selection in dropdown
     const options = document.getElementById(`${type}Options`);
@@ -1567,8 +1545,6 @@ function removeFilterFromDropdown(type, filterKey) {
         delete activeFilters.course;
         filterDropdownOptions('course', '');
     }
-    
-    console.log('Before updateActiveFilterIndicators, activeFilters:', { ...activeFilters });
     
     // Add a small delay to ensure activeFilters is properly updated
     setTimeout(() => {
@@ -1594,7 +1570,6 @@ function removeFilterFromDropdown(type, filterKey) {
                 items = allTypes;
             }
             
-            console.log('Calling populateOptions with items:', items);
             // Call populateOptions directly with the items
             populateOptions(type, items);
         } else {
@@ -1606,12 +1581,8 @@ function removeFilterFromDropdown(type, filterKey) {
         // Update active filter indicators in all dropdowns
         updateActiveFilterIndicators();
         
-        console.log('Before applyFiltersAndRender, activeFilters:', { ...activeFilters });
-        
         applyFiltersAndRender();
         saveFiltersToStorage();
-        
-        console.log('=== REMOVE FILTER END ===');
     }, 10);
 }
 
@@ -1930,7 +1901,6 @@ function updatePriceSliderFill() {
 async function applyFiltersAndRender() {
     // Check if we have data loaded
     if (!originalFiles || originalFiles.length === 0) {
-        console.log('No data loaded yet, loading files first...');
         await loadAllFiles();
         return;
     }
@@ -1947,7 +1917,6 @@ async function applyFiltersAndRender() {
         await performSearch(currentQuery);
     } else if (Object.keys(activeFilters).length === 0) {
         // No filters active, show all original files
-        console.log('No filters active, showing all documents');
         renderDocuments(originalFiles);
         currentFiles = originalFiles;
         updateActiveFiltersDisplay();
@@ -2088,13 +2057,11 @@ function closeFiltersPanel() {
 async function populateFilterOptions() {
     // Use cached hierarchy data instead of making API calls
     if (!window.facultyCoursesData) {
-        console.log('🔄 Loading hierarchy data for filter options...');
         await loadHierarchyData();
     }
     
     // If hierarchy data is still not available, fallback to extract from files
     if (!window.facultyCoursesData || Object.keys(window.facultyCoursesData).length === 0) {
-        console.log('⚠️ No hierarchy data available, falling back to file extraction');
         if (originalFiles.length) {
             const faculties = [...new Set(originalFiles.map(f => 
                 f.faculty_name || f.vetrina_info?.faculty_name
@@ -2137,7 +2104,6 @@ async function populateFilterOptions() {
         });
         
         const uniqueTags = [...new Set(allTags)].sort();
-        console.log('📊 Available tags from vetrina data:', uniqueTags);
         
         // Update tag dropdown options
         populateDropdownFilter('tag', uniqueTags);
@@ -2960,7 +2926,6 @@ async function makeRequest(url, options = {}) {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401 || response.status === 422) {
-                console.log('Authentication failed, clearing user data');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
                 // Don't redirect, just clear the data and continue
@@ -2983,7 +2948,6 @@ async function makeSimpleRequest(url) {
         const response = await fetch(API_BASE + url);
         
         if (!response.ok) {
-            console.log(`Simple request failed with status: ${response.status}`);
             return null;
         }
         
@@ -3008,7 +2972,6 @@ async function makeAuthenticatedRequest(url) {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401 || response.status === 422) {
-                console.log('Authentication failed, clearing user data');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
                 // Don't redirect, just clear the data and continue
@@ -3030,7 +2993,6 @@ async function makeAuthenticatedRequest(url) {
 
 // Function to create and display loading cards
 function showLoadingCards(count = 8) {
-    console.log('🔄 Creating loading cards...', count);
     const grid = document.getElementById('documentsGrid');
     if (!grid) {
         console.error('❌ Grid element not found!');
@@ -3040,11 +3002,9 @@ function showLoadingCards(count = 8) {
     // Check if there are already loading cards from HTML - if so, just return
     const existingLoadingCards = grid.querySelectorAll('.loading-card');
     if (existingLoadingCards.length > 0) {
-        console.log('✅ Loading cards already present from HTML, skipping creation');
         return;
     }
     
-    console.log('✅ Grid element found, clearing content...');
     grid.innerHTML = '';
     
     // Add loading class to grid
@@ -3090,8 +3050,6 @@ function showLoadingCards(count = 8) {
         
         grid.appendChild(loadingCard);
     }
-    
-    console.log(`✅ Added ${count} loading cards to grid`);
 }
 
 
@@ -3234,7 +3192,6 @@ function extractFacultyFromVetrina(vetrinaName) {
 function extractTagsFromVetrina(vetrina) {
     // If vetrina has tags from backend, use them; otherwise return empty array
     const tags = vetrina.tags || [];
-    console.log(`🏷️ Using backend tags for vetrina: ${tags.join(', ')}`);
     return tags;
 }
 
@@ -3296,14 +3253,11 @@ function getFileTypeFromFilename(filename) {
 // Function to fetch files for a specific vetrina on demand
 async function loadVetrinaFiles(vetrinaId) {
     try {
-        console.log(`🔄 Fetching files for vetrina ${vetrinaId}...`);
-        
         // Always fetch fresh data from the redacted endpoint
         const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/files`);
         const realFiles = filesResponse?.files || [];
         
         if (realFiles.length === 0) {
-            console.log(`⚠️ No files found for vetrina ${vetrinaId}`);
             return null;
         }
         
@@ -3314,10 +3268,6 @@ async function loadVetrinaFiles(vetrinaId) {
         // Get all unique tags from all files in the vetrina
         const fileTags = realFiles.map(file => file.tag).filter(tag => tag !== null);
         const allTags = Array.from(new Set([...fileTags]));
-        
-        console.log(`📁 Files in vetrina ${vetrinaId}:`, realFiles.map(f => ({ filename: f.filename, tag: f.tag })));
-        console.log(`🏷️ File tags found: ${fileTags.join(', ')}`);
-        console.log(`🏷️ Unique tags: ${allTags.join(', ')}`);
         
         // Return processed file data
         return {
@@ -3425,7 +3375,6 @@ function formatCanaleDisplay(canale) {
 }
 
 function renderDocuments(files) {
-    console.log('renderDocuments called with', files ? files.length : 'undefined', 'files');
     const grid = document.getElementById('documentsGrid');
     if (!grid) {
         console.error('Documents grid not found');
@@ -3475,7 +3424,6 @@ function renderDocuments(files) {
     }
 
     files.forEach((item, index) => {
-        console.log(`🎨 Rendering document ${item.id}: favorite=${item.favorite}`);
         const card = document.createElement('div');
         card.className = 'document-card';
         card.dataset.id = item.id;
@@ -3615,24 +3563,14 @@ function renderDocuments(files) {
 
         // Update the favorite button to include the initial state from the API
         const isFavorited = item.favorite === true;
-        console.log(`❤️ Document ${item.id} isFavorited: ${isFavorited} (from item.favorite: ${item.favorite})`);
         card.innerHTML = `
             <div class="document-preview">
                 ${previewContent}
                 ${viewFilesButton}
                 <div class="document-type-badges">
                     ${(() => {
-                        console.log(`🎨 Rendering tags for item ${item.id}:`, {
-                            tags: item.tags,
-                            tagsLength: item.tags ? item.tags.length : 0,
-                            tagsType: typeof item.tags,
-                            itemId: item.id,
-                            itemVetrinaId: item.vetrina_id
-                        });
-                        
                         // Use actual file tags (already fetched in loadAllFiles)
                         if (item.tags && item.tags.length > 0) {
-                            console.log(`✅ Using actual file tags for item ${item.id}:`, item.tags);
                             if (item.tags.length === 1) {
                                 return `<div class="document-type-badge">${getTagDisplayName(item.tags[0])}</div>`;
                             } else {
@@ -3640,7 +3578,6 @@ function renderDocuments(files) {
                             }
                         }
                         
-                        console.log(`⚠️ No tags found for item ${item.id}, showing default`);
                         return '<div class="document-type-badge">Documento</div>';
                     })()}
                 </div>
@@ -3869,7 +3806,6 @@ function showError(message) {
 // Function to refresh favorite status when page becomes visible
 async function refreshFavoriteStatus() {
     try {
-        console.log('🔄 Refreshing favorite status...');
         
         // Get fresh favorite data from the backend
         const response = await makeAuthenticatedRequest('/vetrine');
@@ -3888,7 +3824,6 @@ async function refreshFavoriteStatus() {
                     // Check if the favorite status actually changed
                     if (oldFavorite !== freshVetrina.favorite) {
                         hasChanges = true;
-                        console.log(`📝 Updated favorite status for vetrina ${freshVetrina.vetrina_id}: ${oldFavorite} -> ${freshVetrina.favorite}`);
                     }
                 }
                 
@@ -3902,7 +3837,6 @@ async function refreshFavoriteStatus() {
             
             // Update only the favorite button states without re-rendering everything
             if (hasChanges) {
-                console.log('🔄 Updating favorite button states...');
                 response.vetrine.forEach(freshVetrina => {
                     const existingIndex = currentFiles.findIndex(item => 
                         (item.vetrina_id || item.id) === freshVetrina.vetrina_id
@@ -3923,9 +3857,7 @@ async function refreshFavoriteStatus() {
                         }
                     }
                 });
-                console.log('✅ Favorite button states updated');
             } else {
-                console.log('✅ No favorite status changes detected');
             }
         }
     } catch (error) {
@@ -3955,7 +3887,6 @@ async function toggleFavorite(button, event) {
     sessionStorage.setItem('favoritesChanged', 'true');
 
     try {
-        console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${vetrinaId}`);
         const response = await fetch(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
             method: isActive ? 'POST' : 'DELETE',
             headers: {
@@ -4356,10 +4287,8 @@ async function performSearch(query) {
         // Make backend search request with fallback
         let response;
         try {
-            console.log('🔍 Making backend search request with params:', searchParams.toString());
             // Use authenticated request for GET search to include favorite status
             response = await makeAuthenticatedRequest(`/vetrine?${searchParams.toString()}`);
-            console.log('✅ Backend search successful:', response);
         } catch (error) {
             console.warn('⚠️ Backend search failed:', error);
             showStatus('Ricerca backend non disponibile. Riprova più tardi.');
@@ -4379,11 +4308,9 @@ async function performSearch(query) {
         
         const searchResults = response.vetrine || [];
         const totalCount = response.count || searchResults.length;
-        console.log('Backend search results:', searchResults, 'Total count:', totalCount);
         
         // If backend search returns 0 results, show empty state
         if (searchResults.length === 0) {
-            console.log('🔄 Backend search returned 0 results, showing empty state...');
             currentFiles = [];
             renderDocuments([]);
             showStatus(`Nessun risultato trovato per "${query}" 🔍`);
@@ -4433,9 +4360,7 @@ async function performSearch(query) {
         });
         
         // Apply any remaining client-side filters (except backend-handled ones)
-        console.log('🔍 Applying client-side filters to', transformedResults.length, 'results...');
         const filteredResults = applyClientSideFilters(transformedResults);
-        console.log('📊 After client-side filtering:', filteredResults.length, 'results remaining');
         
         // Update current files and render
         currentFiles = filteredResults;
@@ -4520,7 +4445,6 @@ function saveFiltersToStorage() {
 }
 
 function restoreFiltersFromStorage() {
-    console.log('restoreFiltersFromStorage called - CLEARING ALL FILTERS ON REFRESH');
     
     // Clear all filters on page refresh - treat it like a fresh visit
     activeFilters = {};
@@ -4528,7 +4452,6 @@ function restoreFiltersFromStorage() {
     // Clear filters from localStorage
     try {
         localStorage.removeItem('searchFilters');
-        console.log('Cleared filters from localStorage');
     } catch (e) {
         console.warn('Could not clear filters from localStorage:', e);
     }
@@ -4541,7 +4464,6 @@ function restoreFiltersFromStorage() {
     
     // Show all documents
     setTimeout(() => {
-        console.log('Showing all documents after filter clear');
         if (originalFiles && originalFiles.length > 0) {
             renderDocuments(originalFiles);
             currentFiles = originalFiles;
@@ -4551,7 +4473,6 @@ function restoreFiltersFromStorage() {
     
     // Force a re-render of dropdown options to ensure clean visual states
     setTimeout(() => {
-        console.log('Final UI update with cleared filters...');
         
         // First populate dropdown options
         if (window.facultyCoursesData) {
@@ -4589,7 +4510,6 @@ function restoreFiltersFromStorage() {
                 activeFiltersContainer.classList.remove('visible');
             }
             
-            console.log('Filter clear complete. Active filters: 0');
         }, 100);
     }, 200);
 }
@@ -5368,7 +5288,6 @@ function initializeStickySearch() {
         
         // Use a more robust way to set the custom property on the root.
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);
-        console.log('Sticky top set to:', stickyTopValue + 'px', 'Header height:', headerHeight, 'Search height:', searchContainerHeight);
     }
 
     // This observer will watch the sticky element itself.
@@ -5509,16 +5428,11 @@ function closeReviewsOverlay() {
 // Load reviews for a specific vetrina
 async function loadReviewsForVetrina(vetrinaId) {
     try {
-        console.log('🔍 Loading reviews for vetrina:', vetrinaId);
         
         const token = localStorage.getItem('authToken');
-        console.log('🔑 Token found:', token ? 'YES' : 'NO');
         
         // Get current user info for debugging
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        console.log('👤 Current user from localStorage:', currentUser);
-        console.log('👤 Current user ID:', currentUser?.user_id);
-        console.log('👤 Current user username:', currentUser?.username);
         
         // Prepare headers
         const headers = {
@@ -5537,16 +5451,9 @@ async function loadReviewsForVetrina(vetrinaId) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('📡 Full response data:', JSON.stringify(data, null, 2));
             currentReviews = data.reviews || [];
             currentUserReview = data.user_review || null;
-            console.log('✅ Reviews loaded successfully:', currentReviews.length, 'reviews');
-            console.log('👤 Current user review:', currentUserReview);
-            console.log('🔍 Debug - currentUserReview type:', typeof currentUserReview);
-            console.log('🔍 Debug - currentUserReview value:', currentUserReview);
             if (currentUserReview) {
-                console.log('🔍 Debug - currentUserReview.user:', currentUserReview.user);
-                console.log('🔍 Debug - currentUserReview.user?.user_id:', currentUserReview.user?.user_id);
             }
         } else if (response.status === 401) {
             console.error('Authentication failed');
@@ -5556,7 +5463,6 @@ async function loadReviewsForVetrina(vetrinaId) {
                 localStorage.removeItem('currentUser');
             }
             // User is not authenticated, just load reviews without user data
-            console.log('👤 User not authenticated, loading public reviews');
             currentReviews = [];
             currentUserReview = null;
         } else {
@@ -5647,7 +5553,6 @@ function updateReviewsOverlay() {
                     // Frontend-only approach: compare current user with review author
                     const isCurrentUserReview = currentUser && currentUser.user_id === review.user?.user_id;
                     const shouldShowDelete = isCurrentUserReview;
-                    console.log('🔍 Delete button debug for review:', {
                         review_user_id: review.user?.user_id,
                         review_username: review.user?.username,
                         currentUser_id: currentUser?.user_id,
@@ -5765,7 +5670,6 @@ async function submitReview() {
     }
 
     try {
-        console.log('📝 Submitting review for vetrina:', currentVetrinaForReviews);
         
         const token = localStorage.getItem('authToken');
         if (!token) {
@@ -5836,7 +5740,6 @@ async function deleteUserReview() {
     }
 
     try {
-        console.log('🗑️ Deleting review for vetrina:', currentVetrinaForReviews);
         
         const token = localStorage.getItem('authToken');
         if (!token) {

@@ -54,7 +54,6 @@ function logout() {
 // Load user's vetrine
 async function loadVetrine() {
     try {
-        console.log('Loading vetrine for upload...');
         const response = await makeRequest('/vetrine');
         const allVetrine = response.vetrine || [];
         
@@ -76,7 +75,6 @@ async function loadVetrine() {
             select.appendChild(option);
         });
         
-        console.log(`Loaded ${currentVetrine.length} vetrine for upload`);
     } catch (error) {
         console.error('Error loading vetrine:', error);
         showError('Failed to load vetrine. Please make sure you are logged in and vetrine exist.');
@@ -269,7 +267,6 @@ function showSuccess(message) {
 document.addEventListener('DOMContentLoaded', function() {
     if (!checkAuth()) return;
     
-    console.log('Upload page loaded, attempting to load vetrine...');
     loadVetrine();
 
     const uploadArea = document.getElementById('uploadArea');

@@ -1440,7 +1440,6 @@ async function initializeDocumentPreview() {
         documentData = docData; // Store for toggling
 
         // Debug logging
-        console.log('🔍 Document data loaded:', {
             documentId: currentDocument?.file_id,
             vetrinaId: currentVetrina?.vetrina_id,
             vetrinaIdField: currentVetrina?.id,
@@ -1453,11 +1452,9 @@ async function initializeDocumentPreview() {
         const hasMultipleFiles = currentVetrinaFiles.length > 1;
         
         if (hasMultipleFiles) {
-            console.log('📚 Multiple files detected, showing document list view');
             // Show document list instead of viewer for multiple files
             renderDocumentListView(docData);
         } else {
-            console.log('📄 Single file detected, showing document viewer');
             // Show normal document viewer for single files
             renderDocumentViewerMode(docData);
         }
@@ -2051,7 +2048,6 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-console.log('Document Preview System - World Class Edition - Loaded Successfully');
 
 // Reviews Overlay System
 let currentUserRating = 0;
@@ -2273,7 +2269,6 @@ async function submitReview() {
             // Update overlay
             updateReviewsOverlay();
             
-            console.log('✅ Review submitted successfully:', response.review);
         }
         
     } catch (error) {
@@ -2339,7 +2334,6 @@ async function deleteUserReview() {
             // Update overlay
             updateReviewsOverlay();
             
-            console.log('✅ Review deleted successfully');
         }
         
     } catch (error) {
@@ -2385,7 +2379,6 @@ async function refreshReviews() {
             reviewsData = reviewsResponse.reviews;
             updateMainPageRating();
             updateReviewsOverlay();
-            console.log(`🔄 Refreshed ${reviewsData.length} reviews for vetrina ${vetrinaId}`);
         }
     } catch (error) {
         console.warn('Could not refresh reviews:', error);
@@ -2427,7 +2420,6 @@ async function handleFavorite() {
     sessionStorage.setItem('favoritesChanged', 'true');
 
     try {
-        console.log(`Attempting to ${isActive ? 'add' : 'remove'} favorite for vetrina: ${vetrinaId}`);
         const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
             method: isActive ? 'POST' : 'DELETE'
             });
@@ -2512,7 +2504,6 @@ async function handleAddToCart() {
 function updateCartCount() {
     // In a real implementation, this would update a cart counter in the header
     // For now, we'll just log the action
-    console.log('🛒 Cart updated - document added');
     
     // You could add a cart indicator to the header like this:
     // const cartIndicator = document.querySelector('.cart-indicator');

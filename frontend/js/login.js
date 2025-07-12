@@ -1,7 +1,6 @@
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 
 // Debug logging
-console.log('🔑 Login.js loaded:', {
     APP_CONFIG: window.APP_CONFIG,
     API_BASE: API_BASE
 });

@@ -15,7 +15,6 @@ const isProduction = window.location.hostname !== 'localhost' && !window.locatio
 const currentConfig = isProduction ? config.production : config.development;
 
 // Debug logging
-console.log('🔧 Config loaded:', {
     hostname: window.location.hostname,
     isProduction: isProduction,
     API_BASE: currentConfig.API_BASE

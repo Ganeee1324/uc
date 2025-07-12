@@ -33,7 +33,50 @@ toggleBtns.forEach(btn => {
             loginForm.classList.remove('active');
         }
         clearMessages();
+        clearPasswordValidation();
     });
+});
+
+// Password confirmation validation
+function validatePasswordConfirmation() {
+    const password = document.getElementById('registerPassword');
+    const confirmPassword = document.getElementById('registerPasswordConfirm');
+    
+    if (password.value && confirmPassword.value) {
+        if (password.value === confirmPassword.value) {
+            password.classList.remove('error');
+            password.classList.add('success');
+            confirmPassword.classList.remove('error');
+            confirmPassword.classList.add('success');
+            return true;
+        } else {
+            password.classList.remove('success');
+            password.classList.add('error');
+            confirmPassword.classList.remove('success');
+            confirmPassword.classList.add('error');
+            return false;
+        }
+    }
+    return true; // Allow empty fields during typing
+}
+
+function clearPasswordValidation() {
+    const password = document.getElementById('registerPassword');
+    const confirmPassword = document.getElementById('registerPasswordConfirm');
+    
+    password.classList.remove('error', 'success');
+    confirmPassword.classList.remove('error', 'success');
+}
+
+// Add password confirmation event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const password = document.getElementById('registerPassword');
+    const confirmPassword = document.getElementById('registerPasswordConfirm');
+    
+    if (password && confirmPassword) {
+        password.addEventListener('input', validatePasswordConfirmation);
+        confirmPassword.addEventListener('input', validatePasswordConfirmation);
+    }
 });
 
 // Message Functions
@@ -66,7 +109,7 @@ function setLoading(button, isLoading) {
         btnContent.innerHTML = '<div class="loading-spinner"></div>';
     } else {
         button.disabled = false;
-        const originalText = btnText?.dataset.originalText || (button.id === 'loginBtn' ? 'Sign In' : 'Create Account');
+        const originalText = btnText?.dataset.originalText || (button.id === 'loginBtn' ? 'Accedi' : 'Crea Account');
         btnContent.innerHTML = `<span class="btn-text">${originalText}</span>`;
     }
 }
@@ -88,7 +131,7 @@ async function makeRequest(url, options = {}) {
             // Redirect to search page after successful login
             window.location.href = 'search.html';
         } else {
-            const errorMessage = data.msg || 'Login failed. Please try again.';
+            const errorMessage = data.msg || 'Accesso fallito. Riprova.';
             showMessage('error', errorMessage);
         }
     } catch (error) {
@@ -129,6 +172,14 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const username = document.getElementById('registerUsername').value;
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerPasswordConfirm').value;
+    
+    // Validate password confirmation
+    if (password !== confirmPassword) {
+        showMessage('error', 'Le password non coincidono. Riprova.');
+        return;
+    }
+    
     clearMessages();
     setLoading(registerBtn, true);
     try {

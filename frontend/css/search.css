@@ -5747,4 +5747,5 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     height: 24px;
     border-radius: 50%;
     flex-shrink: 0;
+    color: white !important;
 }

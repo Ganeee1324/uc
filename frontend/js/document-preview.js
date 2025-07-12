@@ -611,39 +611,74 @@ function handleAuthError() {
 async function fetchCurrentUserData() {
     const cachedUser = localStorage.getItem('currentUser');
     if (cachedUser) {
-        return JSON.parse(cachedUser);
+        currentUser = JSON.parse(cachedUser);
+        return currentUser;
     }
-
-    // If cache is empty, handle as an auth error because user should be logged in
+    // If cache is empty, handle as an auth error
     handleAuthError();
     return null;
 }
 
 function updateHeaderUserInfo(user) {
-    if (!user) return;
-
-    const userNameElem = document.querySelector('.user-name');
-    const userAvatarElem = document.querySelector('#userAvatar');
-
-    if (userNameElem) {
-        userNameElem.textContent = user.username || 'User';
-    }
-
-    if (userAvatarElem) {
-        // Check if there's already an SVG inside the avatar element
-        const existingSvg = userAvatarElem.querySelector('svg');
-        if (!existingSvg) {
-            // Only set the initial if there's no SVG inside
-            const initial = user.username ? user.username.charAt(0).toUpperCase() : 'U';
-            userAvatarElem.textContent = initial;
+    const userAvatar = document.getElementById('userAvatar');
+    const dropdownAvatar = document.getElementById('dropdownAvatar');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    
+    if (user) {
+        const avatarUrl = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+        
+        if(userAvatar) {
+            userAvatar.innerHTML = `<img src="${avatarUrl}" alt="${user.name}">`;
         }
-        // If SVG exists, leave it as is - don't modify the content
-    }
+        
+        if (dropdownAvatar) {
+            dropdownAvatar.style.backgroundImage = `url(${avatarUrl})`;
+        }
+        if (dropdownUserName) {
+            dropdownUserName.textContent = user.username || 'User';
+        }
+        if (dropdownUserEmail) {
+            dropdownUserEmail.textContent = user.email;
+        }
+        
+        // Toggle dropdown
+        const userInfo = document.querySelector('.user-info');
+        if(userAvatar) {
+            userAvatar.addEventListener('click', (event) => {
+                event.stopPropagation();
+                userInfo.classList.toggle('open');
+            });
+        }
 
-    const logoutBtn = document.querySelector('.logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleAuthError);
+        // Logout button
+        const logoutBtn = document.getElementById('logoutBtn');
+        if(logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        }
+
+    } else {
+        // Handle case where user is not logged in
+        if(userAvatar) {
+            userAvatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path fill="#000" fill-rule="evenodd" d="M256 42.667A213.333 213.333 0 0 1 469.334 256c0 117.821-95.513 213.334-213.334 213.334c-117.82 0-213.333-95.513-213.333-213.334C42.667 138.18 138.18 42.667 256 42.667m21.334 234.667h-42.667c-52.815 0-98.158 31.987-117.715 77.648c30.944 43.391 81.692 71.685 139.048 71.685s108.104-28.294 139.049-71.688c-19.557-45.658-64.9-77.645-117.715-77.645M256 106.667c-35.346 0-64 28.654-64 64s28.654 64 64 64s64-28.654 64-64s-28.653-64-64-64"/></svg>';
+        }
     }
+}
+
+document.addEventListener('click', () => {
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo && userInfo.classList.contains('open')) {
+        userInfo.classList.remove('open');
+    }
+});
+
+function logout() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
 }
 
 // URL Parameter Handler
@@ -740,8 +775,8 @@ function renderDocumentInfo(docData) {
         : 0.0;
     const reviewCount = totalReviews;
     
-    // Calculate total price for the vetrina (sum of all files)
-    const totalPrice = vetrinaFiles?.reduce((sum, file) => sum + (file.price || 0), 0) || 0;
+    // Use the vetrina's own price instead of calculating from files
+    const totalPrice = vetrinaData?.price || 0;
 
     const starsContainer = document.querySelector('.rating-stars');
     if(starsContainer) starsContainer.innerHTML = generateFractionalStars(rating);
@@ -979,8 +1014,8 @@ function setupActionButtons(fileData, vetrinaData = null) {
 
     if (!vetrinaData) return;
 
-    // Calculate total price for the vetrina using vetrinaFiles from docData
-    const totalPrice = currentVetrinaFiles?.reduce((sum, file) => sum + (file.price || 0), 0) || 0;
+    // Use the vetrina's own price instead of calculating from files
+    const totalPrice = vetrinaData?.price || 0;
     const isFree = totalPrice === 0;
 
     // Purchase/Download button logic for VETRINA
@@ -1203,8 +1238,13 @@ async function initializeDocumentPreview() {
         return;
     }
 
-    const fileId = getFileIdFromUrl();
-    if (!fileId) return;
+    const user = await fetchCurrentUserData();
+    if(user) {
+        updateHeaderUserInfo(user);
+    }
+    
+    const vetrinaId = getFileIdFromUrl();
+    if (!vetrinaId) return;
 
     const mainContainer = document.querySelector('.preview-main');
     const existingLoader = mainContainer.querySelector('.document-preview-loader');
@@ -1213,7 +1253,7 @@ async function initializeDocumentPreview() {
         // Fetch user and document data in parallel for faster loading
         const [userData, docData] = await Promise.all([
             fetchCurrentUserData(),
-            fetchDocumentData(fileId)
+            fetchDocumentData(vetrinaId)
         ]);
 
         currentUser = userData; // Store for review comparisons
@@ -1260,7 +1300,7 @@ async function initializeDocumentPreview() {
                 <div class="error-state">
                     <div class="error-icon">📄</div>
                     <h2>Documento non trovato</h2>
-                    <p>Il documento richiesto (ID: ${fileId}) non è più disponibile.</p>
+                    <p>Il documento richiesto (ID: ${vetrinaId}) non è più disponibile.</p>
                     <p>Probabilmente è stato aggiornato o rimosso dal database.</p>
                     <div class="error-actions">
                         <button class="retry-btn primary" onclick="window.location.href='document-preview.html?id=117'">

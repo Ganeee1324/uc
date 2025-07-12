@@ -214,21 +214,17 @@ html {
 
 /* Vendor Banner */
 .vendor-banner {
-    position: fixed;
-    top: 72px;
-    left: 0;
-    right: 0;
     background: #ffffff;
-    border-bottom: 1px solid #e9ecef;
-    z-index: 999;
-    padding: 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
 }
 
 .banner-content {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 20px;
 }
 
 .vendor-info {
@@ -470,7 +466,7 @@ html {
 .main-content {
     /* --sticky-top-offset is set by JavaScript */
     --sticky-top-offset: 10px; /* Default fallback value */
-    padding-top: 180px;
+    padding-top: 100px;
 }
 
 /* Main Content - Dual Layout System */
@@ -485,8 +481,8 @@ html {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 180px);
+    justify-content: flex-start;
+    min-height: calc(100vh - 120px);
     margin-top: -0px;
     padding: var(--space-12);
     text-align: center;
@@ -5812,11 +5808,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Vendor Banner Responsive Styles */
 @media (max-width: 768px) {
     .vendor-banner {
-        padding: 16px 0;
+        padding: 20px;
+        margin-bottom: 24px;
     }
     
     .banner-content {
-        padding: 0 16px;
+        padding: 0;
     }
     
     .vendor-info {
@@ -5840,11 +5837,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 480px) {
     .vendor-banner {
-        padding: 12px 0;
+        padding: 16px;
+        margin-bottom: 20px;
     }
     
     .banner-content {
-        padding: 0 12px;
+        padding: 0;
     }
     
     .vendor-info {

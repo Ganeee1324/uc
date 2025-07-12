@@ -192,6 +192,7 @@ function updateVendorBanner(username) {
     const vendorAvatar = document.getElementById('vendorAvatar');
     const vendorName = document.getElementById('vendorName');
     const vendorStats = document.getElementById('vendorStats');
+    const bottomVendorAvatar = document.getElementById('bottomVendorAvatar');
     
     if (vendorAvatar && vendorName && vendorStats) {
         // Set vendor name
@@ -201,6 +202,12 @@ function updateVendorBanner(username) {
         const avatarVariant = getAvatarVariant(username);
         vendorAvatar.className = `vendor-avatar variant-${avatarVariant}`;
         vendorAvatar.textContent = username.charAt(0).toUpperCase();
+        
+        // Update bottom vendor avatar
+        if (bottomVendorAvatar) {
+            bottomVendorAvatar.className = `bottom-vendor-avatar variant-${avatarVariant}`;
+            bottomVendorAvatar.textContent = username.charAt(0).toUpperCase();
+        }
         
         // Update stats (will be updated when files are loaded)
         vendorStats.textContent = 'Caricamento...';

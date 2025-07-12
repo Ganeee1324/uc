@@ -157,11 +157,10 @@ function handleCSPEventHandlers() {
     });
 }
 
-// Check if user is authenticated, redirect to login if not
+// Check if user is authenticated, but don't redirect - just return status
 function checkAuthentication() {
     if (!authToken) {
-        console.log('No auth token found, redirecting to login');
-        window.location.href = 'index.html';
+        console.log('No auth token found, user is not authenticated');
         return false;
     }
     return true;
@@ -192,14 +191,10 @@ let isFiltersOpen = false;
         console.log('✅ Loading state already present in HTML - no layout shift will occur');
         
         // Check authentication after showing loading state
-        if (!checkAuthentication()) {
-            console.log('❌ Authentication failed, redirecting...');
-            return; // Stop execution if not authenticated
-        }
+        const isAuthenticated = checkAuthentication();
+        console.log(`🔐 Authentication status: ${isAuthenticated ? 'Authenticated' : 'Not authenticated'}`);
         
-        console.log('✅ Authentication passed, initializing page...');
-        
-        // Initialize user info and logout button
+        // Initialize user info (will show login button if not authenticated)
         initializeUserInfo();
         
         // Initialize CSP-compliant event handlers
@@ -335,8 +330,7 @@ async function fetchCurrentUserData() {
         return JSON.parse(cachedUser);
     }
 
-    // If cache is empty, handle as an auth error
-    logout();
+    // If cache is empty, return null (user is not authenticated)
     return null;
 }
 
@@ -443,8 +437,18 @@ function updateHeaderUserInfo(user) {
         }
 
     } else {
-        // Handle case where user is not logged in
-        userAvatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path fill="#000" fill-rule="evenodd" d="M256 42.667A213.333 213.333 0 0 1 469.334 256c0 117.821-95.513 213.334-213.334 213.334c-117.82 0-213.333-95.513-213.333-213.334C42.667 138.18 138.18 42.667 256 42.667m21.334 234.667h-42.667c-52.815 0-98.158 31.987-117.715 77.648c30.944 43.391 81.692 71.685 139.048 71.685s108.104-28.294 139.049-71.688c-19.557-45.658-64.9-77.645-117.715-77.645M256 106.667c-35.346 0-64 28.654-64 64s28.654 64 64 64s64-28.654 64-64s-28.653-64-64-64"/></svg>';
+        // Handle case where user is not logged in - show login button
+        userAvatar.innerHTML = `
+            <button class="login-btn" onclick="window.location.href='index.html'">
+                <span class="login-btn-text">Accedi</span>
+            </button>
+        `;
+        
+        // Remove dropdown functionality for non-authenticated users
+        const userInfo = document.querySelector('.user-info');
+        if (userInfo) {
+            userInfo.classList.remove('open');
+        }
     }
 }
 

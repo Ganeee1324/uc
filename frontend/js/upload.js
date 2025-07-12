@@ -47,7 +47,8 @@ function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
     authToken = null;
-    window.location.href = 'index.html';
+    // Refresh the page to show login button
+    window.location.reload();
 }
 
 // Load user's vetrine

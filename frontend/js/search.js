@@ -67,11 +67,10 @@ function handleCSPEventHandlers() {
     });
 }
 
-// Check if user is authenticated, redirect to login if not
+// Check if user is authenticated, but don't redirect - just return status
 function checkAuthentication() {
     if (!authToken) {
-        console.log('No auth token found, redirecting to login');
-        window.location.href = 'index.html';
+        console.log('No auth token found, user is not authenticated');
         return false;
     }
     return true;
@@ -102,14 +101,10 @@ let isFiltersOpen = false;
         console.log('✅ Loading state already present in HTML - no layout shift will occur');
         
         // Check authentication after showing loading state
-        if (!checkAuthentication()) {
-            console.log('❌ Authentication failed, redirecting...');
-            return; // Stop execution if not authenticated
-        }
+        const isAuthenticated = checkAuthentication();
+        console.log(`🔐 Authentication status: ${isAuthenticated ? 'Authenticated' : 'Not authenticated'}`);
         
-        console.log('✅ Authentication passed, initializing page...');
-        
-        // Initialize user info and logout button
+        // Initialize user info (will show login button if not authenticated)
         initializeUserInfo();
         
         // Initialize CSP-compliant event handlers
@@ -245,8 +240,7 @@ async function fetchCurrentUserData() {
         return JSON.parse(cachedUser);
     }
 
-    // If cache is empty, handle as an auth error
-    logout();
+    // If cache is empty, return null (user is not authenticated)
     return null;
 }
 
@@ -310,8 +304,18 @@ function updateHeaderUserInfo(user) {
         }
 
     } else {
-        // Handle case where user is not logged in
-        userAvatar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path fill="#000" fill-rule="evenodd" d="M256 42.667A213.333 213.333 0 0 1 469.334 256c0 117.821-95.513 213.334-213.334 213.334c-117.82 0-213.333-95.513-213.333-213.334C42.667 138.18 138.18 42.667 256 42.667m21.334 234.667h-42.667c-52.815 0-98.158 31.987-117.715 77.648c30.944 43.391 81.692 71.685 139.048 71.685s108.104-28.294 139.049-71.688c-19.557-45.658-64.9-77.645-117.715-77.645M256 106.667c-35.346 0-64 28.654-64 64s28.654 64 64 64s64-28.654 64-64s-28.653-64-64-64"/></svg>';
+        // Handle case where user is not logged in - show login button
+        userAvatar.innerHTML = `
+            <button class="login-btn" onclick="window.location.href='index.html'">
+                <span class="login-btn-text">Accedi</span>
+            </button>
+        `;
+        
+        // Remove dropdown functionality for non-authenticated users
+        const userInfo = document.querySelector('.user-info');
+        if (userInfo) {
+            userInfo.classList.remove('open');
+        }
     }
 }
 
@@ -5561,31 +5565,55 @@ async function loadReviewsForVetrina(vetrinaId) {
         console.log('🔍 Loading reviews for vetrina:', vetrinaId);
         
         const token = localStorage.getItem('authToken');
-        if (!token) {
-            console.error('No auth token found');
-            currentReviews = [];
-            currentUserReview = null;
-            return;
+        console.log('🔑 Token found:', token ? 'YES' : 'NO');
+        
+        // Get current user info for debugging
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        console.log('👤 Current user from localStorage:', currentUser);
+        console.log('👤 Current user ID:', currentUser?.user_id);
+        console.log('👤 Current user username:', currentUser?.username);
+        
+        // Prepare headers
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Add Authorization header only if token exists
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
 
         const response = await fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: headers
         });
 
         if (response.ok) {
             const data = await response.json();
+            console.log('📡 Full response data:', JSON.stringify(data, null, 2));
             currentReviews = data.reviews || [];
             currentUserReview = data.user_review || null;
             console.log('✅ Reviews loaded successfully:', currentReviews.length, 'reviews');
+            console.log('👤 Current user review:', currentUserReview);
+            console.log('🔍 Debug - currentUserReview type:', typeof currentUserReview);
+            console.log('🔍 Debug - currentUserReview value:', currentUserReview);
+            if (currentUserReview) {
+                console.log('🔍 Debug - currentUserReview.user:', currentUserReview.user);
+                console.log('🔍 Debug - currentUserReview.user?.user_id:', currentUserReview.user?.user_id);
+            }
         } else if (response.status === 401) {
             console.error('Authentication failed');
-            localStorage.removeItem('authToken');
-            window.location.href = 'index.html';
-            return;
+            // Only redirect if we had a token (user was logged in)
+            if (token) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'index.html';
+                return;
+            } else {
+                // User is not authenticated, just load reviews without user data
+                console.log('👤 User not authenticated, loading public reviews');
+                currentReviews = [];
+                currentUserReview = null;
+            }
         } else {
             console.error('Failed to load reviews:', response.status);
             currentReviews = [];
@@ -5619,11 +5647,26 @@ function updateReviewsOverlay() {
     // Update stars
     bigStars.innerHTML = generateFractionalStars(parseFloat(averageRating));
     
-    // Show/hide add review button based on whether user has already reviewed
-    if (currentUserReview) {
+    // Show/hide add review button based on authentication and whether user has already reviewed
+    const token = localStorage.getItem('authToken');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    
+    if (!token || !currentUser) {
+        // User not authenticated - hide add review button
         addReviewBtn.style.display = 'none';
     } else {
-        addReviewBtn.style.display = 'flex';
+        // Check if user has already reviewed using frontend comparison
+        const hasUserReviewed = currentReviews.some(review => 
+            review.user?.user_id === currentUser.user_id
+        );
+        
+        if (hasUserReviewed) {
+            // User already reviewed - hide add review button
+            addReviewBtn.style.display = 'none';
+        } else {
+            // User authenticated but hasn't reviewed - show add review button
+            addReviewBtn.style.display = 'flex';
+        }
     }
 
     // Render reviews list
@@ -5650,17 +5693,28 @@ function updateReviewsOverlay() {
                             </div>
                         </div>
                     </div>
-                    <div class="review-date-actions">
-                        <div class="review-date-overlay">${formatDate(review.review_date)}</div>
-                        ${currentUserReview && currentUserReview.user?.user_id === review.user?.user_id ? 
-                            `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>` : ''
-                        }
-                    </div>
+                    <div class="review-date-overlay">${formatDate(review.review_date)}</div>
                 </div>
                 ${review.review_subject ? `<div class="review-subject-overlay">${review.review_subject}</div>` : ''}
                 <div class="review-text-overlay">${review.review_text}</div>
+                ${(() => {
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                    // Frontend-only approach: compare current user with review author
+                    const isCurrentUserReview = currentUser && currentUser.user_id === review.user?.user_id;
+                    const shouldShowDelete = isCurrentUserReview;
+                    console.log('🔍 Delete button debug for review:', {
+                        review_user_id: review.user?.user_id,
+                        review_username: review.user?.username,
+                        currentUser_id: currentUser?.user_id,
+                        currentUser_username: currentUser?.username,
+                        shouldShowDelete: shouldShowDelete,
+                        isCurrentUserReview: isCurrentUserReview
+                    });
+                    return shouldShowDelete ? 
+                        `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>` : '';
+                })()}
             </div>
         `).join('');
     }
@@ -5816,7 +5870,18 @@ async function submitReview() {
 
 // Delete user review
 async function deleteUserReview() {
-    if (!currentVetrinaForReviews || !currentUserReview) {
+    if (!currentVetrinaForReviews) {
+        console.error('No vetrina ID for reviews');
+        return;
+    }
+    
+    // Check if user is authenticated
+    const token = localStorage.getItem('authToken');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    
+    if (!token || !currentUser) {
+        console.error('User not authenticated');
+        showError('Sessione scaduta. Effettua nuovamente l\'accesso.');
         return;
     }
 
@@ -5844,7 +5909,6 @@ async function deleteUserReview() {
 
         if (response.ok) {
             showStatus('Recensione eliminata con successo!', 'success');
-            currentUserReview = null;
             
             // Reload reviews
             await loadReviewsForVetrina(currentVetrinaForReviews);

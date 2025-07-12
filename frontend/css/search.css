@@ -378,6 +378,43 @@ html {
     fill: var(--gray-800);
 }
 
+/* Login Button Styles */
+.login-btn {
+    background: linear-gradient(135deg, #49c5eb 0%, #3b82f6 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(73, 197, 235, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    height: 36px;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.login-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(73, 197, 235, 0.4);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(73, 197, 235, 0.3);
+}
+
+.login-btn-text {
+    white-space: nowrap;
+    letter-spacing: 0.025em;
+}
+
 .user-name {
     font-weight: 500;
     color: var(--gray-800);
@@ -5957,6 +5994,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     padding: var(--space-5);
     border: 1px solid var(--gray-200);
     box-shadow: var(--shadow-sm);
+    position: relative;
 }
 
 .review-header-overlay {
@@ -6053,6 +6091,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    bottom: var(--space-2);
+    right: var(--space-2);
+    z-index: 10;
 }
 
 .review-item-overlay:hover .delete-review-btn {

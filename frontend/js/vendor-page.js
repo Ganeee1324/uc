@@ -3886,6 +3886,18 @@ function generateStars(rating) {
     return stars;
 }
 
+function generateReviewStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars += '<span class="rating-star filled">★</span>';
+        } else {
+            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
+        }
+    }
+    return stars;
+}
+
 function generateFractionalStars(rating) {
     const ratingPercentage = (rating / 5) * 100;
     return `
@@ -5538,6 +5550,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let currentVetrinaId = null;
 let selectedRating = 0;
+let currentUserReview = null;
 
 // Initialize reviews overlay functionality
 function initializeReviewsOverlay() {
@@ -5568,11 +5581,7 @@ function initializeReviewsOverlay() {
         }
         
         if (e.target.closest('[data-action="delete-review"]')) {
-            const element = e.target.closest('[data-action="delete-review"]');
-            const reviewId = element.getAttribute('data-review-id');
-            if (reviewId) {
-                deleteReview(reviewId);
-            }
+            deleteUserReview();
         }
     });
     
@@ -5608,11 +5617,40 @@ function closeReviewsOverlay() {
 // Load reviews for a vetrina
 async function loadReviews(vetrinaId) {
     try {
-        const response = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/reviews`);
+        console.log('🔍 Loading reviews for vetrina:', vetrinaId);
         
-        if (response && response.reviews) {
-            displayReviews(response.reviews, response.average_rating || 0);
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error('No auth token found');
+            displayReviews([], 0);
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const reviews = data.reviews || [];
+            currentUserReview = data.user_review || null;
+            const averageRating = reviews.length > 0 
+                ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+                : '0.0';
+            
+            displayReviews(reviews, averageRating);
+            console.log('✅ Reviews loaded successfully:', reviews.length, 'reviews');
+        } else if (response.status === 401) {
+            console.error('Authentication failed');
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+            return;
         } else {
+            console.error('Failed to load reviews:', response.status);
             displayReviews([], 0);
         }
     } catch (error) {
@@ -5649,26 +5687,26 @@ function displayReviews(reviews, averageRating) {
                     <div class="review-header-overlay">
                         <div class="reviewer-info-overlay">
                             <div class="reviewer-avatar-overlay">
-                                ${getInitials(review.reviewer_name || 'User')}
+                                ${getInitials(review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'User')}
                             </div>
                             <div>
-                                <div class="reviewer-name-overlay">${review.reviewer_name || 'Utente'}</div>
+                                <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>
                                 <div class="review-rating-overlay">
-                                    ${generateStars(review.rating)}
+                                    ${generateReviewStars(review.rating)}
                                 </div>
                             </div>
                         </div>
-                        <div class="review-date-overlay">${formatDate(review.created_at)}</div>
-                    </div>
-                    <div class="review-text-overlay">${review.comment || 'Nessun commento'}</div>
-                    ${review.can_delete ? `
                         <div class="review-date-actions">
-                            <div class="review-subject-overlay">La tua recensione</div>
-                            <button class="delete-review-btn" data-action="delete-review" data-review-id="${review.id}">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
+                            <div class="review-date-overlay">${formatDate(review.review_date)}</div>
+                            ${currentUserReview && currentUserReview.user?.user_id === review.user?.user_id ? 
+                                `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>` : ''
+                            }
                         </div>
-                    ` : ''}
+                    </div>
+                    ${review.review_subject ? `<div class="review-subject-overlay">${review.review_subject}</div>` : ''}
+                    <div class="review-text-overlay">${review.review_text}</div>
                 </div>
             `).join('');
         }
@@ -5821,46 +5859,53 @@ async function submitReview() {
     }
 }
 
-// Delete review
-async function deleteReview(reviewId) {
-    if (!currentVetrinaId) {
-        showError('Errore: ID vetrina non trovato');
+// Delete user review
+async function deleteUserReview() {
+    if (!currentVetrinaId || !currentUserReview) {
         return;
     }
-    
+
+    if (!confirm('Sei sicuro di voler eliminare la tua recensione?')) {
+        return;
+    }
+
     try {
-        console.log('Deleting review:', reviewId, 'for vetrina:', currentVetrinaId);
-        const response = await fetch(API_BASE + `/vetrine/${currentVetrinaId}/reviews/${reviewId}`, {
+        console.log('🗑️ Deleting review for vetrina:', currentVetrinaId);
+        
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error('No auth token found');
+            showError('Sessione scaduta. Effettua nuovamente l\'accesso.');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaId}/reviews`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
-        
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 422) {
-                console.log('Authentication failed, redirecting to login');
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
-                return;
-            }
-            const errorData = await response.json();
-            throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data && data.success) {
-            showStatus('Recensione eliminata con successo!');
+
+        if (response.ok) {
+            showStatus('Recensione eliminata con successo!', 'success');
+            currentUserReview = null;
+            
+            // Reload reviews
             await loadReviews(currentVetrinaId);
             updateRatingInSearchResults(currentVetrinaId);
+        } else if (response.status === 401) {
+            console.error('Authentication failed');
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+            return;
         } else {
-            showError('Errore nell\'eliminazione della recensione');
+            const errorData = await response.json();
+            showError(errorData.message || 'Errore nell\'eliminazione della recensione.');
         }
     } catch (error) {
         console.error('Error deleting review:', error);
-        showError('Errore nell\'eliminazione della recensione: ' + error.message);
+        showError('Errore di connessione. Riprova più tardi.');
     }
 }
 

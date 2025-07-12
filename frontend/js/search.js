@@ -187,9 +187,7 @@ let isFiltersOpen = false;
 
 async function initializeUserInfo() {
     const user = await fetchCurrentUserData();
-    if (user) {
-        updateHeaderUserInfo(user);
-    }
+    updateHeaderUserInfo(user);
 }
 
 async function fetchCurrentUserData() {

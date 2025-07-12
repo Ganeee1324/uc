@@ -2923,9 +2923,14 @@ async function loadAllFiles() {
         
         // Filter vetrine by the specific vendor
         const allVetrine = vetrineResponse.vetrine || [];
-        currentVetrine = allVetrine.filter(vetrina => 
-            vetrina.owner && vetrina.owner.username === vendorUsername
-        );
+        console.log('🔍 All vetrine before filtering:', allVetrine.length);
+        console.log('🔍 Sample vetrina data structure:', allVetrine.slice(0, 2));
+        
+        currentVetrine = allVetrine.filter(vetrina => {
+            const username = vetrina.author?.username || vetrina.owner?.username;
+            console.log(`🔍 Checking vetrina ${vetrina.vetrina_id}: author=${vetrina.author?.username}, owner=${vetrina.owner?.username}, target=${vendorUsername}`);
+            return username === vendorUsername;
+        });
         
         console.log(`Loaded ${currentVetrine.length} vetrine for vendor: ${vendorUsername}`);
         console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));

@@ -6244,6 +6244,54 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     box-shadow: var(--shadow-lg);
 }
 
+/* Loading States for Reviews */
+.loading-stars {
+    color: var(--gray-300);
+    font-size: 2rem;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.reviews-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    text-align: center;
+    color: var(--gray-600);
+}
+
+.reviews-loading .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--gray-200);
+    border-radius: 50%;
+    border-top-color: var(--blue-500);
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-4);
+}
+
+.reviews-loading p {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 /* Responsive Design for Reviews Overlay */
 @media (max-width: 768px) {
     .reviews-overlay-content {

@@ -5403,10 +5403,37 @@ async function openReviewsOverlay(vetrinaId) {
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         
+        // Show loading state immediately
+        showReviewsLoadingState();
+        
         // Load reviews for this vetrina
         await loadReviewsForVetrina(vetrinaId);
         updateReviewsOverlay();
     }
+}
+
+// Show loading state for reviews
+function showReviewsLoadingState() {
+    const reviewsList = document.getElementById('reviewsList');
+    const bigRatingScore = document.querySelector('.big-rating-score');
+    const totalReviews = document.querySelector('.total-reviews');
+    const bigStars = document.querySelector('.big-stars');
+    const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+
+    if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
+
+    // Show loading state
+    bigRatingScore.textContent = '...';
+    totalReviews.textContent = 'Caricamento...';
+    bigStars.innerHTML = '<div class="loading-stars">★★★★★</div>';
+    addReviewBtn.style.display = 'none';
+    
+    reviewsList.innerHTML = `
+        <div class="reviews-loading">
+            <div class="loading-spinner"></div>
+            <p>Caricamento recensioni...</p>
+        </div>
+    `;
 }
 
 // Close reviews overlay

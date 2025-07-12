@@ -219,7 +219,7 @@ html {
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-top: -100px;
-    padding: 60px 0 40px 0;
+    padding: 120px 0 40px 0;
     margin-bottom: 32px;
     position: relative;
     overflow: hidden;
@@ -230,8 +230,9 @@ html {
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
+    min-height: 160px;
 }
 
 .vendor-info {
@@ -5818,12 +5819,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Vendor Banner Responsive Styles */
 @media (max-width: 768px) {
     .vendor-banner {
-        padding: 20px;
+        padding: 80px 20px 20px 20px;
         margin-bottom: 24px;
     }
     
     .banner-content {
         padding: 0;
+        min-height: 120px;
     }
     
     .vendor-info {
@@ -5847,12 +5849,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 480px) {
     .vendor-banner {
-        padding: 16px;
+        padding: 60px 16px 16px 16px;
         margin-bottom: 20px;
     }
     
     .banner-content {
         padding: 0;
+        min-height: 100px;
     }
     
     .vendor-info {

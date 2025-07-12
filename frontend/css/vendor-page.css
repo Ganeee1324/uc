@@ -526,7 +526,7 @@ html {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Removed pseudo-elements for cleaner design */
@@ -589,14 +589,14 @@ html {
 }
 
 .no-results .decoration:nth-child(1) {
-    top: -50px;
-    left: -50px;
+    top: -30px;
+    left: -30px;
     animation-delay: 0s;
 }
 
 .no-results .decoration:nth-child(2) {
-    bottom: -50px;
-    right: -50px;
+    bottom: -30px;
+    right: -30px;
     animation-delay: 2s;
 }
 
@@ -633,6 +633,8 @@ html {
     justify-content: center;
     align-items: center;
     width: 100%;
+    padding: 50px 0;
+    overflow: visible;
 }
 
 /* Loading state placeholders to maintain correct positioning */

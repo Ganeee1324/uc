@@ -2279,7 +2279,10 @@ function updateReviewsOverlay() {
                 <div class="review-header-overlay">
                     <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
-                            ${getInitials(review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'User')}
+                            ${createGradientAvatar(
+                                review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'User',
+                                review.user?.username || 'User'
+                            )}
                         </div>
                         <div>
                             <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>

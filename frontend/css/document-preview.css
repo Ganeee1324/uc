@@ -3331,6 +3331,14 @@ button:focus-visible,
     color: #fbbf24;
 }
 
+.review-rating-overlay .rating-star.filled {
+    color: #fbbf24;
+}
+
+.review-rating-overlay .rating-star:not(.filled) {
+    color: #d1d5db;
+}
+
 .review-date-overlay {
     font-size: var(--text-sm);
     color: var(--neutral-500);

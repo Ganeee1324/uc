@@ -22,7 +22,7 @@ import mimetypes
 from typing import Dict, List, Optional, Tuple
 
 # Configuration
-API_BASE_URL = "http://127.0.0.1:5000"  # Hardcoded IP as requested
+API_BASE_URL = "http://146.59.236.26:5000"  # Hardcoded IP as requested
 VALID_EXTENSIONS = ["pdf", "docx", "txt", "xlsx"]
 VALID_TAGS = ["dispense", "appunti", "esercizi"]
 
@@ -140,7 +140,7 @@ class MarketplaceUploader:
             print(f"✗ Error getting hierarchy: {e}")
             return {}
     
-    def create_vetrina(self, name: str, description: str, course_instance_id: int = 1) -> Optional[Tuple[int, str]]:
+    def create_vetrina(self, name: str, description: str, course_instance_id: int = 1, price: float = 0.0) -> Optional[Tuple[int, str]]:
         """Create a new vetrina with a random user as author. Returns (vetrina_id, author_token)."""
         # Get a random user's token
         token = self.get_random_user_token()
@@ -151,7 +151,8 @@ class MarketplaceUploader:
         vetrina_data = {
             "name": name,
             "description": description,
-            "course_instance_id": course_instance_id
+            "course_instance_id": course_instance_id,
+            "price": price
         }
         
         headers = {
@@ -291,7 +292,7 @@ class MarketplaceUploader:
             print(f"\n📚 Processing vetrina: {vetrina_name}")
             
             # Create vetrina
-            result = self.create_vetrina(vetrina_name, description)
+            result = self.create_vetrina(vetrina_name, description, price=random.uniform(2.0, 3.0))
             if result is None:
                 print(f"  ✗ Skipping {vetrina_name} due to vetrina creation failure")
                 continue

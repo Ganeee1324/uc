@@ -3001,11 +3001,11 @@ async function makeRequest(url, options = {}) {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401 || response.status === 422) {
-                console.log('Authentication failed, redirecting to login');
+                console.log('Authentication failed, clearing user data');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
-                return;
+                // Don't redirect, just clear the data and continue
+                return null;
             }
             const data = await response.json();
             throw new Error(data.msg || `HTTP error! status: ${response.status}`);
@@ -3048,11 +3048,11 @@ async function makeAuthenticatedRequest(url) {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401 || response.status === 422) {
-                console.log('Authentication failed, redirecting to login');
+                console.log('Authentication failed, clearing user data');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
-                return;
+                // Don't redirect, just clear the data and continue
+                return null;
             }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -4825,7 +4825,7 @@ function logout() {
     localStorage.removeItem('currentUser');
     showStatus('Logout effettuato con successo');
     setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.reload();
     }, 1000);
 }
 
@@ -5603,17 +5603,15 @@ async function loadReviewsForVetrina(vetrinaId) {
             }
         } else if (response.status === 401) {
             console.error('Authentication failed');
-            // Only redirect if we had a token (user was logged in)
+            // Clear auth data if we had a token (user was logged in)
             if (token) {
                 localStorage.removeItem('authToken');
-                window.location.href = 'index.html';
-                return;
-            } else {
-                // User is not authenticated, just load reviews without user data
-                console.log('👤 User not authenticated, loading public reviews');
-                currentReviews = [];
-                currentUserReview = null;
+                localStorage.removeItem('currentUser');
             }
+            // User is not authenticated, just load reviews without user data
+            console.log('👤 User not authenticated, loading public reviews');
+            currentReviews = [];
+            currentUserReview = null;
         } else {
             console.error('Failed to load reviews:', response.status);
             currentReviews = [];
@@ -5856,7 +5854,8 @@ async function submitReview() {
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
-            window.location.href = 'index.html';
+            localStorage.removeItem('currentUser');
+            showError('Sessione scaduta. Effettua nuovamente l\'accesso.');
             return;
         } else {
             const errorData = await response.json();
@@ -5919,7 +5918,8 @@ async function deleteUserReview() {
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
-            window.location.href = 'index.html';
+            localStorage.removeItem('currentUser');
+            showError('Sessione scaduta. Effettua nuovamente l\'accesso.');
             return;
         } else {
             const errorData = await response.json();

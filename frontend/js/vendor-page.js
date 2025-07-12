@@ -5582,12 +5582,15 @@ function initializeReviewsOverlay() {
 
 // Open reviews overlay
 async function openReviewsOverlay(vetrinaId) {
+    console.log('Opening reviews overlay for vetrina:', vetrinaId);
     currentVetrinaId = vetrinaId;
     const overlay = document.getElementById('reviewsOverlay');
     
     if (overlay) {
         overlay.classList.add('active');
         await loadReviews(vetrinaId);
+    } else {
+        console.error('Reviews overlay not found!');
     }
 }
 
@@ -5776,7 +5779,8 @@ async function submitReview() {
     }
     
     try {
-        const response = await makeRequest(`/vetrine/${currentVetrinaId}/reviews`, {
+        console.log('Submitting review for vetrina:', currentVetrinaId);
+        const response = await fetch(API_BASE + `/vetrine/${currentVetrinaId}/reviews`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -5788,7 +5792,21 @@ async function submitReview() {
             })
         });
         
-        if (response && response.success) {
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 422) {
+                console.log('Authentication failed, redirecting to login');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+                return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.success) {
             showStatus('Recensione inviata con successo!');
             hideAddReviewForm();
             await loadReviews(currentVetrinaId);
@@ -5798,7 +5816,7 @@ async function submitReview() {
         }
     } catch (error) {
         console.error('Error submitting review:', error);
-        showError('Errore nell\'invio della recensione');
+        showError('Errore nell\'invio della recensione: ' + error.message);
     }
 }
 
@@ -5810,14 +5828,29 @@ async function deleteReview(reviewId) {
     }
     
     try {
-        const response = await makeRequest(`/vetrine/${currentVetrinaId}/reviews/${reviewId}`, {
+        console.log('Deleting review:', reviewId, 'for vetrina:', currentVetrinaId);
+        const response = await fetch(API_BASE + `/vetrine/${currentVetrinaId}/reviews/${reviewId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
         });
         
-        if (response && response.success) {
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 422) {
+                console.log('Authentication failed, redirecting to login');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+                return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.msg || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.success) {
             showStatus('Recensione eliminata con successo!');
             await loadReviews(currentVetrinaId);
             updateRatingInSearchResults(currentVetrinaId);
@@ -5826,7 +5859,7 @@ async function deleteReview(reviewId) {
         }
     } catch (error) {
         console.error('Error deleting review:', error);
-        showError('Errore nell\'eliminazione della recensione');
+        showError('Errore nell\'eliminazione della recensione: ' + error.message);
     }
 }
 

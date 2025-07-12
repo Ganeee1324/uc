@@ -3484,7 +3484,7 @@ function renderDocuments(files) {
         card.style.cursor = 'pointer';
         card.onclick = async (e) => {
             // Don't trigger if clicking on interactive elements
-            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button')) {
+            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button') || e.target.closest('.owner-avatar')) {
                 return;
             }
             

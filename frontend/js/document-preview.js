@@ -1787,15 +1787,30 @@ async function downloadSingleDocument(fileId) {
             throw new Error('Download failed');
         }
         
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `document_${fileId}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        // Create a temporary form to handle the download (CSP compliant)
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `${API_BASE}/files/${fileId}/download`;
+        form.target = '_blank';
+        
+        // Add authorization header via hidden input
+        const authInput = document.createElement('input');
+        authInput.type = 'hidden';
+        authInput.name = 'auth_token';
+        authInput.value = authToken;
+        form.appendChild(authInput);
+        
+        // Add filename
+        const filenameInput = document.createElement('input');
+        filenameInput.type = 'hidden';
+        filenameInput.name = 'filename';
+        filenameInput.value = `document_${fileId}`;
+        form.appendChild(filenameInput);
+        
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
         
         showNotification('Download avviato con successo!', 'success');
     } catch (error) {
@@ -2382,14 +2397,30 @@ async function downloadRedactedDocument(fileId) {
             }
         }
         
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
+        // Create a temporary form to handle the download (CSP compliant)
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `${API_BASE}/files/${fileId}/download`;
+        form.target = '_blank';
         
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
+        // Add authorization header via hidden input
+        const authInput = document.createElement('input');
+        authInput.type = 'hidden';
+        authInput.name = 'auth_token';
+        authInput.value = authToken;
+        form.appendChild(authInput);
+        
+        // Add filename
+        const filenameInput = document.createElement('input');
+        filenameInput.type = 'hidden';
+        filenameInput.name = 'filename';
+        filenameInput.value = filename;
+        form.appendChild(filenameInput);
+        
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
 
         showNotification('Download completato!', 'success');
     } catch (error) {

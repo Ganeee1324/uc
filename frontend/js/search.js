@@ -4170,24 +4170,33 @@ function closePreview() {
 async function downloadDocument(fileId) {
     try {
         showStatus('Download in corso... 📥');
-        const response = await fetch(`${API_BASE}/files/${fileId}/download`, {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
-        });
         
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = getOriginalFilename(currentFiles.find(f => f.id === fileId)?.filename) || 'documento';
-            a.click();
-            window.URL.revokeObjectURL(url);
-            showStatus('Documento scaricato con successo! 🎉');
-            } else {
-            throw new Error('Download fallito');
-        }
+        // Create a temporary form to handle the download
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `${API_BASE}/files/${fileId}/download`;
+        form.target = '_blank';
+        
+        // Add authorization header via hidden input
+        const authInput = document.createElement('input');
+        authInput.type = 'hidden';
+        authInput.name = 'auth_token';
+        authInput.value = authToken;
+        form.appendChild(authInput);
+        
+        // Add filename
+        const filenameInput = document.createElement('input');
+        filenameInput.type = 'hidden';
+        filenameInput.name = 'filename';
+        filenameInput.value = getOriginalFilename(currentFiles.find(f => f.id === fileId)?.filename) || 'documento';
+        form.appendChild(filenameInput);
+        
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+        showStatus('Download avviato! 🎉');
     } catch (error) {
         showError('Errore durante il download: ' + error.message);
     }

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     <link rel="stylesheet" href="css/search.css">
     <link rel="stylesheet" href="css/document-preview.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf_viewer.css">
     <link rel="icon" href="images/favicon.png" type="image/png">
 </head>
 <body>
@@ -31,70 +32,37 @@
                 <div class="user-avatar" id="userAvatar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path fill="#000" fill-rule="evenodd" d="M256 42.667A213.333 213.333 0 0 1 469.334 256c0 117.821-95.513 213.334-213.334 213.334c-117.82 0-213.333-95.513-213.333-213.334C42.667 138.18 138.18 42.667 256 42.667m21.334 234.667h-42.667c-52.815 0-98.158 31.987-117.715 77.648c30.944 43.391 81.692 71.685 139.048 71.685s108.104-28.294 139.049-71.688c-19.557-45.658-64.9-77.645-117.715-77.645M256 106.667c-35.346 0-64 28.654-64 64s28.654 64 64 64s64-28.654 64-64s-28.653-64-64-64"/></svg>
                 </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-user-info">
+                        <div class="dropdown-avatar" id="dropdownAvatar"></div>
+                        <div class="dropdown-user-details">
+                            <span class="dropdown-user-name" id="dropdownUserName"></span>
+                            <span class="dropdown-user-email" id="dropdownUserEmail"></span>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="upload.html" class="dropdown-item">
+                        <i class="material-symbols-outlined">upload</i>
+                        <span>Upload File</span>
+                    </a>
+                    <a href="#" class="dropdown-item" id="userFavorites">
+                        <i class="material-symbols-outlined">favorite</i>
+                        <span>My Favorites</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item" id="logoutBtn">
+                        <i class="material-symbols-outlined">logout</i>
+                        <span>Logout</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="preview-main">
-        <!-- Initial Loading State - Shows immediately -->
-        <div class="document-preview-loader">
-            <div class="preview-loader-content">
-                <!-- Document Viewer Skeleton -->
-                <div class="preview-viewer-skeleton">
-                    <div class="viewer-header-skeleton">
-                        <div class="skeleton-title-large"></div>
-                        <div class="skeleton-subtitle"></div>
-                    </div>
-                    <div class="viewer-pages-skeleton">
-                        <div class="skeleton-page"></div>
-                        <div class="skeleton-page"></div>
-                        <div class="skeleton-page"></div>
-                    </div>
-                </div>
-
-                <!-- Sidebar Skeleton -->
-                <div class="preview-sidebar-skeleton">
-                    <div class="sidebar-header-skeleton">
-                        <div class="skeleton-doc-title"></div>
-                        <div class="skeleton-doc-meta">
-                            <div class="skeleton-rating"></div>
-                            <div class="skeleton-price"></div>
-                    </div>
-                </div>
-
-                    <div class="sidebar-details-skeleton">
-                        <div class="skeleton-detail-item"></div>
-                        <div class="skeleton-detail-item"></div>
-                        <div class="skeleton-detail-item"></div>
-                        <div class="skeleton-detail-item"></div>
-                        <div class="skeleton-detail-item"></div>
-                        <div class="skeleton-detail-item"></div>
-                </div>
-
-                    <div class="sidebar-actions-skeleton">
-                        <div class="skeleton-action-btn primary"></div>
-                        <div class="skeleton-action-buttons">
-                            <div class="skeleton-action-btn secondary"></div>
-                            <div class="skeleton-action-btn secondary"></div>
-                    </div>
-                </div>
-
-                    <div class="sidebar-sections-skeleton">
-                        <div class="skeleton-section">
-                            <div class="skeleton-section-title"></div>
-                            <div class="skeleton-section-content"></div>
-                        </div>
-                        <div class="skeleton-section">
-                            <div class="skeleton-section-title"></div>
-                            <div class="skeleton-section-content"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
 
-    <script src="js/document-preview.js"></script>
+    <script type="module" src="js/document-preview.js"></script>
 </body>
 </html> 

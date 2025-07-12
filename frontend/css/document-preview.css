@@ -200,6 +200,127 @@ body {
     width: auto;
 }
 
+.user-info {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--neutral-100);
+    transition: background-color 0.2s var(--ease-out);
+}
+
+.user-avatar:hover {
+    background-color: var(--neutral-200);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    background-color: var(--neutral-0);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--neutral-200);
+    width: 280px;
+    padding: var(--space-2) 0;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s var(--ease-out);
+    overflow: hidden;
+}
+
+.user-info.open .user-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-user-info {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+}
+
+.dropdown-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: var(--space-3);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.dropdown-user-details {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+    overflow: hidden;
+}
+
+.dropdown-user-name {
+    font-weight: 600;
+    color: var(--neutral-800);
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-user-email {
+    font-size: 0.875rem;
+    color: var(--neutral-600);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--neutral-100);
+    margin: var(--space-2) 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.9375rem;
+    color: var(--neutral-700);
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--neutral-50);
+    color: var(--neutral-900);
+}
+
+.dropdown-item i {
+    font-size: 22px;
+    color: var(--neutral-500);
+}
+
 /* Main Preview Layout - Full height to bottom of screen */
 .preview-main {
     display: flex;
@@ -266,10 +387,88 @@ body {
 
 /* Document Viewer - Let PDF handle its own scrolling */
 .document-viewer {
-    height: 100%; /* Take full height of section */
-    overflow: hidden; /* Disable the viewer's scrollbar */
-    padding: 0; /* Remove padding to fill the section */
-    background: transparent;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: auto;
+    background: var(--neutral-50);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s var(--ease-out);
+}
+
+.document-viewer iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    transition: transform 0.3s var(--ease-out);
+}
+
+.document-viewer embed {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    transition: transform 0.3s var(--ease-out);
+}
+
+.document-viewer object {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    transition: transform 0.3s var(--ease-out);
+}
+
+/* Legacy zoomable container - replaced by pdf-zoom-container */
+.zoomable-container {
+    /* This is kept for backward compatibility but not used */
+    display: none;
+}
+
+/* PDF.js iframe styling */
+.document-viewer iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--neutral-0);
+    overflow: hidden;
+}
+
+/* Fallback PDF embed styling */
+.document-viewer embed {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--neutral-0);
+    overflow: hidden;
+}
+
+/* Object tag PDF styling */
+.document-viewer object {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--neutral-0);
+    overflow: hidden;
+}
+
+/* Hide scrollbars for PDF elements */
+.document-viewer iframe::-webkit-scrollbar,
+.document-viewer embed::-webkit-scrollbar,
+.document-viewer object::-webkit-scrollbar {
+    display: none;
+}
+
+.document-viewer iframe,
+.document-viewer embed,
+.document-viewer object {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
 }
 
 /* Custom scrollbar for document viewer */
@@ -292,10 +491,10 @@ body {
     gap: var(--space-8);
 }
 
-/* Overlay Controls - Floating over document viewer (moved up) */
+/* Overlay Controls - Floating over document viewer */
 .viewer-overlay-controls {
     position: absolute;
-    top: 0; /* Moved 40px higher from previous 40px */
+    top: var(--space-4);
     left: var(--space-6);
     right: var(--space-6);
     display: flex;
@@ -307,6 +506,103 @@ body {
 
 .viewer-overlay-controls > * {
     pointer-events: auto; /* Re-enable clicks on actual controls */
+}
+
+/* Viewer Controls Overlay */
+.viewer-controls-overlay {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--neutral-200);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s var(--ease-out);
+}
+
+.viewer-controls-overlay:hover {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: var(--neutral-300);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: rgba(255, 255, 255, 0.1);
+    padding: var(--space-1);
+    border-radius: var(--radius-md);
+}
+
+.zoom-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+}
+
+.zoom-btn:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--neutral-800);
+    transform: scale(1.05);
+}
+
+.zoom-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.zoom-level {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--neutral-700);
+    min-width: 50px;
+    text-align: center;
+    padding: var(--space-2) var(--space-3);
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.2s var(--ease-out);
+    user-select: none;
+}
+
+.zoom-level:hover {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.15);
+    transform: scale(1.05);
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+}
+
+.fullscreen-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--neutral-800);
+    transform: scale(1.05);
 }
 
 .back-btn-overlay {
@@ -335,50 +631,7 @@ body {
     box-shadow: var(--shadow-xl);
 }
 
-.viewer-controls-overlay {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    padding: var(--space-2);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--neutral-200);
-    box-shadow: var(--shadow-lg);
-    transition: all 0.3s var(--ease-out);
-}
 
-.viewer-controls-overlay:hover {
-    background: rgba(255, 255, 255, 0.98);
-    border-color: var(--neutral-300);
-    box-shadow: var(--shadow-xl);
-}
-
-.zoom-btn, .fullscreen-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-lg);
-    color: var(--neutral-600);
-    cursor: pointer;
-    transition: all 0.2s var(--ease-out);
-}
-
-.zoom-btn:hover, .fullscreen-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--neutral-800);
-    transform: scale(1.05);
-}
-
-.zoom-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none !important;
-}
 
 .zoom-level {
     font-size: var(--text-sm);
@@ -1387,22 +1640,47 @@ body {
     display: none;
 }
 
-/* PDF Zoom Container */
+/* PDF Zoom Container - Proper zoom functionality */
 .pdf-zoom-container {
     width: 100%;
-    height: 100%; /* Make container fill the viewer */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    transition: transform 0.3s ease;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+    transform-origin: top left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--neutral-0);
+    border-radius: var(--radius-lg);
 }
 
-.pdf-zoom-container embed {
+.pdf-zoom-container iframe,
+.pdf-zoom-container embed,
+.pdf-zoom-container object {
     width: 100%;
-    height: 100%; /* Make embed fill the container */
+    height: 100%;
     border: none;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    background: var(--neutral-0);
+    overflow: hidden;
+}
+
+/* Hide scrollbars for zoomed content */
+.pdf-zoom-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.pdf-zoom-container::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+    border-radius: var(--radius-md);
+}
+
+.pdf-zoom-container::-webkit-scrollbar-thumb {
+    background: var(--neutral-300);
+    border-radius: var(--radius-md);
+}
+
+.pdf-zoom-container::-webkit-scrollbar-thumb:hover {
+    background: var(--neutral-400);
 }
 
 /* PDF embed will handle its own scrollbar styling */

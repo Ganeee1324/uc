@@ -183,18 +183,7 @@ async function fetchCurrentUserData() {
         return JSON.parse(cachedUser);
     }
 
-    // If cache is empty, try to fetch from backend
-    try {
-        const response = await makeAuthenticatedRequest('/me');
-        if (response && response.user) {
-            localStorage.setItem('currentUser', JSON.stringify(response.user));
-            return response.user;
-        }
-    } catch (error) {
-        console.error('Failed to fetch user data:', error);
-    }
-
-    // If all else fails, handle as an auth error
+    // If cache is empty, handle as an auth error
     logout();
     return null;
 }
@@ -206,23 +195,12 @@ function updateHeaderUserInfo(user) {
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
     if (user) {
-        // Create a proper avatar with user's initial instead of external service
-        const userName = user.username || user.name || 'User';
-        const userInitial = userName.charAt(0).toUpperCase();
-        const avatarVariant = getAvatarVariant(userName);
+        const avatarUrl = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
         
-        userAvatar.innerHTML = `
-            <div class="header-user-avatar ${avatarVariant}">
-                ${userInitial}
-            </div>
-        `;
+        userAvatar.innerHTML = `<img src="${avatarUrl}" alt="${user.name}">`;
         
         if (dropdownAvatar) {
-            dropdownAvatar.innerHTML = `
-                <div class="dropdown-user-avatar ${avatarVariant}">
-                    ${userInitial}
-                </div>
-            `;
+            dropdownAvatar.style.backgroundImage = `url(${avatarUrl})`;
         }
         if (dropdownUserName) {
             dropdownUserName.textContent = user.username || 'User';
@@ -2731,7 +2709,7 @@ function getAvatarVariant(username) {
     for (let i = 0; i < username.length; i++) {
         hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return `variant-${Math.abs(hash % 12) + 1}`;
+    return `variant-${Math.abs(hash % 8) + 1}`;
 }
 
 async function makeRequest(url, options = {}) {
@@ -3063,7 +3041,7 @@ async function loadAllFiles() {
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
                 document_types: documentTypes,
                 document_type: fileCount > 1 ? 'BUNDLE' : (documentTypes.length > 0 ? documentTypes[0] : 'Documento'),
-                author_username: vetrina.author?.username || 'Unknown',
+                author_username: vetrina.owner?.username || 'Unknown',
                 owned: fileMetadata.length > 0 ? fileMetadata.every(file => file.owned) : false,
                 favorite: vetrina.favorite === true,
                 tags: actualTags, // Use the actual file tags from metadata
@@ -3073,8 +3051,8 @@ async function loadAllFiles() {
                     name: vetrina.name,
                     description: vetrina.description,
                     course_instance_id: vetrina.course_instance?.instance_id,
-                    owner_id: vetrina.author?.user_id,
-                    owner_username: vetrina.author?.username || 'Unknown'
+                    owner_id: vetrina.owner?.id,
+                    owner_username: vetrina.owner?.username || 'Unknown'
                 }
             };
             
@@ -3658,9 +3636,7 @@ function renderDocuments(files) {
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" 
-                             title="Caricato da ${item.author_username || 'Unknown'}"
-                             onclick="navigateToVendorPage('${item.author_username || ''}', event)">
+                        <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="document-meta">
@@ -5362,23 +5338,3 @@ function initializeStickySearch() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeStickySearch);
-
-// ===========================
-// VENDOR PAGE NAVIGATION
-// ===========================
-
-function navigateToVendorPage(username, event) {
-    // Prevent the event from bubbling up to the card click handler
-    event.stopPropagation();
-    
-    // Don't navigate if username is empty or undefined
-    if (!username || username.trim() === '') {
-        console.log('No username provided for vendor page navigation');
-        return;
-    }
-    
-    console.log(`Navigating to vendor page for user: ${username}`);
-    
-    // Navigate to vendor page with the username as a query parameter
-    window.location.href = `vendor-page.html?user=${encodeURIComponent(username)}`;
-}

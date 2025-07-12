@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE = window.APP_CONFIG?.API_BASE || 'http://146.59.236.26:5000';
+const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 let selectedFiles = [];
 let currentVetrine = [];

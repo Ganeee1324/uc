@@ -298,13 +298,23 @@ function updateHeaderUserInfo(user) {
             fullName = 'User';
         }
         
-        const avatarUrl = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random&size=80&color=fff&font-size=0.4`;
+        // Use consistent gradient avatar instead of UI Avatars service
+        const gradientAvatar = createGradientAvatar(fullName, user.username);
+        userAvatar.innerHTML = gradientAvatar;
         
-        userAvatar.innerHTML = `<img src="${avatarUrl}" alt="${fullName}">`;
-        
+        // Apply the same gradient to dropdown avatar
         if (dropdownAvatar) {
-            dropdownAvatar.style.backgroundImage = `url(${avatarUrl})`;
+            const gradient = getConsistentGradient(user.username);
+            dropdownAvatar.style.background = gradient;
+            dropdownAvatar.textContent = getInitials(fullName);
+            dropdownAvatar.style.color = 'white';
+            dropdownAvatar.style.fontWeight = '700';
+            dropdownAvatar.style.fontSize = '18px';
+            dropdownAvatar.style.display = 'flex';
+            dropdownAvatar.style.alignItems = 'center';
+            dropdownAvatar.style.justifyContent = 'center';
         }
+        
         if (dropdownUserName) {
             dropdownUserName.textContent = user.username || fullName;
         }
@@ -2813,6 +2823,67 @@ function getAvatarVariant(username) {
         hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
     return `variant-${Math.abs(hash % 8) + 1}`;
+}
+
+// Strong gradient definitions - no light yellow gradients
+const STRONG_GRADIENTS = [
+    'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',      // Deep Blue to Blue
+    'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',      // Purple to Pink
+    'linear-gradient(135deg, #059669 0%, #10b981 100%)',      // Green to Emerald
+    'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',      // Red to Red
+    'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',      // Orange to Orange
+    'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',      // Cyan to Cyan
+    'linear-gradient(135deg, #be185d 0%, #ec4899 100%)',      // Pink to Pink
+    'linear-gradient(135deg, #166534 0%, #22c55e 100%)',      // Green to Green
+    'linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%)',      // Dark Red to Red
+    'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',      // Dark Blue to Blue
+    'linear-gradient(135deg, #6b21a8 0%, #a855f7 100%)',      // Dark Purple to Purple
+    'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)'       // Teal to Teal
+];
+
+function getConsistentGradient(username) {
+    if (!username) return STRONG_GRADIENTS[0];
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return STRONG_GRADIENTS[Math.abs(hash) % STRONG_GRADIENTS.length];
+}
+
+function createGradientAvatar(fullName, username) {
+    const gradient = getConsistentGradient(username);
+    const initials = getInitials(fullName);
+    
+    return `
+        <div class="user-avatar-gradient" style="
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: ${gradient};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        ">
+            ${initials}
+        </div>
+    `;
+}
+
+function getInitials(fullName) {
+    if (!fullName) return 'U';
+    
+    const names = fullName.trim().split(' ');
+    if (names.length >= 2) {
+        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    } else if (names.length === 1) {
+        return names[0].charAt(0).toUpperCase();
+    }
+    return 'U';
 }
 
 async function makeRequest(url, options = {}) {

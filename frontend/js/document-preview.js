@@ -238,29 +238,7 @@ function handleActionCallbackButtons() {
             }
         }
         
-        if (e.target.closest('[data-action="open-reviews"]')) {
-            openReviewsOverlay();
-        }
-        
-        if (e.target.closest('[data-action="close-reviews"]')) {
-            closeReviewsOverlay();
-        }
-        
-        if (e.target.closest('[data-action="show-review-form"]')) {
-            showAddReviewForm();
-        }
-        
-        if (e.target.closest('[data-action="hide-review-form"]')) {
-            hideAddReviewForm();
-        }
-        
-        if (e.target.closest('[data-action="submit-review"]')) {
-            submitReview();
-        }
-        
-        if (e.target.closest('[data-action="delete-review"]')) {
-            deleteUserReview();
-        }
+        // Reviews overlay actions are now handled by the new system in initializeReviewsOverlay()
         
         if (e.target.closest('[data-action="add-to-cart"]')) {
             const element = e.target.closest('[data-action="add-to-cart"]');

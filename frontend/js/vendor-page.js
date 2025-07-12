@@ -4268,6 +4268,15 @@ async function performSearch(query) {
         const searchParams = new URLSearchParams();
         searchParams.append('text', query.trim());
         
+        // Get vendor username from URL parameters to filter search results
+        const urlParams = new URLSearchParams(window.location.search);
+        const vendorUsername = urlParams.get('user') || urlParams.get('username');
+        
+        if (vendorUsername) {
+            // Add vendor filter to search parameters
+            searchParams.append('author', vendorUsername);
+        }
+        
         // Add any active filters to the search
         // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
         // Client-side only filters: vetrinaType, minRating, priceType, sizeType, timeType

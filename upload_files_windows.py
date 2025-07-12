@@ -226,7 +226,7 @@ class MarketplaceUploader:
             print(f"\n📚 Processing vetrina: {vetrina_name}")
             
             # Create vetrina
-            vetrina_id = self.create_vetrina(vetrina_name, description)
+            vetrina_id = self.create_vetrina(vetrina_name, description, price=random.uniform(2.0, 3.0))
             if vetrina_id is None:
                 print(f"  ✗ Skipping {vetrina_name} due to vetrina creation failure")
                 continue

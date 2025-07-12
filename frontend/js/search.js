@@ -5338,3 +5338,34 @@ function initializeStickySearch() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeStickySearch);
+
+// Font Loading Detection Script (moved from search.html for CSP compliance)
+function showIconsImmediately() {
+    document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
+        element.style.visibility = 'visible';
+        element.style.opacity = '1';
+    });
+}
+
+// Show icons immediately on page load
+showIconsImmediately();
+
+// Update when fonts are ready
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function() {
+        if (document.fonts.check('1em "Material Symbols Outlined"')) {
+            showIconsImmediately();
+        }
+    });
+}
+
+// Additional check after a short delay to ensure icons are visible
+setTimeout(showIconsImmediately, 50);
+
+// Add event listener for preview close button (replaces inline onclick)
+document.addEventListener('DOMContentLoaded', function() {
+    const previewCloseBtn = document.getElementById('previewCloseBtn');
+    if (previewCloseBtn) {
+        previewCloseBtn.addEventListener('click', closePreview);
+    }
+});

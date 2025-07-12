@@ -593,7 +593,7 @@
         <div class="preview-content">
             <div class="preview-header">
                 <h2 class="preview-title" id="previewTitle">Document Preview</h2>
-                <button class="preview-close" onclick="closePreview()">×</button>
+                <button class="preview-close" id="previewCloseBtn">×</button>
             </div>
             <div id="previewBody" class="preview-body">
                 <!-- Preview content will be loaded here -->
@@ -612,30 +612,5 @@
     <script src="js/config.js"></script>
     <script src="js/search.js"></script>
     
-    <!-- Font Loading Detection Script -->
-    <script>
-        // Show icons immediately and update when font loads
-        function showIconsImmediately() {
-            document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
-                element.style.visibility = 'visible';
-                element.style.opacity = '1';
-            });
-        }
-        
-        // Show icons immediately on page load
-        showIconsImmediately();
-        
-        // Update when fonts are ready
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function() {
-                if (document.fonts.check('1em "Material Symbols Outlined"')) {
-                    showIconsImmediately();
-                }
-            });
-        }
-        
-        // Additional check after a short delay to ensure icons are visible
-        setTimeout(showIconsImmediately, 50);
-    </script>
 </body>
 </html>

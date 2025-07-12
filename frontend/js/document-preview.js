@@ -1024,7 +1024,7 @@ function setupActionButtons(fileData, vetrinaData = null) {
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
                 <span class="material-symbols-outlined">download</span>
-                Download Bundle
+                Download
             `;
             purchaseBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
         }

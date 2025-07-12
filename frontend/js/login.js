@@ -1,9 +1,6 @@
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 
-// Debug logging
-    APP_CONFIG: window.APP_CONFIG,
-    API_BASE: API_BASE
-});
+// Debug logging removed
 
 // DOM Elements
 const toggleBtns = document.querySelectorAll('.toggle-btn');

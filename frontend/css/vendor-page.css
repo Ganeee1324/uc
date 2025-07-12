@@ -246,7 +246,6 @@ html {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -254,6 +253,7 @@ html {
     font-weight: 700;
     font-size: 24px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Background will be set dynamically via JavaScript */
 }
 
 .vendor-details {
@@ -5838,6 +5838,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 48px;
         height: 48px;
         font-size: 20px;
+        /* Background will be set dynamically via JavaScript */
     }
     
     .vendor-name {
@@ -5868,6 +5869,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 40px;
         height: 40px;
         font-size: 18px;
+        /* Background will be set dynamically via JavaScript */
     }
     
     .vendor-name {

@@ -262,10 +262,27 @@ function updateVendorBanner(username) {
         // Set vendor name
         vendorName.textContent = username;
         
-        // Create avatar with gradient
-        const avatarVariant = getAvatarVariant(username);
-        vendorAvatar.className = `vendor-avatar variant-${avatarVariant}`;
-        vendorAvatar.textContent = username.charAt(0).toUpperCase();
+        // Create avatar with consistent gradient
+        const gradient = getConsistentGradient(username);
+        const initials = getInitials(username); // Use username as full name for vendor banner
+        
+        // Determine font size based on screen width
+        let fontSize = '24px'; // Default for desktop
+        if (window.innerWidth <= 480) {
+            fontSize = '18px'; // Mobile
+        } else if (window.innerWidth <= 768) {
+            fontSize = '20px'; // Tablet
+        }
+        
+        vendorAvatar.style.background = gradient;
+        vendorAvatar.textContent = initials;
+        vendorAvatar.style.color = 'white';
+        vendorAvatar.style.fontWeight = '700';
+        vendorAvatar.style.fontSize = fontSize;
+        vendorAvatar.style.display = 'flex';
+        vendorAvatar.style.alignItems = 'center';
+        vendorAvatar.style.justifyContent = 'center';
+        vendorAvatar.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
         
         // Update stats (will be updated when files are loaded)
         vendorStats.textContent = 'Caricamento...';

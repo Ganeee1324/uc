@@ -3041,7 +3041,7 @@ async function loadAllFiles() {
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
                 document_types: documentTypes,
                 document_type: fileCount > 1 ? 'BUNDLE' : (documentTypes.length > 0 ? documentTypes[0] : 'Documento'),
-                author_username: vetrina.owner?.username || 'Unknown',
+                author_username: vetrina.author?.username || vetrina.owner?.username || 'Unknown',
                 owned: fileMetadata.length > 0 ? fileMetadata.every(file => file.owned) : false,
                 favorite: vetrina.favorite === true,
                 tags: actualTags, // Use the actual file tags from metadata
@@ -3051,8 +3051,8 @@ async function loadAllFiles() {
                     name: vetrina.name,
                     description: vetrina.description,
                     course_instance_id: vetrina.course_instance?.instance_id,
-                    owner_id: vetrina.owner?.id,
-                    owner_username: vetrina.owner?.username || 'Unknown'
+                    owner_id: vetrina.author?.user_id || vetrina.owner?.id,
+                    owner_username: vetrina.author?.username || vetrina.owner?.username || 'Unknown'
                 }
             };
             

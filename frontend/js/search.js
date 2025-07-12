@@ -3075,7 +3075,7 @@ async function loadAllFiles() {
                 description: vetrina.description || 'No description available',
                 price: totalPrice, // 🚀 Use backend-provided price
                 created_at: vetrina.created_at,
-                download_count: vetrina.total_downloads || 0, // 🚀 Use backend-provided total downloads
+                // download_count removed - no longer needed
                 rating: vetrina.average_rating || 0, // 🚀 Use backend rating data
                 review_count: vetrina.reviews_count || 0, // 🚀 Use backend review count
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
@@ -3265,14 +3265,13 @@ async function loadVetrinaFiles(vetrinaId) {
                 price: file.price || 0,
                 document_type: getFileTypeFromFilename(file.filename),
                 created_at: file.created_at,
-                download_count: file.download_count || 0,
                 owned: file.owned || false,
                 tag: file.tag || null
             })),
             fileCount: realFiles.length,
             totalSize: totalSize,
             totalPrice: totalPrice,
-            totalDownloads: realFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
+            // totalDownloads removed - no longer needed
             documentTypes: Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename)))),
             tags: allTags,
             primaryTag: allTags.length > 0 ? allTags[0] : null,
@@ -3954,7 +3953,7 @@ async function previewDocument(fileId) {
             file.files = fileData.files;
             file.size = fileData.totalSize;
             file.price = fileData.totalPrice;
-            file.download_count = fileData.totalDownloads;
+            // download_count removed - no longer needed
             file.document_types = fileData.documentTypes;
             file.document_type = fileData.fileCount > 1 ? 'BUNDLE' : fileData.documentTypes[0] || 'FILE';
             file.owned = fileData.owned;
@@ -4338,7 +4337,7 @@ async function performSearch(query) {
                         price: file.price || 0,
                         document_type: getFileTypeFromFilename(file.filename),
                         created_at: file.created_at,
-                        download_count: file.download_count || 0,
+                        // download_count removed - no longer needed
                         owned: file.owned || false,
                         tag: file.tag || null
                     })),
@@ -4349,7 +4348,7 @@ async function performSearch(query) {
                     size: totalSize,
                     price: totalPrice,
                     created_at: vetrina.created_at || new Date().toISOString(),
-                    download_count: realFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
+                    // download_count removed - no longer needed
                     rating: 0, // Will be updated when reviews are loaded
                     review_count: 0, // Will be updated when reviews are loaded
                     course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
@@ -4920,7 +4919,7 @@ async function openQuickLook(vetrina) {
                 vetrina.fileCount = fileData.fileCount;
                 vetrina.size = fileData.totalSize;
                 vetrina.price = fileData.totalPrice;
-                vetrina.download_count = fileData.totalDownloads;
+                // download_count removed - no longer needed
                 vetrina.document_types = fileData.documentTypes;
                 vetrina.document_type = fileData.fileCount > 1 ? 'BUNDLE' : fileData.documentTypes[0] || 'FILE';
                 vetrina.owned = fileData.owned;

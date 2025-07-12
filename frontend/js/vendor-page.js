@@ -83,10 +83,7 @@ let originalFiles = []; // Keep original unfiltered data
 let activeFilters = {};
 let isFiltersOpen = false;
 
-// OPTIMIZATION: Add caching for file metadata to avoid repeated API calls
-let fileMetadataCache = new Map();
-let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+// File metadata caching removed - now using only vetrina-level data
 
     // Initialize the page
     window.onload = async function() {
@@ -3100,164 +3097,59 @@ async function loadAllFiles() {
         console.log(`Loaded ${currentVetrine.length} vetrine for vendor: ${vendorUsername}`);
         console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));
         
-        // Fetch file metadata for all vetrine (not the actual files) - OPTIMIZED VERSION
-        showStatus('Caricamento metadati file... 📁');
-        const allFilesData = {};
-        
-        // 🚀 NEW BACKEND FEATURE: Vetrina now includes tags, ratings, and review counts directly!
-        // No need to fetch file metadata separately - everything is in the vetrina response!
-        console.log('🚀 Using new backend features: tags, ratings, and reviews included in vetrina response');
+        // 🚀 OPTIMIZED: Use only vetrina-level data - no file metadata needed!
+        console.log('🚀 Using only vetrina-level data - no file metadata fetching needed!');
         showStatus('Caricamento completato! ⚡');
         
         // The backend now provides all the data we need in the vetrina response:
+        // - file_count: number of files
+        // - price: total price
         // - tags: array of unique tags from all files
         // - average_rating: average rating of the vetrina
         // - reviews_count: number of reviews
-        // - All file metadata is calculated server-side
         
-        // 🚀 OPTIMIZED APPROACH: Use existing backend efficiently
-        // The backend already provides tags, ratings, and reviews in the vetrina response
-        // We only need file metadata for size, price, and file count calculations
-        const now = Date.now();
-        const isCacheValid = (now - cacheTimestamp) < CACHE_DURATION;
-        
-        if (isCacheValid && fileMetadataCache.size > 0) {
-            console.log('🚀 Using cached file metadata for instant loading');
-            showStatus('Caricamento da cache... ⚡');
-            
-            // Use cached data
-            currentVetrine.forEach(vetrina => {
-                const cachedData = fileMetadataCache.get(vetrina.vetrina_id);
-                if (cachedData) {
-                    allFilesData[vetrina.vetrina_id] = cachedData;
-                } else {
-                    allFilesData[vetrina.vetrina_id] = [];
-                }
-            });
-            
-            console.log(`📊 Using cached metadata for ${Object.keys(allFilesData).length} vetrine`);
-        } else {
-            // Cache is invalid or empty, fetch fresh data efficiently
-            console.log('🔄 Fetching file metadata for size, price, and file count calculations');
-            showStatus('Caricamento ottimizzato... ⚡');
-            
-            // OPTIMIZATION: Use Promise.allSettled for parallel requests and better error handling
-            const fileMetadataPromises = currentVetrine.map(async (vetrina) => {
-                try {
-                    const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
-                    return {
-                        status: 'fulfilled',
-                        vetrinaId: vetrina.vetrina_id,
-                        files: filesResponse?.files || []
-                    };
-                } catch (error) {
-                    console.warn(`⚠️ Error fetching file metadata for vetrina ${vetrina.vetrina_id}:`, error);
-                    return {
-                        status: 'rejected',
-                        vetrinaId: vetrina.vetrina_id,
-                        files: [],
-                        error: error.message
-                    };
-                }
-            });
-            
-            // Use Promise.allSettled for better performance and error handling
-            const fileResults = await Promise.allSettled(fileMetadataPromises);
-            
-            // Process results efficiently
-            let successCount = 0;
-            let errorCount = 0;
-            
-            fileResults.forEach((result, index) => {
-                if (result.status === 'fulfilled') {
-                    const data = result.value;
-                    allFilesData[data.vetrinaId] = data.files;
-                    // Cache the successful results
-                    fileMetadataCache.set(data.vetrinaId, data.files);
-                    successCount++;
-                } else {
-                    // Handle rejected promises
-                    const vetrina = currentVetrine[index];
-                    allFilesData[vetrina.vetrina_id] = [];
-                    errorCount++;
-                    console.warn(`⚠️ Failed to fetch metadata for vetrina ${vetrina.vetrina_id}:`, result.reason);
-                }
-            });
-            
-            // Update cache timestamp
-            cacheTimestamp = now;
-            
-            console.log(`📊 File metadata fetched: ${successCount} successful, ${errorCount} failed out of ${currentVetrine.length} vetrine`);
-            
-            // Show progress for better UX
-            if (currentVetrine.length > 10) {
-                showStatus(`Caricamento completato: ${successCount}/${currentVetrine.length} vetrine caricate con successo! 🚀`);
-            }
-        }
-        
-        // Transform vetrine into card items using file metadata (not actual files)
+        // Transform vetrine into card items using ONLY vetrina-level data
         console.log('🔄 Processing vetrina metadata for UI...');
-        const allFiles = [];
-        
-        for (const vetrina of currentVetrine) {
+        const allFiles = currentVetrine.map(vetrina => {
             console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
-            // Get file metadata for this vetrina (only for size and document types)
-            const fileMetadata = allFilesData[vetrina.vetrina_id] || [];
-            let totalSize = 0;
-            let documentTypes = [];
-            
-            // 🚀 NEW: Use backend-provided file_count and price directly from vetrina response!
-            const fileCount = vetrina.file_count || fileMetadata.length || 1;
+            // Use ONLY vetrina-level data provided by backend
+            const fileCount = vetrina.file_count || 0;
             const totalPrice = vetrina.price || 0;
+            const actualTags = vetrina.tags || [];
             
-            // 🚀 NEW: Use tags directly from vetrina response (backend now provides this!)
-            let actualTags = vetrina.tags || [];
-            
-            if (fileMetadata.length > 0) {
-                // Calculate size from file metadata (price and file_count now come from backend)
-                totalSize = fileMetadata.reduce((sum, file) => sum + (file.size || 0), 0);
-                
-                // Extract document types from file extensions in metadata
-                documentTypes = Array.from(new Set(fileMetadata.map(file => getFileTypeFromFilename(file.filename))));
-                
-                console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files (backend) with backend tags:`, actualTags);
-            } else {
-                console.log(`⚠️ No file metadata found for vetrina ${vetrina.vetrina_id}, using backend file_count: ${fileCount}, price: ${totalPrice}, tags:`, actualTags);
-            }
-            
+            console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with backend tags:`, actualTags);
             console.log(`🏷️ Using backend tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
             
-            // Create a card item using vetrina metadata and backend-provided values
+            // Create a card item using ONLY vetrina-level data
             const vetrineCard = {
                 id: vetrina.id || vetrina.vetrina_id,
                 isVetrina: true,
                 filesLoaded: false, // Mark as NOT loaded - actual files will be loaded on demand
-                fileCount: fileCount, // 🚀 Use backend-provided file_count
+                fileCount: fileCount, // Use backend-provided file_count
                 files: [], // Empty array - actual files will be loaded on demand
                 // Use vetrina info for the card
-                filename: 'Vetrina', // Generic name until files are loaded
+                filename: fileCount > 1 ? `${fileCount} files` : 'Documento',
                 title: vetrina.name || 'Vetrina Senza Nome',
                 description: vetrina.description || 'No description available',
-                size: totalSize,
-                price: totalPrice, // 🚀 Use backend-provided price
+                price: totalPrice, // Use backend-provided price
                 created_at: vetrina.created_at,
-                download_count: fileMetadata.reduce((sum, file) => sum + (file.download_count || 0), 0),
-                rating: vetrina.average_rating || 0, // 🚀 NEW: Use backend rating data
-                review_count: vetrina.reviews_count || 0, // 🚀 NEW: Use backend review count
+                size: 0, // Will be calculated when files are loaded on-demand
+                rating: vetrina.average_rating || 0, // Use backend rating data
+                review_count: vetrina.reviews_count || 0, // Use backend review count
                 course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
                 faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
                 language: vetrina.course_instance?.language || 'Italiano',
                 canale: vetrina.course_instance?.canale || 'A',
                 course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
                 academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                document_types: documentTypes,
-                document_type: fileCount > 1 ? 'BUNDLE' : (documentTypes.length > 0 ? documentTypes[0] : 'Documento'),
+                document_types: [], // Will be populated when files are loaded on-demand
+                document_type: fileCount > 1 ? 'BUNDLE' : 'Documento',
                 author_username: vetrina.author?.username || vetrina.owner?.username || 'Unknown',
-                owned: fileMetadata.length > 0 ? fileMetadata.every(file => file.owned) : false,
+                owned: false, // Will be determined when files are loaded on-demand
                 favorite: vetrina.favorite === true,
-                tags: actualTags, // Use the actual file tags from metadata
-                primary_tag: actualTags.length > 0 ? actualTags[0] : null, // Use first actual tag
+                tags: actualTags, // Use backend-provided tags
+                primary_tag: actualTags.length > 0 ? actualTags[0] : null,
                 vetrina_info: {
                     id: vetrina.id || vetrina.vetrina_id,
                     name: vetrina.name,
@@ -3275,8 +3167,8 @@ async function loadAllFiles() {
             });
             
             console.log(`💖 Vetrina ${vetrina.vetrina_id} final favorite status: ${vetrineCard.favorite}`);
-            allFiles.push(vetrineCard);
-        }
+            return vetrineCard;
+        });
         
         currentFiles = allFiles;
         originalFiles = [...allFiles]; // Keep original copy
@@ -3336,69 +3228,9 @@ function extractFacultyFromVetrina(vetrinaName) {
 
 // Helper function to extract tags from vetrina metadata
 function extractTagsFromVetrina(vetrina) {
-    const tags = [];
-    const name = (vetrina.name || '').toLowerCase();
-    const description = (vetrina.description || '').toLowerCase();
-    
-    console.log(`🔍 Extracting tags from vetrina: "${name}" - "${description}"`);
-    
-    // Check for backend-valid document types in name and description
-    if (name.includes('appunti') || description.includes('appunti')) {
-        tags.push('appunti');
-    }
-    if (name.includes('dispense') || description.includes('dispense')) {
-        tags.push('dispense');
-    }
-    if (name.includes('esercizi') || description.includes('esercizi')) {
-        tags.push('esercizi');
-    }
-    
-    // If no backend-valid tags found, try to infer from content
-    if (tags.length === 0) {
-        // Look for synonyms or related terms that map to valid tags
-        if (name.includes('formulario') || description.includes('formulario') || 
-            name.includes('formula') || description.includes('formula')) {
-            tags.push('dispense'); // Formulario maps to dispense
-        } else if (name.includes('slide') || description.includes('slide') || 
-                   name.includes('presentazione') || description.includes('presentazione')) {
-            tags.push('dispense'); // Slides map to dispense
-        } else if (name.includes('riassunto') || description.includes('riassunto') || 
-                   name.includes('summary') || description.includes('summary')) {
-            tags.push('appunti'); // Riassunto maps to appunti
-        } else if (name.includes('esame') || description.includes('esame') || 
-                   name.includes('exam') || description.includes('exam')) {
-            tags.push('esercizi'); // Esame maps to esercizi
-        } else if (name.includes('progetto') || description.includes('progetto') || 
-                   name.includes('project') || description.includes('project')) {
-            tags.push('esercizi'); // Progetto maps to esercizi
-        } else {
-            // For generic vetrina names, try to infer from course name
-            const courseName = (vetrina.course_instance?.course_name || '').toLowerCase();
-            console.log(`🎓 Course name: "${courseName}"`);
-            
-            if (courseName.includes('matematica') || courseName.includes('analisi') || courseName.includes('calcolo')) {
-                // Math courses often have exercises
-                tags.push('esercizi');
-            } else if (courseName.includes('fisica')) {
-                // Physics courses often have exercises and formulas
-                tags.push('esercizi', 'dispense');
-            } else if (courseName.includes('chimica')) {
-                // Chemistry courses often have exercises
-                tags.push('esercizi');
-            } else if (courseName.includes('informatica') || courseName.includes('programmazione')) {
-                // Computer science courses often have exercises and projects
-                tags.push('esercizi');
-            } else if (courseName.includes('economia') || courseName.includes('business')) {
-                // Economics courses often have notes and exercises
-                tags.push('appunti', 'esercizi');
-            } else {
-                // Default to a mix of common types for generic courses
-                tags.push('appunti', 'dispense');
-            }
-        }
-    }
-    
-    console.log(`🏷️ Extracted tags: ${tags.join(', ')}`);
+    // If vetrina has tags from backend, use them; otherwise return empty array
+    const tags = vetrina.tags || [];
+    console.log(`🏷️ Using backend tags for vetrina: ${tags.join(', ')}`);
     return tags;
 }
 
@@ -4545,81 +4377,47 @@ async function performSearch(query) {
             return;
         }
         
-        // Transform backend vetrine results with REAL file data
-        const transformedResults = [];
-        
-        for (const vetrina of searchResults) {
-            try {
-                // Fetch REAL files for this vetrina
-                const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
-                const realFiles = filesResponse?.files || [];
-                
-                if (realFiles.length === 0) {
-                    console.log(`⚠️ No files found for search result vetrina ${vetrina.vetrina_id}, skipping`);
-                    continue;
-                }
-                
-                // Calculate totals for the vetrina using REAL data
-                const totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
-                const totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
-                
-                // Create a card item with REAL file data
-                const vetrineCard = {
+        // Transform backend vetrine results using ONLY vetrina-level data (no file metadata needed!)
+        const transformedResults = searchResults.map(vetrina => {
+            // Use vetrina-level information provided by backend
+            const vetrineCard = {
+                id: vetrina.vetrina_id,
+                isVetrina: true,
+                filesLoaded: false, // Mark as not loaded - will load on-demand when needed
+                fileCount: vetrina.file_count || 0,
+                // files: [] - will be loaded on-demand when user clicks preview/quick look
+                filename: vetrina.file_count > 1 ? `${vetrina.file_count} files` : 'Documento',
+                title: vetrina.name || 'Vetrina Senza Nome',
+                description: vetrina.description || 'No description available',
+                size: 0, // Will be calculated when files are loaded on-demand
+                price: vetrina.price || 0, // Use backend-provided price
+                created_at: vetrina.created_at || new Date().toISOString(),
+                rating: vetrina.average_rating || 0, // Use backend-provided rating
+                review_count: vetrina.reviews_count || 0, // Use backend-provided review count
+                course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
+                faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
+                language: vetrina.course_instance?.language || 'Italiano',
+                canale: vetrina.course_instance?.canale || 'A',
+                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                document_types: [], // Will be populated when files are loaded on-demand
+                document_type: 'BUNDLE', // Default to bundle, will be updated when files are loaded
+                author_username: vetrina.author?.username || 'Unknown',
+                owned: false, // Will be determined when files are loaded on-demand
+                favorite: vetrina.favorite === true,
+                tags: vetrina.tags || [], // Use backend-provided tags
+                primary_tag: vetrina.tags && vetrina.tags.length > 0 ? vetrina.tags[0] : null,
+                vetrina_info: {
                     id: vetrina.vetrina_id,
-                    isVetrina: true,
-                    filesLoaded: true, // Mark as loaded so it shows file stack UI
-                    fileCount: realFiles.length,
-                    files: realFiles.map(file => ({
-                        id: file.file_id,
-                        filename: file.filename,
-                        title: file.original_filename || file.filename,
-                        size: file.size || 0,
-                        price: file.price || 0,
-                        document_type: getFileTypeFromFilename(file.filename),
-                        created_at: file.created_at,
-                        download_count: file.download_count || 0,
-                        owned: file.owned || false,
-                        tag: file.tag || null
-                    })),
-                    // Use vetrina info for the card
-                    filename: realFiles.length > 1 ? `${realFiles.length} files` : realFiles[0].filename,
-                    title: vetrina.name || 'Vetrina Senza Nome',
-                    description: vetrina.description || 'No description available',
-                    size: totalSize,
-                    price: totalPrice,
-                    created_at: vetrina.created_at || new Date().toISOString(),
-                    download_count: realFiles.reduce((sum, file) => sum + (file.download_count || 0), 0),
-                    rating: 0, // Will be updated when reviews are loaded
-                    review_count: 0, // Will be updated when reviews are loaded
-                    course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
-                    faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
-                    language: vetrina.course_instance?.language || 'Italiano',
-                    canale: vetrina.course_instance?.canale || 'A',
-                    course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                    academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                    document_types: Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename)))),
-                    document_type: realFiles.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(realFiles[0].filename),
-                    author_username: vetrina.author?.username || 'Unknown',
-                    owned: realFiles.every(file => file.owned),
-                    favorite: vetrina.favorite === true,
-                    tags: realFiles.map(file => file.tag).filter(tag => tag !== null),
-                    primary_tag: realFiles.find(file => file.tag)?.tag || null,
-                    vetrina_info: {
-                        id: vetrina.vetrina_id,
-                        name: vetrina.name,
-                        description: vetrina.description,
-                        course_instance_id: vetrina.course_instance?.course_instance_id,
-                        owner_id: vetrina.author?.user_id,
-                        owner_username: vetrina.author?.username || 'Unknown'
-                    }
-                };
-                transformedResults.push(vetrineCard);
-                
-            } catch (error) {
-                console.error(`Error loading files for search result vetrina ${vetrina.vetrina_id}:`, error);
-                // Continue with other vetrine even if one fails
-            }
-        }
+                    name: vetrina.name,
+                    description: vetrina.description,
+                    course_instance_id: vetrina.course_instance?.course_instance_id,
+                    owner_id: vetrina.author?.user_id,
+                    owner_username: vetrina.author?.username || 'Unknown'
+                }
+            };
+            return vetrineCard;
+        });
         
         // Apply any remaining client-side filters (except backend-handled ones)
         console.log('🔍 Applying client-side filters to', transformedResults.length, 'results...');

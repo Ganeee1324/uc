@@ -2709,7 +2709,7 @@ function getAvatarVariant(username) {
     for (let i = 0; i < username.length; i++) {
         hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return `variant-${Math.abs(hash % 12) + 1}`;
+    return `variant-${Math.abs(hash % 8) + 1}`;
 }
 
 async function makeRequest(url, options = {}) {
@@ -3636,7 +3636,7 @@ function renderDocuments(files) {
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}">
+                        <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="document-meta">

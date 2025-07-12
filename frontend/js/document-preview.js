@@ -2390,8 +2390,6 @@ async function downloadRedactedDocument(fileId) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const blob = await response.blob();
-        
         const contentDisposition = response.headers.get('Content-Disposition');
         let filename = `redacted-document-${fileId}.pdf`;
         if (contentDisposition) {

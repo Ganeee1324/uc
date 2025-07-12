@@ -69,11 +69,7 @@ function handleCSPEventHandlers() {
 
 // Check if user is authenticated, but don't redirect - just return status
 function checkAuthentication() {
-    if (!authToken) {
-        console.log('No auth token found, user is not authenticated');
-        return false;
-    }
-    return true;
+    return !!authToken;
 }
 
 let currentVetrine = [];
@@ -86,23 +82,14 @@ let isFiltersOpen = false;
 
     // Initialize the page
     window.onload = async function() {
-        console.log('🚀 Page loading started...');
-        console.log(`🔄 Using cache buster: ${CACHE_BUSTER}`);
-        
         // Force clear any cached data that might be causing issues
         if (sessionStorage.getItem('lastCacheBuster') !== CACHE_BUSTER.toString()) {
-            console.log('🔄 Cache buster changed, clearing session storage');
             sessionStorage.clear();
             sessionStorage.setItem('lastCacheBuster', CACHE_BUSTER.toString());
         }
         
-        // Loading state is already set in HTML for immediate display
-        // This ensures layout stability even on first load with empty cache
-        console.log('✅ Loading state already present in HTML - no layout shift will occur');
-        
         // Check authentication after showing loading state
         const isAuthenticated = checkAuthentication();
-        console.log(`🔐 Authentication status: ${isAuthenticated ? 'Authenticated' : 'Not authenticated'}`);
         
         // Initialize user info (will show login button if not authenticated)
         initializeUserInfo();
@@ -110,7 +97,6 @@ let isFiltersOpen = false;
         // Initialize CSP-compliant event handlers
         handleCSPEventHandlers();
         
-        console.log('📱 Loading files and initializing components...');
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
@@ -118,12 +104,11 @@ let isFiltersOpen = false;
         // Load valid tags from backend first
         await loadValidTags();
         
-        // Load files first, then restore filters
+        // Load files for both authenticated and guest users
         await loadAllFiles();
-        
+
         // Ensure documents are shown after loading
         if (originalFiles && originalFiles.length > 0) {
-            console.log('Initial load complete, showing all documents');
             renderDocuments(originalFiles);
             currentFiles = originalFiles;
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
@@ -142,7 +127,6 @@ let isFiltersOpen = false;
                 setTimeout(() => {
                     const documentsGrid = document.getElementById('documentsGrid');
                     if (documentsGrid && documentsGrid.children.length === 0 && originalFiles && originalFiles.length > 0) {
-                        console.log('Safety check: No documents shown, displaying all documents');
                         renderDocuments(originalFiles);
                         currentFiles = originalFiles;
                         showStatus(`${originalFiles.length} documenti disponibili 📚`);
@@ -154,45 +138,24 @@ let isFiltersOpen = false;
         // Favorite status is already loaded from the backend in loadAllFiles()
         // No need to refresh on page load since the data is already correct
     
-    // Add keyboard shortcut to test loading animation (Ctrl/Cmd + L)
+    // Add keyboard shortcut to clear all filters (Ctrl/Cmd + Alt + C)
     document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
-            e.preventDefault();
-            console.log('🧪 Manual loading test triggered!');
-            
-        }
-        
-        // Add keyboard shortcut to clear all filters (Ctrl/Cmd + Alt + C)
         if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'c') {
             e.preventDefault();
-            console.log('🧹 Manual clear all filters triggered!');
             clearAllFiltersAction();
-        }
-        
-        // Add keyboard shortcut to debug filter state (Ctrl/Cmd + Alt + D)
-        if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'd') {
-            e.preventDefault();
-            console.log('🔍 Debug filter state:');
-            console.log('Active filters:', activeFilters);
-            console.log('Active filters count:', Object.keys(activeFilters).length);
-            console.log('Original files count:', originalFiles ? originalFiles.length : 'undefined');
-            console.log('Current files count:', currentFiles ? currentFiles.length : 'undefined');
         }
     });
     
     // Add a single, reliable event listener to refresh favorites when the page is shown.
     window.addEventListener('pageshow', (event) => {
-        console.log('📄 Pageshow event triggered:', { persisted: event.persisted, favoritesChanged: sessionStorage.getItem('favoritesChanged') });
         // This event fires on initial load and when navigating back to the page.
         const favoritesChanged = sessionStorage.getItem('favoritesChanged');
         
         if (favoritesChanged === 'true') {
-            console.log('🔄 Favorites changed on another page, refreshing status...');
             sessionStorage.removeItem('favoritesChanged'); // Clear the flag
             refreshFavoriteStatus();
         } else if (event.persisted) {
             // event.persisted is true if the page was restored from the back-forward cache.
-            console.log('🔄 Page restored from cache, refreshing favorite status...');
             refreshFavoriteStatus();
         }
     });
@@ -206,7 +169,6 @@ let isFiltersOpen = false;
     // Check if we're returning to the page and refresh favorites
     window.addEventListener('pageshow', async (event) => {
         if (isLeavingPage && currentFiles && currentFiles.length > 0) {
-            console.log('🔄 Returning to page, refreshing favorite status...');
             isLeavingPage = false;
             setTimeout(async () => {
                 await refreshFavoriteStatus();
@@ -217,14 +179,11 @@ let isFiltersOpen = false;
     // Handle browser back/forward navigation
     window.addEventListener('popstate', async (event) => {
         if (currentFiles && currentFiles.length > 0) {
-            console.log('🔄 Browser navigation detected, refreshing favorite status...');
             setTimeout(async () => {
                 await refreshFavoriteStatus();
             }, 100);
         }
     });
-    
-    console.log('✅ Page initialization complete!');
 };
 
 async function initializeUserInfo() {
@@ -3024,13 +2983,14 @@ async function makeSimpleRequest(url) {
         const response = await fetch(API_BASE + url);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            console.log(`Simple request failed with status: ${response.status}`);
+            return null;
         }
         
         return await response.json();
     } catch (error) {
         console.error('Simple request failed:', error);
-        throw error;
+        return null;
     }
 }
 
@@ -3138,29 +3098,25 @@ function showLoadingCards(count = 8) {
 
 async function loadAllFiles() {
     try {
-        console.log('🔄 Loading vetrine data...');
         showStatus('Caricamento vetrine... 📚');
         
-        // Fetch vetrine data from backend
-        const vetrineResponse = await makeAuthenticatedRequest('/vetrine');
+        // Use authenticated or simple request based on auth
+        let vetrineResponse;
+        if (authToken) {
+            vetrineResponse = await makeAuthenticatedRequest('/vetrine');
+        } else {
+            vetrineResponse = await makeSimpleRequest('/vetrine');
+        }
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }
         
         currentVetrine = vetrineResponse.vetrine || [];
-        console.log('Loaded vetrine metadata:', currentVetrine.length, 'vetrines');
-        console.log('🔍 Raw vetrina data sample:', currentVetrine.slice(0, 3));
-        
-        // 🚀 OPTIMIZED: Use only vetrina-level information - no file metadata needed!
-        showStatus('Caricamento completato! ⚡');
-        console.log('🚀 Using vetrina-level data only - no file metadata fetching needed');
         
         // Transform vetrine into card items using ONLY vetrina metadata
-        console.log('🔄 Processing vetrina metadata for UI...');
         const allFiles = [];
         
         for (const vetrina of currentVetrine) {
-            console.log(`📋 Processing vetrina ${vetrina.vetrina_id}: favorite=${vetrina.favorite}, raw favorite value:`, vetrina.favorite, 'type:', typeof vetrina.favorite);
             
             // 🚀 NEW: Use ONLY backend-provided vetrina data - no file metadata needed!
             const fileCount = vetrina.file_count || 1;
@@ -3176,8 +3132,7 @@ async function loadAllFiles() {
                 documentTypes = fileCount > 1 ? ['BUNDLE'] : ['Documento'];
             }
             
-            console.log(`📁 Vetrina ${vetrina.vetrina_id} has ${fileCount} files with backend tags:`, actualTags);
-            console.log(`🏷️ Using backend tags for vetrina ${vetrina.vetrina_id}:`, actualTags);
+
             
             // Create a card item using ONLY vetrina metadata
             const vetrineCard = {
@@ -3218,14 +3173,6 @@ async function loadAllFiles() {
                 }
             };
             
-            console.log(`✅ Created vetrineCard for ${vetrina.vetrina_id} with backend data:`, {
-                fileCount: vetrineCard.fileCount,
-                price: vetrineCard.price,
-                tags: vetrineCard.tags,
-                documentTypes: vetrineCard.document_types
-            });
-            
-            console.log(`💖 Vetrina ${vetrina.vetrina_id} final favorite status: ${vetrineCard.favorite}`);
             allFiles.push(vetrineCard);
         }
         
@@ -3237,9 +3184,11 @@ async function loadAllFiles() {
         
     } catch (error) {
         console.error('Error loading vetrine:', error);
-        showError('Errore nel caricamento dei documenti. Riprova più tardi.');
-        // Show empty state
+        // Show empty state without error message for guests
+        currentFiles = [];
+        originalFiles = [];
         renderDocuments([]);
+        showStatus('Nessuna vetrina disponibile');
     }
 }
 
@@ -3301,10 +3250,8 @@ async function loadValidTags() {
         const response = await makeSimpleRequest('/tags');
         if (response && response.tags) {
             window.allTags = response.tags;
-            console.log('✅ Loaded valid tags from backend:', window.allTags);
         }
     } catch (error) {
-        console.warn('⚠️ Could not load tags from backend, using defaults:', error);
         // Keep default tags: ['appunti', 'dispense', 'esercizi']
     }
 }

@@ -71,7 +71,7 @@ function handleCSPEventHandlers() {
 function checkAuthentication() {
     if (!authToken) {
         console.log('No auth token found, redirecting to login');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
         return false;
     }
     return true;
@@ -2889,7 +2889,7 @@ async function makeRequest(url, options = {}) {
                 console.log('Authentication failed, redirecting to login');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
                 return;
             }
             const data = await response.json();
@@ -2936,7 +2936,7 @@ async function makeAuthenticatedRequest(url) {
                 console.log('Authentication failed, redirecting to login');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
                 return;
             }
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -4884,7 +4884,7 @@ function logout() {
     localStorage.removeItem('currentUser');
     showStatus('Logout effettuato con successo');
     setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
     }, 1000);
 }
 

@@ -5,6 +5,68 @@ console.log(`🔄 Cache buster timestamp: ${CACHE_BUSTER}`);
 const API_BASE = window.APP_CONFIG?.API_BASE || 'http://146.59.236.26:5000';
 let authToken = localStorage.getItem('authToken');
 
+// Handle CSP-compliant event handlers
+function handleCSPEventHandlers() {
+    document.addEventListener('click', function(e) {
+        // Handle filter actions
+        if (e.target.closest('[data-action="clear-all-filters"]')) {
+            clearAllFiltersAction();
+        }
+        
+        if (e.target.closest('[data-action="remove-filter"]')) {
+            const element = e.target.closest('[data-action="remove-filter"]');
+            const filterKey = element.getAttribute('data-filter-key');
+            const specificValue = element.getAttribute('data-specific-value');
+            if (filterKey) {
+                removeActiveFilter(filterKey, e, specificValue);
+            }
+        }
+        
+        if (e.target.closest('[data-action="toggle-favorite"]')) {
+            const element = e.target.closest('[data-action="toggle-favorite"]');
+            toggleFavorite(element, e);
+        }
+        
+        if (e.target.closest('[data-action="navigate"]')) {
+            const element = e.target.closest('[data-action="navigate"]');
+            const url = element.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        }
+        
+        if (e.target.closest('[data-action="download-document"]')) {
+            const element = e.target.closest('[data-action="download-document"]');
+            const fileId = element.getAttribute('data-file-id');
+            if (fileId) {
+                downloadDocument(fileId);
+                closePreview();
+            }
+        }
+        
+        if (e.target.closest('[data-action="purchase-document"]')) {
+            const element = e.target.closest('[data-action="purchase-document"]');
+            const fileId = element.getAttribute('data-file-id');
+            if (fileId) {
+                purchaseDocument(fileId);
+                closePreview();
+            }
+        }
+        
+        if (e.target.closest('[data-action="close-preview"]')) {
+            closePreview();
+        }
+        
+        if (e.target.closest('[data-action="view-full-document"]')) {
+            const element = e.target.closest('[data-action="view-full-document"]');
+            const docId = element.getAttribute('data-doc-id');
+            if (docId) {
+                window.location.href = `document-preview.html?id=${docId}`;
+            }
+        }
+    });
+}
+
 // Check if user is authenticated, redirect to login if not
 function checkAuthentication() {
     if (!authToken) {
@@ -52,6 +114,9 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
         
         // Initialize user info and logout button
         initializeUserInfo();
+        
+        // Initialize CSP-compliant event handlers
+        handleCSPEventHandlers();
         
         console.log('📱 Loading files and initializing components...');
         initializeAnimations();
@@ -1868,7 +1933,7 @@ function addBottomClearAllButton() {
     bottomClearSection.className = 'filters-bottom-actions';
     bottomClearSection.innerHTML = `
         <div class="bottom-clear-container">
-            <button class="bottom-clear-all-btn" id="bottomClearAllButton" onclick="clearAllFiltersAction()">
+            <button class="bottom-clear-all-btn" id="bottomClearAllButton" data-action="clear-all-filters">
                 <i class="material-symbols-outlined">clear_all</i>
                 <span>Rimuovi tutti i filtri</span>
             </button>
@@ -2383,7 +2448,7 @@ function updateActiveFiltersDisplay() {
                         <div class="filter-pill" data-filter="${key}" data-value="${item}">
                             <span class="filter-pill-label">${itemLabel}:</span>
                             <span class="filter-pill-value">${itemValue}</span>
-                            <span class="filter-pill-remove" onclick="removeActiveFilter('${key}', event, '${item}')"></span>
+                            <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="${key}" data-specific-value="${item}"></span>
                         </div>
                     `);
                 }
@@ -2466,7 +2531,7 @@ function updateActiveFiltersDisplay() {
         
         if (label && displayValue) {
             filterPills.push(`
-                <div class="filter-pill" data-filter-key="${key}" onclick="removeActiveFilter('${key}', event)">
+                <div class="filter-pill" data-filter-key="${key}" data-action="remove-filter">
                     <span class="filter-pill-label">${label}:</span>
                     <span class="filter-pill-value">${displayValue}</span>
                     <div class="filter-pill-remove"></div>
@@ -2481,7 +2546,7 @@ function updateActiveFiltersDisplay() {
         const minPrice = activeFilters.minPrice !== undefined ? activeFilters.minPrice : 0;
         const maxPrice = activeFilters.maxPrice !== undefined ? activeFilters.maxPrice : 100;
         filterPills.push(`
-            <div class="filter-pill" data-filter-key="priceRange" onclick="removeActiveFilter('priceRange', event)">
+            <div class="filter-pill" data-filter-key="priceRange" data-action="remove-filter">
                 <span class="filter-pill-label">Prezzo:</span>
                 <span class="filter-pill-value">€${minPrice}-€${maxPrice}</span>
                 <div class="filter-pill-remove"></div>
@@ -2492,7 +2557,7 @@ function updateActiveFiltersDisplay() {
     // Add clear all button if there are filters
     if (filterPills.length > 0) {
         filterPills.push(`
-            <button class="clear-all-filters-btn" onclick="clearAllActiveFilters(event)">
+            <button class="clear-all-filters-btn" data-action="clear-all-filters">
                 <span class="material-symbols-outlined">clear_all</span>
                 <span class="clear-all-filters-btn-text">Rimuovi tutti</span>
             </button>
@@ -3602,7 +3667,7 @@ function renderDocuments(files) {
             </div>
             
             <button class="favorite-button ${isFavorited ? 'active' : ''}" 
-                    onclick="toggleFavorite(this, event)" 
+                    data-action="toggle-favorite" 
                     title="${isFavorited ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">
                 <span class="material-symbols-outlined">favorite</span>
             </button>
@@ -3636,7 +3701,7 @@ function renderDocuments(files) {
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}" onclick="window.location.href='vendor-page.html?user=${encodeURIComponent(item.author_username || 'Unknown')}'">
+                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}" data-action="navigate" data-url="vendor-page.html?user=${encodeURIComponent(item.author_username || 'Unknown')}">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="document-meta">
@@ -4045,28 +4110,28 @@ async function previewDocument(fileId) {
     `;
     
     const actions = file.owned ? 
-        `<button class="btn primary" onclick="downloadDocument(${file.id}); closePreview();">
+        `<button class="btn primary" data-action="download-document" data-file-id="${file.id}">
             <i class="material-symbols-outlined">download</i>
             Scarica Documento
          </button>
-         <button class="btn secondary" onclick="closePreview()">
+         <button class="btn secondary" data-action="close-preview">
             <i class="material-symbols-outlined">close</i>
             Chiudi
          </button>` :
         price === 0 ?
-        `<button class="btn primary" onclick="downloadDocument(${file.id}); closePreview();">
+        `<button class="btn primary" data-action="download-document" data-file-id="${file.id}">
             <i class="material-symbols-outlined">download</i>
             Scarica Gratis
          </button>
-         <button class="btn secondary" onclick="closePreview()">
+         <button class="btn secondary" data-action="close-preview">
             <i class="material-symbols-outlined">close</i>
             Chiudi
          </button>` :
-        `<button class="btn primary" onclick="purchaseDocument(${file.id}); closePreview();">
+        `<button class="btn primary" data-action="purchase-document" data-file-id="${file.id}">
             <i class="material-symbols-outlined">payment</i>
             Acquista per €${price}
          </button>
-         <button class="btn secondary" onclick="closePreview()">
+         <button class="btn secondary" data-action="close-preview">
             <i class="material-symbols-outlined">close</i>
             Chiudi
          </button>`;
@@ -4879,7 +4944,7 @@ async function openQuickLook(vetrina) {
                         </div>
                     </div>
                     <div class="quick-look-actions">
-                        <button class="quick-look-view-full-btn" onclick="window.location.href='document-preview.html?id=${vetrina.id}'">
+                        <button class="quick-look-view-full-btn" data-action="view-full-document" data-doc-id="${vetrina.id}">
                             <span class="material-symbols-outlined">open_in_new</span>
                             Visualizza Pagina Completa
                         </button>

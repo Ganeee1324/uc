@@ -131,13 +131,84 @@ class LoadingManager {
                 <div class="error-icon">📄</div>
                 <h2>Ops! Qualcosa è andato storto</h2>
                 <p>${message}</p>
-                ${actionCallback ? `<button class="retry-btn" onclick="(${actionCallback})()">
+                ${actionCallback ? `<button class="retry-btn" data-action-callback="${actionCallback}">
                     <span class="material-symbols-outlined">refresh</span>
                     ${actionText}
                 </button>` : ''}
             </div>
         `;
     }
+}
+
+// Handle action callback buttons for CSP compliance
+function handleActionCallbackButtons() {
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.retry-btn[data-action-callback]')) {
+            const button = e.target.closest('.retry-btn[data-action-callback]');
+            const callback = button.getAttribute('data-action-callback');
+            if (callback && typeof window[callback] === 'function') {
+                window[callback]();
+            }
+        }
+        
+        if (e.target.closest('.retry-btn[data-action="navigate"]')) {
+            const button = e.target.closest('.retry-btn[data-action="navigate"]');
+            const url = button.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        }
+        
+        if (e.target.closest('[data-action="open-viewer"]')) {
+            const element = e.target.closest('[data-action="open-viewer"]');
+            const fileId = element.getAttribute('data-file-id');
+            if (fileId) {
+                e.stopPropagation();
+                openDocumentViewer(fileId);
+            }
+        }
+        
+        if (e.target.closest('[data-action="download-single"]')) {
+            const element = e.target.closest('[data-action="download-single"]');
+            const fileId = element.getAttribute('data-file-id');
+            if (fileId) {
+                e.stopPropagation();
+                downloadSingleDocument(fileId);
+            }
+        }
+        
+        if (e.target.closest('[data-action="open-reviews"]')) {
+            openReviewsOverlay();
+        }
+        
+        if (e.target.closest('[data-action="close-reviews"]')) {
+            closeReviewsOverlay();
+        }
+        
+        if (e.target.closest('[data-action="show-review-form"]')) {
+            showAddReviewForm();
+        }
+        
+        if (e.target.closest('[data-action="hide-review-form"]')) {
+            hideAddReviewForm();
+        }
+        
+        if (e.target.closest('[data-action="submit-review"]')) {
+            submitReview();
+        }
+        
+        if (e.target.closest('[data-action="delete-review"]')) {
+            deleteUserReview();
+        }
+        
+        if (e.target.closest('[data-action="add-to-cart"]')) {
+            const element = e.target.closest('[data-action="add-to-cart"]');
+            const docId = element.getAttribute('data-doc-id');
+            if (docId) {
+                addRelatedToCart(docId, e);
+            }
+        }
+    });
 }
 
 // Professional API Request Handler
@@ -1237,6 +1308,9 @@ function renderViewerLeftControls(files, currentFileId) {
 
 // Main Initialization
 async function initializeDocumentPreview() {
+    // Initialize CSP-compliant event handlers
+    handleActionCallbackButtons();
+    
     if (!authToken) {
         handleAuthError();
         return;
@@ -1307,11 +1381,11 @@ async function initializeDocumentPreview() {
                     <p>Il documento richiesto (ID: ${vetrinaId}) non è più disponibile.</p>
                     <p>Probabilmente è stato aggiornato o rimosso dal database.</p>
                     <div class="error-actions">
-                        <button class="retry-btn primary" onclick="window.location.href='document-preview.html?id=117'">
+                        <button class="retry-btn primary" data-action="navigate" data-url="document-preview.html?id=117">
                             <span class="material-symbols-outlined">visibility</span>
                             Visualizza un documento di esempio
                         </button>
-                        <button class="retry-btn secondary" onclick="window.location.href='search.html'">
+                        <button class="retry-btn secondary" data-action="navigate" data-url="search.html">
                             <span class="material-symbols-outlined">search</span>
                             Torna alla ricerca
                         </button>
@@ -1342,7 +1416,7 @@ function renderDocumentListView(docData) {
         const documentIcon = getDocumentPreviewIcon(file.filename);
         
         return `
-            <div class="document-list-item" data-file-id="${file.file_id}" onclick="openDocumentViewer('${file.file_id}')">
+            <div class="document-list-item" data-file-id="${file.file_id}" data-action="open-viewer">
                 <div class="document-list-preview">
                     <div class="document-list-icon">
                         <span class="document-icon">${documentIcon}</span>
@@ -1368,11 +1442,11 @@ function renderDocumentListView(docData) {
                         ` : ''}
                     </div>
                     <div class="document-list-actions">
-                        <button class="document-list-btn primary" onclick="event.stopPropagation(); openDocumentViewer('${file.file_id}')">
+                        <button class="document-list-btn primary" data-action="open-viewer" data-file-id="${file.file_id}">
                             <span class="material-symbols-outlined">visibility</span>
                             Visualizza
                         </button>
-                        <button class="document-list-btn secondary" onclick="event.stopPropagation(); downloadSingleDocument('${file.file_id}')">
+                        <button class="document-list-btn secondary" data-action="download-single" data-file-id="${file.file_id}">
                             <span class="material-symbols-outlined">download</span>
                             Download
                         </button>
@@ -1422,7 +1496,7 @@ function renderDocumentListView(docData) {
                         <h1 class="doc-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
                     </div>
                     <div class="doc-meta-header">
-                        <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
+                        <div class="doc-rating-display" data-action="open-reviews" title="Mostra recensioni">
                             <div class="rating-stars"></div>
                             <div class="rating-details">
                                 <span class="rating-score">0.0</span>
@@ -1508,7 +1582,7 @@ function renderDocumentListView(docData) {
                         <span class="material-symbols-outlined">rate_review</span>
                         Recensioni
                     </h2>
-                    <button class="close-overlay-btn" onclick="closeReviewsOverlay()">
+                    <button class="close-overlay-btn" data-action="close-reviews">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
@@ -1522,7 +1596,7 @@ function renderDocumentListView(docData) {
                             </div>
                             <span class="total-reviews">Basato su 0 recensioni</span>
                         </div>
-                        <button class="add-review-btn" onclick="showAddReviewForm()">
+                        <button class="add-review-btn" data-action="show-review-form">
                             <span class="material-symbols-outlined">add</span>
                             Aggiungi Recensione
                         </button>
@@ -1549,8 +1623,8 @@ function renderDocumentListView(docData) {
                             <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
                         </div>
                         <div class="review-form-actions">
-                            <button class="cancel-review-btn" onclick="hideAddReviewForm()">Annulla</button>
-                            <button class="submit-review-btn" onclick="submitReview()">Invia Recensione</button>
+                            <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                            <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
                         </div>
                     </div>
                 </div>
@@ -1612,7 +1686,7 @@ function renderDocumentViewerMode(docData) {
                             <h1 class="doc-title">Caricamento...</h1>
                         </div>
                         <div class="doc-meta-header">
-                            <div class="doc-rating-display" onclick="openReviewsOverlay()" title="Mostra recensioni">
+                            <div class="doc-rating-display" data-action="open-reviews" title="Mostra recensioni">
                                 <div class="rating-stars"></div>
                                 <div class="rating-details">
                                     <span class="rating-score">0.0</span>
@@ -1702,7 +1776,7 @@ function renderDocumentViewerMode(docData) {
                             <span class="material-symbols-outlined">rate_review</span>
                             Recensioni
                         </h2>
-                        <button class="close-overlay-btn" onclick="closeReviewsOverlay()">
+                        <button class="close-overlay-btn" data-action="close-reviews">
                             <span class="material-symbols-outlined">close</span>
                         </button>
                     </div>
@@ -1716,7 +1790,7 @@ function renderDocumentViewerMode(docData) {
                                 </div>
                                 <span class="total-reviews">Basato su 0 recensioni</span>
                             </div>
-                            <button class="add-review-btn" onclick="showAddReviewForm()">
+                            <button class="add-review-btn" data-action="show-review-form">
                                 <span class="material-symbols-outlined">add</span>
                                 Aggiungi Recensione
                             </button>
@@ -1743,8 +1817,8 @@ function renderDocumentViewerMode(docData) {
                                 <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
                             </div>
                             <div class="review-form-actions">
-                                <button class="cancel-review-btn" onclick="hideAddReviewForm()">Annulla</button>
-                                <button class="submit-review-btn" onclick="submitReview()">Invia Recensione</button>
+                                <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                                <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
                             </div>
                         </div>
                     </div>
@@ -1980,7 +2054,7 @@ function updateReviewsOverlay() {
                         <div class="review-date-actions">
                             <span class="review-date-overlay">${formatDate(reviewDate)}</span>
                             ${isCurrentUserReview ? `
-                                <button class="delete-review-btn" onclick="deleteUserReview()" title="Elimina la tua recensione">
+                                <button class="delete-review-btn" data-action="delete-review" title="Elimina la tua recensione">
                                     <span class="material-symbols-outlined">delete</span>
                                 </button>
                             ` : ''}
@@ -2481,7 +2555,7 @@ function renderRelatedDocuments(relatedDocs) {
     
     const relatedHTML = placeholderDocs.map(doc => `
         <div class="related-doc-item">
-            <div class="related-doc-preview" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+            <div class="related-doc-preview" data-action="navigate" data-url="document-preview.html?id=${doc.id}">
                 <div class="doc-preview-icon">
                     <span class="material-symbols-outlined">${doc.icon}</span>
                 </div>
@@ -2490,7 +2564,7 @@ function renderRelatedDocuments(relatedDocs) {
                 </div>
             </div>
             <div class="related-doc-info">
-                <div class="doc-content" onclick="window.location.href='document-preview.html?id=${doc.id}'">
+                <div class="doc-content" data-action="navigate" data-url="document-preview.html?id=${doc.id}">
                     <h4 class="doc-title" data-full-title="${doc.title}">${doc.title}</h4>
                     <p class="doc-description">${doc.description}</p>
                     <p class="doc-author">${doc.author}</p>
@@ -2505,7 +2579,7 @@ function renderRelatedDocuments(relatedDocs) {
                     </div>
                 </div>
                 <div class="doc-actions">
-                    <button class="related-cart-btn" onclick="addRelatedToCart(${doc.id}, event)">
+                    <button class="related-cart-btn" data-action="add-to-cart" data-doc-id="${doc.id}">
                         <span class="material-symbols-outlined">add_shopping_cart</span>
                         <span class="btn-text">Aggiungi</span>
                     </button>

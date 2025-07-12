@@ -475,10 +475,18 @@ def get_valid_tags():
 
 if __name__ == "__main__":
     import ssl
-    # Use Let's Encrypt certificate
-    cert_path = '/etc/letsencrypt/live/symbia.it/fullchain.pem'
-    key_path = '/etc/letsencrypt/live/symbia.it/privkey.pem'
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain(cert_path, key_path)
+    # Use Let's Encrypt certificate (copied to local directory)
+    cert_path = os.path.join(os.path.dirname(__file__), 'certs', 'fullchain.pem')
+    key_path = os.path.join(os.path.dirname(__file__), 'certs', 'privkey.pem')
+    
+    # Check if certificate files exist
+    if os.path.exists(cert_path) and os.path.exists(key_path):
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(cert_path, key_path)
+        print(f"Using Let's Encrypt certificate from {cert_path}")
+        ssl_context = context
+    else:
+        print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
+        ssl_context = 'adhoc'
 
-    app.run(host="0.0.0.0", debug=True, ssl_context=context)
+    app.run(host="0.0.0.0", debug=True, ssl_context=ssl_context)

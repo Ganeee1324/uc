@@ -5583,6 +5583,7 @@ async function loadReviewsForVetrina(vetrinaId) {
             console.log('✅ Reviews loaded successfully:', currentReviews.length, 'reviews');
             console.log('🔍 Current user review:', currentUserReview);
             console.log('🔍 All reviews:', currentReviews);
+            console.log('🔍 Response data:', data);
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
@@ -5654,11 +5655,10 @@ function updateReviewsOverlay() {
                     </div>
                     <div class="review-date-actions">
                         <div class="review-date-overlay">${formatDate(review.review_date)}</div>
-                        ${currentUserReview && currentUserReview.user?.user_id === review.user?.user_id ? 
-                            `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>` : ''
-                        }
+                        <!-- Temporarily show delete button for all reviews for testing -->
+                        <button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
                         <!-- Debug info -->
                         <div style="font-size: 10px; color: #999; margin-top: 2px;">
                             Debug: currentUserReview=${currentUserReview ? 'yes' : 'no'}, 

@@ -3852,8 +3852,18 @@ function renderDocuments(files) {
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}" data-action="navigate" data-url="vendor-page.html?user=${encodeURIComponent(item.author_username || 'Unknown')}">
-                            ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
+                        <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}" data-action="navigate" data-url="vendor-page.html?user=${encodeURIComponent(item.author_username || 'Unknown')}" style="
+                            background: ${getConsistentGradient(item.author_username || 'Unknown')};
+                            color: white;
+                            font-weight: 700;
+                            font-size: 12px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+                            border: 1.5px solid var(--white);
+                        ">
+                            ${getInitials(item.author_username || 'Unknown')}
                         </div>
                         <div class="document-meta">
                             ${item.isVetrina && !filesLoaded ? 'Click to view' : formatFileSize(item.size || 0)}

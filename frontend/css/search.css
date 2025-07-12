@@ -1949,33 +1949,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  
 
  
- /* Professional gradient color schemes */
- .owner-avatar.variant-1, .author-avatar.variant-1 { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
- .owner-avatar.variant-2, .author-avatar.variant-2 { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
- .owner-avatar.variant-3, .author-avatar.variant-3 { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
- .owner-avatar.variant-4, .author-avatar.variant-4 { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
- .owner-avatar.variant-5, .author-avatar.variant-5 { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
- .owner-avatar.variant-6, .author-avatar.variant-6 { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
- .owner-avatar.variant-7, .author-avatar.variant-7 { background: linear-gradient(135deg, #be185d 0%, #ec4899 100%); }
- .owner-avatar.variant-8, .author-avatar.variant-8 { background: linear-gradient(135deg, #166534 0%, #22c55e 100%); }
- .owner-avatar.variant-9, .author-avatar.variant-9 { background: linear-gradient(135deg, #166534 0%, #22c55e 100%); }
- .owner-avatar.variant-10, .author-avatar.variant-10 { background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%); }
- .owner-avatar.variant-11, .author-avatar.variant-11 { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
- .owner-avatar.variant-12, .author-avatar.variant-12 { background: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%); }
 
-/* Header avatar gradient variants */
-.header-user-avatar.variant-1, .dropdown-user-avatar.variant-1 { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
-.header-user-avatar.variant-2, .dropdown-user-avatar.variant-2 { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
-.header-user-avatar.variant-3, .dropdown-user-avatar.variant-3 { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
-.header-user-avatar.variant-4, .dropdown-user-avatar.variant-4 { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
-.header-user-avatar.variant-5, .dropdown-user-avatar.variant-5 { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
-.header-user-avatar.variant-6, .dropdown-user-avatar.variant-6 { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); }
-.header-user-avatar.variant-7, .dropdown-user-avatar.variant-7 { background: linear-gradient(135deg, #be185d 0%, #ec4899 100%); }
-.header-user-avatar.variant-8, .dropdown-user-avatar.variant-8 { background: linear-gradient(135deg, #166534 0%, #22c55e 100%); }
-.header-user-avatar.variant-9, .dropdown-user-avatar.variant-9 { background: linear-gradient(135deg, #166534 0%, #22c55e 100%); }
-.header-user-avatar.variant-10, .dropdown-user-avatar.variant-10 { background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%); }
-.header-user-avatar.variant-11, .dropdown-user-avatar.variant-11 { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
-.header-user-avatar.variant-12, .dropdown-user-avatar.variant-12 { background: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%); }
  
  /* Document Footer - PROFESSIONAL LAYOUT WITH PROPER SPACING */
  .document-footer {

@@ -5546,11 +5546,34 @@ function closeReviewsOverlay() {
 // Load reviews for a specific vetrina
 async function loadReviewsForVetrina(vetrinaId) {
     try {
-        const response = await makeAuthenticatedRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
+        console.log('🔍 Loading reviews for vetrina:', vetrinaId);
+        
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error('No auth token found');
+            currentReviews = [];
+            currentUserReview = null;
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
         if (response.ok) {
             const data = await response.json();
             currentReviews = data.reviews || [];
             currentUserReview = data.user_review || null;
+            console.log('✅ Reviews loaded successfully:', currentReviews.length, 'reviews');
+        } else if (response.status === 401) {
+            console.error('Authentication failed');
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+            return;
         } else {
             console.error('Failed to load reviews:', response.status);
             currentReviews = [];
@@ -5731,9 +5754,19 @@ async function submitReview() {
     }
 
     try {
-        const response = await makeAuthenticatedRequest(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
+        console.log('📝 Submitting review for vetrina:', currentVetrinaForReviews);
+        
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error('No auth token found');
+            showError('Sessione scaduta. Effettua nuovamente l\'accesso.');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
             method: 'POST',
             headers: {
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -5752,6 +5785,11 @@ async function submitReview() {
             
             // Update the rating display in the search results
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+        } else if (response.status === 401) {
+            console.error('Authentication failed');
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+            return;
         } else {
             const errorData = await response.json();
             showError(errorData.message || 'Errore nell\'invio della recensione.');
@@ -5773,8 +5811,21 @@ async function deleteUserReview() {
     }
 
     try {
-        const response = await makeAuthenticatedRequest(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
-            method: 'DELETE'
+        console.log('🗑️ Deleting review for vetrina:', currentVetrinaForReviews);
+        
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error('No auth token found');
+            showError('Sessione scaduta. Effettua nuovamente l\'accesso.');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
 
         if (response.ok) {
@@ -5787,6 +5838,11 @@ async function deleteUserReview() {
             
             // Update the rating display in the search results
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+        } else if (response.status === 401) {
+            console.error('Authentication failed');
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+            return;
         } else {
             const errorData = await response.json();
             showError(errorData.message || 'Errore nell\'eliminazione della recensione.');

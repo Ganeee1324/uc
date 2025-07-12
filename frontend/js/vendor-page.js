@@ -5788,7 +5788,7 @@ async function submitReview() {
             },
             body: JSON.stringify({
                 rating: selectedRating,
-                comment: comment
+                review_text: comment
             })
         });
         
@@ -5806,8 +5806,9 @@ async function submitReview() {
         
         const data = await response.json();
         
-        if (data && data.success) {
-            showStatus('Recensione inviata con successo!');
+        if (data && data.review) {
+            const message = data.msg === 'Review updated' ? 'Recensione aggiornata con successo!' : 'Recensione inviata con successo!';
+            showStatus(message);
             hideAddReviewForm();
             await loadReviews(currentVetrinaId);
             updateRatingInSearchResults(currentVetrinaId);

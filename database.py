@@ -1012,26 +1012,33 @@ def get_favorites(user_id: int) -> List[Vetrina]:
 
 def add_review(user_id: int, vetrina_id: int, rating: int, review_text: str, review_subject: str | None = None) -> Review:
     """
-    Add a review to a vetrina.
+    Add or update a review to a vetrina.
+    If the user already has a review for this vetrina, it will be updated.
     """
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                WITH new_review AS (
-                    INSERT INTO review (user_id, vetrina_id, rating, review_text, review_subject) 
-                    VALUES (%s, %s, %s, %s, %s) 
+                WITH upserted_review AS (
+                    INSERT INTO review (user_id, vetrina_id, rating, review_text, review_subject, review_date) 
+                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (user_id, vetrina_id) 
+                    DO UPDATE SET 
+                        rating = EXCLUDED.rating,
+                        review_text = EXCLUDED.review_text,
+                        review_subject = EXCLUDED.review_subject,
+                        review_date = CURRENT_TIMESTAMP
                     RETURNING *
                 )
                 SELECT r.*, u.*
-                FROM new_review r
+                FROM upserted_review r
                 JOIN users u ON r.user_id = u.user_id
                 """,
                 (user_id, vetrina_id, rating, review_text, review_subject),
             )
             review_data = cursor.fetchone()
             review = Review.from_dict(review_data)
-            logging.debug(f"Review added to vetrina {vetrina_id} by user {user_id}")
+            logging.debug(f"Review added/updated for vetrina {vetrina_id} by user {user_id}")
             return review
 
 

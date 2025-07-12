@@ -429,8 +429,20 @@ def add_review(vetrina_id):
     if review_subject:
         review_subject = str(review_subject)
 
+    # Check if user already has a review for this vetrina
+    existing_review = None
+    reviews = database.get_reviews(vetrina_id)
+    for review in reviews:
+        if review.user.user_id == user_id:
+            existing_review = review
+            break
+
     review = database.add_review(user_id, vetrina_id, rating, review_text, review_subject)
-    return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
+    
+    if existing_review:
+        return jsonify({"msg": "Review updated", "review": review.to_dict()}), 200
+    else:
+        return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
 
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["GET"])

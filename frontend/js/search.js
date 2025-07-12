@@ -5788,7 +5788,9 @@ async function submitReview() {
         });
 
         if (response.ok) {
-            showStatus('Recensione inviata con successo!', 'success');
+            const data = await response.json();
+            const message = data.msg === 'Review updated' ? 'Recensione aggiornata con successo!' : 'Recensione inviata con successo!';
+            showStatus(message, 'success');
             hideAddReviewForm();
             
             // Reload reviews to show the new one

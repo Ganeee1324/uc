@@ -1582,6 +1582,10 @@ html {
     color: #fbbf24;
 }
 
+.rating-star.filled {
+    color: #fbbf24;
+}
+
 .rating-count {
     color: var(--gray-700);
     font-size: 10px;
@@ -5890,7 +5894,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .stars-inner::before {
     content: "★★★★★";
-    color: var(--orange-500);
+    color: #fbbf24;
 }
 
 .big-rating-score {
@@ -5997,7 +6001,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .review-rating-overlay .star {
     font-size: 16px;
-    color: var(--orange-500);
+    color: #fbbf24;
 }
 
 .review-date-overlay {
@@ -6106,13 +6110,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .star-input:hover,
 .star-input.hover {
-    color: var(--orange-500);
+    color: #fbbf24;
     transform: scale(1.15) rotate(5deg);
 }
 
 .star-input.active {
-    color: var(--orange-500);
-    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
 }
 
 .review-text-input {

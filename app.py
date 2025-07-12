@@ -434,9 +434,24 @@ def add_review(vetrina_id):
 
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["GET"])
+@jwt_required(optional=True)
 def get_reviews(vetrina_id):
     reviews = database.get_reviews(vetrina_id)
-    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
+    user_id = get_jwt_identity()
+    
+    # Find current user's review if authenticated
+    current_user_review = None
+    if user_id:
+        for review in reviews:
+            if review.user.user_id == user_id:
+                current_user_review = review.to_dict()
+                break
+    
+    return jsonify({
+        "reviews": [review.to_dict() for review in reviews], 
+        "count": len(reviews),
+        "user_review": current_user_review
+    }), 200
 
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["DELETE"])

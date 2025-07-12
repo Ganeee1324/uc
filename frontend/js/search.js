@@ -5629,10 +5629,10 @@ function updateReviewsOverlay() {
                 <div class="review-header-overlay">
                     <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
-                            ${getInitials(review.reviewer_name || 'User')}
+                            ${getInitials(review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'User')}
                         </div>
                         <div>
-                            <div class="reviewer-name-overlay">${review.reviewer_name || 'Utente Anonimo'}</div>
+                            <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>
                             <div class="review-rating-overlay">
                                 ${generateStars(review.rating)}
                             </div>
@@ -5640,7 +5640,7 @@ function updateReviewsOverlay() {
                     </div>
                     <div class="review-date-actions">
                         <div class="review-date-overlay">${formatDate(review.review_date)}</div>
-                        ${currentUserReview && currentUserReview.id === review.id ? 
+                        ${currentUserReview && currentUserReview.user?.user_id === review.user?.user_id ? 
                             `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
                                 <span class="material-symbols-outlined">delete</span>
                             </button>` : ''

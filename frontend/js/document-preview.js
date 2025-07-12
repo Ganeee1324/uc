@@ -2090,9 +2090,13 @@ async function openReviewsOverlay(vetrinaId) {
         // Show initial rating data instantly from search results
         showInitialRatingData(vetrinaId);
         
-        // Load detailed reviews data in background
-        await loadReviewsForVetrina(vetrinaId);
-        updateReviewsOverlay();
+        // Load detailed reviews data in background (non-blocking)
+        loadReviewsForVetrina(vetrinaId).then(() => {
+            updateReviewsOverlay();
+        }).catch(error => {
+            console.error('Error loading reviews:', error);
+            // Keep showing the initial data if API fails
+        });
     }
 }
 
@@ -2118,16 +2122,23 @@ function showInitialRatingData(vetrinaId) {
         totalReviews.textContent = `Basato su ${reviewCount} recensioni`;
         bigStars.innerHTML = generateFractionalStars(rating);
         
-        // Show loading for reviews list
+        // Show a more professional loading state with instant feedback
         reviewsList.innerHTML = `
             <div class="reviews-loading">
                 <div class="loading-spinner"></div>
-                <p>Caricamento recensioni...</p>
+                <p>Aggiornamento recensioni...</p>
             </div>
         `;
         
-        // Hide add review button until we load user data
-        addReviewBtn.style.display = 'none';
+        // Show add review button immediately if user is authenticated
+        const token = localStorage.getItem('authToken');
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        
+        if (token && currentUser) {
+            addReviewBtn.style.display = 'flex';
+        } else {
+            addReviewBtn.style.display = 'none';
+        }
         return;
     }
     

@@ -3219,7 +3219,7 @@ button:focus-visible,
 
 .stars-inner::before {
   content: "★★★★★";
-  color: var(--warning-500);
+  color: #fbbf24;
 }
 
 .big-rating-score {

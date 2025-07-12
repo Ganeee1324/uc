@@ -5,6 +5,96 @@ console.log(`🔄 Cache buster timestamp: ${CACHE_BUSTER}`);
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
+// Hierarchy Cache Management
+const HIERARCHY_CACHE_KEY = 'hierarchy_data_cache';
+const HIERARCHY_CACHE_VERSION = '1.0';
+const HIERARCHY_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Cache management functions
+function getHierarchyCache() {
+    try {
+        const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        
+        // Check cache version
+        if (cacheData.version !== HIERARCHY_CACHE_VERSION) {
+            console.log('🔄 Cache version mismatch, clearing old cache');
+            clearHierarchyCache();
+            return null;
+        }
+        
+        // Check cache expiration
+        const now = Date.now();
+        if (now - cacheData.timestamp > HIERARCHY_CACHE_DURATION) {
+            console.log('🔄 Cache expired, clearing old cache');
+            clearHierarchyCache();
+            return null;
+        }
+        
+        console.log('✅ Using cached hierarchy data');
+        return cacheData.data;
+    } catch (error) {
+        console.warn('⚠️ Error reading hierarchy cache:', error);
+        clearHierarchyCache();
+        return null;
+    }
+}
+
+function setHierarchyCache(data) {
+    try {
+        const cacheData = {
+            version: HIERARCHY_CACHE_VERSION,
+            timestamp: Date.now(),
+            data: data
+        };
+        localStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
+        console.log('💾 Hierarchy data cached successfully');
+    } catch (error) {
+        console.warn('⚠️ Error caching hierarchy data:', error);
+        // Don't throw error - caching failure shouldn't break the app
+    }
+}
+
+function clearHierarchyCache() {
+    try {
+        localStorage.removeItem(HIERARCHY_CACHE_KEY);
+        console.log('🗑️ Hierarchy cache cleared');
+    } catch (error) {
+        console.warn('⚠️ Error clearing hierarchy cache:', error);
+    }
+}
+
+// Fallback function to get expired cache data
+function getExpiredHierarchyCache() {
+    try {
+        const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        
+        // Check cache version
+        if (cacheData.version !== HIERARCHY_CACHE_VERSION) {
+            return null;
+        }
+        
+        // Return data even if expired
+        return cacheData.data;
+    } catch (error) {
+        console.warn('⚠️ Error reading expired hierarchy cache:', error);
+        return null;
+    }
+}
+
+// Force refresh hierarchy data (for manual cache invalidation)
+async function refreshHierarchyData() {
+    console.log('🔄 Force refreshing hierarchy data...');
+    clearHierarchyCache();
+    window.facultyCoursesData = null;
+    await loadHierarchyData();
+}
+
 // Handle CSP-compliant event handlers
 function handleCSPEventHandlers() {
     document.addEventListener('click', function(e) {
@@ -981,24 +1071,47 @@ function resetDropdownHighlight(type) {
     }
 }
 
+// Enhanced hierarchy loading with caching
 async function loadHierarchyData() {
-    if (window.facultyCoursesData) return;
+    // First check if we already have data in memory
+    if (window.facultyCoursesData) {
+        console.log('✅ Using in-memory hierarchy data');
+        return;
+    }
     
+    // Check cache first
+    const cachedData = getHierarchyCache();
+    if (cachedData) {
+        window.facultyCoursesData = cachedData;
+        return;
+    }
+    
+    // If no cache, fetch from API
     try {
+        console.log('🔄 Fetching hierarchy data from API...');
         const data = await makeSimpleRequest('/hierarchy');
         
-        // The backend returns data already in the correct format:
-        // { "Faculty Name": [["course_code", "course_name"], ...], ... }
-        if (data && typeof data === 'object') {
+        // Validate the data structure
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             window.facultyCoursesData = data;
-            console.log('Loaded hierarchy data:', Object.keys(data).length, 'faculties');
+            console.log('✅ Loaded hierarchy data:', Object.keys(data).length, 'faculties');
+            
+            // Cache the data for future use
+            setHierarchyCache(data);
         } else {
-            console.warn('Unexpected hierarchy data format:', data);
+            console.warn('⚠️ Unexpected hierarchy data format:', data);
             window.facultyCoursesData = {};
         }
     } catch (error) {
-        console.error('Error loading hierarchy data:', error);
+        console.error('❌ Error loading hierarchy data:', error);
         window.facultyCoursesData = {};
+        
+        // If API fails, try to use any available cached data (even if expired)
+        const expiredCache = getExpiredHierarchyCache();
+        if (expiredCache) {
+            console.log('🔄 Using expired cache as fallback');
+            window.facultyCoursesData = expiredCache;
+        }
     }
 }
 
@@ -2051,17 +2164,15 @@ function closeFiltersPanel() {
 }
 
 async function populateFilterOptions() {
-    // Always get real hierarchy data from backend - don't depend on files
-    try {
-        const hierarchyResponse = await makeSimpleRequest('/hierarchy');
-        if (hierarchyResponse) {
-            // Store hierarchy for ALL faculties and courses
-            window.facultyCoursesData = hierarchyResponse;
-            console.log('Loaded hierarchy with', Object.keys(hierarchyResponse).length, 'faculties');
-        }
-    } catch (error) {
-        console.error('Error loading hierarchy:', error);
-        // Fallback to extract from files only if hierarchy fails
+    // Use cached hierarchy data instead of making API calls
+    if (!window.facultyCoursesData) {
+        console.log('🔄 Loading hierarchy data for filter options...');
+        await loadHierarchyData();
+    }
+    
+    // If hierarchy data is still not available, fallback to extract from files
+    if (!window.facultyCoursesData || Object.keys(window.facultyCoursesData).length === 0) {
+        console.log('⚠️ No hierarchy data available, falling back to file extraction');
         if (originalFiles.length) {
             const faculties = [...new Set(originalFiles.map(f => 
                 f.faculty_name || f.vetrina_info?.faculty_name

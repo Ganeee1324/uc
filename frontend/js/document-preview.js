@@ -740,7 +740,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
 function handleAuthError() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 
 // User Data Management
@@ -836,7 +836,7 @@ document.addEventListener('click', () => {
 function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 
 // URL Parameter Handler

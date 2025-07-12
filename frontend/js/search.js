@@ -119,6 +119,7 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
+        initializeCacheStatus();
         
         // Load valid tags from backend first
         await loadValidTags();
@@ -938,25 +939,205 @@ function resetDropdownHighlight(type) {
     }
 }
 
-async function loadHierarchyData() {
-    if (window.facultyCoursesData) return;
-    
+// Hierarchy Cache Management
+const HIERARCHY_CACHE_KEY = 'hierarchy_data_cache';
+const HIERARCHY_CACHE_VERSION = '1.0';
+const HIERARCHY_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Cache management functions
+function getHierarchyCache() {
     try {
+        const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        
+        // Check cache version
+        if (cacheData.version !== HIERARCHY_CACHE_VERSION) {
+            console.log('🔄 Cache version mismatch, clearing old cache');
+            clearHierarchyCache();
+            return null;
+        }
+        
+        // Check cache expiration
+        const now = Date.now();
+        if (now - cacheData.timestamp > HIERARCHY_CACHE_DURATION) {
+            console.log('🔄 Cache expired, clearing old cache');
+            clearHierarchyCache();
+            return null;
+        }
+        
+        console.log('✅ Using cached hierarchy data');
+        return cacheData.data;
+    } catch (error) {
+        console.warn('⚠️ Error reading hierarchy cache:', error);
+        clearHierarchyCache();
+        return null;
+    }
+}
+
+function setHierarchyCache(data) {
+    try {
+        const cacheData = {
+            version: HIERARCHY_CACHE_VERSION,
+            timestamp: Date.now(),
+            data: data
+        };
+        localStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
+        console.log('💾 Hierarchy data cached successfully');
+    } catch (error) {
+        console.warn('⚠️ Error caching hierarchy data:', error);
+        // Don't throw error - caching failure shouldn't break the app
+    }
+}
+
+function clearHierarchyCache() {
+    try {
+        localStorage.removeItem(HIERARCHY_CACHE_KEY);
+        console.log('🗑️ Hierarchy cache cleared');
+    } catch (error) {
+        console.warn('⚠️ Error clearing hierarchy cache:', error);
+    }
+}
+
+// Enhanced hierarchy loading with caching
+async function loadHierarchyData() {
+    // First check if we already have data in memory
+    if (window.facultyCoursesData) {
+        console.log('✅ Using in-memory hierarchy data');
+        return;
+    }
+    
+    // Check cache first
+    const cachedData = getHierarchyCache();
+    if (cachedData) {
+        window.facultyCoursesData = cachedData;
+        updateCacheStatus();
+        return;
+    }
+    
+    // If no cache, fetch from API
+    try {
+        console.log('🔄 Fetching hierarchy data from API...');
         const data = await makeSimpleRequest('/hierarchy');
         
-        // The backend returns data already in the correct format:
-        // { "Faculty Name": [["course_code", "course_name"], ...], ... }
-        if (data && typeof data === 'object') {
+        // Validate the data structure
+        if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             window.facultyCoursesData = data;
-            console.log('Loaded hierarchy data:', Object.keys(data).length, 'faculties');
+            console.log('✅ Loaded hierarchy data:', Object.keys(data).length, 'faculties');
+            
+            // Cache the data for future use
+            setHierarchyCache(data);
+            
+            // Update cache status
+            updateCacheStatus();
         } else {
-            console.warn('Unexpected hierarchy data format:', data);
+            console.warn('⚠️ Unexpected hierarchy data format:', data);
             window.facultyCoursesData = {};
         }
     } catch (error) {
-        console.error('Error loading hierarchy data:', error);
+        console.error('❌ Error loading hierarchy data:', error);
         window.facultyCoursesData = {};
+        
+        // If API fails, try to use any available cached data (even if expired)
+        const expiredCache = getExpiredHierarchyCache();
+        if (expiredCache) {
+            console.log('🔄 Using expired cache as fallback');
+            window.facultyCoursesData = expiredCache;
+        }
     }
+}
+
+// Fallback function to get expired cache data
+function getExpiredHierarchyCache() {
+    try {
+        const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        
+        // Check cache version
+        if (cacheData.version !== HIERARCHY_CACHE_VERSION) {
+            return null;
+        }
+        
+        // Return data even if expired
+        return cacheData.data;
+    } catch (error) {
+        console.warn('⚠️ Error reading expired hierarchy cache:', error);
+        return null;
+    }
+}
+
+// Force refresh hierarchy data (for manual cache invalidation)
+async function refreshHierarchyData() {
+    console.log('🔄 Force refreshing hierarchy data...');
+    clearHierarchyCache();
+    window.facultyCoursesData = null;
+    await loadHierarchyData();
+}
+
+// Cache status management
+function updateCacheStatus() {
+    const cacheBtn = document.getElementById('cacheStatusBtn');
+    if (!cacheBtn) return;
+    
+    const cached = getHierarchyCache();
+    if (cached) {
+        cacheBtn.classList.remove('loading', 'error');
+        cacheBtn.classList.add('cached');
+        cacheBtn.title = `Cache attivo (${Math.round((Date.now() - cached.timestamp) / (1000 * 60))} min fa)`;
+    } else {
+        cacheBtn.classList.remove('cached', 'loading', 'error');
+        cacheBtn.title = 'Cache non disponibile';
+    }
+}
+
+function showCacheLoading() {
+    const cacheBtn = document.getElementById('cacheStatusBtn');
+    if (!cacheBtn) return;
+    
+    cacheBtn.classList.remove('cached', 'error');
+    cacheBtn.classList.add('loading');
+    cacheBtn.title = 'Caricamento cache...';
+}
+
+function showCacheError() {
+    const cacheBtn = document.getElementById('cacheStatusBtn');
+    if (!cacheBtn) return;
+    
+    cacheBtn.classList.remove('cached', 'loading');
+    cacheBtn.classList.add('error');
+    cacheBtn.title = 'Errore cache';
+}
+
+// Initialize cache status button
+function initializeCacheStatus() {
+    const cacheBtn = document.getElementById('cacheStatusBtn');
+    if (!cacheBtn) return;
+    
+    // Show button
+    cacheBtn.style.display = 'flex';
+    
+    // Add click handler for manual refresh
+    cacheBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        showCacheLoading();
+        try {
+            await refreshHierarchyData();
+            updateCacheStatus();
+            showStatus('Cache aggiornata con successo! 🔄');
+        } catch (error) {
+            console.error('Error refreshing cache:', error);
+            showCacheError();
+            showStatus('Errore nell\'aggiornamento della cache', 'error');
+        }
+    });
+    
+    // Initial status update
+    updateCacheStatus();
 }
 
 function populateDropdownOptions() {
@@ -1862,7 +2043,7 @@ async function applyFiltersAndRender() {
     const searchInput = document.getElementById('searchInput');
     const currentQuery = searchInput?.value?.trim() || '';
     
-    const hasBackendFilters = activeFilters.course || activeFilters.faculty || activeFilters.canale || activeFilters.language || activeFilters.tag || activeFilters.documentType || activeFilters.academicYear || activeFilters.courseYear || activeFilters.minRating || activeFilters.minPrice !== undefined || activeFilters.maxPrice !== undefined;
+    const hasBackendFilters = activeFilters.course || activeFilters.faculty || activeFilters.canale || activeFilters.language || activeFilters.tag || activeFilters.documentType || activeFilters.academicYear || activeFilters.courseYear;
     
     if (hasBackendFilters || currentQuery) {
         // Use backend search with filters
@@ -2008,17 +2189,15 @@ function closeFiltersPanel() {
 }
 
 async function populateFilterOptions() {
-    // Always get real hierarchy data from backend - don't depend on files
-    try {
-        const hierarchyResponse = await makeSimpleRequest('/hierarchy');
-        if (hierarchyResponse) {
-            // Store hierarchy for ALL faculties and courses
-            window.facultyCoursesData = hierarchyResponse;
-            console.log('Loaded hierarchy with', Object.keys(hierarchyResponse).length, 'faculties');
-        }
-    } catch (error) {
-        console.error('Error loading hierarchy:', error);
-        // Fallback to extract from files only if hierarchy fails
+    // Use cached hierarchy data instead of making API calls
+    if (!window.facultyCoursesData) {
+        console.log('🔄 Loading hierarchy data for filter options...');
+        await loadHierarchyData();
+    }
+    
+    // If hierarchy data is still not available, fallback to extract from files
+    if (!window.facultyCoursesData || Object.keys(window.facultyCoursesData).length === 0) {
+        console.log('⚠️ No hierarchy data available, falling back to file extraction');
         if (originalFiles.length) {
             const faculties = [...new Set(originalFiles.map(f => 
                 f.faculty_name || f.vetrina_info?.faculty_name
@@ -3019,14 +3198,13 @@ function showLoadingCards(count = 8) {
 
 
 
-async function loadAllFiles(filterParams = '') {
+async function loadAllFiles() {
     try {
         console.log('🔄 Loading vetrine data...');
         showStatus('Caricamento vetrine... 📚');
         
-        // Fetch vetrine data from backend with optional filters
-        const url = filterParams ? `/vetrine?${filterParams}` : '/vetrine';
-        const vetrineResponse = await makeAuthenticatedRequest(url);
+        // Fetch vetrine data from backend
+        const vetrineResponse = await makeAuthenticatedRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }
@@ -4219,59 +4397,7 @@ async function performSearch(query) {
         
         // If no query, load all files with current filters
         if (!query || !query.trim()) {
-            // Build filter parameters for loadAllFiles
-            const filterParams = new URLSearchParams();
-            
-            // Add backend-supported filters
-            if (activeFilters.course) {
-                const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
-                filterParams.append('course_name', courseValue);
-            }
-            if (activeFilters.faculty) {
-                const facultyValue = Array.isArray(activeFilters.faculty) ? activeFilters.faculty[0] : activeFilters.faculty;
-                filterParams.append('faculty', facultyValue);
-            }
-            if (activeFilters.canale) {
-                const canaleValue = Array.isArray(activeFilters.canale) ? activeFilters.canale[0] : activeFilters.canale;
-                const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
-                filterParams.append('canale', backendCanaleValue);
-            }
-            if (activeFilters.language) {
-                const languageValue = Array.isArray(activeFilters.language) ? activeFilters.language[0] : activeFilters.language;
-                filterParams.append('language', languageValue);
-            }
-            if (activeFilters.tag) {
-                const tagValue = Array.isArray(activeFilters.tag) ? activeFilters.tag[0] : activeFilters.tag;
-                filterParams.append('tag', tagValue);
-            }
-            if (activeFilters.documentType) {
-                const docTypeValue = Array.isArray(activeFilters.documentType) ? activeFilters.documentType[0] : activeFilters.documentType;
-                filterParams.append('extension', docTypeValue);
-            }
-            if (activeFilters.academicYear) {
-                const yearValue = Array.isArray(activeFilters.academicYear) ? activeFilters.academicYear[0] : activeFilters.academicYear;
-                const year = yearValue.split('/')[0];
-                filterParams.append('date_year', year);
-            }
-            if (activeFilters.courseYear) {
-                const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
-                filterParams.append('course_year', courseYearValue);
-            }
-            
-            // Add rating filter to backend
-            if (activeFilters.minRating) {
-                filterParams.append('min_rating', activeFilters.minRating);
-            }
-            
-            // Add price range filters to backend
-            if (activeFilters.minPrice !== undefined) {
-                filterParams.append('min_price', activeFilters.minPrice);
-            }
-            if (activeFilters.maxPrice !== undefined) {
-                filterParams.append('max_price', activeFilters.maxPrice);
-            }
-            
-            await loadAllFiles(filterParams.toString());
+            await loadAllFiles();
             return;
         }
         
@@ -4280,8 +4406,8 @@ async function performSearch(query) {
         searchParams.append('text', query.trim());
         
         // Add any active filters to the search
-        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year, min_rating, min_price, max_price
-        // Client-side only filters: vetrinaType, sizeType, timeType
+        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
+        // Client-side only filters: vetrinaType, minRating, priceType, sizeType, timeType
         if (activeFilters.course) {
             const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
             searchParams.append('course_name', courseValue);
@@ -4319,19 +4445,6 @@ async function performSearch(query) {
             // Add course year filter (e.g., 1, 2, 3 for first, second, third year)
             const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
             searchParams.append('course_year', courseYearValue);
-        }
-        
-        // Add rating filter to backend
-        if (activeFilters.minRating) {
-            searchParams.append('min_rating', activeFilters.minRating);
-        }
-        
-        // Add price range filters to backend
-        if (activeFilters.minPrice !== undefined) {
-            searchParams.append('min_price', activeFilters.minPrice);
-        }
-        if (activeFilters.maxPrice !== undefined) {
-            searchParams.append('max_price', activeFilters.maxPrice);
         }
         
         // Make backend search request with fallback
@@ -4451,7 +4564,7 @@ function applyClientSideFilters(files) {
     
     // Apply filters that aren't handled by backend
     Object.entries(activeFilters).forEach(([key, value]) => {
-        if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear' || key === 'minRating' || key === 'minPrice' || key === 'maxPrice') return; // Skip backend-handled filters
+        if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear') return; // Skip backend-handled filters
         
         filtered = filtered.filter(file => {
             switch (key) {
@@ -4464,6 +4577,14 @@ function applyClientSideFilters(files) {
                     return file.document_type && file.document_type.toLowerCase() === value.toLowerCase();
                 case 'tag':
                     return file.tag && file.tag.toLowerCase() === value.toLowerCase();
+                case 'rating_min':
+                    return file.rating >= parseInt(value);
+                case 'price_min':
+                    return file.price >= parseInt(value);
+                case 'price_max':
+                    return file.price <= parseInt(value);
+                case 'owned':
+                    return value === 'true' ? file.owned : !file.owned;
                 case 'free':
                     return value === 'true' ? file.price === 0 : file.price > 0;
                 default:

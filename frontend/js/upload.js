@@ -8,7 +8,7 @@ let currentVetrine = [];
 function checkAuth() {
     const token = localStorage.getItem('authToken');
     if (!token) {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
         return false;
     }
     return true;
@@ -47,7 +47,7 @@ function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
     authToken = null;
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
 }
 
 // Load user's vetrine

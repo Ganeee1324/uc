@@ -4305,81 +4305,47 @@ async function performSearch(query) {
             return;
         }
         
-        // Transform backend vetrine results with REAL file data
-        const transformedResults = [];
-        
-        for (const vetrina of searchResults) {
-            try {
-                // Fetch REAL files for this vetrina
-                const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrina.vetrina_id}/files`);
-                const realFiles = filesResponse?.files || [];
-                
-                if (realFiles.length === 0) {
-                    console.log(`⚠️ No files found for search result vetrina ${vetrina.vetrina_id}, skipping`);
-                    continue;
-                }
-                
-                // Calculate totals for the vetrina using REAL data
-                const totalSize = realFiles.reduce((sum, file) => sum + (file.size || 0), 0);
-                const totalPrice = realFiles.reduce((sum, file) => sum + (file.price || 0), 0);
-                
-                // Create a card item with REAL file data
-                const vetrineCard = {
+        // Transform backend vetrine results using ONLY vetrina-level data (no file metadata needed!)
+        const transformedResults = searchResults.map(vetrina => {
+            // Use vetrina-level information provided by backend
+            const vetrineCard = {
+                id: vetrina.vetrina_id,
+                isVetrina: true,
+                filesLoaded: false, // Mark as not loaded - will load on-demand when needed
+                fileCount: vetrina.file_count || 0,
+                // files: [] - will be loaded on-demand when user clicks preview/quick look
+                filename: vetrina.file_count > 1 ? `${vetrina.file_count} files` : 'Documento',
+                title: vetrina.name || 'Vetrina Senza Nome',
+                description: vetrina.description || 'No description available',
+                size: 0, // Will be calculated when files are loaded on-demand
+                price: vetrina.price || 0, // Use backend-provided price
+                created_at: vetrina.created_at || new Date().toISOString(),
+                rating: vetrina.average_rating || 0, // Use backend-provided rating
+                review_count: vetrina.review_count || 0, // Use backend-provided review count
+                course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
+                faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
+                language: vetrina.course_instance?.language || 'Italiano',
+                canale: vetrina.course_instance?.canale || 'A',
+                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                document_types: [], // Will be populated when files are loaded on-demand
+                document_type: 'BUNDLE', // Default to bundle, will be updated when files are loaded
+                author_username: vetrina.author?.username || 'Unknown',
+                owned: false, // Will be determined when files are loaded on-demand
+                favorite: vetrina.favorite === true,
+                tags: vetrina.tags || [], // Use backend-provided tags
+                primary_tag: vetrina.tags && vetrina.tags.length > 0 ? vetrina.tags[0] : null,
+                vetrina_info: {
                     id: vetrina.vetrina_id,
-                    isVetrina: true,
-                    filesLoaded: true, // Mark as loaded so it shows file stack UI
-                    fileCount: realFiles.length,
-                    files: realFiles.map(file => ({
-                        id: file.file_id,
-                        filename: file.filename,
-                        title: file.original_filename || file.filename,
-                        size: file.size || 0,
-                        price: file.price || 0,
-                        document_type: getFileTypeFromFilename(file.filename),
-                        created_at: file.created_at,
-                        // download_count removed - no longer needed
-                        owned: file.owned || false,
-                        tag: file.tag || null
-                    })),
-                    // Use vetrina info for the card
-                    filename: realFiles.length > 1 ? `${realFiles.length} files` : realFiles[0].filename,
-                    title: vetrina.name || 'Vetrina Senza Nome',
-                    description: vetrina.description || 'No description available',
-                    size: totalSize,
-                    price: totalPrice,
-                    created_at: vetrina.created_at || new Date().toISOString(),
-                    // download_count removed - no longer needed
-                    rating: 0, // Will be updated when reviews are loaded
-                    review_count: 0, // Will be updated when reviews are loaded
-                    course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
-                    faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
-                    language: vetrina.course_instance?.language || 'Italiano',
-                    canale: vetrina.course_instance?.canale || 'A',
-                    course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                    academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                    document_types: Array.from(new Set(realFiles.map(file => getFileTypeFromFilename(file.filename)))),
-                    document_type: realFiles.length > 1 ? 'BUNDLE' : getFileTypeFromFilename(realFiles[0].filename),
-                    author_username: vetrina.author?.username || 'Unknown',
-                    owned: realFiles.every(file => file.owned),
-                    favorite: vetrina.favorite === true,
-                    tags: realFiles.map(file => file.tag).filter(tag => tag !== null),
-                    primary_tag: realFiles.find(file => file.tag)?.tag || null,
-                    vetrina_info: {
-                        id: vetrina.vetrina_id,
-                        name: vetrina.name,
-                        description: vetrina.description,
-                        course_instance_id: vetrina.course_instance?.course_instance_id,
-                        owner_id: vetrina.author?.user_id,
-                        owner_username: vetrina.author?.username || 'Unknown'
-                    }
-                };
-                transformedResults.push(vetrineCard);
-                
-            } catch (error) {
-                console.error(`Error loading files for search result vetrina ${vetrina.vetrina_id}:`, error);
-                // Continue with other vetrine even if one fails
-            }
-        }
+                    name: vetrina.name,
+                    description: vetrina.description,
+                    course_instance_id: vetrina.course_instance?.course_instance_id,
+                    owner_id: vetrina.author?.user_id,
+                    owner_username: vetrina.author?.username || 'Unknown'
+                }
+            };
+            return vetrineCard;
+        });
         
         // Apply any remaining client-side filters (except backend-handled ones)
         console.log('🔍 Applying client-side filters to', transformedResults.length, 'results...');

@@ -14,5 +14,12 @@ const config = {
 const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
 const currentConfig = isProduction ? config.production : config.development;
 
+// Debug logging
+console.log('🔧 Config loaded:', {
+    hostname: window.location.hostname,
+    isProduction: isProduction,
+    API_BASE: currentConfig.API_BASE
+});
+
 // Export for use in other files
 window.APP_CONFIG = currentConfig; 

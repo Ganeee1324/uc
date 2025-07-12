@@ -286,15 +286,27 @@ function updateHeaderUserInfo(user) {
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
     if (user) {
-        const avatarUrl = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+        // Construct the user's full name for the avatar
+        let fullName = '';
+        if (user.name && user.surname) {
+            fullName = `${user.name} ${user.surname}`;
+        } else if (user.name) {
+            fullName = user.name;
+        } else if (user.username) {
+            fullName = user.username;
+        } else {
+            fullName = 'User';
+        }
         
-        userAvatar.innerHTML = `<img src="${avatarUrl}" alt="${user.name}">`;
+        const avatarUrl = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random&size=80&color=fff&font-size=0.4`;
+        
+        userAvatar.innerHTML = `<img src="${avatarUrl}" alt="${fullName}">`;
         
         if (dropdownAvatar) {
             dropdownAvatar.style.backgroundImage = `url(${avatarUrl})`;
         }
         if (dropdownUserName) {
-            dropdownUserName.textContent = user.username || 'User';
+            dropdownUserName.textContent = user.username || fullName;
         }
         if (dropdownUserEmail) {
             dropdownUserEmail.textContent = user.email;

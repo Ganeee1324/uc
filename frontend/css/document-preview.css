@@ -3328,7 +3328,7 @@ button:focus-visible,
 
 .review-rating-overlay .star {
     font-size: 16px;
-    color: var(--warning-500);
+    color: #fbbf24;
 }
 
 .review-date-overlay {
@@ -3437,13 +3437,13 @@ button:focus-visible,
 
 .star-input:hover,
 .star-input.hover {
-    color: var(--warning-400);
-    transform: scale(1.15) rotate(5deg);
+    color: #fbbf24;
+    transform: scale(1.15);
 }
 
 .star-input.active {
-    color: var(--warning-500);
-    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
 }
 
 .review-text-input {

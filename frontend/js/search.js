@@ -5553,13 +5553,6 @@ function updateReviewsOverlay() {
                     // Frontend-only approach: compare current user with review author
                     const isCurrentUserReview = currentUser && currentUser.user_id === review.user?.user_id;
                     const shouldShowDelete = isCurrentUserReview;
-                        review_user_id: review.user?.user_id,
-                        review_username: review.user?.username,
-                        currentUser_id: currentUser?.user_id,
-                        currentUser_username: currentUser?.username,
-                        shouldShowDelete: shouldShowDelete,
-                        isCurrentUserReview: isCurrentUserReview
-                    });
                     return shouldShowDelete ? 
                         `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
                             <span class="material-symbols-outlined">delete</span>

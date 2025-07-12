@@ -5968,7 +5968,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .reviewer-info-overlay {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-3);
 }
 
@@ -5991,17 +5991,26 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-weight: 600;
     color: var(--gray-900);
     font-size: 1rem;
+    margin-bottom: 2px;
 }
 
 .review-rating-overlay {
     display: flex;
     gap: 1px;
-    margin-top: var(--space-1);
+    margin-top: 0;
 }
 
 .review-rating-overlay .star {
     font-size: 16px;
     color: #fbbf24;
+}
+
+.review-rating-overlay .rating-star.filled {
+    color: #fbbf24;
+}
+
+.review-rating-overlay .rating-star:not(.filled) {
+    color: #d1d5db;
 }
 
 .review-date-overlay {

@@ -3825,6 +3825,18 @@ function generateStars(rating) {
     return stars;
 }
 
+function generateReviewStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars += '<span class="rating-star filled">★</span>';
+        } else {
+            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
+        }
+    }
+    return stars;
+}
+
 function generateFractionalStars(rating) {
     const ratingPercentage = (rating / 5) * 100;
     return `
@@ -5634,7 +5646,7 @@ function updateReviewsOverlay() {
                         <div>
                             <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>
                             <div class="review-rating-overlay">
-                                ${generateStars(review.rating)}
+                                ${generateReviewStars(review.rating)}
                             </div>
                         </div>
                     </div>

@@ -1554,7 +1554,7 @@ function renderDocumentListView(docData) {
                         <h1 class="doc-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
                     </div>
                     <div class="doc-meta-header">
-                        <div class="doc-rating-display" data-action="open-reviews" title="Mostra recensioni">
+                        <div class="doc-rating-display" data-action="open-reviews" data-vetrina-id="${currentVetrina?.id || currentVetrina?.vetrina_id}" title="Mostra recensioni">
                             <div class="rating-stars"></div>
                             <div class="rating-details">
                                 <span class="rating-score">0.0</span>
@@ -1741,7 +1741,7 @@ function renderDocumentViewerMode(docData) {
                             <h1 class="doc-title">Caricamento...</h1>
                         </div>
                         <div class="doc-meta-header">
-                            <div class="doc-rating-display" data-action="open-reviews" title="Mostra recensioni">
+                            <div class="doc-rating-display" data-action="open-reviews" data-vetrina-id="${currentVetrina?.id || currentVetrina?.vetrina_id}" title="Mostra recensioni">
                                 <div class="rating-stars"></div>
                                 <div class="rating-details">
                                     <span class="rating-score">0.0</span>

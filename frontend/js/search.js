@@ -206,12 +206,23 @@ function updateHeaderUserInfo(user) {
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
     if (user) {
-        const avatarUrl = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+        // Create a proper avatar with user's initial instead of external service
+        const userName = user.username || user.name || 'User';
+        const userInitial = userName.charAt(0).toUpperCase();
+        const avatarVariant = getAvatarVariant(userName);
         
-        userAvatar.innerHTML = `<img src="${avatarUrl}" alt="${user.name}">`;
+        userAvatar.innerHTML = `
+            <div class="header-user-avatar ${avatarVariant}">
+                ${userInitial}
+            </div>
+        `;
         
         if (dropdownAvatar) {
-            dropdownAvatar.style.backgroundImage = `url(${avatarUrl})`;
+            dropdownAvatar.innerHTML = `
+                <div class="dropdown-user-avatar ${avatarVariant}">
+                    ${userInitial}
+                </div>
+            `;
         }
         if (dropdownUserName) {
             dropdownUserName.textContent = user.username || 'User';

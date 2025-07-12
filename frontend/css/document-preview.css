@@ -3279,12 +3279,14 @@ button:focus-visible,
     font-weight: 600;
     color: var(--neutral-800);
     font-size: var(--text-base);
+    margin-bottom: 1px;
 }
 
 .review-rating-overlay {
     display: flex;
     gap: 1px;
-    margin-top: var(--space-1);
+    margin-top: 0;
+    margin-left: -2px;
 }
 
 .review-rating-overlay .star {

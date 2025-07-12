@@ -214,23 +214,30 @@ html {
 
 /* Vendor Banner */
 .vendor-banner {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 40px 0;
     margin-bottom: 32px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e9ecef;
+    position: relative;
+    overflow: hidden;
 }
 
 .banner-content {
-    max-width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .vendor-info {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 24px;
+    text-align: center;
 }
 
 .vendor-avatar {
@@ -252,18 +259,20 @@ html {
 }
 
 .vendor-name {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    color: var(--gray-900);
+    color: white;
     margin: 0 0 4px 0;
     line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .vendor-stats {
     font-size: 16px;
-    color: var(--gray-600);
+    color: rgba(255, 255, 255, 0.9);
     margin: 0;
     font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Header - New Layout to Match Image */
@@ -5861,124 +5870,5 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .vendor-stats {
         font-size: 13px;
-    }
-    
-    .bottom-vendor-banner {
-        padding: 12px 0;
-    }
-    
-    .bottom-banner-content {
-        padding: 0 12px;
-    }
-    
-    .bottom-vendor-avatar {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .bottom-vendor-avatar .material-symbols-outlined {
-        font-size: 20px;
-    }
-}
-
-/* Bottom Vendor Banner */
-.bottom-vendor-banner {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #ffffff;
-    border-top: 1px solid #e9ecef;
-    z-index: 999;
-    padding: 20px 0;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.bottom-banner-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.bottom-vendor-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 24px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bottom-vendor-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.bottom-vendor-avatar .material-symbols-outlined {
-    font-size: 28px;
-    color: white;
-}
-
-/* Bottom Vendor Avatar Gradient Variants */
-.bottom-vendor-avatar.variant-0 {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-}
-
-.bottom-vendor-avatar.variant-1 {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-}
-
-.bottom-vendor-avatar.variant-2 {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-}
-
-.bottom-vendor-avatar.variant-3 {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-}
-
-.bottom-vendor-avatar.variant-4 {
-    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
-}
-
-.bottom-vendor-avatar.variant-5 {
-    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-}
-
-.bottom-vendor-avatar.variant-6 {
-    background: linear-gradient(135deg, #be185d 0%, #ec4899 100%);
-}
-
-.bottom-vendor-avatar.variant-7 {
-    background: linear-gradient(135deg, #854d0e 0%, #eab308 100%);
-}
-
-@media (max-width: 768px) {
-    .bottom-vendor-banner {
-        padding: 16px 0;
-    }
-    
-    .bottom-banner-content {
-        padding: 0 16px;
-    }
-    
-    .bottom-vendor-avatar {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-    }
-    
-    .bottom-vendor-avatar .material-symbols-outlined {
-        font-size: 24px;
     }
 }

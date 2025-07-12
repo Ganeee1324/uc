@@ -119,7 +119,6 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
-        initializeCacheStatus();
         
         // Load valid tags from backend first
         await loadValidTags();
@@ -1012,7 +1011,6 @@ async function loadHierarchyData() {
     const cachedData = getHierarchyCache();
     if (cachedData) {
         window.facultyCoursesData = cachedData;
-        updateCacheStatus();
         return;
     }
     
@@ -1028,9 +1026,6 @@ async function loadHierarchyData() {
             
             // Cache the data for future use
             setHierarchyCache(data);
-            
-            // Update cache status
-            updateCacheStatus();
         } else {
             console.warn('⚠️ Unexpected hierarchy data format:', data);
             window.facultyCoursesData = {};
@@ -1077,68 +1072,7 @@ async function refreshHierarchyData() {
     await loadHierarchyData();
 }
 
-// Cache status management
-function updateCacheStatus() {
-    const cacheBtn = document.getElementById('cacheStatusBtn');
-    if (!cacheBtn) return;
-    
-    const cached = getHierarchyCache();
-    if (cached) {
-        cacheBtn.classList.remove('loading', 'error');
-        cacheBtn.classList.add('cached');
-        cacheBtn.title = `Cache attivo (${Math.round((Date.now() - cached.timestamp) / (1000 * 60))} min fa)`;
-    } else {
-        cacheBtn.classList.remove('cached', 'loading', 'error');
-        cacheBtn.title = 'Cache non disponibile';
-    }
-}
 
-function showCacheLoading() {
-    const cacheBtn = document.getElementById('cacheStatusBtn');
-    if (!cacheBtn) return;
-    
-    cacheBtn.classList.remove('cached', 'error');
-    cacheBtn.classList.add('loading');
-    cacheBtn.title = 'Caricamento cache...';
-}
-
-function showCacheError() {
-    const cacheBtn = document.getElementById('cacheStatusBtn');
-    if (!cacheBtn) return;
-    
-    cacheBtn.classList.remove('cached', 'loading');
-    cacheBtn.classList.add('error');
-    cacheBtn.title = 'Errore cache';
-}
-
-// Initialize cache status button
-function initializeCacheStatus() {
-    const cacheBtn = document.getElementById('cacheStatusBtn');
-    if (!cacheBtn) return;
-    
-    // Show button
-    cacheBtn.style.display = 'flex';
-    
-    // Add click handler for manual refresh
-    cacheBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        showCacheLoading();
-        try {
-            await refreshHierarchyData();
-            updateCacheStatus();
-            showStatus('Cache aggiornata con successo! 🔄');
-        } catch (error) {
-            console.error('Error refreshing cache:', error);
-            showCacheError();
-            showStatus('Errore nell\'aggiornamento della cache', 'error');
-        }
-    });
-    
-    // Initial status update
-    updateCacheStatus();
-}
 
 function populateDropdownOptions() {
     if (!window.facultyCoursesData) return;

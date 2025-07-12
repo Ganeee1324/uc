@@ -908,73 +908,7 @@ html {
     white-space: nowrap;
 }
 
-/* Cache Status Button */
-.cache-status-btn {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: all 0.2s var(--ease-2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 12px;
-    box-shadow: var(--shadow-sm);
-    position: relative;
-}
 
-.cache-status-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-lg);
-    padding: 1px;
-    background: linear-gradient(135deg, var(--blue-500), var(--purple-500));
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.2s var(--ease-2);
-}
-
-.cache-status-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--blue-300);
-}
-
-.cache-status-btn:hover::before {
-    opacity: 1;
-}
-
-.cache-status-btn .material-symbols-outlined {
-    font-size: 18px;
-    color: var(--blue-600);
-    transition: all 0.2s var(--ease-2);
-}
-
-.cache-status-btn:hover .material-symbols-outlined {
-    color: var(--blue-700);
-    transform: scale(1.1);
-}
-
-.cache-status-btn.cached .material-symbols-outlined {
-    color: var(--green-600);
-}
-
-.cache-status-btn.loading .material-symbols-outlined {
-    color: var(--orange-500);
-    animation: spin 1s linear infinite;
-}
-
-.cache-status-btn.error .material-symbols-outlined {
-    color: var(--red-500);
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
 
 .filter-count {
     position: relative;

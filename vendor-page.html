@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Page - Uniclarity</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    <link rel="stylesheet" href="css/vendor-page.css?v=1.2">
+    <!-- Favicon removed for CSP compliance -->
+</head>
+<body>
+    <!-- Header matching the image -->
+    <header class="header">
+        <a href="search.html" class="logo">
+            <img src="images/Logo.png" alt="Uniclarity">
+        </a>
+        
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <a href="search.html" class="nav-link">Home</a>
+            <a href="#about" class="nav-link">About us</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+        </nav>
+        
+        <div class="auth-buttons">
+            <div class="divider"></div>
+            <a href="upload.html" class="nav-link">Carica</a>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path fill="#000" fill-rule="evenodd" d="M256 42.667A213.333 213.333 0 0 1 469.334 256c0 117.821-95.513 213.334-213.334 213.334c-117.82 0-213.333-95.513-213.333-213.334C42.667 138.18 138.18 42.667 256 42.667m21.334 234.667h-42.667c-52.815 0-98.158 31.987-117.715 77.648c30.944 43.391 81.692 71.685 139.048 71.685s108.104-28.294 139.049-71.688c-19.557-45.658-64.9-77.645-117.715-77.645M256 106.667c-35.346 0-64 28.654-64 64s28.654 64 64 64s64-28.654 64-64s-28.653-64-64-64"/></svg>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-user-info">
+                        <div class="dropdown-avatar" id="dropdownAvatar"></div>
+                        <div class="dropdown-user-details">
+                            <span class="dropdown-user-name" id="dropdownUserName"></span>
+                            <span class="dropdown-user-email" id="dropdownUserEmail"></span>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="upload.html" class="dropdown-item">
+                        <i class="material-symbols-outlined">upload</i>
+                        <span>Upload File</span>
+                    </a>
+                    <a href="#" class="dropdown-item" id="userFavorites">
+                        <i class="material-symbols-outlined">favorite</i>
+                        <span>My Favorites</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item" id="logoutBtn">
+                        <i class="material-symbols-outlined">logout</i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content - Centered Search Interface -->
+    <main class="main-content" id="mainContent">
+        <!-- Search Section with integrated cards -->
+        <div class="search-section has-results" id="searchSection">
+            <!-- Vendor Banner (replaces Cerca. title position) -->
+            <div class="vendor-banner">
+                <div class="banner-content">
+                    <div class="vendor-info">
+                        <div class="vendor-avatar" id="vendorAvatar">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        <div class="vendor-details">
+                            <h1 class="vendor-name" id="vendorName">Vendor Name</h1>
+                            <p class="vendor-stats" id="vendorStats">0 documenti • 0 recensioni</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="search-container-wrapper">
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Cerca nei documenti di questo venditore...">
+                        <button class="search-btn" id="searchBtn">
+                            <i class="material-symbols-outlined">search</i>
+                        </button>
+                    </div>
+                    <button class="filters-btn" id="filtersBtn">
+                        <i class="material-symbols-outlined">tune</i>
+                        <span class="filters-text">Filtri</span>
+                        <span class="filter-count" id="filterCount">0</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Document Count and Active Filters Display -->
+            <div id="documentCountContainer" class="document-count-container" style="display: block;">
+                <div class="document-count-and-filters">
+                    <span id="documentCount" class="document-count">Caricamento...</span>
+                    <div id="activeFiltersDisplay" class="active-filters-display">
+                        <!-- Active filter pills will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Grid - Will be populated dynamically -->
+            <div class="documents-grid" id="documentsGrid">
+                <!-- Initial loading cards to prevent layout shift -->
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="document-card loading-card">
+                    <div class="document-preview loading-preview">
+                        <div class="skeleton-preview-circle"></div>
+                        <div class="skeleton-rating-badge"></div>
+                        <div class="skeleton-preview-bar"></div>
+                    </div>
+                    <div class="skeleton-favorite-button"></div>
+                    <div class="document-content">
+                        <div class="document-header">
+                            <div class="document-title-section">
+                                <div class="skeleton-title"></div>
+                                <div class="skeleton-author"></div>
+                            </div>
+                        </div>
+                        <div class="document-info">
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                            <div class="skeleton-line info-item"></div>
+                        </div>
+                        <div class="document-footer">
+                            <div class="skeleton-footer-left">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-meta"></div>
+                            </div>
+                            <div class="skeleton-price"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Advanced Filters Panel (moved outside main for proper fixed positioning) -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-content">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <h2>🎯 Filtri</h2>
+                    <span class="filters-subtitle">Trova esattamente quello che cerchi</span>
+                </div>
+                <div class="filters-actions">
+                    <button class="filter-clear-btn" id="clearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        Reset
+                    </button>
+                    <button class="filters-close" id="filtersClose">
+                        <i class="material-symbols-outlined">close</i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filters-grid">
+                <!-- Academic Context Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">school</i>
+                        Contesto Accademico
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="facultyFilter" class="filter-label">Facoltà</label>
+                            <div class="dropdown-container" data-dropdown="faculty">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="facultyFilter" class="dropdown-input" placeholder="Scrivi o scegli una facoltà...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="facultyDropdown">
+                                    <div class="dropdown-options" id="facultyOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="courseFilter" class="filter-label">Corso</label>
+                            <div class="dropdown-container" data-dropdown="course">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="courseFilter" class="dropdown-input" placeholder="Scrivi o scegli un corso...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="courseDropdown">
+                                    <div class="dropdown-options" id="courseOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="canaleFilter" class="filter-label">Canale</label>
+                            <div class="dropdown-container" data-dropdown="canale">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="canaleFilter" class="dropdown-input" placeholder="Scrivi o scegli un canale...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="canaleDropdown">
+                                    <div class="dropdown-options" id="canaleOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Document Properties Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">description</i>
+                        Tipologia Documento
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="tagFilter" class="filter-label">Tipo Documento</label>
+                            <div class="dropdown-container" data-dropdown="tag">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="tagFilter" class="dropdown-input" placeholder="Tutti i tipi" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="tagDropdown">
+                                    <div class="dropdown-options" id="tagOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="documentTypeFilter" class="filter-label">Formato file</label>
+                            <div class="dropdown-container" data-dropdown="documentType">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="documentTypeFilter" class="dropdown-input" placeholder="Tutti i formati" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="documentTypeDropdown">
+                                    <div class="dropdown-options" id="documentTypeOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="languageFilter" class="filter-label">Lingua</label>
+                            <div class="dropdown-container" data-dropdown="language">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="languageFilter" class="dropdown-input" placeholder="Tutte le lingue" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="languageDropdown">
+                                    <div class="dropdown-options" id="languageOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">Tipo Vetrina</label>
+                            <div class="vetrina-toggle-group">
+                                <button class="vetrina-toggle active" data-vetrina="all">
+                                    <i class="material-symbols-outlined">select_all</i>
+                                    Tutte
+                                </button>
+                                <button class="vetrina-toggle" data-vetrina="single">
+                                    <i class="material-symbols-outlined">description</i>
+                                    Singolo File
+                                </button>
+                                <button class="vetrina-toggle" data-vetrina="multiple">
+                                    <i class="material-symbols-outlined">folder</i>
+                                    Pacchetti
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Period Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">calendar_month</i>
+                        Periodo Accademico
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="academicYearFilter" class="filter-label">Anno Accademico</label>
+                            <div class="dropdown-container" data-dropdown="academicYear">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="academicYearFilter" class="dropdown-input" placeholder="Tutti gli anni" readonly>
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="academicYearDropdown">
+                                    <div class="dropdown-options" id="academicYearOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality & Engagement Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">star</i>
+                        Qualità & Engagement
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="filter-label">Rating Minimo</label>
+                            <div class="rating-filter">
+                                <div class="rating-stars-filter" id="ratingFilter">
+                                    <span class="rating-star-filter" data-rating="1">★</span>
+                                    <span class="rating-star-filter" data-rating="2">★</span>
+                                    <span class="rating-star-filter" data-rating="3">★</span>
+                                    <span class="rating-star-filter" data-rating="4">★</span>
+                                    <span class="rating-star-filter" data-rating="5">★</span>
+                                </div>
+                                <span class="rating-text" id="ratingText">Qualsiasi rating</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price & Availability Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">payments</i>
+                        Prezzo & Disponibilità
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="filter-label">Prezzo</label>
+                            <div class="price-toggle-group">
+                                <button class="price-toggle active" data-price="all">
+                                    <i class="material-symbols-outlined">select_all</i>
+                                    Tutti
+                                </button>
+                                <button class="price-toggle" data-price="free">
+                                    <i class="material-symbols-outlined">volunteer_activism</i>
+                                    Gratis
+                                </button>
+                                <button class="price-toggle" data-price="paid">
+                                    <i class="material-symbols-outlined">paid</i>
+                                    A Pagamento
+                                </button>
+                            </div>
+                        </div>
+                        <div class="filter-item" id="priceRangeContainer">
+                            <label class="filter-label">Range di Prezzo (€)</label>
+                            <div class="price-range-filter">
+                                <div class="dual-range-container">
+                                    <div class="range-track">
+                                        <div class="range-fill" id="rangeFill"></div>
+                                    </div>
+                                    <input type="range" id="minPriceRange" class="range-slider range-slider-min" min="0" max="100" value="0" step="0.5">
+                                    <input type="range" id="maxPriceRange" class="range-slider range-slider-max" min="0" max="100" value="100" step="0.5">
+                                </div>
+                                <div class="price-values">
+                                    <span id="minPriceValue">€0</span>
+                                    <span id="maxPriceValue">€100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Properties Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">folder</i>
+                        Proprietà File
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="filter-label">Dimensione File</label>
+                            <div class="size-toggle-group">
+                                <button class="size-toggle active" data-size="all">Tutte</button>
+                                <button class="size-toggle" data-size="small">< 5MB</button>
+                                <button class="size-toggle" data-size="medium">5-20MB</button>
+                                <button class="size-toggle" data-size="large">> 20MB</button>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label class="filter-label">Data di Pubblicazione</label>
+                            <div class="time-toggle-group">
+                                <button class="time-toggle active" data-time="all">Sempre</button>
+                                <button class="time-toggle" data-time="week">Ultima settimana</button>
+                                <button class="time-toggle" data-time="month">Ultimo mese</button>
+                                <button class="time-toggle" data-time="year">Ultimo anno</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Overlay -->
+    <div class="filters-overlay" id="filtersOverlay"></div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h2 class="preview-title" id="previewTitle">Document Preview</h2>
+                <button class="preview-close" id="previewCloseBtn">×</button>
+            </div>
+            <div id="previewBody" class="preview-body">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div id="previewActions" class="preview-actions">
+                <!-- Action buttons will be added here -->
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top-btn" id="scrollToTopBtn" aria-label="Scroll to top of page">
+        <i class="material-symbols-outlined">keyboard_arrow_up</i>
+    </button>
+
+    <script src="js/config.js"></script>
+    <script src="js/vendor-page.js"></script>
+    
+</body>
+</html> 

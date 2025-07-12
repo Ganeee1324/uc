@@ -1,4 +1,4 @@
-// Vendor Page JavaScript - Complete functionality
+// Vendor Page JavaScript - Complete functionality with search page matching
 const API_BASE = 'http://146.59.236.26:5000';
 let authToken = localStorage.getItem('authToken');
 
@@ -30,6 +30,7 @@ let currentVetrine = [];
 let originalVetrine = [];
 let activeFilters = {};
 let currentUser = null;
+let isFiltersOpen = false;
 
 // Initialize the page
 window.onload = async function() {
@@ -503,28 +504,335 @@ function performSearch(query) {
 
 // Initialize filters
 function initializeFilters() {
-    // For now, we'll implement basic filter functionality
-    // This can be expanded later to match the search page filters
+    const filtersBtn = document.getElementById('filtersBtn');
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
     
-    const clearAllFilters = document.getElementById('clearAllFilters');
-    const clearAllFiltersBottom = document.getElementById('clearAllFiltersBottom');
-    
-    if (clearAllFilters) {
-        clearAllFilters.addEventListener('click', clearAllFiltersAction);
+    // Open filters
+    if (filtersBtn) {
+        filtersBtn.addEventListener('click', () => {
+            openFilters();
+        });
     }
     
-    if (clearAllFiltersBottom) {
-        clearAllFiltersBottom.addEventListener('click', clearAllFiltersAction);
+    // Close filters
+    if (closeFiltersBtn) {
+        closeFiltersBtn.addEventListener('click', () => {
+            closeFilters();
+        });
+    }
+    
+    // Close filters when clicking overlay
+    if (filtersOverlay) {
+        filtersOverlay.addEventListener('click', (e) => {
+            if (e.target === filtersOverlay) {
+                closeFilters();
+            }
+        });
+    }
+    
+    // Clear filters
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            clearAllFilters();
+        });
+    }
+    
+    if (clearAllFiltersBtn) {
+        clearAllFiltersBtn.addEventListener('click', () => {
+            clearAllFilters();
+        });
+    }
+    
+    // Initialize dropdown filters
+    initializeDropdownFilters();
+    
+    // Initialize rating filters
+    initializeRatingFilters();
+    
+    // Initialize price filters
+    initializePriceFilters();
+}
+
+// Open filters overlay
+function openFilters() {
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const body = document.body;
+    
+    if (filtersOverlay && filtersPanel) {
+        filtersOverlay.classList.add('active');
+        filtersPanel.classList.add('active');
+        body.classList.add('filters-open');
+        isFiltersOpen = true;
+        
+        // Prevent body scroll
+        body.style.overflow = 'hidden';
     }
 }
 
+// Close filters overlay
+function closeFilters() {
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const body = document.body;
+    
+    if (filtersOverlay && filtersPanel) {
+        filtersOverlay.classList.remove('active');
+        filtersPanel.classList.remove('active');
+        body.classList.remove('filters-open');
+        isFiltersOpen = false;
+        
+        // Restore body scroll
+        body.style.overflow = '';
+    }
+}
+
+// Initialize dropdown filters
+function initializeDropdownFilters() {
+    const dropdowns = document.querySelectorAll('.dropdown-container');
+    
+    dropdowns.forEach(dropdown => {
+        const input = dropdown.querySelector('.dropdown-input');
+        const arrow = dropdown.querySelector('.dropdown-arrow');
+        const options = dropdown.querySelector('.dropdown-options');
+        
+        if (input && arrow && options) {
+            input.addEventListener('click', () => {
+                // Close other dropdowns
+                dropdowns.forEach(other => {
+                    if (other !== dropdown) {
+                        other.classList.remove('open');
+                    }
+                });
+                
+                // Toggle current dropdown
+                dropdown.classList.toggle('open');
+            });
+            
+            arrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('open');
+            });
+        }
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown-container')) {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        }
+    });
+}
+
+// Initialize rating filters
+function initializeRatingFilters() {
+    const ratingButtons = document.querySelectorAll('.rating-star-filter');
+    
+    ratingButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const rating = button.dataset.rating;
+            
+            // Remove active class from all rating buttons
+            ratingButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            
+            // Apply filter
+            applyRatingFilter(rating);
+        });
+    });
+}
+
+// Initialize price filters
+function initializePriceFilters() {
+    const priceToggles = document.querySelectorAll('.price-toggle');
+    const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    const minPriceValue = document.getElementById('minPriceValue');
+    const maxPriceValue = document.getElementById('maxPriceValue');
+    
+    // Price toggle buttons
+    priceToggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const priceType = toggle.dataset.price;
+            
+            // Remove active class from all toggles
+            priceToggles.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked toggle
+            toggle.classList.add('active');
+            
+            // Apply filter
+            applyPriceFilter(priceType);
+        });
+    });
+    
+    // Price range sliders
+    if (minPriceRange && maxPriceRange && minPriceValue && maxPriceValue) {
+        minPriceRange.addEventListener('input', (e) => {
+            const value = e.target.value;
+            minPriceValue.textContent = `€${value}`;
+            applyPriceRangeFilter(value, maxPriceRange.value);
+        });
+        
+        maxPriceRange.addEventListener('input', (e) => {
+            const value = e.target.value;
+            maxPriceValue.textContent = `€${value}`;
+            applyPriceRangeFilter(minPriceRange.value, value);
+        });
+    }
+}
+
+// Apply rating filter
+function applyRatingFilter(rating) {
+    console.log('⭐ Applying rating filter:', rating);
+    // Implement rating filter logic here
+    updateActiveFilters();
+}
+
+// Apply price filter
+function applyPriceFilter(priceType) {
+    console.log('💰 Applying price filter:', priceType);
+    // Implement price filter logic here
+    updateActiveFilters();
+}
+
+// Apply price range filter
+function applyPriceRangeFilter(minPrice, maxPrice) {
+    console.log('💰 Applying price range filter:', minPrice, maxPrice);
+    // Implement price range filter logic here
+    updateActiveFilters();
+}
+
 // Clear all filters
-function clearAllFiltersAction() {
+function clearAllFilters() {
     console.log('🧹 Clearing all filters');
+    
+    // Reset all filter states
+    const ratingButtons = document.querySelectorAll('.rating-star-filter');
+    const priceToggles = document.querySelectorAll('.price-toggle');
+    const dropdowns = document.querySelectorAll('.dropdown-container');
+    
+    // Reset rating filters
+    ratingButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Reset price filters
+    priceToggles.forEach(toggle => toggle.classList.remove('active'));
+    priceToggles[0].classList.add('active'); // Set "All" as active
+    
+    // Reset dropdowns
+    dropdowns.forEach(dropdown => {
+        const input = dropdown.querySelector('.dropdown-input');
+        if (input) {
+            input.value = '';
+            input.placeholder = input.getAttribute('data-original-placeholder') || input.placeholder;
+        }
+        dropdown.classList.remove('open');
+    });
+    
+    // Reset price range
+    const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    const minPriceValue = document.getElementById('minPriceValue');
+    const maxPriceValue = document.getElementById('maxPriceValue');
+    
+    if (minPriceRange && maxPriceRange && minPriceValue && maxPriceValue) {
+        minPriceRange.value = 0;
+        maxPriceRange.value = 100;
+        minPriceValue.textContent = '€0';
+        maxPriceValue.textContent = '€100';
+    }
+    
+    // Reset active filters
     activeFilters = {};
+    
+    // Reset to original vetrine
     currentVetrine = [...originalVetrine];
     renderDocuments(currentVetrine);
-    updateActiveFiltersDisplay();
+    
+    // Update UI
+    updateActiveFilters();
+    updateFilterCount();
+}
+
+// Update active filters display
+function updateActiveFilters() {
+    const activeFiltersDisplay = document.getElementById('activeFiltersDisplay');
+    const activeFiltersList = document.getElementById('activeFiltersList');
+    const clearAllFiltersBtn = document.getElementById('clearAllFiltersBtn');
+    
+    if (!activeFiltersDisplay || !activeFiltersList) return;
+    
+    const filterCount = Object.keys(activeFilters).length;
+    
+    if (filterCount > 0) {
+        activeFiltersDisplay.classList.add('visible');
+        clearAllFiltersBtn.style.display = 'flex';
+        
+        // Clear existing filter pills
+        activeFiltersList.innerHTML = '';
+        
+        // Add filter pills for each active filter
+        Object.entries(activeFilters).forEach(([key, value]) => {
+            const filterPill = document.createElement('div');
+            filterPill.className = 'filter-pill';
+            filterPill.innerHTML = `
+                <span class="filter-pill-label">${key}</span>
+                <span class="filter-pill-value">${value}</span>
+                <button class="filter-pill-remove" onclick="removeFilter('${key}')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            `;
+            activeFiltersList.appendChild(filterPill);
+        });
+    } else {
+        activeFiltersDisplay.classList.remove('visible');
+        clearAllFiltersBtn.style.display = 'none';
+        activeFiltersList.innerHTML = '';
+    }
+}
+
+// Remove specific filter
+function removeFilter(filterKey) {
+    console.log('🗑️ Removing filter:', filterKey);
+    delete activeFilters[filterKey];
+    updateActiveFilters();
+    updateFilterCount();
+    
+    // Reapply remaining filters
+    applyFilters();
+}
+
+// Apply all active filters
+function applyFilters() {
+    console.log('🔧 Applying filters:', activeFilters);
+    // Implement filter application logic here
+    // This would filter currentVetrine based on activeFilters
+    renderDocuments(currentVetrine);
+}
+
+// Update filter count
+function updateFilterCount() {
+    const filterCount = document.getElementById('filterCount');
+    const filterCountNum = Object.keys(activeFilters).length;
+    
+    if (filterCount) {
+        if (filterCountNum > 0) {
+            filterCount.textContent = filterCountNum;
+            filterCount.style.display = 'flex';
+            filterCount.classList.add('active');
+        } else {
+            filterCount.style.display = 'none';
+            filterCount.classList.remove('active');
+        }
+    }
 }
 
 // Initialize scroll to top
@@ -562,23 +870,6 @@ function updateDocumentCount(count) {
         const documentText = count === 1 ? 'DOCUMENTO TROVATO' : 'DOCUMENTI TROVATI';
         documentCount.textContent = `${count} ${documentText}`;
         documentCountContainer.style.display = 'block';
-    }
-}
-
-// Update active filters display
-function updateActiveFiltersDisplay() {
-    const activeFiltersElement = document.getElementById('activeFilters');
-    const activeFiltersList = document.getElementById('activeFiltersList');
-    
-    if (!activeFiltersElement || !activeFiltersList) return;
-    
-    const filterCount = Object.keys(activeFilters).length;
-    
-    if (filterCount > 0) {
-        activeFiltersElement.style.display = 'block';
-        // Render filter tags here if needed
-    } else {
-        activeFiltersElement.style.display = 'none';
     }
 }
 

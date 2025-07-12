@@ -3682,7 +3682,7 @@ function renderDocuments(files) {
                 </div>
                 <div class="document-footer">
                     <div class="document-footer-left">
-                        <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}">
+                        <div class="owner-avatar ${getAvatarVariant(item.author_username)}" title="Caricato da ${item.author_username || 'Unknown'}" onclick="window.location.href='vendor-page.html?user=${encodeURIComponent(item.author_username || 'Unknown')}'">
                             ${item.author_username ? item.author_username.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="document-meta">

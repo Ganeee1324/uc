@@ -3658,7 +3658,7 @@ function renderDocuments(files) {
                     button.disabled = true;
                     
                     // Fetch files for this vetrina
-                    const filesResponse = await makeAuthenticatedRequest(`/vetrine/${item.id}/files`);
+                    const filesResponse = await makeSimpleRequest(`/vetrine/${item.id}/files`);
                     
                     if (!filesResponse || !filesResponse.files || filesResponse.files.length === 0) {
                         showError('Nessun file trovato in questa vetrina');

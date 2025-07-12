@@ -277,19 +277,13 @@ async function makeRequest(url, options = {}) {
     try {
         const defaultOptions = {
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': authToken ? `Bearer ${authToken}` : ''
+                'Content-Type': 'application/json'
             }
         };
 
         const response = await fetch(url, { ...defaultOptions, ...options });
         
         if (!response.ok) {
-            if (response.status === 401) {
-                handleAuthError();
-                return null;
-            }
-            
             // Handle CORS preflight failures more gracefully
             if (response.status === 405 && response.statusText === 'METHOD NOT ALLOWED') {
                 console.warn('CORS preflight failed for:', url);
@@ -327,7 +321,7 @@ async function loadPdfWithPdfJs(fileId, viewerElementId) {
 
     try {
         const url = getRedactedPdfUrl(fileId);
-        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
 
         const pdfData = await response.arrayBuffer();
@@ -1404,11 +1398,6 @@ async function initializeDocumentPreview() {
     // Initialize CSP-compliant event handlers
     handleActionCallbackButtons();
     
-    if (!authToken) {
-        handleAuthError();
-        return;
-    }
-
     const user = await fetchCurrentUserData();
     if(user) {
         updateHeaderUserInfo(user);
@@ -1439,14 +1428,7 @@ async function initializeDocumentPreview() {
         currentVetrinaFiles = docData.vetrinaFiles || [];
         documentData = docData; // Store for toggling
 
-        // Debug logging
-            documentId: currentDocument?.file_id,
-            vetrinaId: currentVetrina?.vetrina_id,
-            vetrinaIdField: currentVetrina?.id,
-            vetrinaData: currentVetrina,
-            vetrinaKeys: currentVetrina ? Object.keys(currentVetrina) : 'null',
-            fileCount: currentVetrinaFiles.length
-        });
+        // Debug logging removed
 
         // Check if this vetrina has multiple files
         const hasMultipleFiles = currentVetrinaFiles.length > 1;

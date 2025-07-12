@@ -178,9 +178,6 @@ let isFiltersOpen = false;
         // Loading state is already set in HTML for immediate display
         // This ensures layout stability even on first load with empty cache
         
-        // Check authentication after showing loading state
-        const isAuthenticated = checkAuthentication();
-        
         // Initialize user info (will show login button if not authenticated)
         initializeUserInfo();
         
@@ -3139,7 +3136,7 @@ async function loadAllFiles() {
         updateVendorBanner(vendorUsername);
         
         // Get vetrine metadata only - NO file fetching here!
-        const vetrineResponse = await makeAuthenticatedRequest('/vetrine');
+        const vetrineResponse = await makeSimpleRequest('/vetrine');
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }

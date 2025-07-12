@@ -609,8 +609,8 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 cursor.execute(
                     """
                     SELECT f.*
-                    FROM files 
-                    WHERE vetrina_id = %s
+                    FROM files f
+                    WHERE f.vetrina_id = %s
                     """,
                     (vetrina_id,),
                 )

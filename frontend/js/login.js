@@ -56,12 +56,18 @@ function clearMessages() {
 function setLoading(button, isLoading) {
     const btnContent = button.querySelector('.btn-content');
     const btnText = button.querySelector('.btn-text');
+    
     if (isLoading) {
+        // Store original text before replacing
+        if (btnText && !btnText.dataset.originalText) {
+            btnText.dataset.originalText = btnText.textContent;
+        }
         button.disabled = true;
         btnContent.innerHTML = '<div class="loading-spinner"></div>';
     } else {
         button.disabled = false;
-        btnContent.innerHTML = `<span class="btn-text">${btnText.dataset.originalText || (button.id === 'loginBtn' ? 'Sign In' : 'Create Account')}</span>`;
+        const originalText = btnText?.dataset.originalText || (button.id === 'loginBtn' ? 'Sign In' : 'Create Account');
+        btnContent.innerHTML = `<span class="btn-text">${originalText}</span>`;
     }
 }
 

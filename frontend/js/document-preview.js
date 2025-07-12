@@ -1123,11 +1123,15 @@ function generateFractionalStars(rating) {
 }
 
 function generateReviewStars(rating) {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-    
-    return '★'.repeat(fullStars) + (hasHalfStar ? '☆' : '') + '☆'.repeat(emptyStars);
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars += '<span class="rating-star filled">★</span>';
+        } else {
+            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
+        }
+    }
+    return stars;
 }
 
 // Reading Position Management

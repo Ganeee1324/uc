@@ -418,8 +418,10 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
 
         const pdfData = await response.arrayBuffer();
         
-        const blob = new Blob([pdfData], { type: 'application/pdf' });
-        const blobUrl = URL.createObjectURL(blob);
+        // Convert to base64 data URL for CSP compliance
+        const uint8Array = new Uint8Array(pdfData);
+        const base64 = btoa(String.fromCharCode.apply(null, uint8Array));
+        const dataUrl = `data:application/pdf;base64,${base64}`;
         
         const container = document.createElement('div');
         container.style.width = '100%';
@@ -510,7 +512,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         
         viewerElement.appendChild(container);
         
-        const loadingTask = pdfjsLib.getDocument({ url: blobUrl });
+        const loadingTask = pdfjsLib.getDocument({ url: dataUrl });
         const pdfDocument = await loadingTask.promise;
         
         let currentScale = 1.0;
@@ -578,7 +580,9 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         await renderAllPages();
         LoadingManager.hide(loader);
         
-        const cleanup = () => URL.revokeObjectURL(blobUrl);
+        const cleanup = () => {
+            // No cleanup needed for data URLs
+        };
         window.addEventListener('beforeunload', cleanup);
         
         const observer = new MutationObserver((mutations) => {

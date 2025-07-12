@@ -3554,7 +3554,7 @@ function renderDocuments(files) {
         const description = item.description || 'Nessuna descrizione disponibile';
         const price = parseFloat(item.price) || 0;
         
-        const stars = generateStars(Math.floor(rating));
+        const stars = generateFractionalStars(rating);
         const documentCategory = getDocumentCategory(documentTitle, description);
         
         // Determine if this is a multi-file vetrina and if files have been loaded
@@ -3823,6 +3823,15 @@ function generateStars(rating) {
         }
     }
     return stars;
+}
+
+function generateFractionalStars(rating) {
+    const ratingPercentage = (rating / 5) * 100;
+    return `
+        <div class="stars-outer">
+            <div class="stars-inner" style="width: ${ratingPercentage}%"></div>
+        </div>
+    `;
 }
 
 function getOriginalFilename(filename) {
@@ -5573,7 +5582,7 @@ function updateReviewsOverlay() {
     totalReviews.textContent = `Basato su ${currentReviews.length} recensioni`;
     
     // Update stars
-    bigStars.innerHTML = generateStars(parseFloat(averageRating));
+    bigStars.innerHTML = generateFractionalStars(parseFloat(averageRating));
     
     // Show/hide add review button based on whether user has already reviewed
     if (currentUserReview) {
@@ -5798,7 +5807,7 @@ function updateVetrinaRatingInSearch(vetrinaId) {
             
             if (ratingScore) ratingScore.textContent = vetrina.average_rating?.toFixed(1) || '0.0';
             if (ratingCount) ratingCount.textContent = `(${vetrina.review_count || 0})`;
-            if (ratingStars) ratingStars.innerHTML = generateStars(vetrina.average_rating || 0);
+            if (ratingStars) ratingStars.innerHTML = generateFractionalStars(vetrina.average_rating || 0);
         }
     });
 }

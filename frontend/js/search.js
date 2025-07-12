@@ -1862,7 +1862,7 @@ async function applyFiltersAndRender() {
     const searchInput = document.getElementById('searchInput');
     const currentQuery = searchInput?.value?.trim() || '';
     
-    const hasBackendFilters = activeFilters.course || activeFilters.faculty || activeFilters.canale || activeFilters.language || activeFilters.tag || activeFilters.documentType || activeFilters.academicYear || activeFilters.courseYear;
+    const hasBackendFilters = activeFilters.course || activeFilters.faculty || activeFilters.canale || activeFilters.language || activeFilters.tag || activeFilters.documentType || activeFilters.academicYear || activeFilters.courseYear || activeFilters.minRating || activeFilters.minPrice !== undefined || activeFilters.maxPrice !== undefined;
     
     if (hasBackendFilters || currentQuery) {
         // Use backend search with filters
@@ -3019,13 +3019,14 @@ function showLoadingCards(count = 8) {
 
 
 
-async function loadAllFiles() {
+async function loadAllFiles(filterParams = '') {
     try {
         console.log('🔄 Loading vetrine data...');
         showStatus('Caricamento vetrine... 📚');
         
-        // Fetch vetrine data from backend
-        const vetrineResponse = await makeAuthenticatedRequest('/vetrine');
+        // Fetch vetrine data from backend with optional filters
+        const url = filterParams ? `/vetrine?${filterParams}` : '/vetrine';
+        const vetrineResponse = await makeAuthenticatedRequest(url);
         if (!vetrineResponse) {
             throw new Error('Failed to fetch vetrine');
         }
@@ -4218,7 +4219,59 @@ async function performSearch(query) {
         
         // If no query, load all files with current filters
         if (!query || !query.trim()) {
-            await loadAllFiles();
+            // Build filter parameters for loadAllFiles
+            const filterParams = new URLSearchParams();
+            
+            // Add backend-supported filters
+            if (activeFilters.course) {
+                const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
+                filterParams.append('course_name', courseValue);
+            }
+            if (activeFilters.faculty) {
+                const facultyValue = Array.isArray(activeFilters.faculty) ? activeFilters.faculty[0] : activeFilters.faculty;
+                filterParams.append('faculty', facultyValue);
+            }
+            if (activeFilters.canale) {
+                const canaleValue = Array.isArray(activeFilters.canale) ? activeFilters.canale[0] : activeFilters.canale;
+                const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
+                filterParams.append('canale', backendCanaleValue);
+            }
+            if (activeFilters.language) {
+                const languageValue = Array.isArray(activeFilters.language) ? activeFilters.language[0] : activeFilters.language;
+                filterParams.append('language', languageValue);
+            }
+            if (activeFilters.tag) {
+                const tagValue = Array.isArray(activeFilters.tag) ? activeFilters.tag[0] : activeFilters.tag;
+                filterParams.append('tag', tagValue);
+            }
+            if (activeFilters.documentType) {
+                const docTypeValue = Array.isArray(activeFilters.documentType) ? activeFilters.documentType[0] : activeFilters.documentType;
+                filterParams.append('extension', docTypeValue);
+            }
+            if (activeFilters.academicYear) {
+                const yearValue = Array.isArray(activeFilters.academicYear) ? activeFilters.academicYear[0] : activeFilters.academicYear;
+                const year = yearValue.split('/')[0];
+                filterParams.append('date_year', year);
+            }
+            if (activeFilters.courseYear) {
+                const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
+                filterParams.append('course_year', courseYearValue);
+            }
+            
+            // Add rating filter to backend
+            if (activeFilters.minRating) {
+                filterParams.append('min_rating', activeFilters.minRating);
+            }
+            
+            // Add price range filters to backend
+            if (activeFilters.minPrice !== undefined) {
+                filterParams.append('min_price', activeFilters.minPrice);
+            }
+            if (activeFilters.maxPrice !== undefined) {
+                filterParams.append('max_price', activeFilters.maxPrice);
+            }
+            
+            await loadAllFiles(filterParams.toString());
             return;
         }
         
@@ -4227,8 +4280,8 @@ async function performSearch(query) {
         searchParams.append('text', query.trim());
         
         // Add any active filters to the search
-        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
-        // Client-side only filters: vetrinaType, minRating, priceType, sizeType, timeType
+        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year, min_rating, min_price, max_price
+        // Client-side only filters: vetrinaType, sizeType, timeType
         if (activeFilters.course) {
             const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
             searchParams.append('course_name', courseValue);
@@ -4266,6 +4319,19 @@ async function performSearch(query) {
             // Add course year filter (e.g., 1, 2, 3 for first, second, third year)
             const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
             searchParams.append('course_year', courseYearValue);
+        }
+        
+        // Add rating filter to backend
+        if (activeFilters.minRating) {
+            searchParams.append('min_rating', activeFilters.minRating);
+        }
+        
+        // Add price range filters to backend
+        if (activeFilters.minPrice !== undefined) {
+            searchParams.append('min_price', activeFilters.minPrice);
+        }
+        if (activeFilters.maxPrice !== undefined) {
+            searchParams.append('max_price', activeFilters.maxPrice);
         }
         
         // Make backend search request with fallback
@@ -4385,7 +4451,7 @@ function applyClientSideFilters(files) {
     
     // Apply filters that aren't handled by backend
     Object.entries(activeFilters).forEach(([key, value]) => {
-        if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear') return; // Skip backend-handled filters
+        if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear' || key === 'minRating' || key === 'minPrice' || key === 'maxPrice') return; // Skip backend-handled filters
         
         filtered = filtered.filter(file => {
             switch (key) {
@@ -4398,14 +4464,6 @@ function applyClientSideFilters(files) {
                     return file.document_type && file.document_type.toLowerCase() === value.toLowerCase();
                 case 'tag':
                     return file.tag && file.tag.toLowerCase() === value.toLowerCase();
-                case 'rating_min':
-                    return file.rating >= parseInt(value);
-                case 'price_min':
-                    return file.price >= parseInt(value);
-                case 'price_max':
-                    return file.price <= parseInt(value);
-                case 'owned':
-                    return value === 'true' ? file.owned : !file.owned;
                 case 'free':
                     return value === 'true' ? file.price === 0 : file.price > 0;
                 default:

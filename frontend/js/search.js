@@ -5635,10 +5635,12 @@ function updateReviewsOverlay() {
 function showAddReviewForm() {
     const form = document.getElementById('addReviewForm');
     const reviewsList = document.getElementById('reviewsList');
+    const reviewsSummary = document.querySelector('.reviews-summary');
     
     if (form && reviewsList) {
         form.style.display = 'block';
         reviewsList.style.display = 'none';
+        if (reviewsSummary) reviewsSummary.style.display = 'none';
         
         // Reset form
         document.getElementById('reviewComment').value = '';
@@ -5651,10 +5653,12 @@ function showAddReviewForm() {
 function hideAddReviewForm() {
     const form = document.getElementById('addReviewForm');
     const reviewsList = document.getElementById('reviewsList');
+    const reviewsSummary = document.querySelector('.reviews-summary');
     
     if (form && reviewsList) {
         form.style.display = 'none';
         reviewsList.style.display = 'block';
+        if (reviewsSummary) reviewsSummary.style.display = 'flex';
         
         // Reset form
         document.getElementById('reviewComment').value = '';

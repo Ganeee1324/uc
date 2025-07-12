@@ -611,6 +611,59 @@
         </div>
     </div>
 
+    <!-- Reviews Overlay -->
+    <div class="reviews-overlay" id="reviewsOverlay">
+        <div class="reviews-overlay-content">
+            <div class="reviews-overlay-header">
+                <h2>Recensioni</h2>
+                <button class="close-overlay-btn" id="closeReviewsOverlay">
+                    <i class="material-symbols-outlined">close</i>
+                </button>
+            </div>
+            <div class="reviews-overlay-body">
+                <div class="reviews-summary">
+                    <div class="overall-rating">
+                        <div class="rating-display">
+                            <div class="big-stars" id="bigStars"></div>
+                            <div class="big-rating-score" id="bigRatingScore">0.0</div>
+                        </div>
+                        <div class="total-reviews" id="totalReviews">0 recensioni</div>
+                    </div>
+                    <button class="add-review-btn" id="addReviewBtn" data-action="show-review-form">
+                        <i class="material-symbols-outlined">add</i>
+                        Aggiungi Recensione
+                    </button>
+                </div>
+                
+                <div class="reviews-list" id="reviewsList">
+                    <!-- Reviews will be loaded here -->
+                </div>
+                
+                <div class="add-review-form" id="addReviewForm" style="display: none;">
+                    <h3>Aggiungi Recensione</h3>
+                    <div class="rating-input">
+                        <label>Valutazione</label>
+                        <div class="star-rating" id="starRating">
+                            <span class="star-input" data-rating="1">★</span>
+                            <span class="star-input" data-rating="2">★</span>
+                            <span class="star-input" data-rating="3">★</span>
+                            <span class="star-input" data-rating="4">★</span>
+                            <span class="star-input" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    <div class="review-text-input">
+                        <label for="reviewComment">Commento</label>
+                        <textarea id="reviewComment" placeholder="Scrivi la tua recensione..."></textarea>
+                    </div>
+                    <div class="review-form-actions">
+                        <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                        <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- Scroll to Top Button -->

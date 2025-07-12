@@ -3597,7 +3597,7 @@ function renderDocuments(files) {
         card.style.cursor = 'pointer';
         card.onclick = async (e) => {
             // Don't trigger if clicking on interactive elements
-            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button') || e.target.closest('.owner-avatar')) {
+            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button') || e.target.closest('.owner-avatar') || e.target.closest('.rating-badge')) {
                 return;
             }
             
@@ -3754,8 +3754,8 @@ function renderDocuments(files) {
                         return '<div class="document-type-badge">Documento</div>';
                     })()}
                 </div>
-                <div class="rating-badge">
-                    <div class="rating-stars">${stars}</div>
+                <div class="rating-badge" data-action="open-reviews" data-vetrina-id="${item.vetrina_id || item.id}">
+                    <div class="rating-stars">${generateFractionalStars(rating)}</div>
                     <span class="rating-count">(${reviewCount})</span>
                 </div>
             </div>
@@ -3884,6 +3884,15 @@ function generateStars(rating) {
         }
     }
     return stars;
+}
+
+function generateFractionalStars(rating) {
+    const ratingPercentage = (rating / 5) * 100;
+    return `
+        <div class="stars-outer">
+            <div class="stars-inner" style="width: ${ratingPercentage}%"></div>
+        </div>
+    `;
 }
 
 function getOriginalFilename(filename) {
@@ -5522,3 +5531,323 @@ document.addEventListener('DOMContentLoaded', function() {
         previewCloseBtn.addEventListener('click', closePreview);
     }
 });
+
+// ===========================
+// REVIEWS OVERLAY FUNCTIONALITY
+// ===========================
+
+let currentVetrinaId = null;
+let selectedRating = 0;
+
+// Initialize reviews overlay functionality
+function initializeReviewsOverlay() {
+    // Add event listeners for reviews overlay
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('[data-action="open-reviews"]')) {
+            const element = e.target.closest('[data-action="open-reviews"]');
+            const vetrinaId = element.getAttribute('data-vetrina-id');
+            if (vetrinaId) {
+                openReviewsOverlay(vetrinaId);
+            }
+        }
+        
+        if (e.target.closest('[data-action="close-reviews"]') || e.target.closest('#closeReviewsOverlay')) {
+            closeReviewsOverlay();
+        }
+        
+        if (e.target.closest('[data-action="show-review-form"]')) {
+            showAddReviewForm();
+        }
+        
+        if (e.target.closest('[data-action="hide-review-form"]')) {
+            hideAddReviewForm();
+        }
+        
+        if (e.target.closest('[data-action="submit-review"]')) {
+            submitReview();
+        }
+        
+        if (e.target.closest('[data-action="delete-review"]')) {
+            const element = e.target.closest('[data-action="delete-review"]');
+            const reviewId = element.getAttribute('data-review-id');
+            if (reviewId) {
+                deleteReview(reviewId);
+            }
+        }
+    });
+    
+    // Initialize star rating input
+    initializeStarRating();
+}
+
+// Open reviews overlay
+async function openReviewsOverlay(vetrinaId) {
+    currentVetrinaId = vetrinaId;
+    const overlay = document.getElementById('reviewsOverlay');
+    
+    if (overlay) {
+        overlay.classList.add('active');
+        await loadReviews(vetrinaId);
+    }
+}
+
+// Close reviews overlay
+function closeReviewsOverlay() {
+    const overlay = document.getElementById('reviewsOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+        hideAddReviewForm();
+        currentVetrinaId = null;
+        selectedRating = 0;
+    }
+}
+
+// Load reviews for a vetrina
+async function loadReviews(vetrinaId) {
+    try {
+        const response = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/reviews`);
+        
+        if (response && response.reviews) {
+            displayReviews(response.reviews, response.average_rating || 0);
+        } else {
+            displayReviews([], 0);
+        }
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        displayReviews([], 0);
+    }
+}
+
+// Display reviews in the overlay
+function displayReviews(reviews, averageRating) {
+    const reviewsList = document.getElementById('reviewsList');
+    const bigStars = document.getElementById('bigStars');
+    const bigRatingScore = document.getElementById('bigRatingScore');
+    const totalReviews = document.getElementById('totalReviews');
+    
+    if (reviewsList && bigStars && bigRatingScore && totalReviews) {
+        // Update summary
+        bigStars.innerHTML = generateFractionalStars(parseFloat(averageRating));
+        bigRatingScore.textContent = parseFloat(averageRating).toFixed(1);
+        totalReviews.textContent = `${reviews.length} recension${reviews.length === 1 ? 'e' : 'i'}`;
+        
+        // Display reviews
+        if (reviews.length === 0) {
+            reviewsList.innerHTML = `
+                <div class="no-reviews-message">
+                    <span class="material-symbols-outlined">star_outline</span>
+                    <h3>Nessuna recensione</h3>
+                    <p>Sii il primo a lasciare una recensione per questo documento!</p>
+                </div>
+            `;
+        } else {
+            reviewsList.innerHTML = reviews.map(review => `
+                <div class="review-item-overlay">
+                    <div class="review-header-overlay">
+                        <div class="reviewer-info-overlay">
+                            <div class="reviewer-avatar-overlay">
+                                ${getInitials(review.reviewer_name || 'User')}
+                            </div>
+                            <div>
+                                <div class="reviewer-name-overlay">${review.reviewer_name || 'Utente'}</div>
+                                <div class="review-rating-overlay">
+                                    ${generateStars(review.rating)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="review-date-overlay">${formatDate(review.created_at)}</div>
+                    </div>
+                    <div class="review-text-overlay">${review.comment || 'Nessun commento'}</div>
+                    ${review.can_delete ? `
+                        <div class="review-date-actions">
+                            <div class="review-subject-overlay">La tua recensione</div>
+                            <button class="delete-review-btn" data-action="delete-review" data-review-id="${review.id}">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+    }
+}
+
+// Show add review form
+function showAddReviewForm() {
+    const form = document.getElementById('addReviewForm');
+    const reviewsList = document.getElementById('reviewsList');
+    const reviewsSummary = document.querySelector('.reviews-summary');
+    
+    if (form && reviewsList) {
+        form.style.display = 'block';
+        reviewsList.style.display = 'none';
+        if (reviewsSummary) reviewsSummary.style.display = 'none';
+        
+        // Reset form
+        document.getElementById('reviewComment').value = '';
+        selectedRating = 0;
+        updateStarRatingDisplay();
+    }
+}
+
+// Hide add review form
+function hideAddReviewForm() {
+    const form = document.getElementById('addReviewForm');
+    const reviewsList = document.getElementById('reviewsList');
+    const reviewsSummary = document.querySelector('.reviews-summary');
+    
+    if (form && reviewsList) {
+        form.style.display = 'none';
+        reviewsList.style.display = 'block';
+        if (reviewsSummary) reviewsSummary.style.display = 'flex';
+        
+        // Reset form
+        document.getElementById('reviewComment').value = '';
+        selectedRating = 0;
+        updateStarRatingDisplay();
+    }
+}
+
+// Initialize star rating input
+function initializeStarRating() {
+    const starInputs = document.querySelectorAll('.star-input');
+    
+    starInputs.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.getAttribute('data-rating'));
+            updateStarRatingDisplay();
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            highlightStars(rating);
+        });
+        
+        star.addEventListener('mouseleave', function() {
+            highlightStars(selectedRating);
+        });
+    });
+}
+
+// Update star rating display
+function updateStarRatingDisplay() {
+    const starInputs = document.querySelectorAll('.star-input');
+    
+    starInputs.forEach((star, index) => {
+        const rating = index + 1;
+        if (rating <= selectedRating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+// Highlight stars on hover
+function highlightStars(rating) {
+    const starInputs = document.querySelectorAll('.star-input');
+    
+    starInputs.forEach((star, index) => {
+        const starRating = index + 1;
+        if (starRating <= rating) {
+            star.classList.add('hover');
+        } else {
+            star.classList.remove('hover');
+        }
+    });
+}
+
+// Submit review
+async function submitReview() {
+    if (!currentVetrinaId) {
+        showError('Errore: ID vetrina non trovato');
+        return;
+    }
+    
+    if (selectedRating === 0) {
+        showError('Seleziona una valutazione');
+        return;
+    }
+    
+    const comment = document.getElementById('reviewComment').value.trim();
+    if (!comment) {
+        showError('Inserisci un commento');
+        return;
+    }
+    
+    try {
+        const response = await makeRequest(`/vetrine/${currentVetrinaId}/reviews`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                rating: selectedRating,
+                comment: comment
+            })
+        });
+        
+        if (response && response.success) {
+            showStatus('Recensione inviata con successo!');
+            hideAddReviewForm();
+            await loadReviews(currentVetrinaId);
+            updateRatingInSearchResults(currentVetrinaId);
+        } else {
+            showError('Errore nell\'invio della recensione');
+        }
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        showError('Errore nell\'invio della recensione');
+    }
+}
+
+// Delete review
+async function deleteReview(reviewId) {
+    if (!currentVetrinaId) {
+        showError('Errore: ID vetrina non trovato');
+        return;
+    }
+    
+    try {
+        const response = await makeRequest(`/vetrine/${currentVetrinaId}/reviews/${reviewId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        if (response && response.success) {
+            showStatus('Recensione eliminata con successo!');
+            await loadReviews(currentVetrinaId);
+            updateRatingInSearchResults(currentVetrinaId);
+        } else {
+            showError('Errore nell\'eliminazione della recensione');
+        }
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        showError('Errore nell\'eliminazione della recensione');
+    }
+}
+
+// Update rating in search results
+async function updateRatingInSearchResults(vetrinaId) {
+    try {
+        const response = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/reviews`);
+        
+        if (response && response.average_rating !== undefined) {
+            const ratingBadge = document.querySelector(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
+            if (ratingBadge) {
+                const ratingStars = ratingBadge.querySelector('.rating-stars');
+                if (ratingStars) {
+                    ratingStars.innerHTML = generateFractionalStars(response.average_rating || 0);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error updating rating in search results:', error);
+    }
+}
+
+// Initialize reviews overlay when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeReviewsOverlay);

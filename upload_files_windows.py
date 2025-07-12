@@ -77,7 +77,7 @@ class MarketplaceUploader:
             print(f"✗ Error getting hierarchy: {e}")
             return {}
     
-    def create_vetrina(self, name: str, description: str, course_instance_id: int = 1) -> Optional[int]:
+    def create_vetrina(self, name: str, description: str, course_instance_id: int = 1, price: float = 0.0) -> Optional[int]:
         """Create a new vetrina."""
         if not self.access_token:
             print("✗ Not authenticated. Please login first.")
@@ -86,7 +86,8 @@ class MarketplaceUploader:
         vetrina_data = {
             "name": name,
             "description": description,
-            "course_instance_id": course_instance_id
+            "course_instance_id": course_instance_id,
+            "price": price
         }
         
         headers = {

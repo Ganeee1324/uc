@@ -162,7 +162,8 @@ def create_vetrina():
     course_instance_id = int(data.get("course_instance_id"))
     name = str(data.get("name"))
     description = str(data.get("description"))
-    database.create_vetrina(user_id=user_id, course_instance_id=course_instance_id, name=name, description=description)
+    price = float(data.get("price", 0.0))  # Default to 0.0 if not provided
+    database.create_vetrina(user_id=user_id, course_instance_id=course_instance_id, name=name, description=description, price=price)
     return jsonify({"msg": "Vetrina created"}), 200
 
 
@@ -178,7 +179,7 @@ def delete_vetrina(vetrina_id):
 @jwt_required()
 def subscribe_to_vetrina(vetrina_id):
     user_id = get_jwt_identity()
-    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id, 100)  # TODO: remove hardcoded price
+    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id)
     return jsonify({"msg": "Subscribed to vetrina", "transaction": transaction.to_dict(), "subscription": subscription.to_dict()}), 200
 
 

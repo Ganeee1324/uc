@@ -244,6 +244,11 @@ paths:
                 description:
                   type: string
                   description: Description of the vetrina
+                price:
+                  type: number
+                  minimum: 0
+                  description: Price of the vetrina (optional, defaults to 0.0)
+                  example: 10.50
       responses:
         "200":
           description: Vetrina created successfully

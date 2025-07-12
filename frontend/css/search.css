@@ -5820,6 +5820,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     padding: 0 var(--space-2) 0 var(--space-6);
     overflow-y: auto;
     flex-grow: 1;
+    position: relative;
 }
 
 /* Custom scrollbar for overlay body */
@@ -6062,6 +6063,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     border: 1px solid var(--gray-200);
     margin-right: var(--space-4);
     margin-bottom: var(--space-8);
+    /* Center the form vertically in the overlay */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - var(--space-8));
+    max-width: 600px;
 }
 
 .add-review-form h3 {

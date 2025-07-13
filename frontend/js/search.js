@@ -5612,12 +5612,14 @@ function updateReviewsOverlay() {
                 <div class="review-header-overlay">
                     <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
-                            ${createGradientAvatar(
-                                (review.user?.first_name && review.user?.last_name) 
+                            ${(() => {
+                                console.log('Review user data:', review.user);
+                                const fullName = (review.user?.first_name && review.user?.last_name) 
                                     ? `${review.user.first_name} ${review.user.last_name}`
-                                    : (review.user?.first_name || review.user?.username || 'User'),
-                                review.user?.username || 'user'
-                            )}
+                                    : (review.user?.first_name || review.user?.username || 'User');
+                                console.log('Constructed fullName:', fullName);
+                                return createGradientAvatar(fullName, review.user?.username || 'user');
+                            })()}
                         </div>
                         <div>
                             <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>

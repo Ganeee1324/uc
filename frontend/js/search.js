@@ -2863,8 +2863,12 @@ function getConsistentGradient(username) {
 }
 
 function createGradientAvatar(fullName, username) {
+    console.log('createGradientAvatar called with:', { fullName, username });
+    
     const gradient = getConsistentGradient(username);
     const initials = getInitials(fullName);
+    
+    console.log('createGradientAvatar result initials:', initials);
     
     return `
         <div class="user-avatar-gradient" style="
@@ -2889,12 +2893,21 @@ function createGradientAvatar(fullName, username) {
 function getInitials(fullName) {
     if (!fullName) return 'U';
     
+    console.log('getInitials input:', fullName, 'type:', typeof fullName);
+    
     const names = fullName.trim().split(' ');
+    console.log('getInitials names array:', names);
+    
     if (names.length >= 2) {
-        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+        const result = (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+        console.log('getInitials result (2+ names):', result);
+        return result;
     } else if (names.length === 1) {
-        return names[0].charAt(0).toUpperCase();
+        const result = names[0].charAt(0).toUpperCase();
+        console.log('getInitials result (1 name):', result);
+        return result;
     }
+    console.log('getInitials result (fallback):', 'U');
     return 'U';
 }
 

@@ -2,6 +2,7 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
+
 # from bge import get_document_embedding
 from common import CourseInstance, File, Review, Transaction, User, Vetrina, VetrinaSubscription
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
@@ -472,7 +473,17 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
-    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None, language: str = "it", num_pages: int = 0, display_name: str | None = None
+    requester_id: int,
+    vetrina_id: int,
+    file_name: str,
+    sha256: str,
+    extension: str,
+    price: int = 0,
+    size: int = 0,
+    tag: str | None = None,
+    language: str = "it",
+    num_pages: int = 0,
+    display_name: str | None = None,
 ) -> File:
     """
     Add a file to a vetrina.
@@ -528,6 +539,43 @@ def add_file_to_vetrina(
 #                 conn.commit()
 #                 logging.debug(f"Page {i} embedding inserted")
 #             logging.debug(f"File {file_id} embeddings inserted")
+
+
+def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:
+    """
+    Update the display name of a file owned by the user.
+
+    Args:
+        user_id: ID of the user updating the file
+        file_id: ID of the file to update
+        new_display_name: New display name for the file
+
+    Returns:
+        File: The updated file object
+
+    Raises:
+        NotFoundException: If the file doesn't exist or the user doesn't own it
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            # Update the display name only if the user owns the file (through vetrina authorship)
+            cursor.execute(
+                """
+                UPDATE files 
+                SET display_name = %s 
+                FROM vetrina v 
+                WHERE files.file_id = %s 
+                AND files.vetrina_id = v.vetrina_id 
+                AND v.author_id = %s
+                RETURNING *
+                """,
+                (new_display_name, file_id, user_id),
+            )
+            if cursor.rowcount == 0:
+                raise NotFoundException("File not found or you don't have permission to update it")
+            file_data = cursor.fetchone()
+            logging.debug(f"File {file_id} display name updated to '{new_display_name}' by user {user_id}")
+            return File.from_dict(file_data)
 
 
 def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[File]:
@@ -786,7 +834,7 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transac
                 vetrina_data = cursor.fetchone()
                 if not vetrina_data:
                     raise NotFoundException("Vetrina not found")
-                
+
                 price = vetrina_data["price"]
                 logging.debug(f"User {user_id} is not subscribed to vetrina {vetrina_id}, price: {price}")
 

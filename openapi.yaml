@@ -731,6 +731,72 @@ paths:
                 error: already_owned
                 msg: You already own this file
 
+  /files/{file_id}/display-name:
+    put:
+      tags:
+        - Files
+      summary: Update file display name
+      description: Update the display name of a file (only available to the author of the vetrina containing the file)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - display_name
+              properties:
+                display_name:
+                  type: string
+                  description: New display name for the file
+                  example: "My Updated File Name.pdf"
+      responses:
+        "200":
+          description: Display name updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Display name updated
+                  file:
+                    $ref: "#/components/schemas/File"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missing_display_name:
+                  value:
+                    error: missing_display_name
+                    msg: display_name is required
+                invalid_display_name:
+                  value:
+                    error: invalid_display_name
+                    msg: display_name cannot be empty
+        "404":
+          description: File not found or user doesn't have permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: not_found
+                msg: File not found or you don't have permission to update it
+
   /user/favorites/vetrine/{vetrina_id}:
     post:
       tags:

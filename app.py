@@ -356,6 +356,23 @@ def buy_file(file_id):
     return jsonify({"msg": "File bought", "transaction": transaction.to_dict(), "file": file.to_dict()}), 200
 
 
+@app.route("/files/<int:file_id>/display-name", methods=["PUT"])
+@jwt_required()
+def update_file_display_name(file_id):
+    user_id = get_jwt_identity()
+    data = request.json
+    
+    if not data or "display_name" not in data:
+        return jsonify({"error": "missing_display_name", "msg": "display_name is required"}), 400
+    
+    new_display_name = str(data.get("display_name")).strip()
+    if not new_display_name:
+        return jsonify({"error": "invalid_display_name", "msg": "display_name cannot be empty"}), 400
+    
+    updated_file = database.update_file_display_name(user_id, file_id, new_display_name)
+    return jsonify({"msg": "Display name updated", "file": updated_file.to_dict()}), 200
+
+
 # ---------------------------------------------
 # User routes
 # ---------------------------------------------

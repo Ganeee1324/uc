@@ -2580,19 +2580,25 @@ async function submitReview() {
             showNotification(message, 'success');
             hideAddReviewForm();
             
+            // Use the actual response data from the backend for immediate UI update
+            // The backend response should contain the complete review data
+            console.log('Backend response data:', data);
+            
             // Get current user info
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             
-            // Create the new review object
+            // Create a proper review object using backend response data
             const newReview = {
-                rating: parseInt(selectedRating), // Ensure rating is a number
+                rating: parseInt(selectedRating),
                 review_text: comment,
                 review_date: new Date().toISOString(),
-                user: currentUser
+                user: currentUser,
+                // Add any additional fields that might be expected by the UI
+                review_id: data.review_id || Date.now(), // Use backend ID or fallback
+                review_subject: data.review_subject || null
             };
             
             console.log('Created new review object:', newReview);
-            console.log('selectedRating type:', typeof selectedRating, 'value:', selectedRating);
             
             // Update currentReviews immediately with the new review
             if (data.msg === 'Review updated') {
@@ -2608,21 +2614,18 @@ async function submitReview() {
                 currentReviews.push(newReview);
             }
             
-            // Update currentUserReview
-            currentUserReview = newReview;
+            // Clear cache and reload reviews immediately to get the updated data from backend
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
+            reviewsCache.delete(cacheKey);
             
-            // Update the UI immediately
+            // Load the updated reviews immediately (this will get the real data from backend)
+            await loadReviewsForVetrina(currentVetrinaForReviews);
+            
+            // Update the UI with the real data from backend
             updateReviewsOverlay();
             
             // Update the rating display
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
-            
-            // Clear cache and reload in background to ensure data consistency
-            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
-            reviewsCache.delete(cacheKey);
-            loadReviewsForVetrina(currentVetrinaForReviews).catch(error => {
-                console.error('Background review reload failed:', error);
-            });
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
@@ -2691,21 +2694,18 @@ async function deleteUserReview() {
                 currentReviews.splice(reviewIndex, 1);
             }
             
-            // Clear currentUserReview
-            currentUserReview = null;
+            // Clear cache and reload reviews immediately to get the updated data from backend
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
+            reviewsCache.delete(cacheKey);
             
-            // Update the UI immediately
+            // Load the updated reviews immediately (this will get the real data from backend)
+            await loadReviewsForVetrina(currentVetrinaForReviews);
+            
+            // Update the UI with the real data from backend
             updateReviewsOverlay();
             
             // Update the rating display
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
-            
-            // Clear cache and reload in background to ensure data consistency
-            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
-            reviewsCache.delete(cacheKey);
-            loadReviewsForVetrina(currentVetrinaForReviews).catch(error => {
-                console.error('Background review reload failed:', error);
-            });
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');

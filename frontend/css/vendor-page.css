@@ -6265,7 +6265,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .star-input:hover,
 .star-input.hover {
     color: #fbbf24;
-    transform: scale(1.15) rotate(5deg);
+    transform: scale(1.15);
 }
 
 .star-input.active {

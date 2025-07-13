@@ -233,7 +233,7 @@ def upload_file(vetrina_id):
         return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
 
     # Get display_name if provided
-    display_name = request.form.get("display_name", file.filename).strip()
+    display_name = request.form.get("display_name", file.filename[:-len(extension)-1]).strip()
 
     # Read file content into memory for processing
     file_content = file.read()

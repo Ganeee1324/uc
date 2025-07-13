@@ -2052,6 +2052,15 @@ function initializeReviewsOverlay(reviews = []) {
                 openReviewsOverlay(vetrinaId);
             }
         }
+        
+        // Preload reviews on hover
+        if (e.target.closest('[data-action="open-reviews"]')) {
+            const element = e.target.closest('[data-action="open-reviews"]');
+            const vetrinaId = element.getAttribute('data-vetrina-id');
+            if (vetrinaId) {
+                preloadReviewsData(vetrinaId);
+            }
+        }
 
         if (e.target.closest('[data-action="close-reviews"]')) {
             closeReviewsOverlay();
@@ -2076,6 +2085,20 @@ function initializeReviewsOverlay(reviews = []) {
 
     // Initialize star rating functionality
     initializeStarRating();
+}
+
+// Preload reviews data on hover
+function preloadReviewsData(vetrinaId) {
+    // Only preload if not already cached
+    const cacheKey = `${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
+    const cachedData = reviewsCache.get(cacheKey);
+    
+    if (!cachedData || (Date.now() - cachedData.timestamp) >= CACHE_DURATION) {
+        // Start loading in background
+        loadReviewsForVetrina(vetrinaId).catch(error => {
+            console.error('Error preloading reviews:', error);
+        });
+    }
 }
 
 // Open reviews overlay for a specific vetrina
@@ -2187,6 +2210,7 @@ function closeReviewsOverlay() {
 // Cache for reviews data to avoid repeated API calls
 const reviewsCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const pendingRequests = new Map(); // Prevent duplicate requests
 
 // Load reviews for a specific vetrina
 async function loadReviewsForVetrina(vetrinaId) {
@@ -2202,15 +2226,37 @@ async function loadReviewsForVetrina(vetrinaId) {
             return;
         }
         
+        // Check if request is already pending
+        if (pendingRequests.has(cacheKey)) {
+            // Wait for the pending request to complete
+            await pendingRequests.get(cacheKey);
+            return;
+        }
+        
+        // Early return if we know there are no reviews
+        const ratingBadge = document.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
+        if (ratingBadge) {
+            const reviewCount = parseInt(ratingBadge.dataset.reviewCount) || 0;
+            if (reviewCount === 0) {
+                // No reviews, set empty data and return early
+                currentReviews = [];
+                currentUserReview = null;
+                reviewsCache.set(cacheKey, {
+                    reviews: [],
+                    userReview: null,
+                    timestamp: Date.now()
+                });
+                return;
+            }
+        }
+        
         const token = localStorage.getItem('authToken');
         
         // Get current user info for debugging
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
         
-        // Prepare headers
-        const headers = {
-            'Content-Type': 'application/json'
-        };
+        // Prepare headers - only include what's necessary
+        const headers = {};
         
         // Add Authorization header only if token exists
         if (token) {
@@ -2221,13 +2267,23 @@ async function loadReviewsForVetrina(vetrinaId) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const response = await fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
+        // Create promise for this request
+        const requestPromise = fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
             method: 'GET',
             headers: headers,
-            signal: controller.signal
+            signal: controller.signal,
+            keepalive: true,
+            priority: 'high'
+        }).finally(() => {
+            // Clean up pending request
+            pendingRequests.delete(cacheKey);
+            clearTimeout(timeoutId);
         });
         
-        clearTimeout(timeoutId);
+        // Store the promise to prevent duplicate requests
+        pendingRequests.set(cacheKey, requestPromise);
+        
+        const response = await requestPromise;
 
         if (response.ok) {
             const data = await response.json();

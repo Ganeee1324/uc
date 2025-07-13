@@ -2662,34 +2662,41 @@ async function deleteUserReview() {
 
 // Update vetrina rating in search results and document preview
 function updateVetrinaRatingInSearch(vetrinaId) {
-    // Update search results
+    // Update search results (if we're on search page)
     const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
     
     ratingElements.forEach(element => {
-        // Reload the rating data for this vetrina
-        const vetrina = currentVetrine ? currentVetrine.find(v => v.id === vetrinaId) : null;
-        if (vetrina) {
-            const ratingScore = element.querySelector('.rating-score');
-            const ratingStars = element.querySelector('.rating-stars');
-            const ratingCount = element.querySelector('.rating-count');
-            
-            if (ratingScore) ratingScore.textContent = vetrina.rating.toFixed(1);
-            if (ratingStars) ratingStars.innerHTML = generateFractionalStars(vetrina.rating);
-            if (ratingCount) ratingCount.textContent = `(${vetrina.review_count})`;
-        }
+        // For search page, we would need currentVetrine array, but in document preview we don't have it
+        // So we'll skip updating search results from document preview page
+        // The search page will update its own data when it loads
     });
     
     // Update document preview page rating badge data attributes
     const docRatingBadge = document.querySelector('.doc-rating-display[data-vetrina-id="' + vetrinaId + '"]');
     if (docRatingBadge) {
-        const vetrina = currentVetrine ? currentVetrine.find(v => v.id === vetrinaId) : null;
-        if (vetrina) {
-            docRatingBadge.setAttribute('data-rating', vetrina.rating.toString());
-            docRatingBadge.setAttribute('data-review-count', vetrina.review_count.toString());
+        // Use currentVetrina (singular) which is available in document preview page
+        if (currentVetrina && (currentVetrina.id === vetrinaId || currentVetrina.vetrina_id === vetrinaId)) {
+            // Calculate new rating from current reviews
+            const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
+            const newRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
+            const newReviewCount = currentReviews.length;
+            
+            docRatingBadge.setAttribute('data-rating', newRating.toString());
+            docRatingBadge.setAttribute('data-review-count', newReviewCount.toString());
+            
+            // Also update the visible rating display
+            const ratingScore = docRatingBadge.querySelector('.rating-score');
+            const ratingStars = docRatingBadge.querySelector('.rating-stars');
+            const ratingCount = docRatingBadge.querySelector('.rating-count');
+            
+            if (ratingScore) ratingScore.textContent = newRating.toFixed(1);
+            if (ratingStars) ratingStars.innerHTML = generateFractionalStars(newRating);
+            if (ratingCount) ratingCount.textContent = `(${newReviewCount})`;
+            
             console.log('Updated document preview rating badge:', {
                 vetrinaId: vetrinaId,
-                rating: vetrina.rating,
-                reviewCount: vetrina.review_count
+                rating: newRating,
+                reviewCount: newReviewCount
             });
         }
     }

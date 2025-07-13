@@ -1670,7 +1670,7 @@ function renderDocumentListView(docData) {
                             </div>
                             <span class="total-reviews">Basato su 0 recensioni</span>
                         </div>
-                        <button class="add-review-btn" data-action="show-review-form">
+                        <button class="add-review-btn" data-action="show-review-form" style="display: none;">
                             <span class="material-symbols-outlined">add</span>
                             Aggiungi Recensione
                         </button>
@@ -1861,7 +1861,7 @@ function renderDocumentViewerMode(docData) {
                                 </div>
                                 <span class="total-reviews">Basato su 0 recensioni</span>
                             </div>
-                            <button class="add-review-btn" data-action="show-review-form">
+                            <button class="add-review-btn" data-action="show-review-form" style="display: none;">
                                 <span class="material-symbols-outlined">add</span>
                                 Aggiungi Recensione
                             </button>
@@ -2170,15 +2170,8 @@ function showInitialRatingData(vetrinaId) {
             </div>
         `;
         
-        // Show add review button immediately if user is authenticated
-        const token = localStorage.getItem('authToken');
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        
-        if (token && currentUser) {
-            addReviewBtn.style.display = 'flex';
-        } else {
-            addReviewBtn.style.display = 'none';
-        }
+        // Hide add review button by default - it will be shown later if conditions are met
+        addReviewBtn.style.display = 'none';
         return;
     }
     
@@ -2200,6 +2193,7 @@ function showReviewsLoadingState() {
     bigRatingScore.textContent = '...';
     totalReviews.textContent = 'Caricamento...';
     bigStars.innerHTML = '<div class="loading-stars">★★★★★</div>';
+    // Keep add review button hidden during loading
     addReviewBtn.style.display = 'none';
     
     reviewsList.innerHTML = `
@@ -2383,26 +2377,26 @@ function updateReviewsOverlay() {
     // Update stars
     bigStars.innerHTML = generateFractionalStars(parseFloat(averageRating));
     
-    // Show/hide add review button based on authentication and whether user has already reviewed
+    // Show add review button only if user is authenticated AND hasn't already reviewed
     const token = localStorage.getItem('authToken');
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
     
-    if (!token || !currentUser) {
-        // User not authenticated - hide add review button
-        addReviewBtn.style.display = 'none';
-    } else {
+    if (token && currentUser) {
         // Check if user has already reviewed using frontend comparison
         const hasUserReviewed = currentReviews.some(review => 
             review.user?.user_id === currentUser.user_id
         );
         
-        if (hasUserReviewed) {
-            // User already reviewed - hide add review button
-            addReviewBtn.style.display = 'none';
-        } else {
-            // User authenticated but hasn't reviewed - show add review button
+        if (!hasUserReviewed) {
+            // User authenticated and hasn't reviewed - show add review button
             addReviewBtn.style.display = 'flex';
+        } else {
+            // User already reviewed - keep button hidden
+            addReviewBtn.style.display = 'none';
         }
+    } else {
+        // User not authenticated - keep button hidden
+        addReviewBtn.style.display = 'none';
     }
 
     // Render reviews list

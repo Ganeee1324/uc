@@ -2614,18 +2614,25 @@ async function submitReview() {
                 currentReviews.push(newReview);
             }
             
-            // Clear cache and reload reviews immediately to get the updated data from backend
-            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
-            reviewsCache.delete(cacheKey);
+            // Update currentUserReview
+            currentUserReview = newReview;
             
-            // Load the updated reviews immediately (this will get the real data from backend)
-            await loadReviewsForVetrina(currentVetrinaForReviews);
-            
-            // Update the UI with the real data from backend
+            // Update the UI immediately
             updateReviewsOverlay();
             
-            // Update the rating display
+            // Update the rating display immediately
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            
+            // Clear cache and reload in background to ensure data consistency
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
+            reviewsCache.delete(cacheKey);
+            loadReviewsForVetrina(currentVetrinaForReviews).then(() => {
+                // Update UI again with any corrections from backend
+                updateReviewsOverlay();
+                updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            }).catch(error => {
+                console.error('Background review reload failed:', error);
+            });
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
@@ -2694,18 +2701,25 @@ async function deleteUserReview() {
                 currentReviews.splice(reviewIndex, 1);
             }
             
-            // Clear cache and reload reviews immediately to get the updated data from backend
-            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
-            reviewsCache.delete(cacheKey);
+            // Clear currentUserReview
+            currentUserReview = null;
             
-            // Load the updated reviews immediately (this will get the real data from backend)
-            await loadReviewsForVetrina(currentVetrinaForReviews);
-            
-            // Update the UI with the real data from backend
+            // Update the UI immediately
             updateReviewsOverlay();
             
-            // Update the rating display
+            // Update the rating display immediately
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            
+            // Clear cache and reload in background to ensure data consistency
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
+            reviewsCache.delete(cacheKey);
+            loadReviewsForVetrina(currentVetrinaForReviews).then(() => {
+                // Update UI again with any corrections from backend
+                updateReviewsOverlay();
+                updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            }).catch(error => {
+                console.error('Background review reload failed:', error);
+            });
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');

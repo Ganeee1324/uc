@@ -5956,3 +5956,8 @@ function updateVetrinaRatingInSearch(vetrinaId) {
         }
     });
 }
+
+// Initialize reviews overlay when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeReviewsOverlay();
+});

@@ -96,7 +96,7 @@ def main():
 
     # Test queries
     test_queries = [
-        {"query": "bernoulli distribution", "description": "Testing English search for spectral decomposition"},
+        {"query": "Vetrina for Probability - auto-generated...", "description": "Testing English search for spectral decomposition"},
         # {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy"},
     ]
 

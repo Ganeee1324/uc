@@ -370,19 +370,19 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
             
             # Create the appropriate tsquery based on detected language
             if lang == "en":
-                tsquery_func = "plainto_tsquery('english', %(query)s)"
+                tsquery_config = "english"
             elif lang == "it":
-                tsquery_func = "plainto_tsquery('italian', %(query)s)"
+                tsquery_config = "italian"
             else:
-                tsquery_func = "plainto_tsquery('simple', %(query)s)"
+                tsquery_config = "simple"
             
-            sql = f"""
+            sql = """
             WITH semantic_search AS (
                 SELECT 
                     pe.vetrina_id,
                     pe.file_id,
                     pe.page_number,
-                    RANK() OVER (ORDER BY pe.embedding <#> %(embedding)s) AS rank
+                    1.0 / (%(k)s + RANK() OVER (ORDER BY pe.embedding <#> %(embedding)s)) AS score
                 FROM page_embeddings pe
                 LIMIT 20
             ),
@@ -391,41 +391,44 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
                     v.vetrina_id,
                     NULL::integer AS file_id,
                     NULL::integer AS page_number,
-                    RANK() OVER (ORDER BY ts_rank_cd(
+                    1.0 / (%(k)s + RANK() OVER (ORDER BY ts_rank_cd(
                         CASE 
                             WHEN v.language = 'en' THEN to_tsvector('english', v.description)
                             WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
                             ELSE to_tsvector('simple', v.description)
-                        END, {tsquery_func}) DESC) AS rank
+                        END, plainto_tsquery(%(tsquery_config)s, %(query)s)) DESC)) AS score
                 FROM vetrina v
                 WHERE CASE 
                         WHEN v.language = 'en' THEN to_tsvector('english', v.description)
                         WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
                         ELSE to_tsvector('simple', v.description)
-                    END @@ {tsquery_func}
+                    END @@ plainto_tsquery(%(tsquery_config)s, %(query)s)
                 ORDER BY ts_rank_cd(
                     CASE 
                         WHEN v.language = 'en' THEN to_tsvector('english', v.description)
                         WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
                         ELSE to_tsvector('simple', v.description)
-                    END, {tsquery_func}) DESC
+                    END, plainto_tsquery(%(tsquery_config)s, %(query)s)) DESC
                 LIMIT 20
+            ),
+            combined_results AS (
+                SELECT vetrina_id, file_id, page_number, score FROM semantic_search
+                UNION ALL
+                SELECT vetrina_id, file_id, page_number, score FROM keyword_search
             )
             SELECT 
-                COALESCE(semantic_search.vetrina_id, keyword_search.vetrina_id) AS vetrina_id,
-                COALESCE(1.0 / (%(k)s + semantic_search.rank), 0.0) +
-                COALESCE(1.0 / (%(k)s + keyword_search.rank), 0.0) AS score,
-                semantic_search.file_id,
-                semantic_search.page_number,
+                cr.vetrina_id,
+                cr.score,
+                cr.file_id,
+                cr.page_number,
                 v.*,
                 u.*,
                 ci.*
-            FROM semantic_search
-            FULL OUTER JOIN keyword_search ON semantic_search.vetrina_id = keyword_search.vetrina_id
-            JOIN vetrina v ON COALESCE(semantic_search.vetrina_id, keyword_search.vetrina_id) = v.vetrina_id
+            FROM combined_results cr
+            JOIN vetrina v ON cr.vetrina_id = v.vetrina_id
             JOIN users u ON v.author_id = u.user_id
             JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-            ORDER BY score DESC
+            ORDER BY cr.score DESC
             LIMIT 10
             """
             embedding = get_sentence_embedding(query).squeeze()
@@ -437,6 +440,7 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
                     "query": query,
                     "embedding": embedding,
                     "k": k,
+                    "tsquery_config": tsquery_config,
                 },
             ).fetchall()
 

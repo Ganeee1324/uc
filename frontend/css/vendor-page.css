@@ -6048,7 +6048,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .stars-inner::before {
     content: "★★★★★";
-    color: var(--orange-500);
+    color: #fbbf24;
 }
 
 .big-rating-score {

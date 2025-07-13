@@ -361,9 +361,9 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
+def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> List[Tuple[Vetrina, Tuple[int, int]]]:
     with connect(vector=True) as conn:
-        with conn.cursor() as cursor:
+        with conn.cursor() as cursor: 
             lang = detect(query)
             if lang not in ["it", "en"]:
                 lang = "en"
@@ -376,75 +376,145 @@ def new_search(query: str) -> List[Tuple[Vetrina, Tuple[int, int]]]:
             else:
                 tsquery_config = "simple"
             
-            sql = """
-            WITH semantic_search AS (
-                SELECT 
-                    pe.vetrina_id,
-                    pe.file_id,
-                    pe.page_number,
-                    1.0 / (%(k)s + RANK() OVER (ORDER BY pe.embedding <#> %(embedding)s)) AS score
-                FROM page_embeddings pe
-                LIMIT 20
-            ),
-            keyword_search AS (
-                SELECT 
-                    v.vetrina_id,
-                    NULL::integer AS file_id,
-                    NULL::integer AS page_number,
-                    1.0 / (%(k)s + RANK() OVER (ORDER BY ts_rank_cd(
-                        CASE 
-                            WHEN v.language = 'en' THEN to_tsvector('english', v.description)
-                            WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
-                            ELSE to_tsvector('simple', v.description)
-                        END, plainto_tsquery(%(tsquery_config)s, %(query)s)) DESC)) AS score
-                FROM vetrina v
-                WHERE CASE 
-                        WHEN v.language = 'en' THEN to_tsvector('english', v.description)
-                        WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
-                        ELSE to_tsvector('simple', v.description)
-                    END @@ plainto_tsquery(%(tsquery_config)s, %(query)s)
-                ORDER BY ts_rank_cd(
+            # Build filtering conditions
+            vetrina_filters = [
+                ("course_name", "ci.course_name", params.get("course_name"), str),
+                ("faculty", "ci.faculty_name", params.get("faculty"), str),
+                ("canale", "ci.canale", params.get("canale"), str),
+                ("language", "ci.language", params.get("language"), str),
+                ("date_year", "ci.date_year", params.get("date_year"), int),
+                ("course_year", "ci.course_year", params.get("course_year"), int),
+            ]
+            file_filters = [
+                ("tag", "f.tag", params.get("tag"), str),
+                ("extension", "f.extension", params.get("extension"), str),
+            ]
+            
+            # Build WHERE conditions and collect parameters
+            filter_params = []
+            vetrina_conditions = []
+            file_conditions = []
+            
+            # Process vetrina filters
+            for param_name, field_name, value, type_ in vetrina_filters:
+                if value:
+                    value = type_(value)
+                    vetrina_conditions.append(f"{field_name} = %s")
+                    filter_params.append(value)
+            
+            # Process file filters
+            has_file_filters = any(value for param_name, field_name, value, type_ in file_filters if value)
+            if has_file_filters:
+                for param_name, field_name, value, type_ in file_filters:
+                    if value:
+                        value = type_(value)
+                        file_conditions.append(f"{field_name} = %s")
+                        filter_params.append(value)
+            
+            # Build clauses
+            file_join_clause = "JOIN files f ON f.vetrina_id = v.vetrina_id" if has_file_filters else ""
+            
+            embedding = get_sentence_embedding(query).squeeze()
+            k = 60
+            
+            # Build WHERE clause for semantic search
+            semantic_where_parts = ["1=1"]
+            semantic_where_parts.extend(vetrina_conditions)
+            semantic_where_parts.extend(file_conditions)
+            semantic_where_clause = " AND ".join(semantic_where_parts)
+            
+            # Execute semantic search
+            semantic_sql = f"""
+            SELECT 
+                pe.vetrina_id,
+                pe.file_id,
+                pe.page_number,
+                1.0 / (%s + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS score,
+                v.*,
+                u.*,
+                ci.*
+            FROM page_embeddings pe
+            JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
+            JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+            JOIN users u ON v.author_id = u.user_id
+            {file_join_clause}
+            WHERE {semantic_where_clause}
+            ORDER BY pe.embedding <#> %s
+            LIMIT 20
+            """
+            
+            semantic_params = [k, embedding] + filter_params + [embedding]
+            semantic_results = cursor.execute(semantic_sql, semantic_params).fetchall()
+            
+            # Build WHERE clause for keyword search
+            keyword_where_parts = [f"""CASE 
+                WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                ELSE to_tsvector('simple', v.description)
+            END @@ plainto_tsquery(%s, %s)"""]
+            keyword_where_parts.extend(vetrina_conditions)
+            keyword_where_parts.extend(file_conditions)
+            keyword_where_clause = " AND ".join(keyword_where_parts)
+            
+            # Execute keyword search
+            keyword_sql = f"""
+            SELECT 
+                v.vetrina_id,
+                NULL::integer AS file_id,
+                NULL::integer AS page_number,
+                1.0 / (%s + RANK() OVER (ORDER BY ts_rank_cd(
                     CASE 
                         WHEN v.language = 'en' THEN to_tsvector('english', v.description)
                         WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
                         ELSE to_tsvector('simple', v.description)
-                    END, plainto_tsquery(%(tsquery_config)s, %(query)s)) DESC
-                LIMIT 20
-            ),
-            combined_results AS (
-                SELECT vetrina_id, file_id, page_number, score FROM semantic_search
-                UNION ALL
-                SELECT vetrina_id, file_id, page_number, score FROM keyword_search
-            )
-            SELECT 
-                cr.vetrina_id,
-                cr.score,
-                cr.file_id,
-                cr.page_number,
+                    END, plainto_tsquery(%s, %s)) DESC)) AS score,
                 v.*,
                 u.*,
                 ci.*
-            FROM combined_results cr
-            JOIN vetrina v ON cr.vetrina_id = v.vetrina_id
-            JOIN users u ON v.author_id = u.user_id
+            FROM vetrina v
             JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-            ORDER BY cr.score DESC
-            LIMIT 10
+            JOIN users u ON v.author_id = u.user_id
+            {file_join_clause}
+            WHERE {keyword_where_clause}
+            ORDER BY ts_rank_cd(
+                CASE 
+                    WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                    WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                    ELSE to_tsvector('simple', v.description)
+                END, plainto_tsquery(%s, %s)) DESC
+            LIMIT 20
             """
-            embedding = get_sentence_embedding(query).squeeze()
-            k = 60
-
-            results = cursor.execute(
-                sql,
-                {
-                    "query": query,
-                    "embedding": embedding,
-                    "k": k,
-                    "tsquery_config": tsquery_config,
-                },
-            ).fetchall()
-
-            return [(Vetrina.from_dict(row), (row["file_id"], row["page_number"])) for row in results]
+            
+            keyword_params = [k, tsquery_config, query, tsquery_config, query, filter_params, tsquery_config, query]
+            # Flatten the parameters
+            keyword_params_flat = []
+            for param in keyword_params:
+                if isinstance(param, list):
+                    keyword_params_flat.extend(param)
+                else:
+                    keyword_params_flat.append(param)
+            
+            keyword_results = cursor.execute(keyword_sql, keyword_params_flat).fetchall()
+            
+            # Combine results and sort by score
+            all_results = []
+            
+            # Add semantic results
+            for row in semantic_results:
+                vetrina = Vetrina.from_dict(row)
+                all_results.append((vetrina, (row["file_id"], row["page_number"]), row["score"]))
+            
+            # Add keyword results
+            for row in keyword_results:
+                vetrina = Vetrina.from_dict(row)
+                all_results.append((vetrina, (row["file_id"], row["page_number"]), row["score"]))
+            
+            # Sort by score descending and limit to 10
+            all_results.sort(key=lambda x: x[2], reverse=True)
+            final_results = all_results[:10]
+            
+            # Return without the score
+            return [(vetrina, file_page) for vetrina, file_page, score in final_results]
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:

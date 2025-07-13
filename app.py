@@ -211,12 +211,24 @@ def new_search():
     """
     New semantic + keyword search endpoint using vector embeddings and full-text search.
     Query parameter: 'q' - the search query string
+    Additional filter parameters: course_name, faculty, canale, language, date_year, course_year, tag, extension
     """
     query = request.args.get('q', '').strip()
     if not query:
         return jsonify({"error": "missing_query", "msg": "Query parameter 'q' is required"}), 400
     
-    results = database.new_search(query)
+    # Extract filter parameters from request
+    filter_params = {}
+    filter_keys = ['course_name', 'faculty', 'canale', 'language', 'date_year', 'course_year', 'tag', 'extension']
+    for key in filter_keys:
+        value = request.args.get(key)
+        if value:
+            filter_params[key] = value
+    
+    # Get current user ID if authenticated
+    current_user_id = get_jwt_identity()
+    
+    results = database.new_search(query, filter_params, current_user_id)
     vetrine = []
     for vetrina, (file_id, page_number) in results:
         vetrina_dict = vetrina.to_dict()
@@ -226,7 +238,8 @@ def new_search():
     return jsonify({
         "vetrine": vetrine, 
         "count": len(results),
-        "query": query
+        "query": query,
+        "filters": filter_params
     }), 200
 
 

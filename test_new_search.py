@@ -14,7 +14,7 @@ BASE_URL = "http://127.0.0.1:5000"
 SEARCH_ENDPOINT = f"{BASE_URL}/vetrine/search"
 
 
-def test_search(query: str, description: str = "") -> Dict[str, Any]:
+def test_search(query: str, description: str = "", params: Dict[str, Any] = {}) -> Dict[str, Any]:
     """
     Test the new search endpoint with a given query.
 
@@ -31,7 +31,7 @@ def test_search(query: str, description: str = "") -> Dict[str, Any]:
         print(f"Description: {description}")
     print(f"{'='*60}")
 
-    response = requests.get(SEARCH_ENDPOINT, params={"q": query})
+    response = requests.get(SEARCH_ENDPOINT, params={"q": query, **params})
 
     print(f"Status Code: {response.status_code}")
     print(f"Response Headers: {dict(response.headers)}")
@@ -96,13 +96,13 @@ def main():
 
     # Test queries
     test_queries = [
-        {"query": "Vetrina for Probability - auto-generated...", "description": "Testing English search for spectral decomposition"},
+        {"query": "machine learning", "description": "Testing English search for spectral decomposition", "params": {}},
         # {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy"},
     ]
 
     results = []
     for test_case in test_queries:
-        result = test_search(test_case["query"], test_case["description"])
+        result = test_search(test_case["query"], test_case["description"], test_case["params"])
         results.append(
             {
                 "query": test_case["query"],

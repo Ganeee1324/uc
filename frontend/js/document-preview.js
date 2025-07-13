@@ -2216,7 +2216,7 @@ const pendingRequests = new Map(); // Prevent duplicate requests
 async function loadReviewsForVetrina(vetrinaId) {
     try {
         // Check cache first
-        const cacheKey = `${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
+        const cacheKey = `reviews_${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
         const cachedData = reviewsCache.get(cacheKey);
         
         if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
@@ -2295,6 +2295,13 @@ async function loadReviewsForVetrina(vetrinaId) {
             currentReviews = data.reviews || [];
             currentUserReview = data.user_review || null;
             
+            console.log('Reviews loaded successfully:', {
+                vetrinaId,
+                reviewsCount: currentReviews.length,
+                reviews: currentReviews,
+                userReview: currentUserReview
+            });
+            
             // Cache the successful response
             reviewsCache.set(cacheKey, {
                 reviews: currentReviews,
@@ -2333,13 +2340,18 @@ async function loadReviewsForVetrina(vetrinaId) {
 
 // Update the reviews overlay content
 function updateReviewsOverlay() {
+    console.log('updateReviewsOverlay called with currentReviews:', currentReviews);
+    
     const reviewsList = document.getElementById('reviewsList');
     const bigRatingScore = document.querySelector('.big-rating-score');
     const totalReviews = document.querySelector('.total-reviews');
     const bigStars = document.querySelector('.big-stars');
     const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
 
-    if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
+    if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) {
+        console.error('Required elements not found for updateReviewsOverlay');
+        return;
+    }
 
     // Calculate average rating
     const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
@@ -2547,7 +2559,7 @@ async function submitReview() {
             hideAddReviewForm();
             
             // Clear cache for this specific vetrina and reload reviews to show the new one
-            const cacheKey = `reviews_${currentVetrinaForReviews}`;
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
             reviewsCache.delete(cacheKey);
             await loadReviewsForVetrina(currentVetrinaForReviews);
             updateReviewsOverlay();
@@ -2612,7 +2624,7 @@ async function deleteUserReview() {
             showNotification('Recensione eliminata con successo!', 'success');
             
             // Clear cache for this specific vetrina and reload reviews
-            const cacheKey = `reviews_${currentVetrinaForReviews}`;
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
             reviewsCache.delete(cacheKey);
             await loadReviewsForVetrina(currentVetrinaForReviews);
             updateReviewsOverlay();

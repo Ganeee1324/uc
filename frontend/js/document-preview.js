@@ -2571,14 +2571,46 @@ async function submitReview() {
             showNotification(message, 'success');
             hideAddReviewForm();
             
-            // Clear cache for this specific vetrina and reload reviews to show the new one
-            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
-            reviewsCache.delete(cacheKey);
-            await loadReviewsForVetrina(currentVetrinaForReviews);
+            // Get current user info
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            // Create the new review object
+            const newReview = {
+                rating: selectedRating,
+                review_text: comment,
+                review_date: new Date().toISOString(),
+                user: currentUser
+            };
+            
+            // Update currentReviews immediately with the new review
+            if (data.msg === 'Review updated') {
+                // Update existing review
+                const existingIndex = currentReviews.findIndex(review => 
+                    review.user?.user_id === currentUser.user_id
+                );
+                if (existingIndex !== -1) {
+                    currentReviews[existingIndex] = newReview;
+                }
+            } else {
+                // Add new review
+                currentReviews.push(newReview);
+            }
+            
+            // Update currentUserReview
+            currentUserReview = newReview;
+            
+            // Update the UI immediately
             updateReviewsOverlay();
             
-            // Update the rating display in the search results
+            // Update the rating display
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            
+            // Clear cache and reload in background to ensure data consistency
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
+            reviewsCache.delete(cacheKey);
+            loadReviewsForVetrina(currentVetrinaForReviews).catch(error => {
+                console.error('Background review reload failed:', error);
+            });
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
@@ -2636,14 +2668,32 @@ async function deleteUserReview() {
         if (response.ok) {
             showNotification('Recensione eliminata con successo!', 'success');
             
-            // Clear cache for this specific vetrina and reload reviews
-            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
-            reviewsCache.delete(cacheKey);
-            await loadReviewsForVetrina(currentVetrinaForReviews);
+            // Get current user info
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            // Remove the user's review from currentReviews immediately
+            const reviewIndex = currentReviews.findIndex(review => 
+                review.user?.user_id === currentUser.user_id
+            );
+            if (reviewIndex !== -1) {
+                currentReviews.splice(reviewIndex, 1);
+            }
+            
+            // Clear currentUserReview
+            currentUserReview = null;
+            
+            // Update the UI immediately
             updateReviewsOverlay();
             
-            // Update the rating display in the search results
+            // Update the rating display
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            
+            // Clear cache and reload in background to ensure data consistency
+            const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
+            reviewsCache.delete(cacheKey);
+            loadReviewsForVetrina(currentVetrinaForReviews).catch(error => {
+                console.error('Background review reload failed:', error);
+            });
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');

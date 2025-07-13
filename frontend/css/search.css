@@ -6091,10 +6091,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    bottom: var(--space-2);
-    right: var(--space-2);
-    z-index: 10;
 }
 
 .review-item-overlay:hover .delete-review-btn {
@@ -6102,8 +6098,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .delete-review-btn:hover {
-    background: var(--red-500);
-    color: var(--white);
+    background: var(--error-50);
+    color: var(--error-600);
     transform: scale(1.1);
 }
 

@@ -6013,16 +6013,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .reviewer-avatar-overlay {
     width: 44px;
     height: 44px;
-    background: var(--blue-600);
-    color: var(--white);
     border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1rem;
     border: 2px solid var(--white);
     box-shadow: 0 0 0 2px var(--blue-500);
+    overflow: hidden;
 }
 
 .reviewer-name-overlay {

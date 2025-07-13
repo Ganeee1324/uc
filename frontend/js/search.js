@@ -3579,7 +3579,7 @@ function renderDocuments(files) {
                         return '<div class="document-type-badge">Documento</div>';
                     })()}
                 </div>
-                <div class="rating-badge" data-action="open-reviews" data-vetrina-id="${item.id}" title="Mostra recensioni" style="cursor: pointer;">
+                <div class="rating-badge" data-action="open-reviews" data-vetrina-id="${item.id}" data-rating="${rating}" data-review-count="${reviewCount}" title="Mostra recensioni" style="cursor: pointer;">
                     <div class="rating-stars">${stars}</div>
                     <span class="rating-count">(${reviewCount})</span>
                 </div>
@@ -5403,13 +5403,52 @@ async function openReviewsOverlay(vetrinaId) {
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        // Show loading state immediately
-        showReviewsLoadingState();
+        // Show initial rating data instantly from search results
+        showInitialRatingData(vetrinaId);
         
-        // Load reviews for this vetrina
+        // Load detailed reviews data in background
         await loadReviewsForVetrina(vetrinaId);
         updateReviewsOverlay();
     }
+}
+
+// Show initial rating data from search results
+function showInitialRatingData(vetrinaId) {
+    const reviewsList = document.getElementById('reviewsList');
+    const bigRatingScore = document.querySelector('.big-rating-score');
+    const totalReviews = document.querySelector('.total-reviews');
+    const bigStars = document.querySelector('.big-stars');
+    const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+
+    if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
+
+    // Find the vetrina data from search results
+    const ratingBadge = document.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
+    if (ratingBadge) {
+        // Get rating and review count from dataset attributes
+        const rating = parseFloat(ratingBadge.dataset.rating) || 0;
+        const reviewCount = parseInt(ratingBadge.dataset.reviewCount) || 0;
+            
+        // Show initial data instantly
+        bigRatingScore.textContent = rating.toFixed(1);
+        totalReviews.textContent = `Basato su ${reviewCount} recensioni`;
+        bigStars.innerHTML = generateFractionalStars(rating);
+        
+        // Show loading for reviews list
+        reviewsList.innerHTML = `
+            <div class="reviews-loading">
+                <div class="loading-spinner"></div>
+                <p>Caricamento recensioni...</p>
+            </div>
+        `;
+        
+        // Hide add review button until we load user data
+        addReviewBtn.style.display = 'none';
+        return;
+    }
+    
+    // Fallback to loading state if we can't find the data
+    showReviewsLoadingState();
 }
 
 // Show loading state for reviews
@@ -5560,7 +5599,10 @@ function updateReviewsOverlay() {
                 <div class="review-header-overlay">
                     <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
-                            ${getInitials(review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'User')}
+                            ${createGradientAvatar(
+                                review.user?.first_name + ' ' + review.user?.last_name || review.user?.username || 'User',
+                                review.user?.username || 'user'
+                            )}
                         </div>
                         <div>
                             <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>

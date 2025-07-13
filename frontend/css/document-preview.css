@@ -3300,16 +3300,10 @@ button:focus-visible,
 .reviewer-avatar-overlay {
     width: 44px;
     height: 44px;
-    background: var(--primary-600);
-    color: white;
     border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: var(--text-base);
     border: 2px solid white;
     box-shadow: 0 0 0 2px var(--primary-300);
+    overflow: hidden;
 }
 
 .reviewer-name-overlay {

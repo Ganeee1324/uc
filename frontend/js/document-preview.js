@@ -926,6 +926,18 @@ function renderDocumentInfo(docData) {
 
     const ratingCount = document.querySelector('.rating-count');
     if(ratingCount) ratingCount.textContent = `(${reviewCount})`;
+    
+    // Update the rating badge data attributes for the reviews system
+    const ratingBadge = document.querySelector('.doc-rating-display[data-action="open-reviews"]');
+    if (ratingBadge) {
+        ratingBadge.setAttribute('data-rating', rating.toString());
+        ratingBadge.setAttribute('data-review-count', reviewCount.toString());
+        console.log('Updated rating badge data attributes:', {
+            rating: rating,
+            reviewCount: reviewCount,
+            vetrinaId: ratingBadge.getAttribute('data-vetrina-id')
+        });
+    }
 
     const priceElement = document.querySelector('.price-value');
     if (priceElement) {
@@ -2110,6 +2122,11 @@ async function openReviewsOverlay(vetrinaId) {
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
         
+        // Clear cache to ensure fresh data
+        const cacheKey = `reviews_${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
+        reviewsCache.delete(cacheKey);
+        console.log('Cleared cache for vetrina:', vetrinaId, 'cacheKey:', cacheKey);
+        
         // Show initial rating data instantly from search results
         showInitialRatingData(vetrinaId);
         
@@ -2238,6 +2255,8 @@ async function loadReviewsForVetrina(vetrinaId) {
         if (ratingBadge) {
             const reviewCount = parseInt(ratingBadge.dataset.reviewCount) || 0;
             const rating = parseFloat(ratingBadge.dataset.rating) || 0;
+            
+            console.log('DOM data for vetrina:', vetrinaId, 'reviewCount:', reviewCount, 'rating:', rating);
             
             // Only skip API call if both review count AND rating are 0
             if (reviewCount === 0 && rating === 0) {
@@ -2647,8 +2666,9 @@ async function deleteUserReview() {
     }
 }
 
-// Update vetrina rating in search results
+// Update vetrina rating in search results and document preview
 function updateVetrinaRatingInSearch(vetrinaId) {
+    // Update search results
     const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
     
     ratingElements.forEach(element => {
@@ -2664,6 +2684,21 @@ function updateVetrinaRatingInSearch(vetrinaId) {
             if (ratingCount) ratingCount.textContent = `(${vetrina.review_count})`;
         }
     });
+    
+    // Update document preview page rating badge data attributes
+    const docRatingBadge = document.querySelector('.doc-rating-display[data-vetrina-id="' + vetrinaId + '"]');
+    if (docRatingBadge) {
+        const vetrina = currentVetrine ? currentVetrine.find(v => v.id === vetrinaId) : null;
+        if (vetrina) {
+            docRatingBadge.setAttribute('data-rating', vetrina.rating.toString());
+            docRatingBadge.setAttribute('data-review-count', vetrina.review_count.toString());
+            console.log('Updated document preview rating badge:', {
+                vetrinaId: vetrinaId,
+                rating: vetrina.rating,
+                reviewCount: vetrina.review_count
+            });
+        }
+    }
 }
 
 // These functions have been replaced by the new reviews overlay system

@@ -60,55 +60,6 @@ def fill_courses(debug: bool = False) -> None:
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
 
 
-def insert_sample_data():
-    # create a sample user, then for each course instance create a vetrina and add 3 files with random inputs
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            # Insert user and get the actual user_id
-            cursor.execute(
-                "INSERT INTO users (username, email, password, first_name, last_name) VALUES (%s, %s, %s, %s, %s) RETURNING user_id",
-                ("mario_rossi", "mario@example.com", "password123", "Mario", "Rossi"),
-            )
-            user_id = cursor.fetchone()["user_id"]
-            conn.commit()
-
-            logging.info(f"User {user_id} created")
-
-            cursor.execute("SELECT * FROM course_instances")
-            course_instances = cursor.fetchall()
-
-            for course_instance in course_instances:
-                # Insert vetrina and get the vetrina_id
-                cursor.execute(
-                    "INSERT INTO vetrina (author_id, course_instance_id, name, description) VALUES (%s, %s, %s, %s) RETURNING vetrina_id",
-                    (
-                        user_id,
-                        course_instance["instance_id"],
-                        "Vetrina for " + course_instance["course_name"],
-                        "Description for " + course_instance["course_name"],
-                    ),
-                )
-                vetrina_id = cursor.fetchone()["vetrina_id"]
-                conn.commit()
-
-                logging.info(f"Vetrina {vetrina_id} created")
-                for i in range(3):
-                    # Use correct column names: filename instead of name, and provide required sha256
-                    cursor.execute(
-                        "INSERT INTO files (vetrina_id, filename, price, tag, extension, sha256) VALUES (%s, %s, %s, %s, %s, %s)",
-                        (
-                            vetrina_id,
-                            "File " + str(i),
-                            random.randint(1, 100),
-                            random.choice(["dispense", "appunti", "esercizi"]),
-                            random.choice(["pdf", "docx", "txt"]),
-                            "dummy_sha256_" + str(i),
-                        ),
-                    )
-                    conn.commit()
-                    logging.info(f"File {i} added to vetrina {vetrina_id}")
-
-
 # ---------------------------------------------
 # Subscription management
 # ---------------------------------------------
@@ -521,7 +472,7 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
-    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None, language: str = "it", num_pages: int = 0
+    requester_id: int, vetrina_id: int, file_name: str, sha256: str, extension: str, price: int = 0, size: int = 0, tag: str | None = None, language: str = "it", num_pages: int = 0, display_name: str | None = None
 ) -> File:
     """
     Add a file to a vetrina.
@@ -537,6 +488,7 @@ def add_file_to_vetrina(
         tag: Tag for the file
         language: Language of the file
         num_pages: Number of pages in the file
+        display_name: Display name for the file (if None, uses original filename without path)
     Raises:
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
@@ -558,12 +510,12 @@ def add_file_to_vetrina(
 
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (vetrina_id, file_name, sha256, price, size, tag, extension, language, num_pages),
+                    "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
                 )
                 file_data = cursor.fetchone()
 
-                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, tag: {tag}')
+                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
             return File.from_dict(file_data)
 
 
@@ -1084,7 +1036,3 @@ def delete_review(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
             logging.debug(f"Review deleted by user {user_id}")
-
-
-if __name__ == "__main__":
-    insert_sample_data()

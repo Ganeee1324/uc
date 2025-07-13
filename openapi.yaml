@@ -469,6 +469,11 @@ paths:
                     - **dispense**: Course handouts or lecture materials
                     - **appunti**: Student notes
                     - **esercizi**: Exercises or practice problems
+                display_name:
+                  type: string
+                  description: |
+                    Optional display name for the file. If not provided, the original filename 
+                    (without the UUID and user ID prefix) will be used as the display name.
               required:
                 - file
       responses:
@@ -1169,7 +1174,10 @@ components:
           description: Unique identifier for the file
         filename:
           type: string
-          description: Name of the file
+          description: Internal filename used for storage (includes UUID prefix)
+        display_name:
+          type: string
+          description: User-friendly display name for the file
         upload_date:
           type: string
           format: date-time

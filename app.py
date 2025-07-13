@@ -232,6 +232,9 @@ def upload_file(vetrina_id):
     if tag and tag not in VALID_TAGS:
         return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
 
+    # Get display_name if provided
+    display_name = request.form.get("display_name", file.filename).strip()
+
     # Read file content into memory for processing
     file_content = file.read()
     file_size = len(file_content)
@@ -266,6 +269,7 @@ def upload_file(vetrina_id):
         size=file_size,
         tag=tag,
         num_pages=num_pages,
+        display_name=display_name,
     )
 
     try:

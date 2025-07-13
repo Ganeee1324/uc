@@ -2507,10 +2507,23 @@ async function submitReview() {
         showNotification('Seleziona una valutazione prima di inviare la recensione.', 'error');
         return;
     }
+    
+    // Validate vetrina ID
+    if (!currentVetrinaForReviews.toString().match(/^\d+$/)) {
+        console.error('Invalid vetrina ID:', currentVetrinaForReviews);
+        showNotification('Errore: ID vetrina non valido. Ricarica la pagina e riprova.', 'error');
+        return;
+    }
 
     const comment = document.getElementById('reviewComment').value.trim();
     if (!comment) {
         showNotification('Inserisci un commento per la tua recensione.', 'error');
+        return;
+    }
+    
+    // Validate comment length (prevent extremely long comments that might cause server issues)
+    if (comment.length > 2000) {
+        showNotification('Il commento è troppo lungo. Usa massimo 2000 caratteri.', 'error');
         return;
     }
 
@@ -2523,16 +2536,27 @@ async function submitReview() {
             return;
         }
 
+        const requestBody = {
+            rating: selectedRating,
+            review_text: comment
+        };
+        
+        console.log('Submitting review:', {
+            vetrinaId: currentVetrinaForReviews,
+            vetrinaIdType: typeof currentVetrinaForReviews,
+            rating: selectedRating,
+            commentLength: comment.length,
+            hasToken: !!token,
+            apiUrl: `${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`
+        });
+        
         const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                rating: selectedRating,
-                review_text: comment
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (response.ok) {
@@ -2555,12 +2579,28 @@ async function submitReview() {
             showNotification('Sessione scaduta. Effettua nuovamente l\'accesso.', 'error');
             return;
         } else {
-            const errorData = await response.json();
-            showNotification(errorData.message || 'Errore nell\'invio della recensione.', 'error');
+            console.error('Server error:', response.status, response.statusText);
+            
+            // Try to get error details from response
+            let errorMessage = 'Errore del server. Riprova più tardi.';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorData.error || errorMessage;
+                console.error('Error details:', errorData);
+            } catch (parseError) {
+                console.error('Could not parse error response:', parseError);
+            }
+            
+            showNotification(errorMessage, 'error');
         }
     } catch (error) {
         console.error('Error submitting review:', error);
-        showNotification('Errore di connessione. Riprova più tardi.', 'error');
+        
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            showNotification('Errore di connessione. Verifica la tua connessione internet e riprova.', 'error');
+        } else {
+            showNotification('Errore imprevisto. Riprova più tardi.', 'error');
+        }
     }
 }
 

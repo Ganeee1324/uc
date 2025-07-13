@@ -2367,8 +2367,17 @@ function updateReviewsOverlay() {
     }
 
     // Calculate average rating
-    const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
+    const totalRating = currentReviews.reduce((sum, review) => {
+        console.log('Review rating:', review.rating, 'type:', typeof review.rating);
+        return sum + (parseInt(review.rating) || 0);
+    }, 0);
     const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length).toFixed(1) : '0.0';
+    
+    console.log('Rating calculation:', {
+        totalRating: totalRating,
+        reviewCount: currentReviews.length,
+        averageRating: averageRating
+    });
     
     // Update summary
     bigRatingScore.textContent = averageRating;
@@ -2576,11 +2585,14 @@ async function submitReview() {
             
             // Create the new review object
             const newReview = {
-                rating: selectedRating,
+                rating: parseInt(selectedRating), // Ensure rating is a number
                 review_text: comment,
                 review_date: new Date().toISOString(),
                 user: currentUser
             };
+            
+            console.log('Created new review object:', newReview);
+            console.log('selectedRating type:', typeof selectedRating, 'value:', selectedRating);
             
             // Update currentReviews immediately with the new review
             if (data.msg === 'Review updated') {

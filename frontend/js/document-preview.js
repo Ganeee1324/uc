@@ -2184,9 +2184,23 @@ function closeReviewsOverlay() {
     }
 }
 
+// Cache for reviews data to avoid repeated API calls
+const reviewsCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // Load reviews for a specific vetrina
 async function loadReviewsForVetrina(vetrinaId) {
     try {
+        // Check cache first
+        const cacheKey = `${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
+        const cachedData = reviewsCache.get(cacheKey);
+        
+        if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+            // Use cached data
+            currentReviews = cachedData.reviews || [];
+            currentUserReview = cachedData.userReview || null;
+            return;
+        }
         
         const token = localStorage.getItem('authToken');
         
@@ -2203,15 +2217,30 @@ async function loadReviewsForVetrina(vetrinaId) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
         const response = await fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
             method: 'GET',
-            headers: headers
+            headers: headers,
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
 
         if (response.ok) {
             const data = await response.json();
             currentReviews = data.reviews || [];
             currentUserReview = data.user_review || null;
+            
+            // Cache the successful response
+            reviewsCache.set(cacheKey, {
+                reviews: currentReviews,
+                userReview: currentUserReview,
+                timestamp: Date.now()
+            });
+            
             if (currentUserReview) {
             }
         } else if (response.status === 401) {
@@ -2231,6 +2260,11 @@ async function loadReviewsForVetrina(vetrinaId) {
         }
     } catch (error) {
         console.error('Error loading reviews:', error);
+        
+        if (error.name === 'AbortError') {
+            console.error('Request timed out');
+        }
+        
         currentReviews = [];
         currentUserReview = null;
     }
@@ -2451,7 +2485,8 @@ async function submitReview() {
             showNotification(message, 'success');
             hideAddReviewForm();
             
-            // Reload reviews to show the new one
+            // Clear cache and reload reviews to show the new one
+            reviewsCache.clear();
             await loadReviewsForVetrina(currentVetrinaForReviews);
             updateReviewsOverlay();
             
@@ -2514,7 +2549,8 @@ async function deleteUserReview() {
         if (response.ok) {
             showNotification('Recensione eliminata con successo!', 'success');
             
-            // Reload reviews
+            // Clear cache and reload reviews
+            reviewsCache.clear();
             await loadReviewsForVetrina(currentVetrinaForReviews);
             updateReviewsOverlay();
             

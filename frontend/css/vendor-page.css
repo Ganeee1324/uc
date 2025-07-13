@@ -1666,6 +1666,14 @@ html {
     height: 32px;
 }
 
+.rating-badge[data-action="open-reviews"]:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transform: scale(1.05) translateY(-2px);
+    color: #f59e0b;
+    cursor: pointer;
+}
+
 .rating-stars {
     display: flex;
     align-items: center;

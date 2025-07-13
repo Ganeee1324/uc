@@ -2424,7 +2424,9 @@ function updateReviewsOverlay() {
                     <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
                             ${createGradientAvatar(
-                                review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'User',
+                                (review.user?.first_name && review.user?.last_name) 
+                                    ? `${review.user.first_name} ${review.user.last_name}`
+                                    : (review.user?.first_name || review.user?.username || 'User'),
                                 review.user?.username || 'User'
                             )}
                         </div>

@@ -361,7 +361,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> List[Tuple[Vetrina, Tuple[int, int]]]:
+def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> List[Tuple[Vetrina, Tuple[int, int, float]]]:
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
             lang = detect(query)
@@ -435,7 +435,85 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             keyword_where_parts.extend(file_conditions)
             keyword_where_clause = " AND ".join(keyword_where_parts)
 
-            # Use FULL OUTER JOIN with proper RRF scoring
+            # STEP 1: Execute semantic search independently
+            logging.debug(f"=== SEMANTIC SEARCH DEBUG ===")
+            logging.debug(f"Query: '{query}', Language detected: {lang}")
+            
+            semantic_sql = f"""
+                SELECT 
+                    pe.vetrina_id,
+                    pe.file_id,
+                    pe.page_number,
+                    1.0 / (%s::integer + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS semantic_score,
+                    v.name AS vetrina_name,
+                    v.description AS vetrina_description
+                FROM page_embeddings pe
+                JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
+                JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+                JOIN users u ON v.author_id = u.user_id
+                {file_join_clause}
+                WHERE {semantic_where_clause}
+                ORDER BY pe.embedding <#> %s
+                LIMIT 50
+            """
+            
+            semantic_params = [k, embedding] + filter_params + [embedding]
+            semantic_results = cursor.execute(semantic_sql, semantic_params).fetchall()
+            
+            logging.debug(f"Semantic results found: {len(semantic_results)}")
+            for i, row in enumerate(semantic_results[:5]):  # Show first 5
+                logging.debug(f"  {i+1}. vetrina_id={row['vetrina_id']}, file_id={row['file_id']}, page={row['page_number']}, score={row['semantic_score']:.6f}, name='{row['vetrina_name']}'")
+            if len(semantic_results) > 5:
+                logging.debug(f"  ... and {len(semantic_results) - 5} more semantic results")
+
+            # STEP 2: Execute keyword search independently  
+            logging.debug(f"=== KEYWORD SEARCH DEBUG ===")
+            
+            keyword_sql = f"""
+                SELECT 
+                    v.vetrina_id,
+                    NULL::integer AS file_id,
+                    NULL::integer AS page_number,
+                    1.0 / (%s::integer + RANK() OVER (ORDER BY ts_rank_cd(
+                        CASE 
+                            WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                            WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                            ELSE to_tsvector('simple', v.description)
+                        END, plainto_tsquery('{tsquery_config}', %s::text)) DESC)) AS keyword_score,
+                    v.name AS vetrina_name,
+                    v.description AS vetrina_description,
+                    ts_rank_cd(
+                        CASE 
+                            WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                            WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                            ELSE to_tsvector('simple', v.description)
+                        END, plainto_tsquery('{tsquery_config}', %s::text)) AS ts_rank
+                FROM vetrina v
+                JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+                JOIN users u ON v.author_id = u.user_id
+                {file_join_clause}
+                WHERE {keyword_where_clause}
+                ORDER BY ts_rank_cd(
+                    CASE 
+                        WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                        WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                        ELSE to_tsvector('simple', v.description)
+                    END, plainto_tsquery('{tsquery_config}', %s::text)) DESC
+                LIMIT 50
+            """
+            
+            keyword_params = [k, query] + filter_params + [query, query, query]
+            keyword_results = cursor.execute(keyword_sql, keyword_params).fetchall()
+            
+            logging.debug(f"Keyword results found: {len(keyword_results)}")
+            for i, row in enumerate(keyword_results[:5]):  # Show first 5
+                logging.debug(f"  {i+1}. vetrina_id={row['vetrina_id']}, score={row['keyword_score']:.6f}, ts_rank={row['ts_rank']:.6f}, name='{row['vetrina_name']}', desc='{row['vetrina_description'][:50]}...'")
+            if len(keyword_results) > 5:
+                logging.debug(f"  ... and {len(keyword_results) - 5} more keyword results")
+
+            # STEP 3: Combine results using the original FULL OUTER JOIN approach
+            logging.debug(f"=== COMBINING RESULTS ===")
+            
             combined_sql = f"""
             WITH semantic_search AS (
                 SELECT 
@@ -481,6 +559,8 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 s.file_id AS file_id,
                 s.page_number AS page_number,
                 (COALESCE(s.semantic_score, 0) + COALESCE(k.keyword_score, 0)) AS combined_score,
+                COALESCE(s.semantic_score, 0) AS semantic_score,
+                COALESCE(k.keyword_score, 0) AS keyword_score,
                 v.*,
                 u.*,
                 ci.*,
@@ -496,30 +576,43 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             """
 
             # Build parameters for the combined query
-            # Semantic search: k, embedding, filter_params, embedding
-            semantic_params = [k, embedding] + filter_params + [embedding]
+            semantic_params_combined = [k, embedding] + filter_params + [embedding]
+            keyword_params_combined = [k, query] + filter_params + [query, query]
+            all_params = semantic_params_combined + keyword_params_combined
+
+            final_results_raw = cursor.execute(combined_sql, all_params).fetchall()
             
-            # Keyword search: k (SELECT), query (RANK), query (WHERE), query (ORDER BY)
-            keyword_params = [k, query] + filter_params + [query, query]
+            # Debug the combination results
+            logging.debug(f"Final combined results: {len(final_results_raw)}")
             
-            # Flatten keyword_params if needed
-            keyword_params_flat = []
-            for param in keyword_params:
-                if isinstance(param, list):
-                    keyword_params_flat.extend(param)
-                else:
-                    keyword_params_flat.append(param)
+            semantic_only_count = sum(1 for row in final_results_raw if row['semantic_score'] > 0 and row['keyword_score'] == 0)
+            keyword_only_count = sum(1 for row in final_results_raw if row['semantic_score'] == 0 and row['keyword_score'] > 0)
+            both_count = sum(1 for row in final_results_raw if row['semantic_score'] > 0 and row['keyword_score'] > 0)
+            
+            logging.debug(f"  Results from semantic only: {semantic_only_count}")
+            logging.debug(f"  Results from keyword only: {keyword_only_count}")
+            logging.debug(f"  Results from both searches: {both_count}")
+            
+            # Show top 10 combined results with score breakdown
+            for i, row in enumerate(final_results_raw[:10]):
+                source = ""
+                if row['semantic_score'] > 0 and row['keyword_score'] > 0:
+                    source = "BOTH"
+                elif row['semantic_score'] > 0:
+                    source = "SEM"
+                elif row['keyword_score'] > 0:
+                    source = "KEY"
+                    
+                logging.debug(f"  {i+1}. [{source}] vetrina_id={row['vetrina_id']}, file_id={row['file_id']}, page={row['page_number']}, "
+                             f"combined={row['combined_score']:.6f} (sem={row['semantic_score']:.6f} + key={row['keyword_score']:.6f}), "
+                             f"name='{row['name']}'")
 
-            all_params = semantic_params + keyword_params_flat
-
-            results = cursor.execute(combined_sql, all_params).fetchall()
-
-            # Convert results to the expected format
+            # Convert results to the expected format (maintaining compatibility)
             final_results = []
-            for row in results:
+            for row in final_results_raw:
                 vetrina = Vetrina.from_dict(row)
-                file_page = (row["file_id"], row["page_number"])
-                final_results.append((vetrina, file_page))
+                file_page_cs = (row["file_id"], row["page_number"], row["combined_score"])
+                final_results.append((vetrina, file_page_cs))
 
             return final_results
 
@@ -787,7 +880,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                     (vetrina_id,),
                 )
             files_data = cursor.fetchall()
-            logging.debug(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
+            # logging.debug(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
             return [File.from_dict(data) for data in files_data]
 
 
@@ -846,7 +939,6 @@ def get_file(file_id: int) -> File:
 
             if not file_data:
                 raise NotFoundException("File not found")
-            logging.debug(f"File {file_id} retrieved")
             return File.from_dict(file_data)
 
 

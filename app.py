@@ -232,10 +232,9 @@ def new_search():
     
     results = database.new_search(query, filter_params, current_user_id)
     vetrine = []
-    for vetrina, (file_id, page_number) in results:
+    for vetrina, (file_id, page_number, cs) in results:
         vetrina_dict = vetrina.to_dict()
-        vetrina_dict.update({"file_id": file_id, "page_number": page_number})
-        logging.debug(f"Vetrina {vetrina_dict['vetrina_id']} found with file {file_id} and page {page_number}")
+        vetrina_dict.update({"file_id": file_id, "page_number": page_number, "combined_score": cs})
         vetrine.append(vetrina_dict)
     return jsonify({
         "vetrine": vetrine, 
@@ -536,7 +535,7 @@ def get_valid_tags():
 
 if __name__ == "__main__":
     if os.name == "nt":  # Windows
-        app.run(host="0.0.0.0", debug=False)
+        app.run(host="0.0.0.0", debug=True)
     else:
         import ssl
 

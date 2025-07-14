@@ -232,10 +232,9 @@ def new_search():
     
     results = database.new_search(query, filter_params, current_user_id)
     vetrine = []
-    for vetrina, (file_id, page_number) in results:
+    for vetrina, (file_id, page_number, cs) in results:
         vetrina_dict = vetrina.to_dict()
-        vetrina_dict.update({"file_id": file_id, "page_number": page_number})
-        logging.debug(f"Vetrina {vetrina_dict['vetrina_id']} found with file {file_id} and page {page_number}")
+        vetrina_dict.update({"file_id": file_id, "page_number": page_number, "combined_score": cs})
         vetrine.append(vetrina_dict)
     return jsonify({
         "vetrine": vetrine, 
@@ -535,20 +534,23 @@ def get_valid_tags():
 
 
 if __name__ == "__main__":
-    import ssl
-
-    # Use Let's Encrypt certificate (copied to local directory)
-    cert_path = os.path.join(os.path.dirname(__file__), "certs", "fullchain.pem")
-    key_path = os.path.join(os.path.dirname(__file__), "certs", "privkey.pem")
-
-    # Check if certificate files exist
-    if os.path.exists(cert_path) and os.path.exists(key_path):
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain(cert_path, key_path)
-        print(f"Using Let's Encrypt certificate from {cert_path}")
-        ssl_context = context
+    if os.name == "nt":  # Windows
+        app.run(host="0.0.0.0", debug=True)
     else:
-        print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
-        ssl_context = "adhoc"
+        import ssl
 
-    app.run(host="0.0.0.0", debug=True, ssl_context=ssl_context)
+        # Use Let's Encrypt certificate (copied to local directory)
+        cert_path = os.path.join(os.path.dirname(__file__), "certs", "fullchain.pem")
+        key_path = os.path.join(os.path.dirname(__file__), "certs", "privkey.pem")
+
+        # Check if certificate files exist
+        if os.path.exists(cert_path) and os.path.exists(key_path):
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(cert_path, key_path)
+            print(f"Using Let's Encrypt certificate from {cert_path}")
+            ssl_context = context
+        else:
+            print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
+            ssl_context = "adhoc"
+
+        app.run(host="0.0.0.0", debug=True, ssl_context=ssl_context)

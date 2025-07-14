@@ -44,7 +44,7 @@ def test_search(query: str, description: str = "", params: Dict[str, Any] = {}) 
         # Display results
         vetrine = data.get("vetrine")
         # print the first 5 results
-        for i, vetrina in enumerate(vetrine[:10]):
+        for i, vetrina in enumerate(vetrine):
             print(f"\nResult {i+1}:")
             print(f"  Name: {vetrina.get('name')}")
             print(f"  Description: {vetrina.get('description', '')[:100]}...")
@@ -52,6 +52,10 @@ def test_search(query: str, description: str = "", params: Dict[str, Any] = {}) 
                 file_info = get_file_info(file_id)
                 print(f"  File name: {file_info.get('filename')}")
                 print(f"  Page number: {vetrina.get('page_number') + 1}")
+                print(f"  Combined score: {vetrina.get('combined_score')}")
+            else:
+                print("  No file associated")
+                raise Exception("No file associated")
 
         return data
     else:
@@ -96,7 +100,7 @@ def main():
 
     # Test queries
     test_queries = [
-        {"query": "machine learning", "description": "Testing English search for spectral decomposition", "params": {}},
+        {"query": "probability", "description": "Testing English search for spectral decomposition", "params": {}},
         # {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy"},
     ]
 

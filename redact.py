@@ -27,7 +27,7 @@ def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 0.
         page.clean_contents()
         page.insert_image(page.rect, stream=bio)
     doc.save(doc_path.replace(".pdf", "_redacted.pdf"))
-    logging.debug(f"Redacted {doc_path} ({doc.page_count} pages) with pages excluded: {indexes}")
+    logging.debug(f"Redacted {doc.page_count} pages with pages excluded: {indexes}")
 
 
 if __name__ == "__main__":

@@ -2,15 +2,17 @@ import random
 from typing import Any, Dict, List, Optional, Tuple
 import psycopg
 import os
+from pgvector.psycopg import register_vector
 
 # from bge import get_document_embedding
+from bge import get_sentence_embedding
 from common import CourseInstance, File, Review, Transaction, User, Vetrina, VetrinaSubscription
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
-
-# import numpy as np
+import numpy as np
+from langdetect import detect
 
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 load_dotenv()
@@ -20,12 +22,16 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 
-def connect(autocommit: bool = False, no_dict_row_factory: bool = False) -> psycopg.Connection:
-    return psycopg.connect(
+def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector: bool = False) -> psycopg.Connection:
+    conn = psycopg.connect(
         f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
         autocommit=autocommit,
         row_factory=psycopg.rows.dict_row if not no_dict_row_factory else None,
     )
+    # Register vector extension for this connection
+    if vector:
+        register_vector(conn)
+    return conn
 
 
 def create_tables(debug: bool = False) -> None:
@@ -355,6 +361,164 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
+def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> List[Tuple[Vetrina, Tuple[int, int]]]:
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            lang = detect(query)
+            if lang not in ["it", "en"]:
+                lang = "en"
+
+            # Create the appropriate tsquery based on detected language
+            if lang == "en":
+                tsquery_config = "english"
+            elif lang == "it":
+                tsquery_config = "italian"
+            else:
+                tsquery_config = "simple"
+
+            # Build filtering conditions
+            vetrina_filters = [
+                ("course_name", "ci.course_name", params.get("course_name"), str),
+                ("faculty", "ci.faculty_name", params.get("faculty"), str),
+                ("canale", "ci.canale", params.get("canale"), str),
+                ("language", "ci.language", params.get("language"), str),
+                ("date_year", "ci.date_year", params.get("date_year"), int),
+                ("course_year", "ci.course_year", params.get("course_year"), int),
+            ]
+            file_filters = [
+                ("tag", "f.tag", params.get("tag"), str),
+                ("extension", "f.extension", params.get("extension"), str),
+            ]
+
+            # Build WHERE conditions and collect parameters
+            filter_params = []
+            vetrina_conditions = []
+            file_conditions = []
+
+            # Process vetrina filters
+            for param_name, field_name, value, type_ in vetrina_filters:
+                if value:
+                    value = type_(value)
+                    vetrina_conditions.append(f"{field_name} = %s")
+                    filter_params.append(value)
+
+            # Process file filters
+            has_file_filters = any(value for param_name, field_name, value, type_ in file_filters if value)
+            if has_file_filters:
+                for param_name, field_name, value, type_ in file_filters:
+                    if value:
+                        value = type_(value)
+                        file_conditions.append(f"{field_name} = %s")
+                        filter_params.append(value)
+
+            # Build clauses
+            file_join_clause = "JOIN files f ON f.vetrina_id = v.vetrina_id" if has_file_filters else ""
+
+            embedding = get_sentence_embedding(query).squeeze()
+            k = 60
+
+            # Build WHERE clause for semantic search
+            semantic_where_parts = ["1=1"]
+            semantic_where_parts.extend(vetrina_conditions)
+            semantic_where_parts.extend(file_conditions)
+            semantic_where_clause = " AND ".join(semantic_where_parts)
+
+            # Execute semantic search
+            semantic_sql = f"""
+            SELECT 
+                pe.vetrina_id,
+                pe.file_id,
+                pe.page_number,
+                1.0 / (%s + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS score,
+                v.*,
+                u.*,
+                ci.*
+            FROM page_embeddings pe
+            JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
+            JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+            JOIN users u ON v.author_id = u.user_id
+            {file_join_clause}
+            WHERE {semantic_where_clause}
+            ORDER BY pe.embedding <#> %s
+            LIMIT 20
+            """
+
+            semantic_params = [k, embedding] + filter_params + [embedding]
+            semantic_results = cursor.execute(semantic_sql, semantic_params).fetchall()
+
+            # Build WHERE clause for keyword search
+            keyword_where_parts = [
+                f"""CASE 
+                WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                ELSE to_tsvector('simple', v.description)
+            END @@ plainto_tsquery(%s, %s)"""
+            ]
+            keyword_where_parts.extend(vetrina_conditions)
+            keyword_where_parts.extend(file_conditions)
+            keyword_where_clause = " AND ".join(keyword_where_parts)
+
+            # Execute keyword search
+            keyword_sql = f"""
+            SELECT 
+                v.vetrina_id,
+                NULL::integer AS file_id,
+                NULL::integer AS page_number,
+                1.0 / (%s + RANK() OVER (ORDER BY ts_rank_cd(
+                    CASE 
+                        WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                        WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                        ELSE to_tsvector('simple', v.description)
+                    END, plainto_tsquery(%s, %s)) DESC)) AS score,
+                v.*,
+                u.*,
+                ci.*
+            FROM vetrina v
+            JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+            JOIN users u ON v.author_id = u.user_id
+            {file_join_clause}
+            WHERE {keyword_where_clause}
+            ORDER BY ts_rank_cd(
+                CASE 
+                    WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                    WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                    ELSE to_tsvector('simple', v.description)
+                END, plainto_tsquery(%s, %s)) DESC
+            LIMIT 20
+            """
+
+            keyword_params = [k, tsquery_config, query, tsquery_config, query, filter_params, tsquery_config, query]
+            # Flatten the parameters
+            keyword_params_flat = []
+            for param in keyword_params:
+                if isinstance(param, list):
+                    keyword_params_flat.extend(param)
+                else:
+                    keyword_params_flat.append(param)
+
+            keyword_results = cursor.execute(keyword_sql, keyword_params_flat).fetchall()
+
+            # Combine results and sort by score
+            all_results = []
+
+            # Add semantic results
+            for row in semantic_results:
+                vetrina = Vetrina.from_dict(row)
+                all_results.append((vetrina, (row["file_id"], row["page_number"]), row["score"]))
+
+            # Add keyword results
+            for row in keyword_results:
+                vetrina = Vetrina.from_dict(row)
+                all_results.append((vetrina, (row["file_id"], row["page_number"]), row["score"]))
+
+            # Sort by score descending and limit to 10
+            all_results.sort(key=lambda x: x[2], reverse=True)
+            final_results = all_results[:10]
+
+            # Return without the score
+            return [(vetrina, file_page) for vetrina, file_page, score in final_results]
+
+
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str, price: float = 0.0) -> Vetrina:
     """
     Create a new vetrina.
@@ -525,20 +689,23 @@ def add_file_to_vetrina(
                     (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
                 )
                 file_data = cursor.fetchone()
+                file = File.from_dict(file_data)
 
                 logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
             return File.from_dict(file_data)
 
 
-# def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
-#     with connect() as conn:
-#         with conn.cursor() as cursor:
-#             logging.debug(f"Inserting {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
-#             for i, embedding in enumerate(embeddings):
-#                 cursor.execute("INSERT INTO page_embeddings (vetrina_id, file_id, embedding) VALUES (%s, %s, %s)", (vetrina_id, file_id, embedding))
-#                 conn.commit()
-#                 logging.debug(f"Page {i} embedding inserted")
-#             logging.debug(f"File {file_id} embeddings inserted")
+def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            for page_number, embedding in enumerate(embeddings):
+                pg_vector_data = embedding.squeeze()
+                cursor.execute(
+                    "INSERT INTO page_embeddings (vetrina_id, file_id, page_number, embedding) VALUES (%s, %s, %s, %s)",
+                    (vetrina_id, file_id, page_number, pg_vector_data),
+                )
+                conn.commit()
+            logging.debug(f"Inserted {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:

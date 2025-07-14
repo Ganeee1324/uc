@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS vetrina (
     tags VARCHAR(50)[],
     file_count INTEGER NOT NULL DEFAULT 0,
     price REAL NOT NULL DEFAULT 0,
+    language VARCHAR(15) NOT NULL DEFAULT 'en',
     UNIQUE (author_id, name, course_instance_id)
 );
 
@@ -63,7 +64,7 @@ CREATE TABLE IF NOT EXISTS files (
     price REAL NOT NULL DEFAULT 0,
     extension VARCHAR(10) NOT NULL,
     tag VARCHAR(50),
-    language VARCHAR(15) NOT NULL DEFAULT 'it',
+    language VARCHAR(15) NOT NULL DEFAULT 'en',
     num_pages INTEGER NOT NULL DEFAULT 0,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
@@ -104,10 +105,11 @@ CREATE TABLE IF NOT EXISTS favourite_file (
 );
 
 CREATE TABLE IF NOT EXISTS page_embeddings (
-    page_id SERIAL PRIMARY KEY,
+    page_number INTEGER NOT NULL,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
-    embedding vector(1024) NOT NULL
+    embedding vector(1024) NOT NULL,
+    PRIMARY KEY (page_number, vetrina_id, file_id)
 );
 
 CREATE TABLE IF NOT EXISTS review (
@@ -119,6 +121,10 @@ CREATE TABLE IF NOT EXISTS review (
     review_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, vetrina_id)
 );
+
+CREATE INDEX ON vetrina USING GIN (to_tsvector('english', description)) WHERE language = 'en';
+CREATE INDEX ON vetrina USING GIN (to_tsvector('italian', description)) WHERE language = 'it';
+
 
 -- Function to update vetrina review statistics
 CREATE OR REPLACE FUNCTION update_vetrina_review_stats()

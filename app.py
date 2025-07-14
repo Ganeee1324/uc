@@ -1,5 +1,6 @@
 from datetime import timedelta
 import logging
+
 # import threading
 import traceback
 
@@ -233,7 +234,7 @@ def upload_file(vetrina_id):
         return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
 
     # Get display_name if provided
-    display_name = request.form.get("display_name", file.filename[:-len(extension)-1]).strip()
+    display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
 
     # Read file content into memory for processing
     file_content = file.read()
@@ -274,9 +275,9 @@ def upload_file(vetrina_id):
 
     try:
         # Save file content to disk
-        with open(new_file_path, 'wb') as f:
+        with open(new_file_path, "wb") as f:
             f.write(file_content)
-        
+
         # Create redacted version for PDFs
         if extension == "pdf":
             redact.blur_pages(new_file_path, [1])
@@ -361,14 +362,14 @@ def buy_file(file_id):
 def update_file_display_name(file_id):
     user_id = get_jwt_identity()
     data = request.json
-    
+
     if not data or "display_name" not in data:
         return jsonify({"error": "missing_display_name", "msg": "display_name is required"}), 400
-    
+
     new_display_name = str(data.get("display_name")).strip()
     if not new_display_name:
         return jsonify({"error": "invalid_display_name", "msg": "display_name cannot be empty"}), 400
-    
+
     updated_file = database.update_file_display_name(user_id, file_id, new_display_name)
     return jsonify({"msg": "Display name updated", "file": updated_file.to_dict()}), 200
 
@@ -496,10 +497,11 @@ def get_valid_tags():
 
 if __name__ == "__main__":
     import ssl
+
     # Use Let's Encrypt certificate (copied to local directory)
-    cert_path = os.path.join(os.path.dirname(__file__), 'certs', 'fullchain.pem')
-    key_path = os.path.join(os.path.dirname(__file__), 'certs', 'privkey.pem')
-    
+    cert_path = os.path.join(os.path.dirname(__file__), "certs", "fullchain.pem")
+    key_path = os.path.join(os.path.dirname(__file__), "certs", "privkey.pem")
+
     # Check if certificate files exist
     if os.path.exists(cert_path) and os.path.exists(key_path):
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -508,6 +510,6 @@ if __name__ == "__main__":
         ssl_context = context
     else:
         print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
-        ssl_context = 'adhoc'
+        ssl_context = "adhoc"
 
     app.run(host="0.0.0.0", debug=True, ssl_context=ssl_context)

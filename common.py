@@ -8,6 +8,7 @@ class File:
         self,
         file_id: int,
         filename: str,
+        display_name: str,
         upload_date: datetime,
         size: int,
         vetrina_id: int,
@@ -25,6 +26,7 @@ class File:
     ):
         self.file_id = file_id
         self.filename = filename
+        self.display_name = display_name
         self.upload_date = upload_date
         self.fact_mark = fact_mark
         self.fact_mark_updated_at = fact_mark_updated_at
@@ -41,7 +43,7 @@ class File:
         self.num_pages = num_pages
 
     def __str__(self) -> str:
-        return f"File(file_id={self.file_id}, filename={self.filename}, upload_date={self.upload_date}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag}, extension={self.extension}, language={self.language}, num_pages={self.num_pages})"
+        return f"File(file_id={self.file_id}, filename={self.filename}, display_name={self.display_name}, upload_date={self.upload_date}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag}, extension={self.extension}, language={self.language}, num_pages={self.num_pages})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -50,6 +52,7 @@ class File:
         return {
             "file_id": self.file_id,
             "filename": self.filename,
+            "display_name": self.display_name,
             "upload_date": self.upload_date,
             "vetrina_id": self.vetrina_id,
             "sha256": self.sha256,
@@ -71,7 +74,7 @@ class File:
         """
         Create a File object from a dictionary.
         Requires:
-            - File object fields: file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension, language, num_pages
+            - File object fields: file_id, filename, display_name, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension, language, num_pages
         """
         return cls(**{key: data[key] for key in file_fields if key in data})
 

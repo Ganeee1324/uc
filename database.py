@@ -519,7 +519,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             return [(vetrina, file_page) for vetrina, file_page, score in final_results]
 
 
-def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str) -> Vetrina:
+def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str, price: float = 0.0) -> Vetrina:
     """
     Create a new vetrina.
 
@@ -528,6 +528,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
         course_instance_id: ID of the course instance for the vetrina
         name: Name of the vetrina
         description: Description of the vetrina
+        price: Price of the vetrina (default: 0.0)
 
     Returns:
         Vetrina: The newly created vetrina object
@@ -537,8 +538,8 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
             cursor.execute(
                 """
                 WITH new_vetrina AS (
-                    INSERT INTO vetrina (author_id, course_instance_id, name, description) 
-                    VALUES (%s, %s, %s, %s) 
+                    INSERT INTO vetrina (author_id, course_instance_id, name, description, price) 
+                    VALUES (%s, %s, %s, %s, %s) 
                     RETURNING *
                 )
                 SELECT v.*, u.*, ci.*
@@ -546,11 +547,11 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
                 JOIN users u ON v.author_id = u.user_id
                 JOIN course_instances ci ON v.course_instance_id = ci.instance_id
                 """,
-                (user_id, course_instance_id, name, description),
+                (user_id, course_instance_id, name, description, price),
             )
             vetrina_data = cursor.fetchone()
             conn.commit()
-            logging.debug(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id}")
+            logging.debug(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id} with price {price}")
 
             return Vetrina.from_dict(vetrina_data)
 
@@ -646,6 +647,7 @@ def add_file_to_vetrina(
     tag: str | None = None,
     language: str = "it",
     num_pages: int = 0,
+    display_name: str | None = None,
 ) -> File:
     """
     Add a file to a vetrina.
@@ -661,6 +663,7 @@ def add_file_to_vetrina(
         tag: Tag for the file
         language: Language of the file
         num_pages: Number of pages in the file
+        display_name: Display name for the file (if None, uses original filename without path)
     Raises:
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
@@ -682,14 +685,14 @@ def add_file_to_vetrina(
 
                 # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (vetrina_id, file_name, sha256, price, size, tag, extension, language, num_pages),
+                    "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
                 )
                 file_data = cursor.fetchone()
                 file = File.from_dict(file_data)
 
-                logging.debug(f'File "{file.file_id}" added to vetrina {vetrina_id} by user {requester_id}, tag: {tag}')
-            return file
+                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
+            return File.from_dict(file_data)
 
 
 def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
@@ -703,6 +706,43 @@ def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.nd
                 )
                 conn.commit()
             logging.debug(f"Inserted {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
+
+
+def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:
+    """
+    Update the display name of a file owned by the user.
+
+    Args:
+        user_id: ID of the user updating the file
+        file_id: ID of the file to update
+        new_display_name: New display name for the file
+
+    Returns:
+        File: The updated file object
+
+    Raises:
+        NotFoundException: If the file doesn't exist or the user doesn't own it
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            # Update the display name only if the user owns the file (through vetrina authorship)
+            cursor.execute(
+                """
+                UPDATE files 
+                SET display_name = %s 
+                FROM vetrina v 
+                WHERE files.file_id = %s 
+                AND files.vetrina_id = v.vetrina_id 
+                AND v.author_id = %s
+                RETURNING *
+                """,
+                (new_display_name, file_id, user_id),
+            )
+            if cursor.rowcount == 0:
+                raise NotFoundException("File not found or you don't have permission to update it")
+            file_data = cursor.fetchone()
+            logging.debug(f"File {file_id} display name updated to '{new_display_name}' by user {user_id}")
+            return File.from_dict(file_data)
 
 
 def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[File]:
@@ -736,8 +776,8 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                 cursor.execute(
                     """
                     SELECT f.*
-                    FROM files 
-                    WHERE vetrina_id = %s
+                    FROM files f
+                    WHERE f.vetrina_id = %s
                     """,
                     (vetrina_id,),
                 )
@@ -937,9 +977,10 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
             return transaction, file
 
 
-def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> Tuple[Transaction, VetrinaSubscription]:
+def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transaction, VetrinaSubscription]:
     """
     Create a new transaction for purchasing a subscription to a vetrina.
+    The price is automatically retrieved from the vetrina.
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -952,7 +993,17 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int, price: int) -> T
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You are already subscribed to this vetrina")
 
-                logging.debug(f"User {user_id} is not subscribed to vetrina {vetrina_id}")
+                # Get the vetrina's price
+                cursor.execute(
+                    "SELECT price FROM vetrina WHERE vetrina_id = %s",
+                    (vetrina_id,),
+                )
+                vetrina_data = cursor.fetchone()
+                if not vetrina_data:
+                    raise NotFoundException("Vetrina not found")
+
+                price = vetrina_data["price"]
+                logging.debug(f"User {user_id} is not subscribed to vetrina {vetrina_id}, price: {price}")
 
                 cursor.execute(
                     "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING *",

@@ -423,72 +423,86 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             semantic_where_parts.extend(file_conditions)
             semantic_where_clause = " AND ".join(semantic_where_parts)
 
-            # Execute semantic search
-            semantic_sql = f"""
-            SELECT 
-                pe.vetrina_id,
-                pe.file_id,
-                pe.page_number,
-                1.0 / (%s + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS score,
-                v.*,
-                u.*,
-                ci.*
-            FROM page_embeddings pe
-            JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
-            JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-            JOIN users u ON v.author_id = u.user_id
-            {file_join_clause}
-            WHERE {semantic_where_clause}
-            ORDER BY pe.embedding <#> %s
-            LIMIT 20
-            """
-
-            semantic_params = [k, embedding] + filter_params + [embedding]
-            semantic_results = cursor.execute(semantic_sql, semantic_params).fetchall()
-
             # Build WHERE clause for keyword search
             keyword_where_parts = [
                 f"""CASE 
                 WHEN v.language = 'en' THEN to_tsvector('english', v.description)
                 WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
                 ELSE to_tsvector('simple', v.description)
-            END @@ plainto_tsquery(%s, %s)"""
+            END @@ plainto_tsquery('{tsquery_config}', %s::text)"""
             ]
             keyword_where_parts.extend(vetrina_conditions)
             keyword_where_parts.extend(file_conditions)
             keyword_where_clause = " AND ".join(keyword_where_parts)
 
-            # Execute keyword search
-            keyword_sql = f"""
-            SELECT 
-                v.vetrina_id,
-                NULL::integer AS file_id,
-                NULL::integer AS page_number,
-                1.0 / (%s + RANK() OVER (ORDER BY ts_rank_cd(
+            # Use FULL OUTER JOIN with proper RRF scoring
+            combined_sql = f"""
+            WITH semantic_search AS (
+                SELECT 
+                    pe.vetrina_id,
+                    pe.file_id,
+                    pe.page_number,
+                    1.0 / (%s::integer + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS semantic_score
+                FROM page_embeddings pe
+                JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
+                JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+                JOIN users u ON v.author_id = u.user_id
+                {file_join_clause}
+                WHERE {semantic_where_clause}
+                ORDER BY pe.embedding <#> %s
+                LIMIT 50
+            ),
+            keyword_search AS (
+                SELECT 
+                    v.vetrina_id,
+                    NULL::integer AS file_id,
+                    NULL::integer AS page_number,
+                    1.0 / (%s::integer + RANK() OVER (ORDER BY ts_rank_cd(
+                        CASE 
+                            WHEN v.language = 'en' THEN to_tsvector('english', v.description)
+                            WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
+                            ELSE to_tsvector('simple', v.description)
+                        END, plainto_tsquery('{tsquery_config}', %s::text)) DESC)) AS keyword_score
+                FROM vetrina v
+                JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+                JOIN users u ON v.author_id = u.user_id
+                {file_join_clause}
+                WHERE {keyword_where_clause}
+                ORDER BY ts_rank_cd(
                     CASE 
                         WHEN v.language = 'en' THEN to_tsvector('english', v.description)
                         WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
                         ELSE to_tsvector('simple', v.description)
-                    END, plainto_tsquery(%s, %s)) DESC)) AS score,
+                    END, plainto_tsquery('{tsquery_config}', %s::text)) DESC
+                LIMIT 50
+            )
+            SELECT 
+                COALESCE(s.vetrina_id, k.vetrina_id) AS vetrina_id,
+                s.file_id AS file_id,
+                s.page_number AS page_number,
+                (COALESCE(s.semantic_score, 0) + COALESCE(k.keyword_score, 0)) AS combined_score,
                 v.*,
                 u.*,
-                ci.*
-            FROM vetrina v
+                ci.*,
+                f.*
+            FROM semantic_search s
+            FULL OUTER JOIN keyword_search k ON s.vetrina_id = k.vetrina_id
+            JOIN vetrina v ON COALESCE(s.vetrina_id, k.vetrina_id) = v.vetrina_id
+            LEFT JOIN files f ON s.file_id = f.file_id
             JOIN course_instances ci ON v.course_instance_id = ci.instance_id
             JOIN users u ON v.author_id = u.user_id
-            {file_join_clause}
-            WHERE {keyword_where_clause}
-            ORDER BY ts_rank_cd(
-                CASE 
-                    WHEN v.language = 'en' THEN to_tsvector('english', v.description)
-                    WHEN v.language = 'it' THEN to_tsvector('italian', v.description)
-                    ELSE to_tsvector('simple', v.description)
-                END, plainto_tsquery(%s, %s)) DESC
-            LIMIT 20
+            ORDER BY combined_score DESC
+            LIMIT 50
             """
 
-            keyword_params = [k, tsquery_config, query, tsquery_config, query, filter_params, tsquery_config, query]
-            # Flatten the parameters
+            # Build parameters for the combined query
+            # Semantic search: k, embedding, filter_params, embedding
+            semantic_params = [k, embedding] + filter_params + [embedding]
+            
+            # Keyword search: k (SELECT), query (RANK), query (WHERE), query (ORDER BY)
+            keyword_params = [k, query] + filter_params + [query, query]
+            
+            # Flatten keyword_params if needed
             keyword_params_flat = []
             for param in keyword_params:
                 if isinstance(param, list):
@@ -496,27 +510,18 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 else:
                     keyword_params_flat.append(param)
 
-            keyword_results = cursor.execute(keyword_sql, keyword_params_flat).fetchall()
+            all_params = semantic_params + keyword_params_flat
 
-            # Combine results and sort by score
-            all_results = []
+            results = cursor.execute(combined_sql, all_params).fetchall()
 
-            # Add semantic results
-            for row in semantic_results:
+            # Convert results to the expected format
+            final_results = []
+            for row in results:
                 vetrina = Vetrina.from_dict(row)
-                all_results.append((vetrina, (row["file_id"], row["page_number"]), row["score"]))
+                file_page = (row["file_id"], row["page_number"])
+                final_results.append((vetrina, file_page))
 
-            # Add keyword results
-            for row in keyword_results:
-                vetrina = Vetrina.from_dict(row)
-                all_results.append((vetrina, (row["file_id"], row["page_number"]), row["score"]))
-
-            # Sort by score descending and limit to 10
-            all_results.sort(key=lambda x: x[2], reverse=True)
-            final_results = all_results[:10]
-
-            # Return without the score
-            return [(vetrina, file_page) for vetrina, file_page, score in final_results]
+            return final_results
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str, price: float = 0.0) -> Vetrina:

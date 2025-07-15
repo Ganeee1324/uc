@@ -1485,9 +1485,10 @@ function renderDocumentListView(docData) {
     // Generate documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
         // Use actual document type from backend tag, fallback to filename analysis
-        const fileType = file.tag ? getDocumentTypeFromTag(file.tag) : getDocumentTypeFromFilename(file.filename);
-        const fileExtension = getFileExtension(file.filename);
-        const documentIcon = getDocumentPreviewIcon(file.filename);
+        const displayFilename = file.original_filename || file.filename;
+        const fileType = file.tag ? getDocumentTypeFromTag(file.tag) : getDocumentTypeFromFilename(displayFilename);
+        const fileExtension = getFileExtension(displayFilename);
+        const documentIcon = getDocumentPreviewIcon(displayFilename);
         
         return `
             <div class="document-list-item" data-file-id="${file.file_id}" data-action="open-viewer">
@@ -1499,7 +1500,7 @@ function renderDocumentListView(docData) {
                 </div>
                 <div class="document-list-content">
                     <div class="document-list-header">
-                        <h3 class="document-list-title">${file.original_filename || file.filename}</h3>
+                        <h3 class="document-list-title">${displayFilename}</h3>
                         <div class="document-list-type">${fileType}</div>
                     </div>
                     <div class="document-list-meta">

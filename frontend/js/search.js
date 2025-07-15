@@ -3441,7 +3441,7 @@ function renderDocuments(files) {
         card.style.cursor = 'pointer';
         card.onclick = async (e) => {
             // Don't trigger if clicking on interactive elements
-            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button') || e.target.closest('.owner-avatar') || e.target.closest('.rating-badge')) {
+            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button') || e.target.closest('.owner-avatar') || e.target.closest('.rating-badge') || e.target.closest('.add-to-cart-btn') || e.target.closest('.price-cart-container')) {
                 return;
             }
             
@@ -4250,6 +4250,7 @@ async function addToCart(docId, event) {
     
     const button = event.currentTarget;
     const icon = button.querySelector('.material-symbols-outlined');
+    const container = button.closest('.price-cart-container');
     
     // Optimistic UI update
     button.classList.add('adding');
@@ -4257,21 +4258,29 @@ async function addToCart(docId, event) {
     
     try {
         // Simulate API call (replace with actual cart API)
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 600));
         
-        // Success state
+        // Success state with enhanced animation
         button.classList.remove('adding');
         button.classList.add('added');
         icon.textContent = 'check_circle';
         
+        // Add success animation to the entire container
+        if (container) {
+            container.classList.add('cart-success');
+        }
+        
         // Show success notification
         showStatus('Documento aggiunto al carrello! 🛒', 'success');
         
-        // Reset button after 2 seconds
+        // Reset button and container after 2.5 seconds
         setTimeout(() => {
             button.classList.remove('added');
             icon.textContent = 'add_shopping_cart';
-        }, 2000);
+            if (container) {
+                container.classList.remove('cart-success');
+            }
+        }, 2500);
         
     } catch (error) {
         console.error('Error adding to cart:', error);

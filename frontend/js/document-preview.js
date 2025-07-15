@@ -1020,11 +1020,23 @@ function updateDetailValue(label, value) {
 function extractOriginalFilename(uuidFilename) {
     if (!uuidFilename) return '';
     
-    // Split by dash and get the last part (original filename)
-    const parts = uuidFilename.split('-');
-    if (parts.length >= 3) {
-        // Return everything after the second dash (UUID-user_id-original_filename)
-        return parts.slice(2).join('-');
+    // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 characters with 4 dashes)
+    // Full format: {uuid}-{user_id}-{original_filename}
+    // So we need to find the pattern: 36 chars + dash + user_id + dash + original_filename
+    
+    // Find the UUID pattern (8-4-4-4-12 format)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+    const match = uuidFilename.match(uuidPattern);
+    
+    if (match) {
+        // Remove the UUID part and the first dash
+        const afterUuid = uuidFilename.substring(match[0].length + 1);
+        // Find the next dash (user_id separator)
+        const userDashIndex = afterUuid.indexOf('-');
+        if (userDashIndex !== -1) {
+            // Return everything after the user_id
+            return afterUuid.substring(userDashIndex + 1);
+        }
     }
     
     // Fallback: return the original filename if it doesn't match the expected pattern

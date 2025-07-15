@@ -1016,6 +1016,21 @@ function updateDetailValue(label, value) {
     });
 }
 
+// Extract original filename from UUID-based filename
+function extractOriginalFilename(uuidFilename) {
+    if (!uuidFilename) return '';
+    
+    // Split by dash and get the last part (original filename)
+    const parts = uuidFilename.split('-');
+    if (parts.length >= 3) {
+        // Return everything after the second dash (UUID-user_id-original_filename)
+        return parts.slice(2).join('-');
+    }
+    
+    // Fallback: return the original filename if it doesn't match the expected pattern
+    return uuidFilename;
+}
+
 // Get document type from tag
 function getDocumentTypeFromTag(tag) {
     const tagMap = {
@@ -1484,8 +1499,8 @@ function renderDocumentListView(docData) {
     
     // Generate documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
-        // Use actual document type from backend tag, fallback to filename analysis
-        const displayFilename = file.original_filename || file.filename;
+        // Extract the original filename from the UUID-based filename
+        const displayFilename = extractOriginalFilename(file.filename);
         const fileType = file.tag ? getDocumentTypeFromTag(file.tag) : getDocumentTypeFromFilename(displayFilename);
         const fileExtension = getFileExtension(displayFilename);
         const documentIcon = getDocumentPreviewIcon(displayFilename);

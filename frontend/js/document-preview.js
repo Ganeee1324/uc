@@ -1399,7 +1399,7 @@ function renderViewerLeftControls(files, currentFileId) {
 async function initializeDocumentPreview() {
     // Initialize CSP-compliant event handlers
     handleActionCallbackButtons();
-    
+
     const user = await fetchCurrentUserData();
     if(user) {
         updateHeaderUserInfo(user);
@@ -1484,9 +1484,9 @@ function renderDocumentListView(docData) {
     
     // Generate documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
-        const fileType = getDocumentTypeFromFilename(file.filename);
+        // Use actual document type from backend tag, fallback to filename analysis
+        const fileType = file.tag ? getDocumentTypeFromTag(file.tag) : getDocumentTypeFromFilename(file.filename);
         const fileExtension = getFileExtension(file.filename);
-        const fileSize = formatFileSize(file.size || 0);
         const documentIcon = getDocumentPreviewIcon(file.filename);
         
         return `
@@ -1503,11 +1503,7 @@ function renderDocumentListView(docData) {
                         <div class="document-list-type">${fileType}</div>
                     </div>
                     <div class="document-list-meta">
-                        <span class="document-list-size">${fileSize}</span>
-                        <span class="document-list-separator">•</span>
-                        <span class="document-list-downloads">${file.download_count || 0} download</span>
                         ${file.num_pages && file.num_pages > 0 && file.extension === 'pdf' ? `
-                            <span class="document-list-separator">•</span>
                             <span class="document-list-pages">${file.num_pages} pagine</span>
                         ` : ''}
                         ${file.price && file.price > 0 ? `
@@ -2119,9 +2115,9 @@ async function openReviewsOverlay(vetrinaId) {
     const overlay = document.getElementById('reviewsOverlay');
     
     if (overlay) {
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
         // Clear cache to ensure fresh data
         const cacheKey = `reviews_${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
         reviewsCache.delete(cacheKey);
@@ -2132,7 +2128,7 @@ async function openReviewsOverlay(vetrinaId) {
         
         // Load detailed reviews data in background (non-blocking)
         loadReviewsForVetrina(vetrinaId).then(() => {
-            updateReviewsOverlay();
+    updateReviewsOverlay();
         }).catch(error => {
             console.error('Error loading reviews:', error);
             // Keep showing the initial data if API fails
@@ -2208,11 +2204,11 @@ function showReviewsLoadingState() {
 function closeReviewsOverlay() {
     const overlay = document.getElementById('reviewsOverlay');
     if (overlay) {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-        
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
         // Reset form
-        hideAddReviewForm();
+    hideAddReviewForm();
         selectedRating = 0;
         currentUserReview = null;
     }
@@ -2420,8 +2416,8 @@ function updateReviewsOverlay() {
     } else {
         reviewsList.innerHTML = currentReviews.map(review => `
             <div class="review-item-overlay">
-                <div class="review-header-overlay">
-                    <div class="reviewer-info-overlay">
+                    <div class="review-header-overlay">
+                        <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
                             ${createGradientAvatar(
                                 review.user?.username || 'User',
@@ -2430,11 +2426,11 @@ function updateReviewsOverlay() {
                         </div>
                         <div>
                             <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>
-                            <div class="review-rating-overlay">
+                                <div class="review-rating-overlay">
                                 ${generateReviewStars(review.rating)}
+                                </div>
                             </div>
                         </div>
-                    </div>
                     <div class="review-date-overlay">${formatDate(review.review_date)}</div>
                 </div>
                 ${review.review_subject ? `<div class="review-subject-overlay">${review.review_subject}</div>` : ''}
@@ -2446,10 +2442,10 @@ function updateReviewsOverlay() {
                     const shouldShowDelete = isCurrentUserReview;
                     return shouldShowDelete ? 
                         `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
-                            <span class="material-symbols-outlined">delete</span>
+                                    <span class="material-symbols-outlined">delete</span>
                         </button>` : '';
                 })()}
-            </div>
+                        </div>
         `).join('');
     }
 }
@@ -2482,11 +2478,11 @@ function hideAddReviewForm() {
         form.style.display = 'none';
         reviewsList.style.display = 'block';
         if (reviewsSummary) reviewsSummary.style.display = 'flex';
-        
-        // Reset form
-        document.getElementById('reviewComment').value = '';
+    
+    // Reset form
+    document.getElementById('reviewComment').value = '';
         selectedRating = 0;
-        updateStarRatingDisplay();
+    updateStarRatingDisplay();
     }
 }
 
@@ -2532,7 +2528,7 @@ function highlightStars(rating) {
     
     starInputs.forEach((star, index) => {
         const starRating = index + 1;
-        star.classList.remove('hover');
+            star.classList.remove('hover');
         
         if (starRating <= rating) {
             star.classList.add('hover');
@@ -2546,22 +2542,22 @@ async function submitReview() {
         showNotification('Seleziona una valutazione prima di inviare la recensione.', 'error');
         return;
     }
-
+    
     const comment = document.getElementById('reviewComment').value.trim();
     if (!comment) {
         showNotification('Inserisci un commento per la tua recensione.', 'error');
         return;
     }
-
+    
     try {
         
         const token = localStorage.getItem('authToken');
         if (!token) {
             console.error('No auth token found');
             showNotification('Sessione scaduta. Effettua nuovamente l\'accesso.', 'error');
-            return;
-        }
-
+        return;
+    }
+    
         const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
             method: 'POST',
             headers: {
@@ -2573,7 +2569,7 @@ async function submitReview() {
                 review_text: comment
             })
         });
-
+        
         if (response.ok) {
             const data = await response.json();
             const message = data.msg === 'Review updated' ? 'Recensione aggiornata con successo!' : 'Recensione inviata con successo!';
@@ -2665,11 +2661,11 @@ async function deleteUserReview() {
         showNotification('Sessione scaduta. Effettua nuovamente l\'accesso.', 'error');
         return;
     }
-
+    
     if (!confirm('Sei sicuro di voler eliminare la tua recensione?')) {
         return;
     }
-
+    
     try {
         
         const token = localStorage.getItem('authToken');
@@ -3199,4 +3195,5 @@ async function addRelatedToCart(docId, event) {
     }
 }
 
+// Reading Position Management
 // Reading Position Management

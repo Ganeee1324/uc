@@ -4248,7 +4248,7 @@ async function purchaseDocument(fileId) {
 async function addToCart(docId, event) {
     event.stopPropagation(); // Prevent card click
     
-    const button = event.currentTarget;
+    const button = event.target.closest('.add-to-cart-btn');
     const icon = button.querySelector('.material-symbols-outlined');
     const container = button.closest('.price-cart-container');
     

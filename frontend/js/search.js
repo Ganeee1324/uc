@@ -3646,14 +3646,20 @@ function renderDocuments(files) {
                         </div>
                     </div>
                     <div class="document-footer-right">
-                        <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: ${formatPrice(price)}`}">
-                            ${formatPrice(price)}
-                        </div>
                         ${price > 0 ? `
-                            <button class="add-to-cart-btn" data-action="add-to-cart" data-doc-id="${item.id}" title="Aggiungi al carrello">
-                                <span class="material-symbols-outlined">add_shopping_cart</span>
-                            </button>
-                        ` : ''}
+                            <div class="price-cart-container">
+                                <div class="document-price paid" title="Prezzo: ${formatPrice(price)}">
+                                    ${formatPrice(price)}
+                                </div>
+                                <button class="add-to-cart-btn" data-action="add-to-cart" data-doc-id="${item.id}" title="Aggiungi al carrello">
+                                    <span class="material-symbols-outlined">add_shopping_cart</span>
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="document-price free" title="Documento gratuito">
+                                ${formatPrice(price)}
+                            </div>
+                        `}
                     </div>
                 </div>
             </div>

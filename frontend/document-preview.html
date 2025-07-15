@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/search.css">
     <link rel="stylesheet" href="css/document-preview.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf_viewer.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
     <!-- Favicon removed for CSP compliance -->
 </head>
 <body>
@@ -62,6 +63,63 @@
     <!-- Main Content -->
     <main class="preview-main">
     </main>
+
+    <!-- Reviews Overlay -->
+    <div class="reviews-overlay" id="reviewsOverlay">
+        <div class="reviews-overlay-content">
+            <div class="reviews-overlay-header">
+                <h2>
+                    <span class="material-symbols-outlined">rate_review</span>
+                    Recensioni
+                </h2>
+                <button class="close-overlay-btn" data-action="close-reviews">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="reviews-overlay-body">
+                <div class="reviews-summary">
+                    <div class="overall-rating">
+                        <div class="rating-display">
+                            <div class="big-stars"></div>
+                            <span class="big-rating-score">0.0</span>
+                        </div>
+                        <span class="total-reviews">Basato su 0 recensioni</span>
+                    </div>
+                    <button class="add-review-btn" data-action="show-review-form">
+                        <span class="material-symbols-outlined">add</span>
+                        Aggiungi Recensione
+                    </button>
+                </div>
+                
+                <div class="reviews-list" id="reviewsList">
+                    <!-- Reviews will be populated here -->
+                </div>
+                
+                <div class="add-review-form" id="addReviewForm" style="display: none;">
+                    <h3>Aggiungi la tua recensione</h3>
+                    <div class="rating-input">
+                        <label>Valutazione:</label>
+                        <div class="star-rating">
+                            <span class="star-input" data-rating="1">★</span>
+                            <span class="star-input" data-rating="2">★</span>
+                            <span class="star-input" data-rating="3">★</span>
+                            <span class="star-input" data-rating="4">★</span>
+                            <span class="star-input" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    <div class="review-text-input">
+                        <label for="reviewComment">Commento:</label>
+                        <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                    </div>
+                    <div class="review-form-actions">
+                        <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                        <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="js/config.js"></script>
 <script type="module" src="js/document-preview.js"></script>

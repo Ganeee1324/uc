@@ -247,6 +247,16 @@ function handleActionCallbackButtons() {
                 addRelatedToCart(docId, e);
             }
         }
+        
+        // Handle download all button
+        if (e.target.closest('#downloadAllBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const vetrinaId = currentVetrina?.id || currentVetrina?.vetrina_id;
+            if (vetrinaId && currentVetrinaFiles) {
+                downloadAllVetrinaFiles(vetrinaId, currentVetrinaFiles);
+            }
+        }
     });
 }
 
@@ -1567,6 +1577,10 @@ function renderDocumentListView(docData) {
                     </div>
                 </div>
                 <div class="document-list-header-actions">
+                    <button class="document-list-header-btn primary" id="downloadAllBtn" title="Download tutti i file">
+                        <span class="material-symbols-outlined">download</span>
+                        Download Bundle
+                    </button>
                 </div>
             </div>
             
@@ -3029,6 +3043,89 @@ async function downloadDocument(fileId) {
     } catch (error) {
         console.error('Download error:', error);
         showNotification('Errore nel download del documento', 'error');
+    }
+}
+
+// Download all files in the vetrina
+async function downloadAllVetrinaFiles(vetrinaId, vetrinaFiles) {
+    if (!vetrinaId || !vetrinaFiles || vetrinaFiles.length === 0) {
+        showNotification('Nessun file disponibile per il download', 'error');
+        return;
+    }
+
+    showNotification('Inizio del download del bundle...', 'info');
+
+    try {
+        // Check if the vetrina is free (all files have price 0)
+        const isFree = vetrinaFiles.every(file => (file.price || 0) === 0);
+        
+        // Download each file individually
+        for (let i = 0; i < vetrinaFiles.length; i++) {
+            const file = vetrinaFiles[i];
+            const fileName = extractOriginalFilename(file.filename);
+            
+            try {
+                if (isFree) {
+                    // For free vetrine, download the original file
+                    await downloadSingleFile(file.file_id, fileName, false);
+                } else {
+                    // For paid vetrine, download the redacted version
+                    await downloadSingleFile(file.file_id, fileName, true);
+                }
+                
+                // Add a small delay between downloads to avoid overwhelming the server
+                if (i < vetrinaFiles.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            } catch (error) {
+                console.error(`Error downloading file ${fileName}:`, error);
+                showNotification(`Errore nel download di ${fileName}`, 'error');
+            }
+        }
+        
+        showNotification('Download del bundle completato!', 'success');
+    } catch (error) {
+        console.error('Download bundle error:', error);
+        showNotification('Errore nel download del bundle', 'error');
+    }
+}
+
+// Helper function to download a single file
+async function downloadSingleFile(fileId, fileName, isRedacted = false) {
+    const endpoint = isRedacted ? 'download/redacted' : 'download';
+    const url = `${API_BASE}/files/${fileId}/${endpoint}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': authToken ? `Bearer ${authToken}` : ''
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // Get the blob from the response
+        const blob = await response.blob();
+        
+        // Create a download link
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL object
+        window.URL.revokeObjectURL(downloadUrl);
+        
+    } catch (error) {
+        console.error(`Error downloading file ${fileName}:`, error);
+        throw error;
     }
 }
 

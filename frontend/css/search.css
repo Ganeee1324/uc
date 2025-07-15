@@ -2085,6 +2085,71 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-weight: 800;
  }
  
+ /* Document Footer Right Section */
+ .document-footer-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+ }
+ 
+ /* Add to Cart Button */
+ .add-to-cart-btn {
+    background: var(--blue-600);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s var(--ease-2);
+    box-shadow: var(--shadow-sm);
+    min-width: 36px;
+    height: 36px;
+ }
+ 
+ .add-to-cart-btn:hover {
+    background: var(--blue-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+ }
+ 
+ .add-to-cart-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+ }
+ 
+ .add-to-cart-btn .material-symbols-outlined {
+    font-size: 18px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 18;
+ }
+ 
+ /* Add to Cart Button States */
+ .add-to-cart-btn.adding {
+    background: var(--gray-500);
+    cursor: not-allowed;
+    transform: none;
+ }
+ 
+ .add-to-cart-btn.added {
+    background: var(--green-500);
+    transform: scale(1.05);
+ }
+ 
+ .add-to-cart-btn.error {
+    background: var(--red-500);
+    animation: shake 0.5s ease-in-out;
+ }
+ 
+ @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+ }
+ 
  /* ===========================
    ADVANCED FILTERS PANEL
    =========================== */
@@ -3770,6 +3835,21 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        border-radius: 50%;
        padding: 0;
        line-height: 1;
+   }
+   
+   /* Mobile cart button adjustments */
+   .document-footer-right {
+       gap: var(--space-1);
+   }
+   
+   .add-to-cart-btn {
+       min-width: 32px;
+       height: 32px;
+       padding: var(--space-1);
+   }
+   
+   .add-to-cart-btn .material-symbols-outlined {
+       font-size: 16px;
    }
    
 

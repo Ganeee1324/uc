@@ -63,6 +63,14 @@ function handleCSPEventHandlers() {
                 window.location.href = `document-preview.html?id=${docId}`;
             }
         }
+        
+        if (e.target.closest('[data-action="add-to-cart"]')) {
+            const element = e.target.closest('[data-action="add-to-cart"]');
+            const docId = element.getAttribute('data-doc-id');
+            if (docId) {
+                addToCart(docId, e);
+            }
+        }
     });
 }
 
@@ -3637,8 +3645,15 @@ function renderDocuments(files) {
                             ${item.isVetrina && !filesLoaded ? 'Click to view' : formatFileSize(item.size || 0)}
                         </div>
                     </div>
-                    <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: ${formatPrice(price)}`}">
-                        ${formatPrice(price)}
+                    <div class="document-footer-right">
+                        <div class="document-price ${price === 0 ? 'free' : 'paid'}" title="${price === 0 ? 'Documento gratuito' : `Prezzo: ${formatPrice(price)}`}">
+                            ${formatPrice(price)}
+                        </div>
+                        ${price > 0 ? `
+                            <button class="add-to-cart-btn" data-action="add-to-cart" data-doc-id="${item.id}" title="Aggiungi al carrello">
+                                <span class="material-symbols-outlined">add_shopping_cart</span>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -4220,6 +4235,54 @@ async function purchaseDocument(fileId) {
         loadAllFiles();
     } catch (error) {
         showError('Acquisto fallito: ' + error.message);
+    }
+}
+
+// Add Document to Cart
+async function addToCart(docId, event) {
+    event.stopPropagation(); // Prevent card click
+    
+    const button = event.currentTarget;
+    const icon = button.querySelector('.material-symbols-outlined');
+    
+    // Optimistic UI update
+    button.classList.add('adding');
+    icon.textContent = 'hourglass_empty';
+    
+    try {
+        // Simulate API call (replace with actual cart API)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Success state
+        button.classList.remove('adding');
+        button.classList.add('added');
+        icon.textContent = 'check_circle';
+        
+        // Show success notification
+        showStatus('Documento aggiunto al carrello! 🛒', 'success');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.classList.remove('added');
+            icon.textContent = 'add_shopping_cart';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        
+        // Error state
+        button.classList.remove('adding');
+        button.classList.add('error');
+        icon.textContent = 'error';
+        
+        // Show error notification
+        showStatus('Errore nell\'aggiunta al carrello. Riprova.', 'error');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.classList.remove('error');
+            icon.textContent = 'add_shopping_cart';
+        }, 2000);
     }
 }
 

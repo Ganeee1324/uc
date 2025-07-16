@@ -309,7 +309,9 @@ async function loadPdfWithPdfJs(fileId, viewerElementId) {
 
     try {
         const url = getRedactedPdfUrl(fileId);
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
         if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
 
         const pdfData = await response.arrayBuffer();

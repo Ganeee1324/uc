@@ -4196,7 +4196,7 @@ async function previewDocument(fileId) {
     if (file.files && file.files.length > 0) {
         try {
             const firstFile = file.files[0];
-            const previewResponse = await makeAuthenticatedRequest(`/files/${firstFile.id}/redacted`);
+            const previewResponse = await makeAuthenticatedRequest(`/files/${firstFile.id}/download/redacted`);
             
             if (previewResponse && previewResponse.preview_url) {
                 // Show the redacted preview

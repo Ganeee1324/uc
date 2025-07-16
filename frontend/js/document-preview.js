@@ -520,7 +520,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
     try {
-        // 1. Fetch the PDF data as an ArrayBuffer
+        // 1. Fetch the PDF data using streaming approach
         const pdfUrl = getRedactedPdfUrl(fileId);
         const response = await fetch(pdfUrl, {
             headers: { 'Authorization': `Bearer ${authToken}` }
@@ -530,43 +530,19 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             throw new Error(`Impossibile scaricare il PDF: ${response.statusText}`);
         }
 
-        const pdfData = await response.arrayBuffer();
-        
-        // Convert to base64 data URL for CSP compliance
-        const uint8Array = new Uint8Array(pdfData);
-        
-        // Security: Check file size to prevent memory issues
-        const maxFileSize = 50 * 1024 * 1024; // 50MB limit
-        if (uint8Array.length > maxFileSize) {
-            throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
-        }
-        
-        // Use a more robust method to convert Uint8Array to base64
-        // This avoids stack overflow by using a different approach
-        
-        // Use a more efficient approach with TextDecoder for better performance
-        let binaryString;
-        try {
-            // Try using TextDecoder first (more efficient)
-            const decoder = new TextDecoder('latin1');
-            binaryString = decoder.decode(uint8Array);
-        } catch (e) {
-            // Fallback to a more efficient chunked approach
-            const chunkSize = 8192; // Larger chunks for better performance
-            const chunks = [];
-            
-            for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-                // Use Array.from to convert chunk to array, then join
-                const chunkArray = Array.from(chunk);
-                chunks.push(String.fromCharCode(...chunkArray));
+        // Check content length for security
+        const contentLength = response.headers.get('content-length');
+        if (contentLength) {
+            const fileSize = parseInt(contentLength);
+            const maxFileSize = 50 * 1024 * 1024; // 50MB limit
+            if (fileSize > maxFileSize) {
+                throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
             }
-            
-            binaryString = chunks.join('');
         }
-        
-        const base64 = btoa(binaryString);
-        const dataUrl = `data:application/pdf;base64,${base64}`;
+
+        // Use streaming approach to avoid memory issues
+        const pdfData = await response.arrayBuffer();
+        const dataUrl = URL.createObjectURL(new Blob([pdfData], { type: 'application/pdf' }));
         
         const container = document.createElement('div');
         container.style.width = '100%';
@@ -745,7 +721,10 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             if (window.zoomTimeout) {
                 clearTimeout(window.zoomTimeout);
             }
-            // No cleanup needed for data URLs
+            // Cleanup object URL to prevent memory leaks
+            if (dataUrl && dataUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(dataUrl);
+            }
         };
         window.addEventListener('beforeunload', cleanup);
         

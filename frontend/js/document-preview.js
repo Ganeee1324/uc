@@ -1767,7 +1767,7 @@ function renderDocumentViewerMode(docData) {
                 </div>
             </div>
             
-            <div class="document-info-sidebar">
+            <div class="document-info-sidebar" style="margin-left: 32px;">
                 <div class="doc-info-content">
                     <!-- Main Info & CTA -->
                     <div class="doc-main-info">

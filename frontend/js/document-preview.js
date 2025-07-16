@@ -535,19 +535,23 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         // Convert to base64 data URL for CSP compliance
         const uint8Array = new Uint8Array(pdfData);
         
-        // Use a more efficient method to convert Uint8Array to string to avoid stack overflow
-        let binaryString = '';
-        const chunkSize = 8192; // Process in chunks to avoid stack overflow
-        
         // Security: Check file size to prevent memory issues
         const maxFileSize = 50 * 1024 * 1024; // 50MB limit
         if (uint8Array.length > maxFileSize) {
             throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
         }
         
+        // Use a more robust method to convert Uint8Array to base64
+        // This avoids stack overflow by using a different approach
+        let binaryString = '';
+        const chunkSize = 1024; // Smaller chunks for better compatibility
+        
         for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            const chunk = uint8Array.subarray(i, i + chunkSize);
-            binaryString += String.fromCharCode.apply(null, chunk);
+            const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+            // Use a loop instead of apply or spread to avoid stack overflow
+            for (let j = 0; j < chunk.length; j++) {
+                binaryString += String.fromCharCode(chunk[j]);
+            }
         }
         
         const base64 = btoa(binaryString);

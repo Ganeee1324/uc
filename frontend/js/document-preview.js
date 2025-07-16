@@ -19,7 +19,7 @@ let currentPage = 1;
 let totalPages = 1;
 
 // PDF.js state
-let pdfDoc = null;
+let pdfDoc = null; 
 let pdfPageNum = 1;
 let pdfTotalPages = 1;
 let pdfZoom = 1.0; // Default zoom scale for PDF.js
@@ -65,7 +65,7 @@ function getConsistentGradient(username) {
 function createGradientAvatar(fullName, username) {
     const gradient = getConsistentGradient(username);
     const initials = getInitials(fullName);
-
+    
     return `
         <div class="user-avatar-gradient" style="
             width: 100%;
@@ -88,7 +88,7 @@ function createGradientAvatar(fullName, username) {
 
 function getInitials(fullName) {
     if (!fullName) return 'U';
-
+    
     const names = fullName.trim().split(' ');
     if (names.length >= 2) {
         return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
@@ -203,7 +203,7 @@ class LoadingManager {
 
 // Handle action callback buttons for CSP compliance
 function handleActionCallbackButtons() {
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
         if (e.target.closest('.retry-btn[data-action-callback]')) {
             const button = e.target.closest('.retry-btn[data-action-callback]');
             const callback = button.getAttribute('data-action-callback');
@@ -211,7 +211,7 @@ function handleActionCallbackButtons() {
                 window[callback]();
             }
         }
-
+        
         if (e.target.closest('.retry-btn[data-action="navigate"]')) {
             const button = e.target.closest('.retry-btn[data-action="navigate"]');
             const url = button.getAttribute('data-url');
@@ -219,7 +219,7 @@ function handleActionCallbackButtons() {
                 window.location.href = url;
             }
         }
-
+        
         if (e.target.closest('[data-action="open-viewer"]')) {
             const element = e.target.closest('[data-action="open-viewer"]');
             const fileId = element.getAttribute('data-file-id');
@@ -228,7 +228,7 @@ function handleActionCallbackButtons() {
                 openDocumentViewer(fileId);
             }
         }
-
+        
         if (e.target.closest('[data-action="download-single"]')) {
             const element = e.target.closest('[data-action="download-single"]');
             const fileId = element.getAttribute('data-file-id');
@@ -237,9 +237,9 @@ function handleActionCallbackButtons() {
                 downloadSingleDocument(fileId);
             }
         }
-
+        
         // Reviews overlay actions are now handled by the new system in initializeReviewsOverlay()
-
+        
         if (e.target.closest('[data-action="add-to-cart"]')) {
             const element = e.target.closest('[data-action="add-to-cart"]');
             const docId = element.getAttribute('data-doc-id');
@@ -247,7 +247,7 @@ function handleActionCallbackButtons() {
                 addRelatedToCart(docId, e);
             }
         }
-
+        
         // Handle download all button
         if (e.target.closest('#downloadAllBtn')) {
             e.preventDefault();
@@ -270,7 +270,7 @@ async function makeRequest(url, options = {}) {
         };
 
         const response = await fetch(url, { ...defaultOptions, ...options });
-
+        
         if (!response.ok) {
             // Handle CORS preflight failures more gracefully
             if (response.status === 405 && response.statusText === 'METHOD NOT ALLOWED') {
@@ -278,7 +278,7 @@ async function makeRequest(url, options = {}) {
                 console.warn('This is likely due to the server not handling OPTIONS requests properly');
                 throw new Error(`CORS Error: Server does not support preflight requests for ${url}`);
             }
-
+            
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
@@ -289,7 +289,10 @@ async function makeRequest(url, options = {}) {
     }
 }
 
-// Removed redacted PDF URL function
+// Fetch redacted PDF URL
+function getRedactedPdfUrl(fileId) {
+    return `${API_BASE}/files/${fileId}/download/redacted`;
+}
 
 // Check if file is a PDF
 function isPdfFile(filename) {
@@ -305,17 +308,17 @@ async function loadPdfWithPdfJs(fileId, viewerElementId) {
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
     try {
-        const url = `${API_BASE}/files/${fileId}/redacted`;
+        const url = getRedactedPdfUrl(fileId);
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`Failed to fetch redacted PDF: ${response.statusText}`);
+        if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
 
         const pdfData = await response.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
         pdfDoc = await loadingTask.promise;
         pdfTotalPages = pdfDoc.numPages;
-
+        
         LoadingManager.hide(loader);
-
+        
         pdfPageNum = 1;
         await renderPdfPage(viewerElement, pdfPageNum);
         updatePageIndicator();
@@ -336,10 +339,10 @@ async function renderPdfPage(container, pageNum) {
     const containerWidth = container.clientWidth;
     const unscaledViewport = page.getViewport({ scale: 1.0 });
     const baseScale = containerWidth / unscaledViewport.width;
-
+    
     const displayScale = baseScale * pdfZoom;
     const viewport = page.getViewport({ scale: displayScale });
-
+    
     container.innerHTML = '';
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -356,28 +359,28 @@ async function renderPdfPage(container, pageNum) {
 function initializeZoom() {
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
-
+    
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', () => adjustZoom(ZOOM_CONFIG.step));
     }
-
+    
     if (zoomOutBtn) {
         zoomOutBtn.addEventListener('click', () => adjustZoom(-ZOOM_CONFIG.step));
     }
-
+    
     updateZoomDisplay();
 }
 
 function adjustZoom(delta) {
     if (!pdfDoc) return;
-
+    
     const newZoom = Math.max(ZOOM_CONFIG.min, Math.min(ZOOM_CONFIG.max, pdfZoom + delta));
-
+    
     if (newZoom !== pdfZoom) {
         pdfZoom = newZoom;
         const viewerElement = document.getElementById('documentViewer');
         if (viewerElement) {
-            renderPdfPage(viewerElement, pdfPageNum);
+             renderPdfPage(viewerElement, pdfPageNum);
         }
         updateZoomDisplay();
     }
@@ -391,11 +394,11 @@ function updateZoomDisplay() {
     if (zoomLevelText) {
         zoomLevelText.textContent = `${Math.round(pdfZoom * 100)}%`;
     }
-
+    
     if (zoomInBtn) {
         zoomInBtn.disabled = pdfZoom >= ZOOM_CONFIG.max;
     }
-
+    
     if (zoomOutBtn) {
         zoomOutBtn.disabled = pdfZoom <= ZOOM_CONFIG.min;
     }
@@ -406,7 +409,7 @@ function initializePageNavigation() {
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
 
-    if (prevPageBtn) {
+    if(prevPageBtn) {
         prevPageBtn.addEventListener('click', () => {
             if (pdfPageNum > 1 && !isPdfLoading) {
                 pdfPageNum--;
@@ -417,7 +420,7 @@ function initializePageNavigation() {
         });
     }
 
-    if (nextPageBtn) {
+    if(nextPageBtn) {
         nextPageBtn.addEventListener('click', () => {
             if (pdfPageNum < pdfTotalPages && !isPdfLoading) {
                 pdfPageNum++;
@@ -434,17 +437,17 @@ function initializePageNavigation() {
 function updatePageIndicator() {
     const pageIndicator = document.getElementById('pageIndicator');
     if (pageIndicator) pageIndicator.textContent = `Pagina ${pdfPageNum} di ${pdfTotalPages}`;
-
+    
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
-    if (prevPageBtn) prevPageBtn.disabled = pdfPageNum <= 1;
-    if (nextPageBtn) nextPageBtn.disabled = pdfPageNum >= pdfTotalPages;
+    if(prevPageBtn) prevPageBtn.disabled = pdfPageNum <= 1;
+    if(nextPageBtn) nextPageBtn.disabled = pdfPageNum >= pdfTotalPages;
 }
 
 // Fullscreen System
 function initializeFullscreen() {
     // Add a small delay to ensure DOM is ready
-    setTimeout(() => {
+        setTimeout(() => {
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const documentViewer = document.querySelector('.document-viewer-container');
 
@@ -480,29 +483,30 @@ function toggleFullscreen(element) {
     }
 }
 
-// Load PDF from a given file ID
-async function loadPdf(fileId, viewerElementId) {
+// Load redacted PDF from a given file ID
+async function loadRedactedPdf(fileId, viewerElementId) {
+    console.log('Loading redacted PDF for fileId:', fileId, 'viewerElementId:', viewerElementId);
+    console.log('Current document:', currentDocument);
+    
     const viewerElement = document.getElementById(viewerElementId);
     if (!viewerElement) {
         console.error(`Viewer element '${viewerElementId}' not found.`);
         return;
     }
 
-    const filename = currentDocument ? (currentDocument.original_filename || currentDocument.filename) : null;
-
-    if (!currentDocument || !isPdfFile(filename)) {
+    if (!fileId) {
+        console.error('No fileId provided for PDF loading');
         viewerElement.innerHTML = `
             <div class="unsupported-preview">
-                <span class="material-symbols-outlined">description</span>
-                <p>L'anteprima non è disponibile per questo tipo di file.</p>
-                <p>(${(filename || 'File non trovato')})</p>
+                <span class="material-symbols-outlined">error</span>
+                <p>Errore: ID file non valido</p>
             </div>
         `;
-        const controls = document.querySelector('.viewer-header .viewer-actions');
-        if (controls) controls.style.display = 'none';
         return;
     }
 
+    // For redacted PDFs, we assume they are PDFs since they're generated from the original
+    // Let's proceed with loading the PDF directly
     await loadEmbeddedPdfViewer(fileId, viewerElementId);
 }
 
@@ -517,57 +521,42 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
     try {
-        // 1. Use the redacted endpoint for PDF viewing (not download)
-        const pdfUrl = `${API_BASE}/files/${fileId}/redacted`;
+        // 1. Fetch the PDF data as an ArrayBuffer
+        const pdfUrl = getRedactedPdfUrl(fileId);
+        console.log('Fetching PDF from URL:', pdfUrl);
+        console.log('Auth token available:', !!authToken);
+        
         const response = await fetch(pdfUrl, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
 
+        console.log('PDF fetch response status:', response.status, response.statusText);
+        
         if (!response.ok) {
-            throw new Error(`Impossibile visualizzare il PDF redatto: ${response.statusText}`);
+            throw new Error(`Impossibile scaricare il PDF: ${response.status} ${response.statusText}`);
         }
 
         const pdfData = await response.arrayBuffer();
-
+        
         // Convert to base64 data URL for CSP compliance
         const uint8Array = new Uint8Array(pdfData);
-
-        // Security: Check file size to prevent memory issues
-        const maxFileSize = 50 * 1024 * 1024; // 50MB limit
-        if (uint8Array.length > maxFileSize) {
-            throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
-        }
-
-        // Use a more robust method to convert Uint8Array to base64
-        // This avoids stack overflow by using a different approach
-        let binaryString = '';
-        const chunkSize = 1024; // Smaller chunks for better compatibility
-
-        for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-            // Use a loop instead of apply or spread to avoid stack overflow
-            for (let j = 0; j < chunk.length; j++) {
-                binaryString += String.fromCharCode(chunk[j]);
-            }
-        }
-
-        const base64 = btoa(binaryString);
+        const base64 = btoa(String.fromCharCode.apply(null, uint8Array));
         const dataUrl = `data:application/pdf;base64,${base64}`;
-
+        
         const container = document.createElement('div');
         container.style.width = '100%';
         container.style.height = '100%';
         container.style.borderRadius = '8px';
         container.style.overflow = 'hidden';
-        container.style.backgroundColor = '#ffffff';
+        container.style.backgroundColor = '#525659';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
-
+        
         // --- Professional Toolbar ---
         const toolbar = document.createElement('div');
         toolbar.style.padding = '8px 16px';
-        toolbar.style.backgroundColor = '#ffffff';
-        toolbar.style.borderBottom = '1px solid #e5e7eb';
+        toolbar.style.backgroundColor = '#3c3f41';
+        toolbar.style.borderBottom = '1px solid #2a2c2e';
         toolbar.style.display = 'flex';
         toolbar.style.alignItems = 'center';
         toolbar.style.justifyContent = 'space-between';
@@ -576,7 +565,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         const applyModernButtonStyles = (button) => {
             button.style.backgroundColor = 'transparent';
             button.style.border = 'none';
-            button.style.color = '#000000';
+            button.style.color = 'white';
             button.style.cursor = 'pointer';
             button.style.padding = '6px';
             button.style.borderRadius = '50%';
@@ -584,13 +573,18 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             button.style.alignItems = 'center';
             button.style.justifyContent = 'center';
             button.style.transition = 'background-color 0.2s ease-in-out';
-            button.onmouseenter = () => button.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+            button.onmouseenter = () => button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
             button.onmouseleave = () => button.style.backgroundColor = 'transparent';
         };
 
-        // Left Controls (empty - no download button)
+        // Left Controls (Download)
         const leftControls = document.createElement('div');
-        leftControls.style.display = 'none'; // Hide left controls since no download button
+        const downloadBtn = document.createElement('button');
+        applyModernButtonStyles(downloadBtn);
+        downloadBtn.title = 'Download';
+        downloadBtn.innerHTML = '<span class="material-symbols-outlined">download</span>';
+        downloadBtn.onclick = () => downloadRedactedDocument(fileId);
+        leftControls.appendChild(downloadBtn);
 
         // Right Controls (Zoom, Fullscreen)
         const rightControls = document.createElement('div');
@@ -602,13 +596,13 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         applyModernButtonStyles(zoomOutBtn);
         zoomOutBtn.title = 'Zoom Out';
         zoomOutBtn.innerHTML = '<span class="material-symbols-outlined">zoom_out</span>';
-
+        
         const zoomInfo = document.createElement('span');
-        zoomInfo.style.color = '#000000';
+        zoomInfo.style.color = 'white';
         zoomInfo.style.fontSize = '14px';
         zoomInfo.style.minWidth = '45px';
         zoomInfo.style.textAlign = 'center';
-
+        
         const zoomInBtn = document.createElement('button');
         applyModernButtonStyles(zoomInBtn);
         zoomInBtn.title = 'Zoom In';
@@ -618,52 +612,44 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         applyModernButtonStyles(fullscreenBtn);
         fullscreenBtn.title = 'Fullscreen';
         fullscreenBtn.innerHTML = '<span class="material-symbols-outlined">fullscreen</span>';
-
+        
         rightControls.appendChild(zoomOutBtn);
         rightControls.appendChild(zoomInfo);
         rightControls.appendChild(zoomInBtn);
         rightControls.appendChild(document.createElement('div')).style.width = '16px'; // separator
         rightControls.appendChild(fullscreenBtn);
-
+        
         toolbar.appendChild(leftControls);
         toolbar.appendChild(rightControls);
         container.appendChild(toolbar);
-
+        
         const viewerArea = document.createElement('div');
         viewerArea.style.flex = '1';
         viewerArea.style.overflow = 'auto';
         viewerArea.style.paddingTop = '20px';
         viewerArea.style.textAlign = 'center';
-        viewerArea.style.backgroundColor = '#ffffff';
         container.appendChild(viewerArea);
-
+        
         viewerElement.appendChild(container);
-
+        
         const loadingTask = pdfjsLib.getDocument({ url: dataUrl });
-
-        // Add timeout for PDF loading
-        const pdfLoadPromise = loadingTask.promise;
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Timeout nel caricamento del PDF')), 30000); // 30 second timeout
-        });
-
-        const pdfDocument = await Promise.race([pdfLoadPromise, timeoutPromise]);
-
+        const pdfDocument = await loadingTask.promise;
+        
         let currentScale = 1.0;
         const totalPages = pdfDocument.numPages;
-
+        
         function updateZoomInfo() {
             zoomInfo.textContent = `${Math.round(currentScale * 100)}%`;
         }
-
+        
         async function renderAllPages() {
             viewerArea.innerHTML = '';
-
+            
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                 const page = await pdfDocument.getPage(pageNum);
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-
+                
                 const viewport = page.getViewport({ scale: currentScale });
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
@@ -673,41 +659,33 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
                 canvas.style.marginBottom = '20px';
                 canvas.style.backgroundColor = 'white';
                 canvas.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-
+                
                 viewerArea.appendChild(canvas);
-
+                
                 const renderContext = {
                     canvasContext: context,
                     viewport: viewport
                 };
-
+                
                 await page.render(renderContext).promise;
             }
             updateZoomInfo();
         }
-
+        
         zoomOutBtn.addEventListener('click', () => {
             if (currentScale > 0.5) {
                 currentScale -= 0.25;
-                // Add debouncing to prevent rapid re-rendering
-                clearTimeout(window.zoomTimeout);
-                window.zoomTimeout = setTimeout(() => {
-                    renderAllPages();
-                }, 100);
+                renderAllPages();
             }
         });
-
+        
         zoomInBtn.addEventListener('click', () => {
             if (currentScale < 3.0) {
                 currentScale += 0.25;
-                // Add debouncing to prevent rapid re-rendering
-                clearTimeout(window.zoomTimeout);
-                window.zoomTimeout = setTimeout(() => {
-                    renderAllPages();
-                }, 100);
+                renderAllPages();
             }
         });
-
+        
         fullscreenBtn.addEventListener('click', () => toggleFullscreen(container));
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
@@ -718,19 +696,15 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
                 fullscreenBtn.title = 'Fullscreen';
             }
         });
-
+        
         await renderAllPages();
         LoadingManager.hide(loader);
-
+        
         const cleanup = () => {
-            // Cleanup zoom timeout
-            if (window.zoomTimeout) {
-                clearTimeout(window.zoomTimeout);
-            }
             // No cleanup needed for data URLs
         };
         window.addEventListener('beforeunload', cleanup);
-
+        
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.removedNodes.forEach((node) => {
@@ -773,7 +747,7 @@ function updateHeaderUserInfo(user) {
     const dropdownAvatar = document.getElementById('dropdownAvatar');
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
-
+    
     if (user) {
         // Construct the user's full name for the avatar
         let fullName = '';
@@ -786,13 +760,13 @@ function updateHeaderUserInfo(user) {
         } else {
             fullName = 'User';
         }
-
+        
         // Use consistent gradient avatar instead of UI Avatars service
-        if (userAvatar) {
+        if(userAvatar) {
             const gradientAvatar = createGradientAvatar(fullName, user.username);
             userAvatar.innerHTML = gradientAvatar;
         }
-
+        
         // Apply the same gradient to dropdown avatar
         if (dropdownAvatar) {
             const gradient = getConsistentGradient(user.username);
@@ -805,17 +779,17 @@ function updateHeaderUserInfo(user) {
             dropdownAvatar.style.alignItems = 'center';
             dropdownAvatar.style.justifyContent = 'center';
         }
-
+        
         if (dropdownUserName) {
             dropdownUserName.textContent = user.username || fullName;
         }
         if (dropdownUserEmail) {
             dropdownUserEmail.textContent = user.email;
         }
-
+        
         // Toggle dropdown
         const userInfo = document.querySelector('.user-info');
-        if (userAvatar) {
+        if(userAvatar) {
             userAvatar.addEventListener('click', (event) => {
                 event.stopPropagation();
                 userInfo.classList.toggle('open');
@@ -824,7 +798,7 @@ function updateHeaderUserInfo(user) {
 
         // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
+        if(logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 logout();
@@ -833,14 +807,14 @@ function updateHeaderUserInfo(user) {
 
     } else {
         // Handle case where user is not logged in - show login button
-        if (userAvatar) {
+        if(userAvatar) {
             userAvatar.innerHTML = `
                 <button class="login-btn" onclick="window.location.href='index.html'">
                     <span class="login-btn-text">Accedi</span>
                 </button>
             `;
         }
-
+        
         // Remove dropdown functionality for non-authenticated users
         const userInfo = document.querySelector('.user-info');
         if (userInfo) {
@@ -880,13 +854,13 @@ async function fetchDocumentData(vetrinaId) {
 
         // 2. Fetch the details for this specific vetrina.
         // The backend doesn't have /vetrine/<id>, so we must fetch all and filter.
-        const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
+                const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
         if (!allVetrineResponse || !allVetrineResponse.vetrine) {
             throw new Error('Could not fetch vetrine list.');
         }
         const vetrinaData = allVetrineResponse.vetrine.find(v => v.id == vetrinaId || v.vetrina_id == vetrinaId);
-
-        if (!vetrinaData) {
+                    
+                    if (!vetrinaData) {
             throw new Error(`Vetrina with ID ${vetrinaId} not found.`);
         }
 
@@ -909,7 +883,7 @@ async function fetchDocumentData(vetrinaId) {
         }
 
         // 4. Fetch reviews for the vetrina.
-        const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
+                const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
         const reviewsData = (reviewsResponse && reviewsResponse.reviews) ? reviewsResponse.reviews : [];
 
         // 5. Assemble the final data structure that the rest of the page expects.
@@ -931,10 +905,10 @@ async function fetchDocumentData(vetrinaId) {
 // Premium Document Renderer - Enhanced with VETRINA-level information
 function renderDocumentInfo(docData) {
     const { document: fileData, vetrina: vetrinaData, vetrinaFiles } = docData;
-
+    
     // Extract course information from vetrina if available
     const courseInfo = vetrinaData?.course_instance || {};
-
+    
     // Update document title - use VETRINA name, not individual file name
     const title = vetrinaData?.name || 'Vetrina Senza Nome';
     const titleElement = document.querySelector('.doc-title');
@@ -943,32 +917,32 @@ function renderDocumentInfo(docData) {
 
     // Get file count for conditional logic
     const fileCount = vetrinaFiles?.length || 1;
-
+    
     // Get reviews data from docData (reviews are at vetrina level)
     const reviews = docData.reviews || [];
-
+    
     // Initialize reviews overlay with real data
     initializeReviewsOverlay(reviews);
-
+    
     // Update rating and price (use real reviews data for vetrina)
     const totalReviews = reviews.length;
-    const rating = totalReviews > 0
+    const rating = totalReviews > 0 
         ? parseFloat((reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1))
         : 0.0;
     const reviewCount = totalReviews;
-
+    
     // Use the vetrina's own price instead of calculating from files
     const totalPrice = vetrinaData?.price || 0;
 
     const starsContainer = document.querySelector('.rating-stars');
-    if (starsContainer) starsContainer.innerHTML = generateFractionalStars(rating);
-
+    if(starsContainer) starsContainer.innerHTML = generateFractionalStars(rating);
+    
     const ratingScore = document.querySelector('.rating-score');
-    if (ratingScore) ratingScore.textContent = rating.toFixed(1);
+    if(ratingScore) ratingScore.textContent = rating.toFixed(1);
 
     const ratingCount = document.querySelector('.rating-count');
-    if (ratingCount) ratingCount.textContent = `(${reviewCount})`;
-
+    if(ratingCount) ratingCount.textContent = `(${reviewCount})`;
+    
     // Update the rating badge data attributes for the reviews system
     const ratingBadge = document.querySelector('.doc-rating-display[data-action="open-reviews"]');
     if (ratingBadge) {
@@ -991,7 +965,7 @@ function renderDocumentInfo(docData) {
             priceElement.classList.add('paid');
         }
     }
-
+    
     // Update document type tag - use the generateVetrinaDocumentTags function
     const docTypeTag = document.querySelector('.doc-type-tag');
     if (docTypeTag) {
@@ -1005,18 +979,18 @@ function renderDocumentInfo(docData) {
         }
         // For multi-file vetrine, the tags will be handled by generateVetrinaDocumentTags in the list view
     }
-
+    
     // Update all details with VETRINA-level information in the specified order
     updateDetailValue('Facoltà', courseInfo.faculty_name || 'Non specificata');
     updateDetailValue('Corso', courseInfo.course_name || 'Non specificato');
     updateDetailValue('Lingua', courseInfo.language || 'Non specificata');
-
+    
     // Handle canale display - show "Unico" if canale is "0"
     const canaleValue = courseInfo.canale === "0" ? "Unico" : (courseInfo.canale || 'Non specificato');
     updateDetailValue('Canale', canaleValue);
-
+    
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
-
+    
     // For single-file vetrine, add "Pagine" field after "Anno Accademico"
     if (fileCount === 1) {
         // Use the num_pages field from the backend
@@ -1031,15 +1005,15 @@ function renderDocumentInfo(docData) {
         const courseName = courseInfo.course_name || 'questo corso';
         description = `Raccolta di materiali didattici per ${courseName}. ${fileCount} ${fileCount === 1 ? 'file' : 'file'} inclusi.`;
     }
-
+    
     const descriptionContainer = document.querySelector('.doc-description');
-    if (descriptionContainer) {
+    if(descriptionContainer) {
         descriptionContainer.innerHTML = `<p>${description}</p>`;
     }
-
+    
     // Set up action buttons with vetrina data
     setupActionButtons(fileData, vetrinaData);
-
+    
     // Render related documents with professional placeholders
     renderRelatedDocuments(docData.related);
 }
@@ -1061,15 +1035,15 @@ function updateDetailValue(label, value) {
 // Extract original filename from UUID-based filename
 function extractOriginalFilename(uuidFilename) {
     if (!uuidFilename) return '';
-
+    
     // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 characters with 4 dashes)
     // Full format: {uuid}-{user_id}-{original_filename}
     // So we need to find the pattern: 36 chars + dash + user_id + dash + original_filename
-
+    
     // Find the UUID pattern (8-4-4-4-12 format)
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
     const match = uuidFilename.match(uuidPattern);
-
+    
     if (match) {
         // Remove the UUID part and the first dash
         const afterUuid = uuidFilename.substring(match[0].length + 1);
@@ -1080,7 +1054,7 @@ function extractOriginalFilename(uuidFilename) {
             return afterUuid.substring(userDashIndex + 1);
         }
     }
-
+    
     // Fallback: return the original filename if it doesn't match the expected pattern
     return uuidFilename;
 }
@@ -1100,7 +1074,7 @@ function getDocumentTypeFromTag(tag) {
 // Get document type from filename
 function getDocumentTypeFromFilename(filename) {
     const lowerFilename = filename.toLowerCase();
-
+    
     if (lowerFilename.includes('appunti') || lowerFilename.includes('notes')) {
         return 'Appunti';
     } else if (lowerFilename.includes('esercizi') || lowerFilename.includes('exercise')) {
@@ -1134,7 +1108,7 @@ function generateVetrinaDocumentTags(vetrinaFiles) {
     if (!vetrinaFiles || vetrinaFiles.length === 0) {
         return '<div class="doc-type-tag">Documento</div>';
     }
-
+    
     // Extract unique document types from all files using the actual tag field
     const documentTypes = new Set();
     vetrinaFiles.forEach(file => {
@@ -1148,14 +1122,14 @@ function generateVetrinaDocumentTags(vetrinaFiles) {
             documentTypes.add(fileType);
         }
     });
-
+    
     // Convert to array and sort for consistent display
     const uniqueTypes = Array.from(documentTypes).sort();
-
+    
     // Generate HTML for multiple tags
     if (uniqueTypes.length === 1) {
         return `<div class="doc-type-tag">${uniqueTypes[0]}</div>`;
-    } else {
+                } else {
         // Wrap multiple tags in a container to group them together
         const tagsHTML = uniqueTypes.map(type => `<div class="doc-type-tag">${type}</div>`).join('');
         return `<div class="doc-type-tags-container">${tagsHTML}</div>`;
@@ -1182,14 +1156,14 @@ function formatDate(dateString) {
     if (!dateString) return 'Data non disponibile';
     return new Date(dateString).toLocaleDateString('it-IT', {
         year: 'numeric',
-        month: 'long',
+        month: 'long', 
         day: 'numeric'
     });
 }
 
 // Utility Functions
 function generateStars(rating) {
-    return Array.from({ length: 5 }, (_, i) =>
+    return Array.from({ length: 5 }, (_, i) => 
         `<span class="star ${i < rating ? 'filled' : ''}">★</span>`
     ).join('');
 }
@@ -1227,7 +1201,7 @@ function loadReadingPosition() {
     if (currentDocument) {
         const fileId = currentDocument.file_id;
         const savedZoom = localStorage.getItem(`file-${fileId}-zoom`);
-
+        
         if (savedZoom) {
             const zoomValue = parseFloat(savedZoom);
             if (!isNaN(zoomValue)) {
@@ -1251,36 +1225,37 @@ function setupActionButtons(fileData, vetrinaData = null) {
     const totalPrice = vetrinaData?.price || 0;
     const isFree = totalPrice === 0;
 
-    // Purchase button logic for VETRINA (download functionality removed)
+    // Purchase/Download button logic for VETRINA
     if (isFree) {
-        // For free vetrine: show primary button as view bundle
+        // For free vetrine: show primary button as download bundle, hide secondary download
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
-                <span class="material-symbols-outlined">visibility</span>
-                Visualizza
+                <span class="material-symbols-outlined">download</span>
+                Download
             `;
-            purchaseBtn.onclick = () => showNotification('Funzionalità di visualizzazione bundle in sviluppo', 'info');
+            purchaseBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
         }
         // Hide secondary download button for free vetrine
         if (downloadBtn) {
             downloadBtn.style.display = 'none';
         }
     } else {
-        // For paid vetrine: show primary as purchase bundle
+        // For paid vetrine: show primary as purchase bundle, show secondary download
         if (purchaseBtn) {
-            purchaseBtn.innerHTML = `Acquista Ora`;
+            purchaseBtn.innerHTML = `Acquista Bundle`;
             purchaseBtn.onclick = () => handleVetrinaPurchase(vetrinaData.vetrina_id || vetrinaData.id, totalPrice);
         }
-        // Hide secondary download button (download functionality removed)
+        // Show secondary download button for paid vetrine (after purchase)
         if (downloadBtn) {
-            downloadBtn.style.display = 'none';
+            downloadBtn.style.display = 'flex';
+            downloadBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
         }
     }
 
     // Setup favorite button with vetrina-level state
     if (favoriteBtn) {
         const isVetrinaFavorited = vetrinaData.favorite === true;
-
+        
         if (isVetrinaFavorited) {
             favoriteBtn.classList.add('active');
             favoriteBtn.title = 'Rimuovi dai Preferiti';
@@ -1293,7 +1268,7 @@ function setupActionButtons(fileData, vetrinaData = null) {
 
     // Setup share button for vetrina
     if (shareBtn) shareBtn.onclick = handleShare;
-
+    
     // Setup cart button for vetrina
     const addToCartBtn = document.getElementById('addToCartBtn');
     if (addToCartBtn) {
@@ -1311,12 +1286,12 @@ function handleVetrinaPurchase(vetrinaId, totalPrice) {
         showNotification('Errore: ID vetrina non trovato', 'error');
         return;
     }
-
+    
     const purchaseBtn = document.getElementById('purchaseBtn');
-
+    
     if (totalPrice === 0) {
-        // Free vetrina - show view notification (download functionality removed)
-        showNotification('Funzionalità di visualizzazione bundle in sviluppo', 'info');
+        // Free vetrina - direct download
+        downloadVetrinaBundle(vetrinaId);
     } else {
         // Paid vetrina - show purchase confirmation
         if (confirm(`Confermi l'acquisto di questa vetrina per €${totalPrice?.toFixed(2) || 'N/A'}?`)) {
@@ -1326,13 +1301,13 @@ function handleVetrinaPurchase(vetrinaId, totalPrice) {
                 purchaseBtn.innerHTML = 'Acquisto Completato';
                 purchaseBtn.disabled = true;
             }
-
+            
             // Show success notification
             showNotification('Acquisto vetrina completato con successo!', 'success');
-
+            
             // In a real implementation, this would redirect to payment processor
             // window.location.href = `payment.html?vetrina=${vetrinaId}&price=${totalPrice}`;
-
+            
             // Reset button after animation (in real app, this would happen after payment confirmation)
             setTimeout(() => {
                 if (purchaseBtn) {
@@ -1345,7 +1320,31 @@ function handleVetrinaPurchase(vetrinaId, totalPrice) {
     }
 }
 
-// Download functionality removed - Bundles are view-only
+// Download vetrina bundle
+async function downloadVetrinaBundle(vetrinaId) {
+    if (!vetrinaId) {
+        showNotification('Errore: ID vetrina non trovato', 'error');
+        return;
+    }
+
+    showNotification('Inizio del download del bundle...', 'info');
+
+    try {
+        // In a real implementation, this would call the vetrina download endpoint
+        // For now, we'll simulate the download
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate download delay
+        
+        showNotification('Download del bundle completato!', 'success');
+        
+        // In a real implementation, this would trigger the actual download
+        // const url = `${API_BASE}/vetrine/${vetrinaId}/download`;
+        // window.open(url, '_blank');
+        
+    } catch (error) {
+        console.error('Download vetrina bundle error:', error);
+        showNotification('Errore nel download del bundle', 'error');
+    }
+}
 
 
 
@@ -1354,9 +1353,9 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-
+    
     document.body.appendChild(notification);
-
+    
     setTimeout(() => notification.classList.add('show'), 100);
     setTimeout(() => {
         notification.classList.remove('show');
@@ -1372,8 +1371,8 @@ function showNotification(message, type = 'info') {
 function initializeKeyboardNavigation() {
     document.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-        switch (e.key) {
+        
+        switch(e.key) {
             case '+':
             case '=':
                 e.preventDefault();
@@ -1391,23 +1390,23 @@ function initializeKeyboardNavigation() {
 function initializeTouchNavigation() {
     let touchStartX = 0;
     let touchEndX = 0;
-
+    
     const documentViewer = document.getElementById('documentViewer');
     if (!documentViewer) return;
-
+    
     documentViewer.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
     });
-
+    
     documentViewer.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     });
-
+    
     function handleSwipe() {
         const swipeThreshold = 50;
         const diff = touchStartX - touchEndX;
-
+        
         // Swipe navigation removed for PDF viewer - PDF has its own navigation
     }
 }
@@ -1445,10 +1444,10 @@ async function initializeDocumentPreview() {
     handleActionCallbackButtons();
 
     const user = await fetchCurrentUserData();
-    if (user) {
+    if(user) {
         updateHeaderUserInfo(user);
     }
-
+    
     const vetrinaId = getFileIdFromUrl();
     if (!vetrinaId) return;
 
@@ -1478,7 +1477,7 @@ async function initializeDocumentPreview() {
 
         // Check if this vetrina has multiple files
         const hasMultipleFiles = currentVetrinaFiles.length > 1;
-
+        
         if (hasMultipleFiles) {
             // Show document list instead of viewer for multiple files
             renderDocumentListView(docData);
@@ -1489,7 +1488,7 @@ async function initializeDocumentPreview() {
 
     } catch (error) {
         console.error('Error loading document:', error);
-
+        
         // Check if it's a 404 error (file not found)
         if (error.message.includes('404') || error.message.includes('not found')) {
             mainContainer.innerHTML = `
@@ -1525,7 +1524,7 @@ async function initializeDocumentPreview() {
 function renderDocumentListView(docData) {
     const mainContainer = document.querySelector('.preview-main');
     const { vetrinaFiles } = docData;
-
+    
     // Generate documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
         // Extract the original filename from the UUID-based filename
@@ -1533,7 +1532,7 @@ function renderDocumentListView(docData) {
         const fileType = file.tag ? getDocumentTypeFromTag(file.tag) : getDocumentTypeFromFilename(displayFilename);
         const fileExtension = getFileExtension(displayFilename);
         const documentIcon = getDocumentPreviewIcon(displayFilename);
-
+        
         return `
             <div class="document-list-item" data-file-id="${file.file_id}" data-action="open-viewer">
                 <div class="document-list-preview">
@@ -1570,7 +1569,7 @@ function renderDocumentListView(docData) {
             </div>
         `;
     }).join('');
-
+    
     // Replace the entire main container content with the document list structure
     mainContainer.innerHTML = `
         <div class="document-list-section">
@@ -1750,10 +1749,10 @@ function renderDocumentListView(docData) {
             </div>
         </div>
     `;
-
+    
     // Now render the content into the newly created structure
     renderDocumentInfo(docData);
-
+    
     // Setup action buttons for the vetrina
     setupActionButtons(currentDocument, currentVetrina);
 }
@@ -1761,13 +1760,13 @@ function renderDocumentListView(docData) {
 // New function to handle normal single-file viewer mode
 function renderDocumentViewerMode(docData) {
     const mainContainer = document.querySelector('.preview-main');
-    const vetrinaFiles = docData.vetrinaFiles || [];
+        const vetrinaFiles = docData.vetrinaFiles || [];
     const currentDocument = docData.document;
 
     const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, currentDocument.file_id);
-
-    // Replace the entire main container content with the document viewer structure
-    mainContainer.innerHTML = `
+        
+        // Replace the entire main container content with the document viewer structure
+        mainContainer.innerHTML = `
             <div class="document-viewer-section">
                 <div class="document-viewer" id="documentViewer">
                 <div class="pdf-loading">
@@ -1941,26 +1940,30 @@ function renderDocumentViewerMode(docData) {
                 </div>
             </div>
         `;
+        
+        // Now render the content into the newly created structure
+        renderDocumentInfo(docData);
+        
+        // Load the redacted PDF for the current document
+        console.log('About to load PDF for currentDocument:', currentDocument);
+        if (currentDocument && currentDocument.file_id) {
+            console.log('Loading PDF with file_id:', currentDocument.file_id);
+            loadRedactedPdf(currentDocument.file_id, 'documentViewer');
+        } else {
+            console.error('No file_id found in currentDocument:', currentDocument);
+        }
 
-    // Now render the content into the newly created structure
-    renderDocumentInfo(docData);
+        // Populate file format badge
+        const fileFormatBadge = document.getElementById('fileFormatBadge');
+        if (fileFormatBadge && currentDocument) {
+            const fileExtension = getFileExtension(currentDocument.original_filename || currentDocument.filename);
+            fileFormatBadge.textContent = fileExtension;
+        }
 
-    // Load the PDF for the current document
-    if (currentDocument && currentDocument.file_id) {
-        loadPdf(currentDocument.file_id, 'documentViewer');
-    }
+        showAndFadeBottomOverlay(); // show on load
 
-    // Populate file format badge
-    const fileFormatBadge = document.getElementById('fileFormatBadge');
-    if (fileFormatBadge && currentDocument) {
-        const fileExtension = getFileExtension(currentDocument.original_filename || currentDocument.filename);
-        fileFormatBadge.textContent = fileExtension;
-    }
-
-    showAndFadeBottomOverlay(); // show on load
-
-    // Initialize controls
-    initializeFullscreen();
+        // Initialize controls
+        initializeFullscreen();
 }
 
 // Function to open a specific document in viewer mode
@@ -1976,36 +1979,36 @@ async function downloadSingleDocument(fileId) {
                 'Authorization': authToken ? `Bearer ${authToken}` : ''
             }
         });
-
+        
         if (!response.ok) {
             throw new Error('Download failed');
         }
-
+        
         // Create a temporary form to handle the download (CSP compliant)
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `${API_BASE}/files/${fileId}/download`;
         form.target = '_blank';
-
+        
         // Add authorization header via hidden input
         const authInput = document.createElement('input');
         authInput.type = 'hidden';
         authInput.name = 'auth_token';
         authInput.value = authToken;
         form.appendChild(authInput);
-
+        
         // Add filename
         const filenameInput = document.createElement('input');
         filenameInput.type = 'hidden';
         filenameInput.name = 'filename';
         filenameInput.value = `document_${fileId}`;
         form.appendChild(filenameInput);
-
+        
         // Submit the form
         document.body.appendChild(form);
         form.submit();
         document.body.removeChild(form);
-
+        
         showNotification('Download avviato con successo!', 'success');
     } catch (error) {
         console.error('Download error:', error);
@@ -2090,7 +2093,7 @@ function initializeReviewsOverlay(reviews = []) {
     if (reviews && reviews.length > 0) {
         currentReviews = reviews;
     }
-
+    
     const reviewsOverlay = document.getElementById('reviewsOverlay');
     if (reviewsOverlay) {
         reviewsOverlay.addEventListener('click', (e) => {
@@ -2109,7 +2112,7 @@ function initializeReviewsOverlay(reviews = []) {
                 openReviewsOverlay(vetrinaId);
             }
         }
-
+        
         // Preload reviews on hover
         if (e.target.closest('[data-action="open-reviews"]')) {
             const element = e.target.closest('[data-action="open-reviews"]');
@@ -2149,7 +2152,7 @@ function preloadReviewsData(vetrinaId) {
     // Only preload if not already cached
     const cacheKey = `${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
     const cachedData = reviewsCache.get(cacheKey);
-
+    
     if (!cachedData || (Date.now() - cachedData.timestamp) >= CACHE_DURATION) {
         // Start loading in background
         loadReviewsForVetrina(vetrinaId).catch(error => {
@@ -2162,22 +2165,22 @@ function preloadReviewsData(vetrinaId) {
 async function openReviewsOverlay(vetrinaId) {
     currentVetrinaForReviews = vetrinaId;
     const overlay = document.getElementById('reviewsOverlay');
-
+    
     if (overlay) {
-        overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
         // Clear cache to ensure fresh data
         const cacheKey = `reviews_${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
         reviewsCache.delete(cacheKey);
         console.log('Cleared cache for vetrina:', vetrinaId, 'cacheKey:', cacheKey);
-
+        
         // Show initial rating data instantly from search results
         showInitialRatingData(vetrinaId);
-
+        
         // Load detailed reviews data in background (non-blocking)
         loadReviewsForVetrina(vetrinaId).then(() => {
-            updateReviewsOverlay();
+    updateReviewsOverlay();
         }).catch(error => {
             console.error('Error loading reviews:', error);
             // Keep showing the initial data if API fails
@@ -2201,12 +2204,12 @@ function showInitialRatingData(vetrinaId) {
         // Get rating and review count from dataset attributes
         const rating = parseFloat(ratingBadge.dataset.rating) || 0;
         const reviewCount = parseInt(ratingBadge.dataset.reviewCount) || 0;
-
+            
         // Show initial data instantly
         bigRatingScore.textContent = rating.toFixed(1);
         totalReviews.textContent = `Basato su ${reviewCount} recensioni`;
         bigStars.innerHTML = generateFractionalStars(rating);
-
+        
         // Show a more professional loading state with instant feedback
         reviewsList.innerHTML = `
             <div class="reviews-loading">
@@ -2214,12 +2217,12 @@ function showInitialRatingData(vetrinaId) {
                 <p>Aggiornamento recensioni...</p>
             </div>
         `;
-
+        
         // Hide add review button by default - it will be shown later if conditions are met
         addReviewBtn.style.display = 'none';
         return;
     }
-
+    
     // Fallback to loading state if we can't find the data
     showReviewsLoadingState();
 }
@@ -2240,7 +2243,7 @@ function showReviewsLoadingState() {
     bigStars.innerHTML = '<div class="loading-stars">★★★★★</div>';
     // Keep add review button hidden during loading
     addReviewBtn.style.display = 'none';
-
+    
     reviewsList.innerHTML = `
         <div class="reviews-loading">
             <div class="loading-spinner"></div>
@@ -2253,11 +2256,11 @@ function showReviewsLoadingState() {
 function closeReviewsOverlay() {
     const overlay = document.getElementById('reviewsOverlay');
     if (overlay) {
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
         // Reset form
-        hideAddReviewForm();
+    hideAddReviewForm();
         selectedRating = 0;
         currentUserReview = null;
     }
@@ -2274,29 +2277,29 @@ async function loadReviewsForVetrina(vetrinaId) {
         // Check cache first
         const cacheKey = `reviews_${vetrinaId}_${localStorage.getItem('authToken') || 'guest'}`;
         const cachedData = reviewsCache.get(cacheKey);
-
+        
         if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
             // Use cached data
             currentReviews = cachedData.reviews || [];
             currentUserReview = cachedData.userReview || null;
             return;
         }
-
+        
         // Check if request is already pending
         if (pendingRequests.has(cacheKey)) {
             // Wait for the pending request to complete
             await pendingRequests.get(cacheKey);
             return;
         }
-
+        
         // Early return if we know there are no reviews (only if we're certain)
         const ratingBadge = document.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
         if (ratingBadge) {
             const reviewCount = parseInt(ratingBadge.dataset.reviewCount) || 0;
             const rating = parseFloat(ratingBadge.dataset.rating) || 0;
-
+            
             console.log('DOM data for vetrina:', vetrinaId, 'reviewCount:', reviewCount, 'rating:', rating);
-
+            
             // Only skip API call if both review count AND rating are 0
             if (reviewCount === 0 && rating === 0) {
                 // No reviews, set empty data and return early
@@ -2312,15 +2315,15 @@ async function loadReviewsForVetrina(vetrinaId) {
                 return;
             }
         }
-
+        
         const token = localStorage.getItem('authToken');
-
+        
         // Get current user info for debugging
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
+        
         // Prepare headers - only include what's necessary
         const headers = {};
-
+        
         // Add Authorization header only if token exists
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
@@ -2329,7 +2332,7 @@ async function loadReviewsForVetrina(vetrinaId) {
         // Create AbortController for timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
+        
         // Create promise for this request
         const requestPromise = fetch(`${API_BASE}/vetrine/${vetrinaId}/reviews`, {
             method: 'GET',
@@ -2342,31 +2345,31 @@ async function loadReviewsForVetrina(vetrinaId) {
             pendingRequests.delete(cacheKey);
             clearTimeout(timeoutId);
         });
-
+        
         // Store the promise to prevent duplicate requests
         pendingRequests.set(cacheKey, requestPromise);
-
+        
         const response = await requestPromise;
 
         if (response.ok) {
             const data = await response.json();
             currentReviews = data.reviews || [];
             currentUserReview = data.user_review || null;
-
+            
             console.log('Reviews loaded successfully:', {
                 vetrinaId,
                 reviewsCount: currentReviews.length,
                 reviews: currentReviews,
                 userReview: currentUserReview
             });
-
+            
             // Cache the successful response
             reviewsCache.set(cacheKey, {
                 reviews: currentReviews,
                 userReview: currentUserReview,
                 timestamp: Date.now()
             });
-
+            
             if (currentUserReview) {
             }
         } else if (response.status === 401) {
@@ -2386,11 +2389,11 @@ async function loadReviewsForVetrina(vetrinaId) {
         }
     } catch (error) {
         console.error('Error loading reviews:', error);
-
+        
         if (error.name === 'AbortError') {
             console.error('Request timed out');
         }
-
+        
         currentReviews = [];
         currentUserReview = null;
     }
@@ -2399,7 +2402,7 @@ async function loadReviewsForVetrina(vetrinaId) {
 // Update the reviews overlay content
 function updateReviewsOverlay() {
     console.log('updateReviewsOverlay called with currentReviews:', currentReviews);
-
+    
     const reviewsList = document.getElementById('reviewsList');
     const bigRatingScore = document.querySelector('.big-rating-score');
     const totalReviews = document.querySelector('.total-reviews');
@@ -2417,30 +2420,30 @@ function updateReviewsOverlay() {
         return sum + (parseInt(review.rating) || 0);
     }, 0);
     const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length).toFixed(1) : '0.0';
-
+    
     console.log('Rating calculation:', {
         totalRating: totalRating,
         reviewCount: currentReviews.length,
         averageRating: averageRating
     });
-
+    
     // Update summary
     bigRatingScore.textContent = averageRating;
     totalReviews.textContent = `Basato su ${currentReviews.length} recensioni`;
-
+    
     // Update stars
     bigStars.innerHTML = generateFractionalStars(parseFloat(averageRating));
-
+    
     // Show add review button only if user is authenticated AND hasn't already reviewed
     const token = localStorage.getItem('authToken');
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
+    
     if (token && currentUser) {
         // Check if user has already reviewed using frontend comparison
-        const hasUserReviewed = currentReviews.some(review =>
+        const hasUserReviewed = currentReviews.some(review => 
             review.user?.user_id === currentUser.user_id
         );
-
+        
         if (!hasUserReviewed) {
             // User authenticated and hasn't reviewed - show add review button
             addReviewBtn.style.display = 'flex';
@@ -2469,9 +2472,9 @@ function updateReviewsOverlay() {
                         <div class="reviewer-info-overlay">
                         <div class="reviewer-avatar-overlay">
                             ${createGradientAvatar(
-            review.user?.username || 'User',
-            review.user?.username || 'User'
-        )}
+                                review.user?.username || 'User',
+                                review.user?.username || 'User'
+                            )}
                         </div>
                         <div>
                             <div class="reviewer-name-overlay">${review.user?.username || review.user?.first_name + ' ' + review.user?.last_name || 'Utente Anonimo'}</div>
@@ -2485,15 +2488,15 @@ function updateReviewsOverlay() {
                 ${review.review_subject ? `<div class="review-subject-overlay">${review.review_subject}</div>` : ''}
                 <div class="review-text-overlay">${review.review_text}</div>
                 ${(() => {
-                const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-                // Frontend-only approach: compare current user with review author
-                const isCurrentUserReview = currentUser && currentUser.user_id === review.user?.user_id;
-                const shouldShowDelete = isCurrentUserReview;
-                return shouldShowDelete ?
-                    `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                    // Frontend-only approach: compare current user with review author
+                    const isCurrentUserReview = currentUser && currentUser.user_id === review.user?.user_id;
+                    const shouldShowDelete = isCurrentUserReview;
+                    return shouldShowDelete ? 
+                        `<button class="delete-review-btn" data-action="delete-review" title="Elimina recensione">
                                     <span class="material-symbols-outlined">delete</span>
                         </button>` : '';
-            })()}
+                })()}
                         </div>
         `).join('');
     }
@@ -2504,12 +2507,12 @@ function showAddReviewForm() {
     const form = document.getElementById('addReviewForm');
     const reviewsList = document.getElementById('reviewsList');
     const reviewsSummary = document.querySelector('.reviews-summary');
-
+    
     if (form && reviewsList) {
         form.style.display = 'block';
         reviewsList.style.display = 'none';
         if (reviewsSummary) reviewsSummary.style.display = 'none';
-
+        
         // Reset form
         document.getElementById('reviewComment').value = '';
         selectedRating = 0;
@@ -2522,35 +2525,35 @@ function hideAddReviewForm() {
     const form = document.getElementById('addReviewForm');
     const reviewsList = document.getElementById('reviewsList');
     const reviewsSummary = document.querySelector('.reviews-summary');
-
+    
     if (form && reviewsList) {
         form.style.display = 'none';
         reviewsList.style.display = 'block';
         if (reviewsSummary) reviewsSummary.style.display = 'flex';
-
-        // Reset form
-        document.getElementById('reviewComment').value = '';
+    
+    // Reset form
+    document.getElementById('reviewComment').value = '';
         selectedRating = 0;
-        updateStarRatingDisplay();
+    updateStarRatingDisplay();
     }
 }
 
 // Initialize star rating functionality
 function initializeStarRating() {
     const starInputs = document.querySelectorAll('.star-input');
-
+    
     starInputs.forEach(star => {
         star.addEventListener('click', () => {
             const rating = parseInt(star.getAttribute('data-rating'));
             selectedRating = rating;
             updateStarRatingDisplay();
         });
-
+        
         star.addEventListener('mouseenter', () => {
             const rating = parseInt(star.getAttribute('data-rating'));
             highlightStars(rating);
         });
-
+        
         star.addEventListener('mouseleave', () => {
             updateStarRatingDisplay();
         });
@@ -2560,11 +2563,11 @@ function initializeStarRating() {
 // Update star rating display
 function updateStarRatingDisplay() {
     const starInputs = document.querySelectorAll('.star-input');
-
+    
     starInputs.forEach((star, index) => {
         const starRating = index + 1;
         star.classList.remove('active', 'hover');
-
+        
         if (starRating <= selectedRating) {
             star.classList.add('active');
         }
@@ -2574,11 +2577,11 @@ function updateStarRatingDisplay() {
 // Highlight stars on hover
 function highlightStars(rating) {
     const starInputs = document.querySelectorAll('.star-input');
-
+    
     starInputs.forEach((star, index) => {
         const starRating = index + 1;
-        star.classList.remove('hover');
-
+            star.classList.remove('hover');
+        
         if (starRating <= rating) {
             star.classList.add('hover');
         }
@@ -2591,22 +2594,22 @@ async function submitReview() {
         showNotification('Seleziona una valutazione prima di inviare la recensione.', 'error');
         return;
     }
-
+    
     const comment = document.getElementById('reviewComment').value.trim();
     if (!comment) {
         showNotification('Inserisci un commento per la tua recensione.', 'error');
         return;
     }
-
+    
     try {
-
+        
         const token = localStorage.getItem('authToken');
         if (!token) {
             console.error('No auth token found');
             showNotification('Sessione scaduta. Effettua nuovamente l\'accesso.', 'error');
-            return;
-        }
-
+        return;
+    }
+    
         const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
             method: 'POST',
             headers: {
@@ -2618,20 +2621,20 @@ async function submitReview() {
                 review_text: comment
             })
         });
-
+        
         if (response.ok) {
             const data = await response.json();
             const message = data.msg === 'Review updated' ? 'Recensione aggiornata con successo!' : 'Recensione inviata con successo!';
             showNotification(message, 'success');
             hideAddReviewForm();
-
+            
             // Use the actual response data from the backend for immediate UI update
             // The backend response should contain the complete review data
             console.log('Backend response data:', data);
-
+            
             // Get current user info
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
+            
             // Create a proper review object using backend response data
             const newReview = {
                 rating: parseInt(selectedRating),
@@ -2642,13 +2645,13 @@ async function submitReview() {
                 review_id: data.review_id || Date.now(), // Use backend ID or fallback
                 review_subject: data.review_subject || null
             };
-
+            
             console.log('Created new review object:', newReview);
-
+            
             // Update currentReviews immediately with the new review
             if (data.msg === 'Review updated') {
                 // Update existing review
-                const existingIndex = currentReviews.findIndex(review =>
+                const existingIndex = currentReviews.findIndex(review => 
                     review.user?.user_id === currentUser.user_id
                 );
                 if (existingIndex !== -1) {
@@ -2658,16 +2661,16 @@ async function submitReview() {
                 // Add new review
                 currentReviews.push(newReview);
             }
-
+            
             // Update currentUserReview
             currentUserReview = newReview;
-
+            
             // Update the UI immediately
             updateReviewsOverlay();
-
+            
             // Update the rating display immediately
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
-
+            
             // Clear cache and reload in background to ensure data consistency
             const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
             reviewsCache.delete(cacheKey);
@@ -2700,23 +2703,23 @@ async function deleteUserReview() {
         console.error('No vetrina ID for reviews');
         return;
     }
-
+    
     // Check if user is authenticated
     const token = localStorage.getItem('authToken');
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
+    
     if (!token || !currentUser) {
         console.error('User not authenticated');
         showNotification('Sessione scaduta. Effettua nuovamente l\'accesso.', 'error');
         return;
     }
-
+    
     if (!confirm('Sei sicuro di voler eliminare la tua recensione?')) {
         return;
     }
-
+    
     try {
-
+        
         const token = localStorage.getItem('authToken');
         if (!token) {
             console.error('No auth token found');
@@ -2734,27 +2737,27 @@ async function deleteUserReview() {
 
         if (response.ok) {
             showNotification('Recensione eliminata con successo!', 'success');
-
+            
             // Get current user info
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
+            
             // Remove the user's review from currentReviews immediately
-            const reviewIndex = currentReviews.findIndex(review =>
+            const reviewIndex = currentReviews.findIndex(review => 
                 review.user?.user_id === currentUser.user_id
             );
             if (reviewIndex !== -1) {
                 currentReviews.splice(reviewIndex, 1);
             }
-
+            
             // Clear currentUserReview
             currentUserReview = null;
-
+            
             // Update the UI immediately
             updateReviewsOverlay();
-
+            
             // Update the rating display immediately
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
-
+            
             // Clear cache and reload in background to ensure data consistency
             const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
             reviewsCache.delete(cacheKey);
@@ -2785,13 +2788,13 @@ async function deleteUserReview() {
 function updateVetrinaRatingInSearch(vetrinaId) {
     // Update search results (if we're on search page)
     const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
-
+    
     ratingElements.forEach(element => {
         // For search page, we would need currentVetrine array, but in document preview we don't have it
         // So we'll skip updating search results from document preview page
         // The search page will update its own data when it loads
     });
-
+    
     // Update document preview page rating badge data attributes
     const docRatingBadge = document.querySelector('.doc-rating-display[data-vetrina-id="' + vetrinaId + '"]');
     if (docRatingBadge) {
@@ -2801,19 +2804,19 @@ function updateVetrinaRatingInSearch(vetrinaId) {
             const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
             const newRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
             const newReviewCount = currentReviews.length;
-
+            
             docRatingBadge.setAttribute('data-rating', newRating.toString());
             docRatingBadge.setAttribute('data-review-count', newReviewCount.toString());
-
+            
             // Also update the visible rating display
             const ratingScore = docRatingBadge.querySelector('.rating-score');
             const ratingStars = docRatingBadge.querySelector('.rating-stars');
             const ratingCount = docRatingBadge.querySelector('.rating-count');
-
+            
             if (ratingScore) ratingScore.textContent = newRating.toFixed(1);
             if (ratingStars) ratingStars.innerHTML = generateFractionalStars(newRating);
             if (ratingCount) ratingCount.textContent = `(${newReviewCount})`;
-
+            
             console.log('Updated document preview rating badge:', {
                 vetrinaId: vetrinaId,
                 rating: newRating,
@@ -2838,13 +2841,13 @@ async function handleFavorite() {
         showNotification('Errore: Pulsante preferiti non trovato', 'error');
         return;
     }
-
+    
     if (!currentVetrina) {
         console.error('❌ Current vetrina is missing:', currentVetrina);
         showNotification('Errore: Dati vetrina non disponibili. Ricarica la pagina.', 'error');
         return;
     }
-
+    
     // Get the vetrina ID from either id or vetrina_id field
     const vetrinaId = currentVetrina.id || currentVetrina.vetrina_id;
     if (!vetrinaId) {
@@ -2863,7 +2866,7 @@ async function handleFavorite() {
     try {
         const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
             method: isActive ? 'POST' : 'DELETE'
-        });
+            });
 
         if (response) {
             // Update the favorite state in the UI based on the action
@@ -2878,28 +2881,28 @@ async function handleFavorite() {
                 favoriteBtn.title = 'Aggiungi ai Preferiti';
                 showNotification('Rimosso dai preferiti 💔', 'success');
             }
-
+            
             // Update the current document's favorite status
             currentDocument.favorite = isActive; // isActive is the new state
-
+            
             // Mark that favorites have been changed so search page knows to refresh
             sessionStorage.setItem('favoritesChanged', 'true');
         }
     } catch (error) {
         console.error('Error toggling favorite:', error);
-
+        
         // Revert the optimistic UI update
         favoriteBtn.classList.toggle('active'); // Toggle back to original state
         favoriteBtn.setAttribute('title', isActive ? 'Aggiungi ai preferiti' : 'Rimuovi dai preferiti');
-
+        
         // Show specific error message based on error type
         if (error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
             showNotification('Errore di connessione al server. Verifica la tua connessione e riprova.', 'error');
         } else if (error.message.includes('500')) {
             showNotification('Errore del server. Il servizio preferiti è temporaneamente non disponibile. Riprova più tardi.', 'error');
         } else {
-            showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
-        }
+        showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
+    }
     }
 }
 
@@ -2924,20 +2927,20 @@ async function handleAddToCart() {
         // In a real implementation, this would call the cart API for vetrine
         // For now, we'll simulate the API call
         await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
-
+        
         showNotification('Bundle aggiunto al carrello!', 'success');
-
+        
         // Update cart count in header (if cart indicator exists)
         updateCartCount();
-
+        
     } catch (error) {
         console.error('Add to cart error:', error);
-
+        
         // Revert UI on error
         addToCartBtn.classList.remove('added');
         addToCartBtn.innerHTML = `Aggiungi al Carrello`;
         addToCartBtn.disabled = false;
-
+        
         showNotification('Errore nell\'aggiunta del bundle al carrello. Riprova.', 'error');
     }
 }
@@ -2945,7 +2948,7 @@ async function handleAddToCart() {
 function updateCartCount() {
     // In a real implementation, this would update a cart counter in the header
     // For now, we'll just log the action
-
+    
     // You could add a cart indicator to the header like this:
     // const cartIndicator = document.querySelector('.cart-indicator');
     // if (cartIndicator) {
@@ -2969,9 +2972,172 @@ function handleShare() {
     }
 }
 
-// Download functionality removed - PDFs are view-only
+async function downloadRedactedDocument(fileId) {
+    if (!fileId) {
+        showNotification('Nessun file disponibile per il download', 'error');
+        return;
+    }
 
-// Download functionality removed - Files are view-only
+    showNotification('Inizio del download del documento redatto...', 'info');
+
+    try {
+        const url = `${API_BASE}/files/${fileId}/download/redacted`;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': authToken ? `Bearer ${authToken}` : ''
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `redacted-document-${fileId}.pdf`;
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+            if (filenameMatch && filenameMatch.length > 1) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        // Create a temporary form to handle the download (CSP compliant)
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `${API_BASE}/files/${fileId}/download`;
+        form.target = '_blank';
+        
+        // Add authorization header via hidden input
+        const authInput = document.createElement('input');
+        authInput.type = 'hidden';
+        authInput.name = 'auth_token';
+        authInput.value = authToken;
+        form.appendChild(authInput);
+        
+        // Add filename
+        const filenameInput = document.createElement('input');
+        filenameInput.type = 'hidden';
+        filenameInput.name = 'filename';
+        filenameInput.value = filename;
+        form.appendChild(filenameInput);
+        
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        showNotification('Download completato!', 'success');
+    } catch (error) {
+        console.error('Download redacted error:', error);
+        showNotification('Errore nel download del documento redatto', 'error');
+    }
+}
+
+async function downloadDocument(fileId) {
+    if (!fileId) {
+        showNotification('Nessun file disponibile per il download', 'error');
+        return;
+    }
+    
+    try {
+        const response = await makeRequest(`${API_BASE}/files/${fileId}/download`, {
+            method: 'GET'
+        });
+        
+        if (response.download_url) {
+            window.open(response.download_url, '_blank');
+            showNotification('Download avviato', 'success');
+        } else {
+            showNotification('Download avviato', 'success');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showNotification('Errore nel download del documento', 'error');
+    }
+}
+
+// Download all files in the vetrina
+async function downloadAllVetrinaFiles(vetrinaId, vetrinaFiles) {
+    if (!vetrinaId || !vetrinaFiles || vetrinaFiles.length === 0) {
+        showNotification('Nessun file disponibile per il download', 'error');
+        return;
+    }
+
+    showNotification('Inizio del download del bundle...', 'info');
+
+    try {
+        // Check if the vetrina is free (all files have price 0)
+        const isFree = vetrinaFiles.every(file => (file.price || 0) === 0);
+        
+        // Download each file individually
+        for (let i = 0; i < vetrinaFiles.length; i++) {
+            const file = vetrinaFiles[i];
+            const fileName = extractOriginalFilename(file.filename);
+            
+            try {
+                if (isFree) {
+                    // For free vetrine, download the original file
+                    await downloadSingleFile(file.file_id, fileName, false);
+                } else {
+                    // For paid vetrine, download the redacted version
+                    await downloadSingleFile(file.file_id, fileName, true);
+                }
+                
+                // Add a small delay between downloads to avoid overwhelming the server
+                if (i < vetrinaFiles.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            } catch (error) {
+                console.error(`Error downloading file ${fileName}:`, error);
+                showNotification(`Errore nel download di ${fileName}`, 'error');
+            }
+        }
+        
+        showNotification('Download del bundle completato!', 'success');
+    } catch (error) {
+        console.error('Download bundle error:', error);
+        showNotification('Errore nel download del bundle', 'error');
+    }
+}
+
+// Helper function to download a single file
+async function downloadSingleFile(fileId, fileName, isRedacted = false) {
+    const endpoint = isRedacted ? 'download/redacted' : 'download';
+    const url = `${API_BASE}/files/${fileId}/${endpoint}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': authToken ? `Bearer ${authToken}` : ''
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // Get the blob from the response
+        const blob = await response.blob();
+        
+        // Create a download link
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        
+        // Trigger the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL object
+        window.URL.revokeObjectURL(downloadUrl);
+        
+    } catch (error) {
+        console.error(`Error downloading file ${fileName}:`, error);
+        throw error;
+    }
+}
 
 // Show and fade out bottom overlay elements
 function showAndFadeBottomOverlay() {
@@ -2987,17 +3153,17 @@ function showAndFadeBottomOverlay() {
     bottomOverlayTimeout = setTimeout(() => {
         bottomOverlay.classList.remove('visible');
     }, 2000); // Hide after 2 seconds
-}
+} 
 
 // Related Documents Renderer - Professional Placeholder Implementation
 function renderRelatedDocuments(relatedDocs) {
     const relatedContainer = document.querySelector('.related-docs');
-
+    
     if (!relatedContainer) return;
-
+    
     // Generate professional placeholder documents
     const placeholderDocs = generatePlaceholderDocuments();
-
+    
     const relatedHTML = placeholderDocs.map(doc => `
         <div class="related-doc-item">
             <div class="related-doc-preview" data-action="navigate" data-url="document-preview.html?id=${doc.id}">
@@ -3032,7 +3198,7 @@ function renderRelatedDocuments(relatedDocs) {
             </div>
         </div>
     `).join('');
-
+    
     relatedContainer.innerHTML = `
         <h3>
             <span class="material-symbols-outlined">library_books</span>
@@ -3056,7 +3222,7 @@ function generatePlaceholderDocuments() {
         { type: 'Riassunto', icon: 'summarize', courses: ['Teoria dei Giochi', 'Organizzazione Aziendale', 'Economia del Lavoro', 'Economia Pubblica'] },
         { type: 'Laboratorio', icon: 'science', courses: ['Econometria Applicata', 'Analisi Statistica', 'Modelli Econometrici', 'Data Science'] }
     ];
-
+    
     const authors = [
         'Rossi M.',
         'Bianchi A.',
@@ -3067,14 +3233,14 @@ function generatePlaceholderDocuments() {
         'Azzurri R.',
         'Viola M.'
     ];
-
+    
     const documents = [];
-
+    
     for (let i = 0; i < 8; i++) {
         const docType = documentTypes[i % documentTypes.length];
         const course = docType.courses[i % docType.courses.length];
         const author = authors[i % authors.length];
-
+        
         documents.push({
             id: 200 + i,
             title: `${docType.type} - ${course}`,
@@ -3087,7 +3253,7 @@ function generatePlaceholderDocuments() {
             course: course
         });
     }
-
+    
     return documents;
 }
 
@@ -3103,58 +3269,58 @@ function generateDocumentDescription(docType, course) {
         'Riassunto': `Riassunto completo di ${course}. Concetti chiave e formule principali.`,
         'Laboratorio': `Guide di laboratorio per ${course}. Procedure sperimentali dettagliate.`
     };
-
+    
     return descriptions[docType] || `Materiale didattico per ${course}.`;
 }
 
 // Add Related Document to Cart
 async function addRelatedToCart(docId, event) {
     event.stopPropagation(); // Prevent card click
-
+    
     const button = event.currentTarget;
     const btnText = button.querySelector('.btn-text');
     const icon = button.querySelector('.material-symbols-outlined');
-
+    
     // Optimistic UI update
     button.classList.add('adding');
     btnText.textContent = 'Aggiungendo...';
     icon.textContent = 'hourglass_empty';
-
+    
     try {
         // Simulate API call (replace with actual cart API)
         await new Promise(resolve => setTimeout(resolve, 800));
-
+        
         // Success state
         button.classList.remove('adding');
         button.classList.add('added');
         btnText.textContent = 'Aggiunto!';
         icon.textContent = 'check_circle';
-
+        
         // Update cart count
         updateCartCount();
-
+        
         // Show success notification
         showNotification('Documento aggiunto al carrello! 🛒', 'success');
-
+        
         // Reset button after 2 seconds
         setTimeout(() => {
             button.classList.remove('added');
             btnText.textContent = 'Aggiungi';
             icon.textContent = 'add_shopping_cart';
         }, 2000);
-
+        
     } catch (error) {
         console.error('Error adding to cart:', error);
-
+        
         // Error state
         button.classList.remove('adding');
         button.classList.add('error');
         btnText.textContent = 'Errore';
         icon.textContent = 'error';
-
+        
         // Show error notification
         showNotification('Errore nell\'aggiunta al carrello. Riprova.', 'error');
-
+        
         // Reset button after 2 seconds
         setTimeout(() => {
             button.classList.remove('error');

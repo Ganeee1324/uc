@@ -305,9 +305,9 @@ async function loadPdfWithPdfJs(fileId, viewerElementId) {
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
     try {
-        const url = `${API_BASE}/files/${fileId}/download`;
+        const url = `${API_BASE}/files/${fileId}/redacted`;
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
+        if (!response.ok) throw new Error(`Failed to fetch redacted PDF: ${response.statusText}`);
 
         const pdfData = await response.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({ data: pdfData });
@@ -517,14 +517,14 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
     try {
-        // 1. Use the existing download endpoint for PDF viewing
-        const pdfUrl = `${API_BASE}/files/${fileId}/download`;
+        // 1. Use the redacted endpoint for PDF viewing (not download)
+        const pdfUrl = `${API_BASE}/files/${fileId}/redacted`;
         const response = await fetch(pdfUrl, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
 
         if (!response.ok) {
-            throw new Error(`Impossibile visualizzare il PDF: ${response.statusText}`);
+            throw new Error(`Impossibile visualizzare il PDF redatto: ${response.statusText}`);
         }
 
         const pdfData = await response.arrayBuffer();
@@ -1268,7 +1268,7 @@ function setupActionButtons(fileData, vetrinaData = null) {
     } else {
         // For paid vetrine: show primary as purchase bundle
         if (purchaseBtn) {
-            purchaseBtn.innerHTML = `Acquista Bundle`;
+            purchaseBtn.innerHTML = `Acquista Ora`;
             purchaseBtn.onclick = () => handleVetrinaPurchase(vetrinaData.vetrina_id || vetrinaData.id, totalPrice);
         }
         // Hide secondary download button (download functionality removed)

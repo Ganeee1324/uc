@@ -3,3 +3,6 @@ python3 -m http.server
 
 
 Pushed branch main to remote origin (uc repo) – hash d850c4f.
+
+
+Make overlay in vendor page and in document preview page be the exact same as it is in search page.

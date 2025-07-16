@@ -107,6 +107,7 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
+        initializeAISearchToggle();
         
         // Load valid tags from backend first
         await loadValidTags();
@@ -4301,167 +4302,7 @@ async function addToCart(docId, event) {
     }
 }
 
-// Replace the performSearch function to use backend search instead of client-side
-async function performSearch(query) {
-    try {
-        // Show loading cards immediately for search (show more cards for better UX)
-        showLoadingCards(12);
-        showStatus('Ricerca in corso... 🔍');
-        
-        // If no query, load all files with current filters
-        if (!query || !query.trim()) {
-            await loadAllFiles();
-            return;
-        }
-        
-        // Build search parameters
-        const searchParams = new URLSearchParams();
-        searchParams.append('text', query.trim());
-        
-        // Add any active filters to the search
-        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
-        // Client-side only filters: vetrinaType, minRating, priceType, sizeType, timeType
-        if (activeFilters.course) {
-            const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
-            searchParams.append('course_name', courseValue);
-        }
-        if (activeFilters.faculty) {
-            const facultyValue = Array.isArray(activeFilters.faculty) ? activeFilters.faculty[0] : activeFilters.faculty;
-            searchParams.append('faculty', facultyValue);
-        }
-        if (activeFilters.canale) {
-            // Handle "Canale Unico" mapping to "0" for backend
-            const canaleValue = Array.isArray(activeFilters.canale) ? activeFilters.canale[0] : activeFilters.canale;
-            const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
-            searchParams.append('canale', backendCanaleValue);
-        }
-        if (activeFilters.language) {
-            const languageValue = Array.isArray(activeFilters.language) ? activeFilters.language[0] : activeFilters.language;
-            searchParams.append('language', languageValue);
-        }
-        if (activeFilters.tag) {
-            const tagValue = Array.isArray(activeFilters.tag) ? activeFilters.tag[0] : activeFilters.tag;
-            searchParams.append('tag', tagValue);
-        }
-        if (activeFilters.documentType) {
-            const docTypeValue = Array.isArray(activeFilters.documentType) ? activeFilters.documentType[0] : activeFilters.documentType;
-            searchParams.append('extension', docTypeValue);
-        }
-        // Note: file_count parameter not supported by backend yet, keeping vetrinaType as client-side filter
-        if (activeFilters.academicYear) {
-            // Extract year from academic year format (e.g., "2024/2025" -> 2024)
-            const yearValue = Array.isArray(activeFilters.academicYear) ? activeFilters.academicYear[0] : activeFilters.academicYear;
-            const year = yearValue.split('/')[0];
-            searchParams.append('date_year', year);
-        }
-        if (activeFilters.courseYear) {
-            // Add course year filter (e.g., 1, 2, 3 for first, second, third year)
-            const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
-            searchParams.append('course_year', courseYearValue);
-        }
-        
-        // Make backend search request with fallback
-        let response;
-        try {
-            // Use authenticated request for GET search to include favorite status
-            response = await makeAuthenticatedRequest(`/vetrine?${searchParams.toString()}`);
-        } catch (error) {
-            console.warn('⚠️ Backend search failed:', error);
-            showStatus('Ricerca backend non disponibile. Riprova più tardi.');
-            // Show empty state if backend fails
-            currentFiles = [];
-            renderDocuments([]);
-            return;
-        }
-    
-        if (!response) {
-            console.warn('Empty response from backend, showing empty state');
-            currentFiles = [];
-            renderDocuments([]);
-            showStatus('Nessun risultato trovato');
-            return;
-        }
-        
-        const searchResults = response.vetrine || [];
-        const totalCount = response.count || searchResults.length;
-        
-        // If backend search returns 0 results, show empty state
-        if (searchResults.length === 0) {
-            currentFiles = [];
-            renderDocuments([]);
-            showStatus(`Nessun risultato trovato per "${query}" 🔍`);
-            return;
-        }
-        
-        // Transform backend vetrine results using ONLY vetrina-level data (no file metadata needed!)
-        const transformedResults = searchResults.map(vetrina => {
-            // Use vetrina-level information provided by backend
-            const vetrineCard = {
-                id: vetrina.vetrina_id,
-                isVetrina: true,
-                filesLoaded: false, // Mark as not loaded - will load on-demand when needed
-                fileCount: vetrina.file_count || 0,
-                // files: [] - will be loaded on-demand when user clicks preview/quick look
-                filename: vetrina.file_count > 1 ? `${vetrina.file_count} files` : 'Documento',
-                title: vetrina.name || 'Vetrina Senza Nome',
-                description: vetrina.description || 'No description available',
-                size: 0, // Will be calculated when files are loaded on-demand
-                price: vetrina.price || 0, // Use backend-provided price
-                created_at: vetrina.created_at || new Date().toISOString(),
-                rating: vetrina.average_rating || 0, // Use backend-provided rating
-                review_count: vetrina.review_count || 0, // Use backend-provided review count
-                course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
-                faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
-                language: vetrina.course_instance?.language || 'Italiano',
-                canale: vetrina.course_instance?.canale || 'A',
-                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
-                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
-                document_types: [], // Will be populated when files are loaded on-demand
-                document_type: 'BUNDLE', // Default to bundle, will be updated when files are loaded
-                author_username: vetrina.author?.username || 'Unknown',
-                owned: false, // Will be determined when files are loaded on-demand
-                favorite: vetrina.favorite === true,
-                tags: vetrina.tags || [], // Use backend-provided tags
-                primary_tag: vetrina.tags && vetrina.tags.length > 0 ? vetrina.tags[0] : null,
-                vetrina_info: {
-                    id: vetrina.vetrina_id,
-                    name: vetrina.name,
-                    description: vetrina.description,
-                    course_instance_id: vetrina.course_instance?.course_instance_id,
-                    owner_id: vetrina.author?.user_id,
-                    owner_username: vetrina.author?.username || 'Unknown'
-                }
-            };
-            return vetrineCard;
-        });
-        
-        // Apply any remaining client-side filters (except backend-handled ones)
-        const filteredResults = applyClientSideFilters(transformedResults);
-        
-        // Update current files and render
-        currentFiles = filteredResults;
-        renderDocuments(filteredResults);
-        
-        // Show enhanced search results status
-        const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
-        const searchSummary = searchTerms.length > 1 
-            ? `"${searchTerms.join('" + "')}"` 
-            : `"${query}"`;
-        
-        // Enhanced status message with backend count information
-        if (totalCount > filteredResults.length) {
-            showStatus(`Trovati ${filteredResults.length} di ${totalCount} documenti per ${searchSummary} 🎯`);
-        } else {
-            showStatus(`Trovati ${filteredResults.length} documenti per ${searchSummary} 🎉`);
-        }
-        
-    } catch (error) {
-        console.error('Search error:', error);
-        showError('Errore durante la ricerca. Riprova più tardi.');
-        // Fallback to current files if search fails
-        renderDocuments(currentFiles);
-    }
-}
+
 
 
 
@@ -5942,3 +5783,330 @@ function updateVetrinaRatingInSearch(vetrinaId) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeReviewsOverlay();
 });
+
+// Global variable to track AI search state
+let aiSearchEnabled = false;
+
+// Initialize AI Search Toggle
+function initializeAISearchToggle() {
+    const aiToggle = document.getElementById('aiSearchToggle');
+    const searchBar = document.querySelector('.search-bar');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (!aiToggle) return;
+    
+    // Load saved state from localStorage
+    const savedState = localStorage.getItem('aiSearchEnabled');
+    if (savedState === 'true') {
+        aiSearchEnabled = true;
+        aiToggle.classList.add('active');
+        searchBar.classList.add('ai-active');
+        updateSearchPlaceholder(true);
+    }
+    
+    // Toggle event handler
+    aiToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle state
+        aiSearchEnabled = !aiSearchEnabled;
+        
+        // Update UI
+        if (aiSearchEnabled) {
+            aiToggle.classList.add('active');
+            searchBar.classList.add('ai-active');
+            updateSearchPlaceholder(true);
+            showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
+        } else {
+            aiToggle.classList.remove('active');
+            searchBar.classList.remove('ai-active');
+            updateSearchPlaceholder(false);
+            showStatus('Ricerca standard attivata', 'success');
+        }
+        
+        // Save state to localStorage
+        localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
+        
+        // If there's a current search query, re-run the search with new mode
+        const currentQuery = searchInput.value.trim();
+        if (currentQuery) {
+            performSearch(currentQuery);
+        }
+    });
+    
+    // Keyboard shortcut: Ctrl+Shift+A to toggle AI search
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+            e.preventDefault();
+            aiToggle.click();
+        }
+    });
+    
+    // Add tooltip on hover
+    aiToggle.addEventListener('mouseenter', function() {
+        const tooltip = aiSearchEnabled ? 
+            'Disattiva ricerca AI+Vectorial (Ctrl+Shift+A)' : 
+            'Attiva ricerca AI+Vectorial (Ctrl+Shift+A)';
+        aiToggle.title = tooltip;
+    });
+    
+    // Initialize search input event listeners
+    if (searchInput) {
+        // Debounced search function
+        const debouncedSearch = debounce(async (query) => {
+            await performSearch(query);
+        }, 300);
+        
+        // Input event for real-time search
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            if (query.length > 0) {
+                debouncedSearch(query);
+            } else {
+                // If search is cleared, load all files
+                loadAllFiles();
+            }
+        });
+        
+        // Enter key to perform immediate search
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = e.target.value.trim();
+                if (query.length > 0) {
+                    performSearch(query);
+                } else {
+                    loadAllFiles();
+                }
+            }
+        });
+        
+        // Focus event to show current mode
+        searchInput.addEventListener('focus', function() {
+            if (aiSearchEnabled) {
+                showStatus('Modalità AI+Vectorial attiva 🤖', 'success');
+            }
+        });
+    }
+}
+
+// Update search placeholder based on AI mode
+function updateSearchPlaceholder(aiEnabled) {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    if (aiEnabled) {
+        searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
+    } else {
+        searchInput.placeholder = 'Cerca una dispensa...';
+    }
+}
+
+// Enhanced performSearch function with AI support
+async function performSearch(query) {
+    try {
+        // Show loading cards immediately for search
+        showLoadingCards(12);
+        
+        // Show AI-specific loading message
+        if (aiSearchEnabled) {
+            showStatus('Ricerca AI+Vectorial in corso... 🤖', 'success');
+            // Add loading animation to toggle
+            const aiToggle = document.getElementById('aiSearchToggle');
+            if (aiToggle) {
+                aiToggle.classList.add('loading');
+            }
+        } else {
+            showStatus('Ricerca in corso... 🔍');
+        }
+        
+        // If no query, load all files with current filters
+        if (!query || !query.trim()) {
+            await loadAllFiles();
+            return;
+        }
+        
+        // Build search parameters
+        const searchParams = new URLSearchParams();
+        searchParams.append('text', query.trim());
+        
+        // Add AI search parameter if enabled
+        if (aiSearchEnabled) {
+            searchParams.append('ai_search', 'true');
+            searchParams.append('vector_search', 'true');
+        }
+        
+        // Add any active filters to the search
+        // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
+        if (activeFilters.course) {
+            const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
+            searchParams.append('course_name', courseValue);
+        }
+        if (activeFilters.faculty) {
+            const facultyValue = Array.isArray(activeFilters.faculty) ? activeFilters.faculty[0] : activeFilters.faculty;
+            searchParams.append('faculty', facultyValue);
+        }
+        if (activeFilters.canale) {
+            const canaleValue = Array.isArray(activeFilters.canale) ? activeFilters.canale[0] : activeFilters.canale;
+            const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
+            searchParams.append('canale', backendCanaleValue);
+        }
+        if (activeFilters.language) {
+            const languageValue = Array.isArray(activeFilters.language) ? activeFilters.language[0] : activeFilters.language;
+            searchParams.append('language', languageValue);
+        }
+        if (activeFilters.tag) {
+            const tagValue = Array.isArray(activeFilters.tag) ? activeFilters.tag[0] : activeFilters.tag;
+            searchParams.append('tag', tagValue);
+        }
+        if (activeFilters.documentType) {
+            const docTypeValue = Array.isArray(activeFilters.documentType) ? activeFilters.documentType[0] : activeFilters.documentType;
+            searchParams.append('extension', docTypeValue);
+        }
+        if (activeFilters.academicYear) {
+            const yearValue = Array.isArray(activeFilters.academicYear) ? activeFilters.academicYear[0] : activeFilters.academicYear;
+            const year = yearValue.split('/')[0];
+            searchParams.append('date_year', year);
+        }
+        if (activeFilters.courseYear) {
+            const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
+            searchParams.append('course_year', courseYearValue);
+        }
+        
+        // Make backend search request with fallback
+        let response;
+        try {
+            response = await makeAuthenticatedRequest(`/vetrine?${searchParams.toString()}`);
+        } catch (error) {
+            console.warn('⚠️ Backend search failed:', error);
+            
+            // Remove loading state from toggle
+            const aiToggle = document.getElementById('aiSearchToggle');
+            if (aiToggle) {
+                aiToggle.classList.remove('loading');
+            }
+            
+            if (aiSearchEnabled) {
+                showStatus('Ricerca AI non disponibile. Passaggio a ricerca standard...', 'error');
+                // Fallback to standard search
+                aiSearchEnabled = false;
+                const toggle = document.getElementById('aiSearchToggle');
+                const searchBar = document.querySelector('.search-bar');
+                if (toggle) toggle.classList.remove('active');
+                if (searchBar) searchBar.classList.remove('ai-active');
+                updateSearchPlaceholder(false);
+                localStorage.setItem('aiSearchEnabled', 'false');
+                
+                // Retry with standard search
+                await performSearch(query);
+                return;
+            } else {
+                showStatus('Ricerca backend non disponibile. Riprova più tardi.');
+                currentFiles = [];
+                renderDocuments([]);
+                return;
+            }
+        }
+    
+        // Remove loading state from toggle
+        const aiToggle = document.getElementById('aiSearchToggle');
+        if (aiToggle) {
+            aiToggle.classList.remove('loading');
+        }
+    
+        if (!response) {
+            console.warn('Empty response from backend, showing empty state');
+            currentFiles = [];
+            renderDocuments([]);
+            showStatus('Nessun risultato trovato');
+            return;
+        }
+        
+        const searchResults = response.vetrine || [];
+        const totalCount = response.count || searchResults.length;
+        
+        // If backend search returns 0 results, show empty state
+        if (searchResults.length === 0) {
+            currentFiles = [];
+            renderDocuments([]);
+            const searchMode = aiSearchEnabled ? 'AI+Vectorial' : 'standard';
+            showStatus(`Nessun risultato trovato per "${query}" con ricerca ${searchMode} 🔍`);
+            return;
+        }
+        
+        // Transform backend vetrine results
+        const transformedResults = searchResults.map(vetrina => {
+            const vetrineCard = {
+                id: vetrina.vetrina_id,
+                isVetrina: true,
+                filesLoaded: false,
+                fileCount: vetrina.file_count || 0,
+                filename: vetrina.file_count > 1 ? `${vetrina.file_count} files` : 'Documento',
+                title: vetrina.name || 'Vetrina Senza Nome',
+                description: vetrina.description || 'No description available',
+                size: 0,
+                price: vetrina.price || 0,
+                created_at: vetrina.created_at || new Date().toISOString(),
+                rating: vetrina.average_rating || 0,
+                review_count: vetrina.review_count || 0,
+                course_name: vetrina.course_instance?.course_name || extractCourseFromVetrina(vetrina.name),
+                faculty_name: vetrina.course_instance?.faculty_name || extractFacultyFromVetrina(vetrina.name),
+                language: vetrina.course_instance?.language || 'Italiano',
+                canale: vetrina.course_instance?.canale || 'A',
+                course_semester: vetrina.course_instance?.course_semester || 'Primo Semestre',
+                academic_year: `${vetrina.course_instance?.date_year || 2024}/${(vetrina.course_instance?.date_year || 2024) + 1}`,
+                document_types: [],
+                document_type: 'BUNDLE',
+                author_username: vetrina.author?.username || 'Unknown',
+                owned: false,
+                favorite: vetrina.favorite === true,
+                tags: vetrina.tags || [],
+                primary_tag: vetrina.tags && vetrina.tags.length > 0 ? vetrina.tags[0] : null,
+                vetrina_info: {
+                    id: vetrina.vetrina_id,
+                    name: vetrina.name,
+                    description: vetrina.description,
+                    course_instance_id: vetrina.course_instance?.course_instance_id,
+                    owner_id: vetrina.author?.user_id,
+                    owner_username: vetrina.author?.username || 'Unknown'
+                }
+            };
+            return vetrineCard;
+        });
+        
+        // Apply any remaining client-side filters
+        const filteredResults = applyClientSideFilters(transformedResults);
+        
+        // Update current files and render
+        currentFiles = filteredResults;
+        renderDocuments(filteredResults);
+        
+        // Show enhanced search results status
+        const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+        const searchSummary = searchTerms.length > 1 
+            ? `"${searchTerms.join('" + "')}"` 
+            : `"${query}"`;
+        
+        const searchMode = aiSearchEnabled ? 'AI+Vectorial' : 'standard';
+        const aiIcon = aiSearchEnabled ? '🤖' : '🔍';
+        
+        if (totalCount > filteredResults.length) {
+            showStatus(`Trovati ${filteredResults.length} di ${totalCount} documenti per ${searchSummary} (${searchMode}) ${aiIcon}`);
+        } else {
+            showStatus(`Trovati ${filteredResults.length} documenti per ${searchSummary} (${searchMode}) ${aiIcon}`);
+        }
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        
+        // Remove loading state from toggle
+        const aiToggle = document.getElementById('aiSearchToggle');
+        if (aiToggle) {
+            aiToggle.classList.remove('loading');
+        }
+        
+        showError('Errore durante la ricerca. Riprova più tardi.');
+        renderDocuments(currentFiles);
+    }
+}

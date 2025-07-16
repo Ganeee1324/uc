@@ -76,8 +76,19 @@
                 <div class="search-container">
                     <div class="search-bar">
                         <input type="text" class="search-input" id="searchInput" placeholder="Cerca una dispensa...">
-                        <button class="search-btn" id="searchBtn">
-                            <i class="material-symbols-outlined">search</i>
+                        <button class="ai-search-toggle" id="aiSearchToggle" title="Attiva ricerca AI avanzata">
+                            <div class="toggle-container">
+                                <div class="toggle-track">
+                                    <div class="toggle-thumb">
+                                        <i class="material-symbols-outlined toggle-icon-off">search</i>
+                                        <i class="material-symbols-outlined toggle-icon-on">smart_toy</i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="toggle-label">
+                                <span class="label-text-off">Standard</span>
+                                <span class="label-text-on">AI+Vector</span>
+                            </div>
                         </button>
                     </div>
                     <button class="filters-btn" id="filtersBtn">

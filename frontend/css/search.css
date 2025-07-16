@@ -6503,3 +6503,339 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         padding: var(--space-4);
     }
 }
+
+/* AI Search Toggle Button - Professional Design */
+.ai-search-toggle {
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s var(--ease-2);
+    margin-left: var(--space-3);
+    position: relative;
+    z-index: 1001;
+    padding: var(--space-2);
+    min-width: 80px;
+    height: 50px;
+}
+
+.ai-search-toggle:hover {
+    transform: translateY(-1px);
+}
+
+.ai-search-toggle:active {
+    transform: translateY(0);
+}
+
+/* Toggle Container */
+.toggle-container {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    margin-bottom: var(--space-1);
+}
+
+/* Toggle Track */
+.toggle-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--gray-200) 0%, var(--gray-300) 100%);
+    border-radius: 12px;
+    transition: all 0.3s var(--ease-bounce);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--gray-300);
+}
+
+/* Toggle Thumb */
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--white);
+    border-radius: 50%;
+    transition: all 0.3s var(--ease-bounce);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Toggle Icons */
+.toggle-icon-off,
+.toggle-icon-on {
+    font-size: 14px;
+    transition: all 0.3s var(--ease-2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.toggle-icon-off {
+    color: var(--gray-600);
+    opacity: 1;
+}
+
+.toggle-icon-on {
+    color: var(--white);
+    opacity: 0;
+}
+
+/* Toggle Labels */
+.toggle-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    transition: all 0.3s var(--ease-2);
+}
+
+.label-text-off,
+.label-text-on {
+    transition: all 0.3s var(--ease-2);
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.label-text-off {
+    color: var(--gray-600);
+    opacity: 1;
+}
+
+.label-text-on {
+    color: var(--white);
+    opacity: 0;
+}
+
+/* Active State - AI Search Enabled */
+.ai-search-toggle.active .toggle-track {
+    background: linear-gradient(135deg, 
+        #667eea 0%, 
+        #764ba2 25%, 
+        #f093fb 50%, 
+        #f5576c 75%, 
+        #4facfe 100%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 
+                0 0 20px rgba(102, 126, 234, 0.3);
+    border: 1px solid rgba(102, 126, 234, 0.5);
+}
+
+.ai-search-toggle.active .toggle-thumb {
+    transform: translateX(24px);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.ai-search-toggle.active .toggle-icon-off {
+    opacity: 0;
+}
+
+.ai-search-toggle.active .toggle-icon-on {
+    opacity: 1;
+}
+
+.ai-search-toggle.active .label-text-off {
+    opacity: 0;
+}
+
+.ai-search-toggle.active .label-text-on {
+    opacity: 1;
+}
+
+/* Search Bar Border Animation when AI is active */
+.search-bar.ai-active {
+    border: 2px solid transparent;
+    background: linear-gradient(var(--white), var(--white)) padding-box,
+                linear-gradient(135deg, 
+                    #667eea 0%, 
+                    #764ba2 25%, 
+                    #f093fb 50%, 
+                    #f5576c 75%, 
+                    #4facfe 100%) border-box;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 
+                var(--shadow-xl),
+                0 0 30px rgba(102, 126, 234, 0.2);
+    animation: aiSearchGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes aiSearchGlow {
+    0% {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 
+                    var(--shadow-xl),
+                    0 0 30px rgba(102, 126, 234, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15), 
+                    var(--shadow-xl),
+                    0 0 40px rgba(102, 126, 234, 0.3);
+    }
+}
+
+/* Hover effects for active state */
+.ai-search-toggle.active:hover .toggle-track {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 
+                0 0 25px rgba(102, 126, 234, 0.4);
+}
+
+.ai-search-toggle.active:hover .toggle-thumb {
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+/* Focus states for accessibility */
+.ai-search-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.ai-search-toggle.active:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
+}
+
+/* Loading state for AI search */
+.ai-search-toggle.loading .toggle-thumb {
+    animation: aiSearchPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes aiSearchPulse {
+    0%, 100% {
+        transform: translateX(24px) scale(1);
+    }
+    50% {
+        transform: translateX(24px) scale(1.1);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ai-search-toggle {
+        min-width: 70px;
+        height: 45px;
+        margin-left: var(--space-2);
+    }
+    
+    .toggle-container {
+        width: 42px;
+        height: 22px;
+    }
+    
+    .toggle-thumb {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .ai-search-toggle.active .toggle-thumb {
+        transform: translateX(20px);
+    }
+    
+    .toggle-icon-off,
+    .toggle-icon-on {
+        font-size: 12px;
+    }
+    
+    .toggle-label {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-search-toggle {
+        min-width: 60px;
+        height: 40px;
+        margin-left: var(--space-1);
+    }
+    
+    .toggle-container {
+        width: 38px;
+        height: 20px;
+    }
+    
+    .toggle-thumb {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .ai-search-toggle.active .toggle-thumb {
+        transform: translateX(18px);
+    }
+    
+    .toggle-icon-off,
+    .toggle-icon-on {
+        font-size: 11px;
+    }
+    
+    .toggle-label {
+        font-size: 8px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .ai-search-toggle.active .toggle-track {
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        border: 2px solid #1e40af;
+    }
+    
+    .ai-search-toggle.active .toggle-thumb {
+        background: #1e40af;
+        border: 2px solid #ffffff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .ai-search-toggle,
+    .toggle-track,
+    .toggle-thumb,
+    .toggle-icon-off,
+    .toggle-icon-on,
+    .toggle-label,
+    .label-text-off,
+    .label-text-on {
+        transition: none;
+    }
+    
+    .ai-search-toggle.loading .toggle-thumb {
+        animation: none;
+    }
+    
+    .search-bar.ai-active {
+        animation: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .toggle-track {
+        background: linear-gradient(135deg, var(--gray-600) 0%, var(--gray-700) 100%);
+        border-color: var(--gray-600);
+    }
+    
+    .toggle-thumb {
+        background: var(--gray-200);
+    }
+    
+    .toggle-icon-off {
+        color: var(--gray-400);
+    }
+    
+    .label-text-off {
+        color: var(--gray-400);
+    }
+}
+
+/* Remove old search button styles */
+.search-btn {
+    display: none;
+}

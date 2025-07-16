@@ -543,15 +543,26 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         
         // Use a more robust method to convert Uint8Array to base64
         // This avoids stack overflow by using a different approach
-        let binaryString = '';
-        const chunkSize = 1024; // Smaller chunks for better compatibility
         
-        for (let i = 0; i < uint8Array.length; i += chunkSize) {
-            const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
-            // Use a loop instead of apply or spread to avoid stack overflow
-            for (let j = 0; j < chunk.length; j++) {
-                binaryString += String.fromCharCode(chunk[j]);
+        // Use a more efficient approach with TextDecoder for better performance
+        let binaryString;
+        try {
+            // Try using TextDecoder first (more efficient)
+            const decoder = new TextDecoder('latin1');
+            binaryString = decoder.decode(uint8Array);
+        } catch (e) {
+            // Fallback to a more efficient chunked approach
+            const chunkSize = 8192; // Larger chunks for better performance
+            const chunks = [];
+            
+            for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+                // Use Array.from to convert chunk to array, then join
+                const chunkArray = Array.from(chunk);
+                chunks.push(String.fromCharCode(...chunkArray));
             }
+            
+            binaryString = chunks.join('');
         }
         
         const base64 = btoa(binaryString);

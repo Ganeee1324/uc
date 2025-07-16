@@ -538,9 +538,29 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
 
         const pdfData = await response.arrayBuffer();
         
+        // Security: Check file size to prevent memory issues
+        const maxFileSize = 50 * 1024 * 1024; // 50MB limit
+        if (pdfData.byteLength > maxFileSize) {
+            throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
+        }
+        
         // Convert to base64 data URL for CSP compliance
         const uint8Array = new Uint8Array(pdfData);
-        const base64 = btoa(String.fromCharCode.apply(null, uint8Array));
+        
+        // Use a more robust method to convert Uint8Array to base64
+        // This avoids stack overflow by using a different approach
+        let binaryString = '';
+        const chunkSize = 1024; // Smaller chunks for better compatibility
+
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+            // Use a loop instead of apply or spread to avoid stack overflow
+            for (let j = 0; j < chunk.length; j++) {
+                binaryString += String.fromCharCode(chunk[j]);
+            }
+        }
+
+        const base64 = btoa(binaryString);
         const dataUrl = `data:application/pdf;base64,${base64}`;
         
         const container = document.createElement('div');
@@ -633,7 +653,14 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         viewerElement.appendChild(container);
         
         const loadingTask = pdfjsLib.getDocument({ url: dataUrl });
-        const pdfDocument = await loadingTask.promise;
+        
+        // Add timeout for PDF loading
+        const pdfLoadPromise = loadingTask.promise;
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout nel caricamento del PDF')), 30000); // 30 second timeout
+        });
+
+        const pdfDocument = await Promise.race([pdfLoadPromise, timeoutPromise]);
         
         let currentScale = 1.0;
         const totalPages = pdfDocument.numPages;
@@ -675,14 +702,22 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         zoomOutBtn.addEventListener('click', () => {
             if (currentScale > 0.5) {
                 currentScale -= 0.25;
-                renderAllPages();
+                // Add debouncing to prevent rapid re-rendering
+                clearTimeout(window.zoomTimeout);
+                window.zoomTimeout = setTimeout(() => {
+                    renderAllPages();
+                }, 100);
             }
         });
         
         zoomInBtn.addEventListener('click', () => {
             if (currentScale < 3.0) {
                 currentScale += 0.25;
-                renderAllPages();
+                // Add debouncing to prevent rapid re-rendering
+                clearTimeout(window.zoomTimeout);
+                window.zoomTimeout = setTimeout(() => {
+                    renderAllPages();
+                }, 100);
             }
         });
         
@@ -701,6 +736,10 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         LoadingManager.hide(loader);
         
         const cleanup = () => {
+            // Cleanup zoom timeout
+            if (window.zoomTimeout) {
+                clearTimeout(window.zoomTimeout);
+            }
             // No cleanup needed for data URLs
         };
         window.addEventListener('beforeunload', cleanup);

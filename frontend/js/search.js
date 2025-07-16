@@ -5812,16 +5812,30 @@ function initializeAISearchToggle() {
         // Toggle state
         aiSearchEnabled = !aiSearchEnabled;
         
-        // Update UI
+        // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
             aiToggle.classList.add('active');
             searchBar.classList.add('ai-active');
             updateSearchPlaceholder(true);
+            
+            // Add a subtle animation effect
+            aiToggle.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                aiToggle.style.transform = '';
+            }, 200);
+            
             showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
         } else {
             aiToggle.classList.remove('active');
             searchBar.classList.remove('ai-active');
             updateSearchPlaceholder(false);
+            
+            // Add a subtle animation effect
+            aiToggle.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                aiToggle.style.transform = '';
+            }, 200);
+            
             showStatus('Ricerca standard attivata', 'success');
         }
         

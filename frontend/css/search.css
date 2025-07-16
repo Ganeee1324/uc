@@ -6504,38 +6504,42 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
 
-/* AI Search Toggle Button - Professional Design */
+/* AI Search Toggle Button - Professional Design with Enhanced Gradient */
 .ai-search-toggle {
-    background: transparent;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
     border: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: var(--radius-lg);
-    transition: all 0.3s var(--ease-2);
+    border-radius: 30px;
+    transition: all 0.3s ease;
     margin-left: var(--space-3);
     position: relative;
     z-index: 1001;
-    padding: var(--space-2);
-    min-width: 80px;
-    height: 50px;
+    padding: var(--space-3);
+    min-width: 90px;
+    height: 55px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    color: white;
+    font-weight: bold;
 }
 
 .ai-search-toggle:hover {
-    transform: translateY(-1px);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
 .ai-search-toggle:active {
-    transform: translateY(0);
+    transform: scale(0.98);
 }
 
 /* Toggle Container */
 .toggle-container {
     position: relative;
-    width: 48px;
-    height: 24px;
+    width: 52px;
+    height: 26px;
     margin-bottom: var(--space-1);
 }
 
@@ -6544,11 +6548,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--gray-200) 0%, var(--gray-300) 100%);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 13px;
     transition: all 0.3s var(--ease-bounce);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--gray-300);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
 }
 
 /* Toggle Thumb */
@@ -6556,16 +6561,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 20px;
-    height: 20px;
-    background: var(--white);
+    width: 22px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     transition: all 0.3s var(--ease-bounce);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
+    backdrop-filter: blur(10px);
 }
 
 /* Toggle Icons */
@@ -6580,12 +6586,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .toggle-icon-off {
-    color: var(--gray-600);
+    color: #6e8efb;
     opacity: 1;
 }
 
 .toggle-icon-on {
-    color: var(--white);
+    color: #a777e3;
     opacity: 0;
 }
 
@@ -6598,6 +6604,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-weight: 600;
     line-height: 1;
     transition: all 0.3s var(--ease-2);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .label-text-off,
@@ -6610,32 +6618,35 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .label-text-off {
-    color: var(--gray-600);
     opacity: 1;
 }
 
 .label-text-on {
-    color: var(--white);
     opacity: 0;
 }
 
 /* Active State - AI Search Enabled */
-.ai-search-toggle.active .toggle-track {
+.ai-search-toggle.active {
     background: linear-gradient(135deg, 
         #667eea 0%, 
         #764ba2 25%, 
         #f093fb 50%, 
         #f5576c 75%, 
         #4facfe 100%);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 
-                0 0 20px rgba(102, 126, 234, 0.3);
-    border: 1px solid rgba(102, 126, 234, 0.5);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.ai-search-toggle.active .toggle-track {
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 
+                0 0 20px rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .ai-search-toggle.active .toggle-thumb {
-    transform: translateX(24px);
+    transform: translateX(26px);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
 }
 
 .ai-search-toggle.active .toggle-icon-off {
@@ -6684,23 +6695,28 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Hover effects for active state */
+.ai-search-toggle.active:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
 .ai-search-toggle.active:hover .toggle-track {
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 
-                0 0 25px rgba(102, 126, 234, 0.4);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 
+                0 0 25px rgba(255, 255, 255, 0.3);
 }
 
 .ai-search-toggle.active:hover .toggle-thumb {
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
 }
 
 /* Focus states for accessibility */
 .ai-search-toggle:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .ai-search-toggle.active:focus {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7), 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
 /* Loading state for AI search */
@@ -6710,19 +6726,52 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @keyframes aiSearchPulse {
     0%, 100% {
-        transform: translateX(24px) scale(1);
+        transform: translateX(26px) scale(1);
     }
     50% {
-        transform: translateX(24px) scale(1.1);
+        transform: translateX(26px) scale(1.1);
     }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     .ai-search-toggle {
+        min-width: 80px;
+        height: 50px;
+        margin-left: var(--space-2);
+        padding: var(--space-2);
+    }
+    
+    .toggle-container {
+        width: 46px;
+        height: 24px;
+    }
+    
+    .toggle-thumb {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .ai-search-toggle.active .toggle-thumb {
+        transform: translateX(22px);
+    }
+    
+    .toggle-icon-off,
+    .toggle-icon-on {
+        font-size: 12px;
+    }
+    
+    .toggle-label {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-search-toggle {
         min-width: 70px;
         height: 45px;
-        margin-left: var(--space-2);
+        margin-left: var(--space-1);
+        padding: var(--space-1);
     }
     
     .toggle-container {
@@ -6741,37 +6790,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .toggle-icon-off,
     .toggle-icon-on {
-        font-size: 12px;
-    }
-    
-    .toggle-label {
-        font-size: 9px;
-    }
-}
-
-@media (max-width: 480px) {
-    .ai-search-toggle {
-        min-width: 60px;
-        height: 40px;
-        margin-left: var(--space-1);
-    }
-    
-    .toggle-container {
-        width: 38px;
-        height: 20px;
-    }
-    
-    .toggle-thumb {
-        width: 16px;
-        height: 16px;
-    }
-    
-    .ai-search-toggle.active .toggle-thumb {
-        transform: translateX(18px);
-    }
-    
-    .toggle-icon-off,
-    .toggle-icon-on {
         font-size: 11px;
     }
     
@@ -6782,14 +6800,19 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .ai-search-toggle.active .toggle-track {
+    .ai-search-toggle {
         background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
         border: 2px solid #1e40af;
     }
     
-    .ai-search-toggle.active .toggle-thumb {
-        background: #1e40af;
+    .ai-search-toggle.active {
+        background: linear-gradient(135deg, #1e40af 0%, #5b21b6 100%);
         border: 2px solid #ffffff;
+    }
+    
+    .ai-search-toggle.active .toggle-thumb {
+        background: #ffffff;
+        border: 2px solid #1e40af;
     }
 }
 
@@ -6818,20 +6841,20 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     .toggle-track {
-        background: linear-gradient(135deg, var(--gray-600) 0%, var(--gray-700) 100%);
-        border-color: var(--gray-600);
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
     }
     
     .toggle-thumb {
-        background: var(--gray-200);
+        background: rgba(255, 255, 255, 0.8);
     }
     
     .toggle-icon-off {
-        color: var(--gray-400);
+        color: #6e8efb;
     }
     
     .label-text-off {
-        color: var(--gray-400);
+        color: rgba(255, 255, 255, 0.9);
     }
 }
 

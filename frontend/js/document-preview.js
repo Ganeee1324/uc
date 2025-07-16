@@ -229,14 +229,7 @@ function handleActionCallbackButtons() {
             }
         }
         
-        if (e.target.closest('[data-action="download-single"]')) {
-            const element = e.target.closest('[data-action="download-single"]');
-            const fileId = element.getAttribute('data-file-id');
-            if (fileId) {
-                e.stopPropagation();
-                downloadSingleDocument(fileId);
-            }
-        }
+        // Download functionality removed
         
         // Reviews overlay actions are now handled by the new system in initializeReviewsOverlay()
         
@@ -248,15 +241,7 @@ function handleActionCallbackButtons() {
             }
         }
         
-        // Handle download all button
-        if (e.target.closest('#downloadAllBtn')) {
-            e.preventDefault();
-            e.stopPropagation();
-            const vetrinaId = currentVetrina?.id || currentVetrina?.vetrina_id;
-            if (vetrinaId && currentVetrinaFiles) {
-                downloadAllVetrinaFiles(vetrinaId, currentVetrinaFiles);
-            }
-        }
+        // Download functionality removed
     });
 }
 
@@ -568,15 +553,15 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         container.style.height = '100%';
         container.style.borderRadius = '8px';
         container.style.overflow = 'hidden';
-        container.style.backgroundColor = '#525659';
+        container.style.backgroundColor = '#ffffff';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
         
         // --- Professional Toolbar ---
         const toolbar = document.createElement('div');
         toolbar.style.padding = '8px 16px';
-        toolbar.style.backgroundColor = '#3c3f41';
-        toolbar.style.borderBottom = '1px solid #2a2c2e';
+        toolbar.style.backgroundColor = '#ffffff';
+        toolbar.style.borderBottom = '1px solid #e5e7eb';
         toolbar.style.display = 'flex';
         toolbar.style.alignItems = 'center';
         toolbar.style.justifyContent = 'space-between';
@@ -585,7 +570,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         const applyModernButtonStyles = (button) => {
             button.style.backgroundColor = 'transparent';
             button.style.border = 'none';
-            button.style.color = 'white';
+            button.style.color = '#000000';
             button.style.cursor = 'pointer';
             button.style.padding = '6px';
             button.style.borderRadius = '50%';
@@ -593,18 +578,13 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             button.style.alignItems = 'center';
             button.style.justifyContent = 'center';
             button.style.transition = 'background-color 0.2s ease-in-out';
-            button.onmouseenter = () => button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            button.onmouseenter = () => button.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
             button.onmouseleave = () => button.style.backgroundColor = 'transparent';
         };
 
-        // Left Controls (Download)
+        // Left Controls (empty - no download button)
         const leftControls = document.createElement('div');
-        const downloadBtn = document.createElement('button');
-        applyModernButtonStyles(downloadBtn);
-        downloadBtn.title = 'Download';
-        downloadBtn.innerHTML = '<span class="material-symbols-outlined">download</span>';
-        downloadBtn.onclick = () => downloadRedactedDocument(fileId);
-        leftControls.appendChild(downloadBtn);
+        leftControls.style.display = 'none'; // Hide left controls since no download button
 
         // Right Controls (Zoom, Fullscreen)
         const rightControls = document.createElement('div');
@@ -618,7 +598,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         zoomOutBtn.innerHTML = '<span class="material-symbols-outlined">zoom_out</span>';
         
         const zoomInfo = document.createElement('span');
-        zoomInfo.style.color = 'white';
+        zoomInfo.style.color = '#000000';
         zoomInfo.style.fontSize = '14px';
         zoomInfo.style.minWidth = '45px';
         zoomInfo.style.textAlign = 'center';
@@ -648,6 +628,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         viewerArea.style.overflow = 'auto';
         viewerArea.style.paddingTop = '20px';
         viewerArea.style.textAlign = 'center';
+        viewerArea.style.backgroundColor = '#ffffff';
         container.appendChild(viewerArea);
         
         viewerElement.appendChild(container);
@@ -1264,30 +1245,29 @@ function setupActionButtons(fileData, vetrinaData = null) {
     const totalPrice = vetrinaData?.price || 0;
     const isFree = totalPrice === 0;
 
-    // Purchase/Download button logic for VETRINA
+    // Purchase button logic for VETRINA (download functionality removed)
     if (isFree) {
-        // For free vetrine: show primary button as download bundle, hide secondary download
+        // For free vetrine: show primary button as view bundle
         if (purchaseBtn) {
             purchaseBtn.innerHTML = `
-                <span class="material-symbols-outlined">download</span>
-                Download
+                <span class="material-symbols-outlined">visibility</span>
+                Visualizza
             `;
-            purchaseBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
+            purchaseBtn.onclick = () => showNotification('Funzionalità di visualizzazione bundle in sviluppo', 'info');
         }
         // Hide secondary download button for free vetrine
         if (downloadBtn) {
             downloadBtn.style.display = 'none';
         }
     } else {
-        // For paid vetrine: show primary as purchase bundle, show secondary download
+        // For paid vetrine: show primary as purchase bundle
         if (purchaseBtn) {
-            purchaseBtn.innerHTML = `Acquista Bundle`;
+            purchaseBtn.innerHTML = `Acquista Ora`;
             purchaseBtn.onclick = () => handleVetrinaPurchase(vetrinaData.vetrina_id || vetrinaData.id, totalPrice);
         }
-        // Show secondary download button for paid vetrine (after purchase)
+        // Hide secondary download button (download functionality removed)
         if (downloadBtn) {
-            downloadBtn.style.display = 'flex';
-            downloadBtn.onclick = () => downloadVetrinaBundle(vetrinaData.vetrina_id || vetrinaData.id);
+            downloadBtn.style.display = 'none';
         }
     }
 
@@ -1329,8 +1309,8 @@ function handleVetrinaPurchase(vetrinaId, totalPrice) {
     const purchaseBtn = document.getElementById('purchaseBtn');
     
     if (totalPrice === 0) {
-        // Free vetrina - direct download
-        downloadVetrinaBundle(vetrinaId);
+        // Free vetrina - show view notification (download functionality removed)
+        showNotification('Funzionalità di visualizzazione bundle in sviluppo', 'info');
     } else {
         // Paid vetrina - show purchase confirmation
         if (confirm(`Confermi l'acquisto di questa vetrina per €${totalPrice?.toFixed(2) || 'N/A'}?`)) {
@@ -1359,31 +1339,7 @@ function handleVetrinaPurchase(vetrinaId, totalPrice) {
     }
 }
 
-// Download vetrina bundle
-async function downloadVetrinaBundle(vetrinaId) {
-    if (!vetrinaId) {
-        showNotification('Errore: ID vetrina non trovato', 'error');
-        return;
-    }
-
-    showNotification('Inizio del download del bundle...', 'info');
-
-    try {
-        // In a real implementation, this would call the vetrina download endpoint
-        // For now, we'll simulate the download
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate download delay
-        
-        showNotification('Download del bundle completato!', 'success');
-        
-        // In a real implementation, this would trigger the actual download
-        // const url = `${API_BASE}/vetrine/${vetrinaId}/download`;
-        // window.open(url, '_blank');
-        
-    } catch (error) {
-        console.error('Download vetrina bundle error:', error);
-        showNotification('Errore nel download del bundle', 'error');
-    }
-}
+// Download functionality removed - Bundles are view-only
 
 
 
@@ -1599,10 +1555,7 @@ function renderDocumentListView(docData) {
                             <span class="material-symbols-outlined">visibility</span>
                             Visualizza
                         </button>
-                        <button class="document-list-btn secondary" data-action="download-single" data-file-id="${file.file_id}">
-                            <span class="material-symbols-outlined">download</span>
-                            Download
-                        </button>
+                        <!-- Download functionality removed -->
                     </div>
                 </div>
             </div>
@@ -1622,10 +1575,7 @@ function renderDocumentListView(docData) {
                     </div>
                 </div>
                 <div class="document-list-header-actions">
-                    <button class="document-list-header-btn primary" id="downloadAllBtn" title="Download tutti i file">
-                        <span class="material-symbols-outlined">download</span>
-                        Download Bundle
-                    </button>
+                    <!-- Download functionality removed -->
                 </div>
             </div>
             
@@ -1674,11 +1624,7 @@ function renderDocumentListView(docData) {
                     <button class="action-btn primary" id="purchaseBtn">
                         Acquista Bundle
                     </button>
-                    <!-- Hidden download button (controlled by JS) -->
-                    <button class="action-btn secondary" id="downloadBtn" style="display: none;">
-                        <span class="material-symbols-outlined">download</span>
-                        <span>Download</span>
-                    </button>
+                    <!-- Download functionality removed -->
                 </div>
 
                 <!-- Document Description Section -->
@@ -1861,11 +1807,7 @@ function renderDocumentViewerMode(docData) {
                         <button class="action-btn primary" id="purchaseBtn">
                             Acquista Ora
                         </button>
-                        <!-- Hidden download button (controlled by JS) -->
-                        <button class="action-btn secondary" id="downloadBtn" style="display: none;">
-                            <span class="material-symbols-outlined">download</span>
-                            <span>Download</span>
-                        </button>
+                        <!-- Download functionality removed -->
                     </div>
 
                     <!-- Document Description Section -->
@@ -2010,50 +1952,7 @@ function openDocumentViewer(fileId) {
     window.location.href = `document-preview.html?id=${fileId}`;
 }
 
-// Function to download a single document
-async function downloadSingleDocument(fileId) {
-    try {
-        const response = await fetch(`${API_BASE}/files/${fileId}/download`, {
-            headers: {
-                'Authorization': authToken ? `Bearer ${authToken}` : ''
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Download failed');
-        }
-        
-        // Create a temporary form to handle the download (CSP compliant)
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `${API_BASE}/files/${fileId}/download`;
-        form.target = '_blank';
-        
-        // Add authorization header via hidden input
-        const authInput = document.createElement('input');
-        authInput.type = 'hidden';
-        authInput.name = 'auth_token';
-        authInput.value = authToken;
-        form.appendChild(authInput);
-        
-        // Add filename
-        const filenameInput = document.createElement('input');
-        filenameInput.type = 'hidden';
-        filenameInput.name = 'filename';
-        filenameInput.value = `document_${fileId}`;
-        form.appendChild(filenameInput);
-        
-        // Submit the form
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-        
-        showNotification('Download avviato con successo!', 'success');
-    } catch (error) {
-        console.error('Download error:', error);
-        showNotification('Errore durante il download', 'error');
-    }
-}
+// Download functionality removed - Files are view-only
 
 // Helper function to get document preview icon
 function getDocumentPreviewIcon(filename) {
@@ -3011,172 +2910,13 @@ function handleShare() {
     }
 }
 
-async function downloadRedactedDocument(fileId) {
-    if (!fileId) {
-        showNotification('Nessun file disponibile per il download', 'error');
-        return;
-    }
+// Download functionality removed - PDFs are view-only
 
-    showNotification('Inizio del download del documento redatto...', 'info');
+// Download functionality removed - Files are view-only
 
-    try {
-        const url = `${API_BASE}/files/${fileId}/download/redacted`;
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': authToken ? `Bearer ${authToken}` : ''
-            }
-        });
+// Download functionality removed - Files are view-only
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = `redacted-document-${fileId}.pdf`;
-        if (contentDisposition) {
-            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-            if (filenameMatch && filenameMatch.length > 1) {
-                filename = filenameMatch[1];
-            }
-        }
-        
-        // Create a temporary form to handle the download (CSP compliant)
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `${API_BASE}/files/${fileId}/download`;
-        form.target = '_blank';
-        
-        // Add authorization header via hidden input
-        const authInput = document.createElement('input');
-        authInput.type = 'hidden';
-        authInput.name = 'auth_token';
-        authInput.value = authToken;
-        form.appendChild(authInput);
-        
-        // Add filename
-        const filenameInput = document.createElement('input');
-        filenameInput.type = 'hidden';
-        filenameInput.name = 'filename';
-        filenameInput.value = filename;
-        form.appendChild(filenameInput);
-        
-        // Submit the form
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-
-        showNotification('Download completato!', 'success');
-    } catch (error) {
-        console.error('Download redacted error:', error);
-        showNotification('Errore nel download del documento redatto', 'error');
-    }
-}
-
-async function downloadDocument(fileId) {
-    if (!fileId) {
-        showNotification('Nessun file disponibile per il download', 'error');
-        return;
-    }
-    
-    try {
-        const response = await makeRequest(`${API_BASE}/files/${fileId}/download`, {
-            method: 'GET'
-        });
-        
-        if (response.download_url) {
-            window.open(response.download_url, '_blank');
-            showNotification('Download avviato', 'success');
-        } else {
-            showNotification('Download avviato', 'success');
-        }
-    } catch (error) {
-        console.error('Download error:', error);
-        showNotification('Errore nel download del documento', 'error');
-    }
-}
-
-// Download all files in the vetrina
-async function downloadAllVetrinaFiles(vetrinaId, vetrinaFiles) {
-    if (!vetrinaId || !vetrinaFiles || vetrinaFiles.length === 0) {
-        showNotification('Nessun file disponibile per il download', 'error');
-        return;
-    }
-
-    showNotification('Inizio del download del bundle...', 'info');
-
-    try {
-        // Check if the vetrina is free (all files have price 0)
-        const isFree = vetrinaFiles.every(file => (file.price || 0) === 0);
-        
-        // Download each file individually
-        for (let i = 0; i < vetrinaFiles.length; i++) {
-            const file = vetrinaFiles[i];
-            const fileName = extractOriginalFilename(file.filename);
-            
-            try {
-                if (isFree) {
-                    // For free vetrine, download the original file
-                    await downloadSingleFile(file.file_id, fileName, false);
-                } else {
-                    // For paid vetrine, download the redacted version
-                    await downloadSingleFile(file.file_id, fileName, true);
-                }
-                
-                // Add a small delay between downloads to avoid overwhelming the server
-                if (i < vetrinaFiles.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-            } catch (error) {
-                console.error(`Error downloading file ${fileName}:`, error);
-                showNotification(`Errore nel download di ${fileName}`, 'error');
-            }
-        }
-        
-        showNotification('Download del bundle completato!', 'success');
-    } catch (error) {
-        console.error('Download bundle error:', error);
-        showNotification('Errore nel download del bundle', 'error');
-    }
-}
-
-// Helper function to download a single file
-async function downloadSingleFile(fileId, fileName, isRedacted = false) {
-    const endpoint = isRedacted ? 'download/redacted' : 'download';
-    const url = `${API_BASE}/files/${fileId}/${endpoint}`;
-    
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': authToken ? `Bearer ${authToken}` : ''
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        // Get the blob from the response
-        const blob = await response.blob();
-        
-        // Create a download link
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName;
-        
-        // Trigger the download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Clean up the URL object
-        window.URL.revokeObjectURL(downloadUrl);
-        
-    } catch (error) {
-        console.error(`Error downloading file ${fileName}:`, error);
-        throw error;
-    }
-}
+// Download functionality removed - Files are view-only
 
 // Show and fade out bottom overlay elements
 function showAndFadeBottomOverlay() {

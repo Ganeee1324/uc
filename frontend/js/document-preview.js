@@ -309,9 +309,7 @@ async function loadPdfWithPdfJs(fileId, viewerElementId) {
 
     try {
         const url = getRedactedPdfUrl(fileId);
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.statusText}`);
 
         const pdfData = await response.arrayBuffer();
@@ -522,7 +520,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
     try {
-        // 1. Fetch the PDF data using streaming approach
+        // 1. Fetch the PDF data as an ArrayBuffer
         const pdfUrl = getRedactedPdfUrl(fileId);
         const response = await fetch(pdfUrl, {
             headers: { 'Authorization': `Bearer ${authToken}` }
@@ -532,34 +530,47 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             throw new Error(`Impossibile scaricare il PDF: ${response.statusText}`);
         }
 
-        // Check content length for security
-        const contentLength = response.headers.get('content-length');
-        if (contentLength) {
-            const fileSize = parseInt(contentLength);
-            const maxFileSize = 50 * 1024 * 1024; // 50MB limit
-            if (fileSize > maxFileSize) {
-                throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
+        const pdfData = await response.arrayBuffer();
+        
+        // Convert to base64 data URL for CSP compliance
+        const uint8Array = new Uint8Array(pdfData);
+        
+        // Security: Check file size to prevent memory issues
+        const maxFileSize = 50 * 1024 * 1024; // 50MB limit
+        if (uint8Array.length > maxFileSize) {
+            throw new Error('Il file PDF è troppo grande. Dimensione massima: 50MB');
+        }
+        
+        // Use a more robust method to convert Uint8Array to base64
+        // This avoids stack overflow by using a different approach
+        let binaryString = '';
+        const chunkSize = 1024; // Smaller chunks for better compatibility
+        
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+            // Use a loop instead of apply or spread to avoid stack overflow
+            for (let j = 0; j < chunk.length; j++) {
+                binaryString += String.fromCharCode(chunk[j]);
             }
         }
-
-        // Use streaming approach to avoid memory issues
-        const pdfData = await response.arrayBuffer();
-        const dataUrl = URL.createObjectURL(new Blob([pdfData], { type: 'application/pdf' }));
+        
+        const base64 = btoa(binaryString);
+        const dataUrl = `data:application/pdf;base64,${base64}`;
         
         const container = document.createElement('div');
         container.style.width = '100%';
         container.style.height = '100%';
         container.style.borderRadius = '8px';
         container.style.overflow = 'hidden';
-        container.style.backgroundColor = '#525659';
+        container.style.backgroundColor = '#ffffff';
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
         
         // --- Professional Toolbar ---
         const toolbar = document.createElement('div');
         toolbar.style.padding = '8px 16px';
-        toolbar.style.backgroundColor = '#3c3f41';
-        toolbar.style.borderBottom = '1px solid #2a2c2e';
+        toolbar.style.backgroundColor = '#ffffff';
+        toolbar.style.borderBottom = '1px solid #e5e7eb';
         toolbar.style.display = 'flex';
         toolbar.style.alignItems = 'center';
         toolbar.style.justifyContent = 'space-between';
@@ -568,7 +579,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         const applyModernButtonStyles = (button) => {
             button.style.backgroundColor = 'transparent';
             button.style.border = 'none';
-            button.style.color = 'white';
+            button.style.color = '#000000';
             button.style.cursor = 'pointer';
             button.style.padding = '6px';
             button.style.borderRadius = '50%';
@@ -576,7 +587,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             button.style.alignItems = 'center';
             button.style.justifyContent = 'center';
             button.style.transition = 'background-color 0.2s ease-in-out';
-            button.onmouseenter = () => button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            button.onmouseenter = () => button.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
             button.onmouseleave = () => button.style.backgroundColor = 'transparent';
         };
 
@@ -601,7 +612,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         zoomOutBtn.innerHTML = '<span class="material-symbols-outlined">zoom_out</span>';
         
         const zoomInfo = document.createElement('span');
-        zoomInfo.style.color = 'white';
+        zoomInfo.style.color = '#000000';
         zoomInfo.style.fontSize = '14px';
         zoomInfo.style.minWidth = '45px';
         zoomInfo.style.textAlign = 'center';
@@ -631,6 +642,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         viewerArea.style.overflow = 'auto';
         viewerArea.style.paddingTop = '20px';
         viewerArea.style.textAlign = 'center';
+        viewerArea.style.backgroundColor = '#ffffff';
         container.appendChild(viewerArea);
         
         viewerElement.appendChild(container);
@@ -723,10 +735,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             if (window.zoomTimeout) {
                 clearTimeout(window.zoomTimeout);
             }
-            // Cleanup object URL to prevent memory leaks
-            if (dataUrl && dataUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(dataUrl);
-            }
+            // No cleanup needed for data URLs
         };
         window.addEventListener('beforeunload', cleanup);
         

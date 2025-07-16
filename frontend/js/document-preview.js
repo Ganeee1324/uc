@@ -582,15 +582,12 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             button.onmouseleave = () => button.style.backgroundColor = 'transparent';
         };
 
-        // Left Controls (empty - no download button)
-        const leftControls = document.createElement('div');
-        leftControls.style.display = 'none'; // Hide left controls since no download button
-
-        // Right Controls (Zoom, Fullscreen)
+        // Right Controls (Zoom, Fullscreen) - positioned on the right
         const rightControls = document.createElement('div');
         rightControls.style.display = 'flex';
         rightControls.style.alignItems = 'center';
         rightControls.style.gap = '8px';
+        rightControls.style.marginLeft = 'auto'; // Push to the right
 
         const zoomOutBtn = document.createElement('button');
         applyModernButtonStyles(zoomOutBtn);
@@ -619,7 +616,6 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         rightControls.appendChild(document.createElement('div')).style.width = '16px'; // separator
         rightControls.appendChild(fullscreenBtn);
         
-        toolbar.appendChild(leftControls);
         toolbar.appendChild(rightControls);
         container.appendChild(toolbar);
         

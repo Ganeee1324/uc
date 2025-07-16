@@ -57,6 +57,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str):
                     "page_number": {"type": "integer"},
                 },
                 "required": ["description", "context", "page_number"],
+                "additionalProperties": False,
             }
         },
     }

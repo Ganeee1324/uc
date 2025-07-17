@@ -617,8 +617,7 @@ html {
     justify-content: flex-start;
     align-items: center;
     padding-top: var(--space-8);
-    min-height: 2060px; /* Keep consistent with results state */
-    height: 2060px; /* Force consistent height */
+    min-height: auto; /* Let natural height prevail */
 }
 
 .search-section:has(.no-results) .search-title,
@@ -630,18 +629,15 @@ html {
     margin-bottom: var(--space-8);
 }
 
-/* Let the grid maintain its natural height based on invisible cards */
+/* No-results state styling - simplified approach */
 .documents-grid:has(.no-results) {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-5);
+    display: flex;
+    align-items: center;
     justify-content: center;
-    align-items: start;
+    min-height: 400px;
     width: 100%;
     max-width: 1400px;
-    margin: 10px 0px 0px; /* Keep consistent margin with results state */
-    height: 1600px; /* Keep consistent height with results state */
-    position: relative; /* Ensure absolute positioning context for no-results */
+    margin: 10px 0px 0px;
 }
 
 /* Loading state placeholders to maintain correct positioning */
@@ -658,34 +654,17 @@ html {
 /* Layout debugging removed - issue fixed */
 
 /* Keep loading cards in normal flow but make them invisible */
-.documents-grid:has(.no-results) .document-card.loading {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    /* Keep the card in the layout flow with full structure */
-    position: static !important;
-    display: flex !important;
-    flex-direction: column !important;
-    /* Prevent any transforms that might affect layout */
-    transform: none !important;
-    /* Ensure proper dimensions */
-    height: 560px !important;
-    width: 100% !important;
+/* No-results state styling - simplified approach */
+.documents-grid:has(.no-results) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    width: 100%;
 }
 
-/* Ensure all skeleton elements within invisible loading cards are also hidden */
-.documents-grid:has(.no-results) .document-card.loading * {
-    opacity: 0 !important;
-    visibility: hidden !important;
-}
-
-/* Position no-results as absolute overlay on top of invisible grid */
+/* No-results element styling - now a direct child of flex container */
 .documents-grid:has(.no-results) .no-results {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -770,8 +749,7 @@ html {
     
     .search-section:has(.no-results) {
         padding-top: var(--space-6);
-        min-height: 2060px; /* Keep consistent with results state */
-        height: 2060px; /* Force consistent height */
+        min-height: auto; /* Let natural height prevail */
     }
     
     .search-section:has(.no-results) .search-title,
@@ -828,8 +806,7 @@ html {
     }
     
     .search-section:has(.no-results) {
-        min-height: 2060px; /* Keep consistent with results state */
-        height: 2060px; /* Force consistent height */
+        min-height: auto; /* Let natural height prevail */
     }
 }
 

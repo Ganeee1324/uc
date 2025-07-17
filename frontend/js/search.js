@@ -3189,18 +3189,18 @@ function showLoadingCards(count = 8) {
         return;
     }
     
+    // Always add loading class to grid to show existing loading cards
+    grid.classList.add('loading');
+    
     // Check if there are already loading cards from HTML - if so, just return
     const existingLoadingCards = grid.querySelectorAll('.loading-card');
     if (existingLoadingCards.length > 0) {
+        // Ensure the loading cards are visible by adding the loading class
+        console.log('📱 Loading cards already exist, ensuring they are visible...');
         return;
     }
     
     grid.innerHTML = '';
-    
-    // Add loading class to grid
-    grid.classList.add('loading');
-    
-    // Don't add placeholder elements - they interfere with grid positioning
     
     // Add loading cards directly to the grid (no separate container)
     for (let i = 0; i < count; i++) {
@@ -3342,6 +3342,12 @@ async function loadAllFiles() {
         originalFiles = [];
         renderDocuments([]);
         showStatus('Nessuna vetrina disponibile');
+    } finally {
+        // Ensure loading class is removed even if there's an error
+        const grid = document.getElementById('documentsGrid');
+        if (grid) {
+            grid.classList.remove('loading');
+        }
     }
 }
 

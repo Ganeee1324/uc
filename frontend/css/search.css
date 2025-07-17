@@ -629,15 +629,16 @@ html {
     margin-bottom: var(--space-8);
 }
 
-/* No-results state styling - simplified approach */
+/* No-results state styling - perfectly centered container */
 .documents-grid:has(.no-results) {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
+    min-height: 600px;
     width: 100%;
     max-width: 1400px;
-    margin: 10px 0px 0px;
+    margin: 10px auto;
+    padding: 0 var(--space-5);
 }
 
 /* Loading state placeholders to maintain correct positioning */
@@ -663,19 +664,19 @@ html {
     width: 100%;
 }
 
-/* No-results element styling - now a direct child of flex container */
+/* No-results element styling - perfectly centered */
 .documents-grid:has(.no-results) .no-results {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
     background: transparent;
-    margin: 0;
-    width: auto;
-    height: auto;
-    /* Ensure proper centering and sizing */
+    margin: 0 auto;
+    width: 100%;
     max-width: 800px;
     padding: var(--space-8) var(--space-20) var(--space-32) var(--space-20);
+    position: relative;
 }
 
 /* Debug boundaries removed - issue fixed */
@@ -725,6 +726,7 @@ html {
     .documents-grid:has(.no-results) .no-results {
         padding: var(--space-12) var(--space-12) var(--space-20) var(--space-12);
         max-width: 100%;
+        text-align: center;
     }
     
     .no-results .material-symbols-outlined {
@@ -773,6 +775,7 @@ html {
     .documents-grid:has(.no-results) .no-results {
         padding: var(--space-8) var(--space-8) var(--space-16) var(--space-8);
         max-width: 90%;
+        text-align: center;
     }
     
     .no-results .material-symbols-outlined {

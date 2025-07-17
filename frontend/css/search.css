@@ -518,6 +518,8 @@ html {
     pointer-events: none;
     /* Ensure it covers the exact same area as the loading cards */
     min-height: 560px;
+    /* Force it to be positioned above all grid items */
+    grid-row: 1 / -1;
 }
 
 /* Remove problematic :has() selectors and use more compatible approach */

@@ -3621,7 +3621,9 @@ function renderDocuments(files) {
             <h3>Nessun risultato trovato</h3>
             <p>Non abbiamo trovato documenti che corrispondano ai tuoi criteri di ricerca. Prova a modificare i filtri o utilizzare termini di ricerca diversi.</p>
         `;
-        grid.appendChild(noResults);
+        
+        // Insert the no-results overlay as the first child so it appears on top
+        grid.insertBefore(noResults, grid.firstChild);
         
         return;
     }

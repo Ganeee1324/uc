@@ -617,7 +617,8 @@ html {
     justify-content: flex-start;
     align-items: center;
     padding-top: var(--space-8);
-    min-height: 1200px; /* Further reduced height to move grid up more */
+    min-height: 2060px; /* Keep consistent with results state */
+    height: 2060px; /* Force consistent height */
 }
 
 .search-section:has(.no-results) .search-title,
@@ -638,9 +639,8 @@ html {
     align-items: start;
     width: 100%;
     max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
-    /* Remove min-height and height overrides - let natural height prevail */
+    margin: 10px 0px 0px; /* Keep consistent margin with results state */
+    height: 1600px; /* Keep consistent height with results state */
     position: relative; /* Ensure absolute positioning context for no-results */
 }
 
@@ -770,7 +770,8 @@ html {
     
     .search-section:has(.no-results) {
         padding-top: var(--space-6);
-        min-height: 1000px; /* Further reduced height for mobile */
+        min-height: 2060px; /* Keep consistent with results state */
+        height: 2060px; /* Force consistent height */
     }
     
     .search-section:has(.no-results) .search-title,
@@ -827,7 +828,8 @@ html {
     }
     
     .search-section:has(.no-results) {
-        min-height: 800px; /* Even smaller height for small mobile */
+        min-height: 2060px; /* Keep consistent with results state */
+        height: 2060px; /* Force consistent height */
     }
 }
 

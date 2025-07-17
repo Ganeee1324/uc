@@ -515,6 +515,9 @@ html {
     padding-top: var(--space-8);
     height: 100%;
     z-index: 20;
+    pointer-events: none;
+    /* Ensure it covers the exact same area as the loading cards */
+    min-height: 560px;
 }
 
 /* Remove problematic :has() selectors and use more compatible approach */
@@ -677,7 +680,7 @@ html {
         margin: 0 auto;
         max-width: 100%;
         width: 100%;
-        /* Remove fixed height - let natural height prevail */
+        min-height: 500px;
     }
     
     .documents-grid.no-results-state .no-results {
@@ -723,7 +726,7 @@ html {
         padding: var(--space-8) var(--space-8) var(--space-16) var(--space-8);
         margin: 0 auto;
         border-radius: 0;
-        /* Remove fixed height - let natural height prevail */
+        min-height: 450px;
     }
     
     .documents-grid.no-results-state .no-results {

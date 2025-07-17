@@ -3621,8 +3621,6 @@ function renderDocuments(files) {
         const noResults = document.createElement('div');
         noResults.className = 'no-results';
         noResults.innerHTML = `
-            <div class="decoration"></div>
-            <div class="decoration"></div>
             <span class="material-symbols-outlined">search_off</span>
             <h3>Nessun risultato trovato</h3>
             <p>Non abbiamo trovato documenti che corrispondano ai tuoi criteri di ricerca. Prova a modificare i filtri o utilizzare termini di ricerca diversi.</p>

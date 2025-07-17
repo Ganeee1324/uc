@@ -544,17 +544,17 @@ html {
 .search-section.no-results-state {
     justify-content: flex-start;
     align-items: center;
-    padding-top: var(--space-8);
+    padding-top: 0;
     min-height: auto;
 }
 
 .search-section.no-results-state .search-title,
 .search-section.no-results-state .search-subtitle {
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-12);
 }
 
 .search-section.no-results-state .search-container {
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-12);
 }
 
 /* Removed pseudo-elements for cleaner design */
@@ -3313,7 +3313,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 1600px) {
     :root {
-        --bg-offset-top: -850px; /* Adjust for this screen size layout */
+        --bg-offset-top: -1100px; /* Adjust for this screen size layout */
     }
    .filters-panel {
        max-width: 480px;
@@ -3322,18 +3322,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .documents-grid {
        grid-template-columns: repeat(4, minmax(0, 1fr));
        gap: var(--space-4);
-   }
-   
-   .documents-grid:has(.no-results) {
-       /* Remove min-height override - let natural height prevail */
-   }
-   
-   .no-results {
-       /* Remove fixed height - let natural height prevail */
-   }
-   
-   .documents-grid:has(.no-results) .no-results {
-       /* Remove height override - let natural height prevail */
    }
    
    .documents-grid.filters-open {
@@ -3381,18 +3369,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        gap: var(--space-4);
    }
    
-   .documents-grid:has(.no-results) {
-       /* Remove min-height override - let natural height prevail */
-   }
-   
-   .no-results {
-       /* Remove fixed height - let natural height prevail */
-   }
-   
-   .documents-grid:has(.no-results) .no-results {
-       /* Remove height override - let natural height prevail */
-   }
-   
    .documents-grid.filters-open {
        /* No changes - documents stay exactly as they are */
    }
@@ -3433,18 +3409,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .documents-grid {
        grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
-   }
-   
-   .documents-grid:has(.no-results) {
-       /* Remove min-height override - let natural height prevail */
-   }
-   
-   .no-results {
-       /* Remove fixed height - let natural height prevail */
-   }
-   
-   .documents-grid:has(.no-results) .no-results {
-       /* Remove height override - let natural height prevail */
    }
    
    .documents-grid.filters-open {
@@ -5228,6 +5192,67 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     max-height: 240px;
     border-bottom: 1px solid var(--gray-200);
     flex-shrink: 0;
+}
+
+/* Make loading cards invisible but keep their space when no results */
+.documents-grid:not(.loading) .document-card.loading,
+.documents-grid:not(.loading) .loading-card {
+    opacity: 0;
+    visibility: hidden;
+    /* Keep the space occupied */
+    position: relative;
+    /* Maintain dimensions */
+    width: 100%;
+    height: 100%;
+    min-height: 560px;
+    /* Ensure no interactions */
+    pointer-events: none;
+    /* Keep animations disabled */
+    animation: none;
+}
+
+/* Ensure loading cards are visible when grid has loading class */
+.documents-grid.loading .document-card.loading,
+.documents-grid.loading .loading-card {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Responsive invisible loading cards - maintain proper spacing */
+@media (max-width: 1600px) {
+    .documents-grid:not(.loading) .document-card.loading,
+    .documents-grid:not(.loading) .loading-card {
+        min-height: 520px;
+    }
+}
+
+@media (max-width: 1400px) {
+    .documents-grid:not(.loading) .document-card.loading,
+    .documents-grid:not(.loading) .loading-card {
+        min-height: 500px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .documents-grid:not(.loading) .document-card.loading,
+    .documents-grid:not(.loading) .loading-card {
+        min-height: 480px;
+    }
+}
+
+@media (max-width: 900px) {
+    .documents-grid:not(.loading) .document-card.loading,
+    .documents-grid:not(.loading) .loading-card {
+        min-height: 420px;
+    }
+}
+
+@media (max-width: 600px) {
+    .documents-grid:not(.loading) .document-card.loading,
+    .documents-grid:not(.loading) .loading-card {
+        min-height: 380px;
+    }
 }
 
 /* Content area specialized shimmer */

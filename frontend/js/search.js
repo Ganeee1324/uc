@@ -3576,13 +3576,15 @@ function renderDocuments(files) {
     // Remove loading class when rendering real content
     grid.classList.remove('loading');
     
-    // Remove no-results state classes when rendering documents
-    grid.classList.remove('no-results-state');
+    // Remove any existing no-results overlay when rendering documents
+    const existingNoResults = grid.querySelector('.no-results');
+    if (existingNoResults) {
+        existingNoResults.remove();
+    }
     
     // Update search section layout based on results
     const searchSection = document.querySelector('.search-section');
     if (searchSection) {
-        searchSection.classList.remove('no-results-state');
         if (!files || files.length === 0) {
             searchSection.classList.remove('has-results');
         } else {
@@ -3604,16 +3606,14 @@ function renderDocuments(files) {
     }
     
     if (!files || files.length === 0) {
-        // Clear the grid and show no-results message
-        grid.innerHTML = '';
-        
-        // Add no-results state classes to ensure proper styling
-        grid.classList.add('no-results-state');
-        const searchSection = document.querySelector('.search-section');
-        if (searchSection) {
-            searchSection.classList.add('no-results-state');
+        // Keep loading cards invisible but add no-results overlay
+        // Remove any existing no-results element first
+        const existingNoResults = grid.querySelector('.no-results');
+        if (existingNoResults) {
+            existingNoResults.remove();
         }
         
+        // Create no-results overlay that appears over the invisible loading cards
         const noResults = document.createElement('div');
         noResults.className = 'no-results';
         noResults.innerHTML = `

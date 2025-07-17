@@ -506,28 +506,55 @@ html {
     overflow: hidden;
     grid-column: 1 / -1;
     justify-self: center;
-    align-self: center; /* Center vertically in the grid */
+    align-self: center;
     margin-top: 0;
     padding-top: var(--space-8);
-    height: 560px; /* Match default document card height exactly */
+    height: 560px;
+    z-index: 10;
 }
 
-/* When no results, position as overlay on top of invisible loading cards */
-.documents-grid:has(.no-results) .no-results {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
+/* Remove problematic :has() selectors and use more compatible approach */
+.documents-grid.no-results-state {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 600px;
+    width: 100%;
+    max-width: 1400px;
+    margin: 10px auto;
+    padding: 0 var(--space-5);
+}
+
+.documents-grid.no-results-state .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     background: transparent;
-    height: auto;
-    width: auto;
-    margin: 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 800px;
     padding: var(--space-8) var(--space-20) var(--space-32) var(--space-20);
+    position: relative;
+    z-index: 10;
+}
+
+/* Search section adjustments for no-results state */
+.search-section.no-results-state {
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: var(--space-8);
+    min-height: auto;
+}
+
+.search-section.no-results-state .search-title,
+.search-section.no-results-state .search-subtitle {
+    margin-bottom: var(--space-8);
+}
+
+.search-section.no-results-state .search-container {
+    margin-bottom: var(--space-8);
 }
 
 /* Removed pseudo-elements for cleaner design */
@@ -612,35 +639,6 @@ html {
     }
 }
 
-/* When no results, adjust the search section layout */
-.search-section:has(.no-results) {
-    justify-content: flex-start;
-    align-items: center;
-    padding-top: var(--space-8);
-    min-height: auto; /* Let natural height prevail */
-}
-
-.search-section:has(.no-results) .search-title,
-.search-section:has(.no-results) .search-subtitle {
-    margin-bottom: var(--space-8);
-}
-
-.search-section:has(.no-results) .search-container {
-    margin-bottom: var(--space-8);
-}
-
-/* No-results state styling - perfectly centered container */
-.documents-grid:has(.no-results) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 600px;
-    width: 100%;
-    max-width: 1400px;
-    margin: 10px auto;
-    padding: 0 var(--space-5);
-}
-
 /* Loading state placeholders to maintain correct positioning */
 .loading-placeholder {
     height: 0;
@@ -648,36 +646,14 @@ html {
     padding: 0;
     visibility: hidden;
     pointer-events: none;
-    grid-column: 1 / -1; /* Span all columns */
+    grid-column: 1 / -1;
     width: 100%;
 }
 
 /* Layout debugging removed - issue fixed */
 
 /* Keep loading cards in normal flow but make them invisible */
-/* No-results state styling - simplified approach */
-.documents-grid:has(.no-results) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    width: 100%;
-}
 
-/* No-results element styling - perfectly centered */
-.documents-grid:has(.no-results) .no-results {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: transparent;
-    margin: 0 auto;
-    width: 100%;
-    max-width: 800px;
-    padding: var(--space-8) var(--space-20) var(--space-32) var(--space-20);
-    position: relative;
-}
 
 /* Debug boundaries removed - issue fixed */
 
@@ -723,7 +699,7 @@ html {
         /* Remove fixed height - let natural height prevail */
     }
     
-    .documents-grid:has(.no-results) .no-results {
+    .documents-grid.no-results-state .no-results {
         padding: var(--space-12) var(--space-12) var(--space-20) var(--space-12);
         max-width: 100%;
         text-align: center;
@@ -749,17 +725,17 @@ html {
         height: 80px;
     }
     
-    .search-section:has(.no-results) {
+    .search-section.no-results-state {
         padding-top: var(--space-6);
         min-height: auto; /* Let natural height prevail */
     }
     
-    .search-section:has(.no-results) .search-title,
-    .search-section:has(.no-results) .search-subtitle {
+    .search-section.no-results-state .search-title,
+    .search-section.no-results-state .search-subtitle {
         margin-bottom: var(--space-6);
     }
     
-    .search-section:has(.no-results) .search-container {
+    .search-section.no-results-state .search-container {
         margin-bottom: var(--space-6);
     }
 }
@@ -772,7 +748,7 @@ html {
         /* Remove fixed height - let natural height prevail */
     }
     
-    .documents-grid:has(.no-results) .no-results {
+    .documents-grid.no-results-state .no-results {
         padding: var(--space-8) var(--space-8) var(--space-16) var(--space-8);
         max-width: 90%;
         text-align: center;
@@ -808,7 +784,7 @@ html {
         right: -30px;
     }
     
-    .search-section:has(.no-results) {
+    .search-section.no-results-state {
         min-height: auto; /* Let natural height prevail */
     }
 }

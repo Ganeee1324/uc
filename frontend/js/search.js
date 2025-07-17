@@ -3576,8 +3576,14 @@ function renderDocuments(files) {
     // Remove loading class when rendering real content
     grid.classList.remove('loading');
     
+    // Remove no-results state classes when rendering documents
+    grid.classList.remove('no-results-state');
+    
     // Update search section layout based on results
     const searchSection = document.querySelector('.search-section');
+    if (searchSection) {
+        searchSection.classList.remove('no-results-state');
+    }
     if (searchSection) {
         if (!files || files.length === 0) {
             searchSection.classList.remove('has-results');
@@ -3604,6 +3610,13 @@ function renderDocuments(files) {
     if (!files || files.length === 0) {
         // Clear the grid and show simple no-results message
         grid.innerHTML = '';
+        
+        // Add no-results state classes to ensure proper styling
+        grid.classList.add('no-results-state');
+        const searchSection = document.querySelector('.search-section');
+        if (searchSection) {
+            searchSection.classList.add('no-results-state');
+        }
         
         const noResults = document.createElement('div');
         noResults.className = 'no-results';

@@ -108,6 +108,7 @@ let isFiltersOpen = false;
         initializeFilters();
         initializeScrollToTop();
         initializeAISearchToggle();
+        initializeTypingAnimation();
         
         // Load valid tags from backend first
         await loadValidTags();
@@ -5842,6 +5843,17 @@ function initializeAISearchToggle() {
         // Save state to localStorage
         localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
         
+        // Restart typing animation with new suggestions
+        if (!searchInput.value.trim()) {
+            stopTypingAnimation();
+            currentPlaceholderIndex = 0;
+            currentText = '';
+            isDeleting = false;
+            setTimeout(() => {
+                startTypingAnimation();
+            }, 500);
+        }
+        
         // If there's a current search query, re-run the search with new mode
         const currentQuery = searchInput.value.trim();
         if (currentQuery) {
@@ -6123,4 +6135,130 @@ async function performSearch(query) {
         showError('Errore durante la ricerca. Riprova più tardi.');
         renderDocuments(currentFiles);
     }
+}
+
+// Typing animation variables
+let typingAnimationInterval;
+let currentPlaceholderIndex = 0;
+let isDeleting = false;
+let currentText = '';
+
+// Search suggestions for typing animation
+const standardSearchSuggestions = [
+    'Cerca una dispensa...',
+    'Esame di matematica...',
+    'Fisica quantistica...',
+    'Chimica organica...',
+    'Storia dell\'arte...',
+    'Programmazione Java...',
+    'Economia aziendale...',
+    'Diritto costituzionale...',
+    'Biologia molecolare...',
+    'Filosofia antica...'
+];
+
+const aiSearchSuggestions = [
+    'Cerca con AI avanzata...',
+    'Spiega i concetti di fisica quantistica...',
+    'Come funziona la fotosintesi?',
+    'Teoria della relatività di Einstein...',
+    'Algoritmi di machine learning...',
+    'Storia del Rinascimento italiano...',
+    'Principi di economia Keynesiana...',
+    'Sistema nervoso centrale...',
+    'Filosofia di Platone e Socrate...',
+    'Chimica dei polimeri...'
+];
+
+// Typing animation function
+function startTypingAnimation() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    // Add typing class for styling
+    searchInput.classList.add('typing');
+    
+    // Clear any existing interval
+    if (typingAnimationInterval) {
+        clearInterval(typingAnimationInterval);
+    }
+    
+    const suggestions = aiSearchEnabled ? aiSearchSuggestions : standardSearchSuggestions;
+    
+    function typeText() {
+        const targetText = suggestions[currentPlaceholderIndex];
+        
+        if (!isDeleting) {
+            // Typing phase
+            if (currentText.length < targetText.length) {
+                currentText = targetText.substring(0, currentText.length + 1);
+                searchInput.placeholder = currentText + '|';
+            } else {
+                // Finished typing, wait a bit then start deleting
+                setTimeout(() => {
+                    isDeleting = true;
+                }, 2000);
+            }
+        } else {
+            // Deleting phase
+            if (currentText.length > 0) {
+                currentText = currentText.substring(0, currentText.length - 1);
+                searchInput.placeholder = currentText + '|';
+            } else {
+                // Finished deleting, move to next suggestion
+                isDeleting = false;
+                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
+                setTimeout(() => {
+                    typeText();
+                }, 500);
+                return;
+            }
+        }
+    }
+    
+    // Start the animation
+    typingAnimationInterval = setInterval(typeText, 100);
+}
+
+// Stop typing animation
+function stopTypingAnimation() {
+    if (typingAnimationInterval) {
+        clearInterval(typingAnimationInterval);
+        typingAnimationInterval = null;
+    }
+}
+
+// Initialize typing animation
+function initializeTypingAnimation() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    // Start animation when input is not focused
+    searchInput.addEventListener('focus', () => {
+        stopTypingAnimation();
+        searchInput.classList.remove('typing');
+        // Show current mode placeholder
+        if (aiSearchEnabled) {
+            searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
+            searchInput.classList.add('ai-mode');
+        } else {
+            searchInput.placeholder = 'Cerca una dispensa...';
+            searchInput.classList.remove('ai-mode');
+        }
+    });
+    
+    searchInput.addEventListener('blur', () => {
+        // Only start animation if input is empty
+        if (!searchInput.value.trim()) {
+            setTimeout(() => {
+                searchInput.classList.add('typing');
+                startTypingAnimation();
+            }, 1000);
+        }
+    });
+    
+    // Start animation initially
+    setTimeout(() => {
+        startTypingAnimation();
+    }, 2000);
 }

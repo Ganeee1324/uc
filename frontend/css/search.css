@@ -847,9 +847,32 @@ html {
     outline: none;
 }
 
+/* Typing Animation Styles */
 .search-input::placeholder {
     color: var(--gray-500);
     font-weight: 400;
+    animation: typingCursor 1s infinite;
+}
+
+@keyframes typingCursor {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* Enhanced placeholder styling for typing animation */
+.search-input.typing::placeholder {
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+/* AI mode placeholder styling */
+.search-input.ai-mode::placeholder {
+    color: var(--blue-600);
+    font-weight: 500;
 }
 
 .search-btn {

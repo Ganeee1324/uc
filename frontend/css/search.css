@@ -494,6 +494,7 @@ html {
     padding: var(--space-8) var(--space-20) var(--space-32) var(--space-20);
     text-align: center;
     width: 100%;
+    min-width: 400px;
     max-width: 1000px;
     margin: 0 auto;
     background: transparent;

@@ -266,6 +266,9 @@ let isFiltersOpen = false;
 
     // Initialize the page
     window.onload = async function() {
+        // Show loading cards immediately when page loads
+        showLoadingCards(8);
+        
         // Force clear any cached data that might be causing issues
         if (sessionStorage.getItem('lastCacheBuster') !== CACHE_BUSTER.toString()) {
             sessionStorage.clear();

@@ -5789,81 +5789,101 @@ let aiSearchEnabled = false;
 
 // Initialize AI Search Toggle
 function initializeAISearchToggle() {
-    const aiToggleLabel = document.getElementById('aiSearchToggle');
-    const aiToggleInput = aiToggleLabel ? aiToggleLabel.querySelector('.switch__input') : null;
+    const aiToggle = document.getElementById('aiSearchToggle');
     const searchBar = document.querySelector('.search-bar');
     const searchInput = document.getElementById('searchInput');
-    if (!aiToggleLabel || !aiToggleInput) return;
-
+    
+    if (!aiToggle) return;
+    
     // Load saved state from localStorage
     const savedState = localStorage.getItem('aiSearchEnabled');
     if (savedState === 'true') {
         aiSearchEnabled = true;
-        aiToggleInput.checked = true;
+        aiToggle.classList.add('active');
         searchBar.classList.add('ai-active');
         updateSearchPlaceholder(true);
-    } else {
-        aiSearchEnabled = false;
-        aiToggleInput.checked = false;
-        searchBar.classList.remove('ai-active');
-        updateSearchPlaceholder(false);
     }
-
+    
     // Toggle event handler
-    aiToggleInput.addEventListener('change', function(e) {
-        aiSearchEnabled = aiToggleInput.checked;
+    aiToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle state
+        aiSearchEnabled = !aiSearchEnabled;
+        
+        // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
+            aiToggle.classList.add('active');
             searchBar.classList.add('ai-active');
             updateSearchPlaceholder(true);
             updateTypewriterForAIMode();
             if (searchInput.value.length === 0) resumeTypewriter();
+            // Add a subtle animation effect
+            aiToggle.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                aiToggle.style.transform = '';
+            }, 200);
             showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
         } else {
+            aiToggle.classList.remove('active');
             searchBar.classList.remove('ai-active');
             updateSearchPlaceholder(false);
             updateTypewriterForAIMode();
             if (searchInput.value.length === 0) resumeTypewriter();
+            // Add a subtle animation effect
+            aiToggle.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                aiToggle.style.transform = '';
+            }, 200);
             showStatus('Ricerca standard attivata', 'success');
         }
+        
         // Save state to localStorage
         localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
+        
         // If there's a current search query, re-run the search with new mode
         const currentQuery = searchInput.value.trim();
         if (currentQuery) {
             performSearch(currentQuery);
         }
     });
-
+    
     // Keyboard shortcut: Ctrl+Shift+A to toggle AI search
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.shiftKey && e.key === 'A') {
             e.preventDefault();
-            aiToggleInput.checked = !aiToggleInput.checked;
-            aiToggleInput.dispatchEvent(new Event('change', { bubbles: true }));
+            aiToggle.click();
         }
     });
-
-    // Add tooltip on hover (optional, since label is accessible)
-    aiToggleLabel.addEventListener('mouseenter', function() {
-        const tooltip = aiSearchEnabled ?
-            'Disattiva ricerca AI+Vectorial (Ctrl+Shift+A)' :
+    
+    // Add tooltip on hover
+    aiToggle.addEventListener('mouseenter', function() {
+        const tooltip = aiSearchEnabled ? 
+            'Disattiva ricerca AI+Vectorial (Ctrl+Shift+A)' : 
             'Attiva ricerca AI+Vectorial (Ctrl+Shift+A)';
-        aiToggleLabel.title = tooltip;
+        aiToggle.title = tooltip;
     });
-
-    // Initialize search input event listeners (unchanged)
+    
+    // Initialize search input event listeners
     if (searchInput) {
+        // Debounced search function
         const debouncedSearch = debounce(async (query) => {
             await performSearch(query);
         }, 300);
+        
+        // Input event for real-time search
         searchInput.addEventListener('input', function(e) {
             const query = e.target.value.trim();
             if (query.length > 0) {
                 debouncedSearch(query);
             } else {
+                // If search is cleared, load all files
                 loadAllFiles();
             }
         });
+        
+        // Enter key to perform immediate search
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -5875,6 +5895,8 @@ function initializeAISearchToggle() {
                 }
             }
         });
+        
+        // Focus event to show current mode
         searchInput.addEventListener('focus', function() {
             if (aiSearchEnabled) {
                 showStatus('Modalità AI+Vectorial attiva 🤖', 'success');
@@ -6341,4 +6363,30 @@ function resumeTypewriter() {
 
 // ... existing code ...
 // In input event listeners, also stop the cursor when paused, and start when resumed
+// ... existing code ...
+
+// ... existing code ...
+function logSearchBarLayout(context) {
+    const searchBar = document.querySelector('.search-bar');
+    const searchContainer = document.querySelector('.search-container');
+    const searchWrapper = document.querySelector('.search-container-wrapper');
+    if (!searchBar || !searchContainer || !searchWrapper) return;
+    console.log(`[${context}] SEARCH BAR LAYOUT:`);
+    console.log('search-bar:', searchBar.getBoundingClientRect(), getComputedStyle(searchBar), 'offsetWidth:', searchBar.offsetWidth, 'offsetLeft:', searchBar.offsetLeft);
+    console.log('search-container:', searchContainer.getBoundingClientRect(), getComputedStyle(searchContainer), 'offsetWidth:', searchContainer.offsetWidth, 'offsetLeft:', searchContainer.offsetLeft);
+    console.log('search-container-wrapper:', searchWrapper.getBoundingClientRect(), getComputedStyle(searchWrapper), 'offsetWidth:', searchWrapper.offsetWidth, 'offsetLeft:', searchWrapper.offsetLeft);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    logSearchBarLayout('DOMContentLoaded');
+});
+
+// Patch showLoadingCards to log layout before and after
+const originalShowLoadingCards = window.showLoadingCards || showLoadingCards;
+window.showLoadingCards = function(...args) {
+    logSearchBarLayout('before showLoadingCards');
+    const result = originalShowLoadingCards.apply(this, args);
+    setTimeout(() => logSearchBarLayout('after showLoadingCards'), 50);
+    return result;
+};
 // ... existing code ...

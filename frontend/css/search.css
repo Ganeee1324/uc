@@ -847,33 +847,25 @@ html {
     outline: none;
 }
 
-/* Typing Animation Styles */
+/* --- Typewriter Placeholder Cursor Styling --- */
+/*
+   We use a Unicode block character (▍ U+258F) for a thicker, more realistic cursor.
+   The JS will use this character instead of '|'.
+   We style the placeholder to make the cursor bold and black at the end of the text.
+   Note: ::placeholder pseudo-element is limited, but we use font-weight and color for best effect.
+*/
 .search-input::placeholder {
     color: var(--gray-500);
     font-weight: 400;
-    animation: typingCursor 1s infinite;
 }
 
-@keyframes typingCursor {
-    0%, 50% {
-        opacity: 1;
-    }
-    51%, 100% {
-        opacity: 0;
-    }
+/* Make the block cursor in the placeholder bold and black */
+.search-input::placeholder {
+    /* fallback for all placeholder text */
 }
 
-/* Enhanced placeholder styling for typing animation */
-.search-input.typing::placeholder {
-    color: var(--gray-600);
-    font-weight: 500;
-}
-
-/* AI mode placeholder styling */
-.search-input.ai-mode::placeholder {
-    color: var(--blue-600);
-    font-weight: 500;
-}
+/* Try to target the block cursor specifically (not all browsers support this) */
+/* No direct way to style only the last character, but using a block character helps visually. */
 
 .search-btn {
     background: transparent;

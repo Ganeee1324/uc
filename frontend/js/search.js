@@ -6262,14 +6262,16 @@ function updateTypewriterForAIMode() {
 let typewriterCursorVisible = true;
 let typewriterCursorInterval = null;
 
+const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
+
 function setTypewriterCursor(input, show) {
     let placeholder = input.getAttribute('placeholder') || '';
     if (show) {
-        if (!placeholder.endsWith('|')) {
-            input.setAttribute('placeholder', placeholder + '|');
+        if (!placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+            input.setAttribute('placeholder', placeholder + TYPEWRITER_CURSOR_CHAR);
         }
     } else {
-        if (placeholder.endsWith('|')) {
+        if (placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
             input.setAttribute('placeholder', placeholder.slice(0, -1));
         }
     }
@@ -6297,16 +6299,16 @@ function clearTypewriterPlaceholder(input) {
 
 function typewriterAddLetter(letter, input) {
     let base = input.getAttribute('placeholder') || '';
-    if (base.endsWith('|')) base = base.slice(0, -1);
-    input.setAttribute('placeholder', base + letter + (typewriterCursorVisible ? '|' : ''));
+    if (base.endsWith(TYPEWRITER_CURSOR_CHAR)) base = base.slice(0, -1);
+    input.setAttribute('placeholder', base + letter + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
     return new Promise(resolve => setTimeout(resolve, 60));
 }
 
 function typewriterDeleteLetter(input) {
     let current = input.getAttribute('placeholder') || '';
-    if (current.endsWith('|')) current = current.slice(0, -1);
+    if (current.endsWith(TYPEWRITER_CURSOR_CHAR)) current = current.slice(0, -1);
     if (current.length > 0) {
-        input.setAttribute('placeholder', current.slice(0, -1) + (typewriterCursorVisible ? '|' : ''));
+        input.setAttribute('placeholder', current.slice(0, -1) + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
     }
     return new Promise(resolve => setTimeout(resolve, 30));
 }

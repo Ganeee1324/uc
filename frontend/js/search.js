@@ -3057,6 +3057,8 @@ function showLoadingCards(count = 8) {
         
         grid.appendChild(loadingCard);
     }
+    
+
 }
 
 
@@ -3410,7 +3412,6 @@ function renderDocuments(files) {
         const documentText = count === 1 ? 'DOCUMENTO TROVATO' : 'DOCUMENTI TROVATI';
         documentCount.textContent = `${count} ${documentText}`;
         documentCountContainer.style.display = 'block';
-        
         // Update active filters display
         updateActiveFiltersDisplay();
     }
@@ -3418,15 +3419,25 @@ function renderDocuments(files) {
     grid.innerHTML = '';
     
     if (!files || files.length === 0) {
-        grid.innerHTML = `
-            <div class="no-results">
-                <div class="decoration"></div>
-                <div class="decoration"></div>
-                <span class="material-symbols-outlined">search_off</span>
-                <h3>Nessun risultato trovato</h3>
-                <p>Non abbiamo trovato documenti che corrispondano ai tuoi criteri di ricerca. Prova a modificare i filtri o utilizzare termini di ricerca diversi.</p>
-            </div>
+        // Add invisible loading cards to maintain grid height
+        const loadingCardCount = 12; // Match the number used in showLoadingCards for search
+        for (let i = 0; i < loadingCardCount; i++) {
+            const loadingCard = document.createElement('div');
+            loadingCard.className = 'document-card loading';
+            // These will be made invisible by CSS but will reserve space
+            grid.appendChild(loadingCard);
+        }
+        // Now overlay the no-results element as the last child
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.innerHTML = `
+            <div class="decoration"></div>
+            <div class="decoration"></div>
+            <span class="material-symbols-outlined">search_off</span>
+            <h3>Nessun risultato trovato</h3>
+            <p>Non abbiamo trovato documenti che corrispondano ai tuoi criteri di ricerca. Prova a modificare i filtri o utilizzare termini di ricerca diversi.</p>
         `;
+        grid.appendChild(noResults);
         return;
     }
 
@@ -6046,6 +6057,7 @@ async function performSearch(query) {
             renderDocuments([]);
             const searchMode = aiSearchEnabled ? 'AI+Vectorial' : 'standard';
             showStatus(`Nessun risultato trovato per "${query}" con ricerca ${searchMode} 🔍`);
+            
             return;
         }
         
@@ -6365,38 +6377,14 @@ function resumeTypewriter() {
 // In input event listeners, also stop the cursor when paused, and start when resumed
 // ... existing code ...
 
-// ... existing code ...
-function logSearchBarLayout(context) {
-    const searchBar = document.querySelector('.search-bar');
-    const searchContainer = document.querySelector('.search-container');
-    const searchWrapper = document.querySelector('.search-container-wrapper');
-    if (!searchBar || !searchContainer || !searchWrapper) return;
-    console.log(`[${context}] SEARCH BAR LAYOUT:`);
-    // search-bar
-    const barStyle = getComputedStyle(searchBar);
-    console.log('search-bar:', searchBar.getBoundingClientRect(), 'offsetWidth:', searchBar.offsetWidth, 'offsetLeft:', searchBar.offsetLeft);
-    console.log('  - computed width:', barStyle.width, 'max-width:', barStyle.maxWidth, 'flex:', barStyle.flex, 'display:', barStyle.display);
-    // search-container
-    const containerStyle = getComputedStyle(searchContainer);
-    console.log('search-container:', searchContainer.getBoundingClientRect(), 'offsetWidth:', searchContainer.offsetWidth, 'offsetLeft:', searchContainer.offsetLeft);
-    console.log('  - computed width:', containerStyle.width, 'max-width:', containerStyle.maxWidth, 'flex:', containerStyle.flex, 'display:', containerStyle.display);
-    // search-container-wrapper
-    const wrapperStyle = getComputedStyle(searchWrapper);
-    console.log('search-container-wrapper:', searchWrapper.getBoundingClientRect(), 'offsetWidth:', searchWrapper.offsetWidth, 'offsetLeft:', searchWrapper.offsetLeft);
-    console.log('  - computed width:', wrapperStyle.width, 'max-width:', wrapperStyle.maxWidth, 'flex:', wrapperStyle.flex, 'display:', wrapperStyle.display);
-    // main-content
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-        const mainStyle = getComputedStyle(mainContent);
-        console.log('main-content:', mainContent.getBoundingClientRect(), 'offsetWidth:', mainContent.offsetWidth);
-        console.log('  - computed width:', mainStyle.width, 'max-width:', mainStyle.maxWidth, 'display:', mainStyle.display);
-    }
-    // search-section
-    const searchSection = document.querySelector('.search-section');
-    if (searchSection) {
-        const sectionStyle = getComputedStyle(searchSection);
-        console.log('search-section:', searchSection.getBoundingClientRect(), 'offsetWidth:', searchSection.offsetWidth);
-        console.log('  - computed width:', sectionStyle.width, 'max-width:', sectionStyle.maxWidth, 'display:', sectionStyle.display);
-    }
-}
+
+
+
+
+
+
+
+
+
+
 // ... existing code ...

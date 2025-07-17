@@ -6372,21 +6372,31 @@ function logSearchBarLayout(context) {
     const searchWrapper = document.querySelector('.search-container-wrapper');
     if (!searchBar || !searchContainer || !searchWrapper) return;
     console.log(`[${context}] SEARCH BAR LAYOUT:`);
-    console.log('search-bar:', searchBar.getBoundingClientRect(), getComputedStyle(searchBar), 'offsetWidth:', searchBar.offsetWidth, 'offsetLeft:', searchBar.offsetLeft);
-    console.log('search-container:', searchContainer.getBoundingClientRect(), getComputedStyle(searchContainer), 'offsetWidth:', searchContainer.offsetWidth, 'offsetLeft:', searchContainer.offsetLeft);
-    console.log('search-container-wrapper:', searchWrapper.getBoundingClientRect(), getComputedStyle(searchWrapper), 'offsetWidth:', searchWrapper.offsetWidth, 'offsetLeft:', searchWrapper.offsetLeft);
+    // search-bar
+    const barStyle = getComputedStyle(searchBar);
+    console.log('search-bar:', searchBar.getBoundingClientRect(), 'offsetWidth:', searchBar.offsetWidth, 'offsetLeft:', searchBar.offsetLeft);
+    console.log('  - computed width:', barStyle.width, 'max-width:', barStyle.maxWidth, 'flex:', barStyle.flex, 'display:', barStyle.display);
+    // search-container
+    const containerStyle = getComputedStyle(searchContainer);
+    console.log('search-container:', searchContainer.getBoundingClientRect(), 'offsetWidth:', searchContainer.offsetWidth, 'offsetLeft:', searchContainer.offsetLeft);
+    console.log('  - computed width:', containerStyle.width, 'max-width:', containerStyle.maxWidth, 'flex:', containerStyle.flex, 'display:', containerStyle.display);
+    // search-container-wrapper
+    const wrapperStyle = getComputedStyle(searchWrapper);
+    console.log('search-container-wrapper:', searchWrapper.getBoundingClientRect(), 'offsetWidth:', searchWrapper.offsetWidth, 'offsetLeft:', searchWrapper.offsetLeft);
+    console.log('  - computed width:', wrapperStyle.width, 'max-width:', wrapperStyle.maxWidth, 'flex:', wrapperStyle.flex, 'display:', wrapperStyle.display);
+    // main-content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        const mainStyle = getComputedStyle(mainContent);
+        console.log('main-content:', mainContent.getBoundingClientRect(), 'offsetWidth:', mainContent.offsetWidth);
+        console.log('  - computed width:', mainStyle.width, 'max-width:', mainStyle.maxWidth, 'display:', mainStyle.display);
+    }
+    // search-section
+    const searchSection = document.querySelector('.search-section');
+    if (searchSection) {
+        const sectionStyle = getComputedStyle(searchSection);
+        console.log('search-section:', searchSection.getBoundingClientRect(), 'offsetWidth:', searchSection.offsetWidth);
+        console.log('  - computed width:', sectionStyle.width, 'max-width:', sectionStyle.maxWidth, 'display:', sectionStyle.display);
+    }
 }
-
-window.addEventListener('DOMContentLoaded', function() {
-    logSearchBarLayout('DOMContentLoaded');
-});
-
-// Patch showLoadingCards to log layout before and after
-const originalShowLoadingCards = window.showLoadingCards || showLoadingCards;
-window.showLoadingCards = function(...args) {
-    logSearchBarLayout('before showLoadingCards');
-    const result = originalShowLoadingCards.apply(this, args);
-    setTimeout(() => logSearchBarLayout('after showLoadingCards'), 50);
-    return result;
-};
 // ... existing code ...

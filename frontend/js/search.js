@@ -3576,9 +3576,13 @@ function renderDocuments(files) {
     // Remove loading class when rendering real content
     grid.classList.remove('loading');
     
+    // Remove no-results state classes when rendering documents
+    grid.classList.remove('no-results-state');
+    
     // Update search section layout based on results
     const searchSection = document.querySelector('.search-section');
     if (searchSection) {
+        searchSection.classList.remove('no-results-state');
         if (!files || files.length === 0) {
             searchSection.classList.remove('has-results');
         } else {
@@ -3600,9 +3604,25 @@ function renderDocuments(files) {
     }
     
     if (!files || files.length === 0) {
-        // Keep loading cards when no results are found
-        // Don't clear the grid or show no-results message
-        // The loading cards will remain visible to maintain the layout
+        // Clear the grid and show no-results message
+        grid.innerHTML = '';
+        
+        // Add no-results state classes to ensure proper styling
+        grid.classList.add('no-results-state');
+        const searchSection = document.querySelector('.search-section');
+        if (searchSection) {
+            searchSection.classList.add('no-results-state');
+        }
+        
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.innerHTML = `
+            <span class="material-symbols-outlined">search_off</span>
+            <h3>Nessun risultato trovato</h3>
+            <p>Non abbiamo trovato documenti che corrispondano ai tuoi criteri di ricerca. Prova a modificare i filtri o utilizzare termini di ricerca diversi.</p>
+        `;
+        grid.appendChild(noResults);
+        
         return;
     }
     

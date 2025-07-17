@@ -5924,13 +5924,17 @@ function updateSearchPlaceholder(aiEnabled) {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
     
-    // Only update placeholder if animation is not active
-    if (!animationActive) {
-        if (aiEnabled) {
-            searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
-        } else {
-            searchInput.placeholder = 'Cerca una dispensa...';
-        }
+    // Never update placeholder if animation is protected or active
+    if (animationProtected || animationActive || searchInput.classList.contains('typing')) {
+        return;
+    }
+    
+    if (aiEnabled) {
+        searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
+        searchInput.classList.add('ai-mode');
+    } else {
+        searchInput.placeholder = 'Cerca una dispensa...';
+        searchInput.classList.remove('ai-mode');
     }
 }
 
@@ -6143,15 +6147,13 @@ async function performSearch(query) {
 }
 
 // Typing animation variables
-let animationFrameId = null;
+let typingInterval = null;
 let currentPlaceholderIndex = 0;
 let isDeleting = false;
 let currentText = '';
 let animationActive = false;
 let animationPaused = false;
-let lastUpdateTime = 0;
-let typingSpeed = 100; // milliseconds per character
-let pauseTime = 2000; // milliseconds to pause when fully typed
+let animationProtected = false; // Global protection flag
 
 // Search suggestions for typing animation
 const standardSearchSuggestions = [
@@ -6180,77 +6182,73 @@ const aiSearchSuggestions = [
     'Chimica dei polimeri...'
 ];
 
-// Typing animation function using requestAnimationFrame for smooth performance
+// Typing animation function - simplified and robust
 function startTypingAnimation() {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput || animationActive || animationPaused) return;
     
     animationActive = true;
+    animationProtected = true;
     searchInput.classList.add('typing');
-    lastUpdateTime = performance.now();
     
-    // Clear any existing animation frame
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+    // Clear any existing interval
+    if (typingInterval) {
+        clearInterval(typingInterval);
+        typingInterval = null;
     }
     
     const suggestions = aiSearchEnabled ? aiSearchSuggestions : standardSearchSuggestions;
     
-    function animate(currentTime) {
+    function typeText() {
         if (animationPaused || !animationActive) return;
         
-        const deltaTime = currentTime - lastUpdateTime;
+        const targetText = suggestions[currentPlaceholderIndex];
         
-        if (deltaTime >= typingSpeed) {
-            const targetText = suggestions[currentPlaceholderIndex];
-            
-            if (!isDeleting) {
-                // Typing phase
-                if (currentText.length < targetText.length) {
-                    currentText = targetText.substring(0, currentText.length + 1);
-                    searchInput.placeholder = currentText + '|';
-                    lastUpdateTime = currentTime;
-                } else {
-                    // Finished typing, wait then start deleting
-                    if (deltaTime >= pauseTime) {
-                        isDeleting = true;
-                        lastUpdateTime = currentTime;
-                    }
-                }
+        if (!isDeleting) {
+            // Typing phase
+            if (currentText.length < targetText.length) {
+                currentText = targetText.substring(0, currentText.length + 1);
+                searchInput.placeholder = currentText + '|';
             } else {
-                // Deleting phase
-                if (currentText.length > 0) {
-                    currentText = currentText.substring(0, currentText.length - 1);
-                    searchInput.placeholder = currentText + '|';
-                    lastUpdateTime = currentTime;
-                } else {
-                    // Finished deleting, move to next suggestion
-                    isDeleting = false;
-                    currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
-                    lastUpdateTime = currentTime;
-                }
+                // Finished typing, wait then start deleting
+                setTimeout(() => {
+                    if (!animationPaused && animationActive) {
+                        isDeleting = true;
+                    }
+                }, 2000);
             }
-        }
-        
-        // Continue animation
-        if (animationActive && !animationPaused) {
-            animationFrameId = requestAnimationFrame(animate);
+        } else {
+            // Deleting phase
+            if (currentText.length > 0) {
+                currentText = currentText.substring(0, currentText.length - 1);
+                searchInput.placeholder = currentText + '|';
+            } else {
+                // Finished deleting, move to next suggestion
+                isDeleting = false;
+                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
+                setTimeout(() => {
+                    if (!animationPaused && animationActive) {
+                        typeText();
+                    }
+                }, 500);
+                return;
+            }
         }
     }
     
     // Start the animation
-    animationFrameId = requestAnimationFrame(animate);
+    typingInterval = setInterval(typeText, 100);
 }
 
 // Stop typing animation completely
 function stopTypingAnimation() {
     animationActive = false;
     animationPaused = false;
+    animationProtected = false;
     
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+    if (typingInterval) {
+        clearInterval(typingInterval);
+        typingInterval = null;
     }
     
     const searchInput = document.getElementById('searchInput');
@@ -6262,10 +6260,11 @@ function stopTypingAnimation() {
 // Pause typing animation
 function pauseTypingAnimation() {
     animationPaused = true;
+    animationProtected = false;
     
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+    if (typingInterval) {
+        clearInterval(typingInterval);
+        typingInterval = null;
     }
     
     const searchInput = document.getElementById('searchInput');

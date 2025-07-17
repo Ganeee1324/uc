@@ -4,6 +4,183 @@ const CACHE_BUSTER = Date.now();
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
+// Debug function to track "Pensato per chi vuole di più" text position
+function debugPensatoTextPosition() {
+    // Make this function globally accessible for manual debugging
+    window.debugPensatoTextPosition = debugPensatoTextPosition;
+    console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
+    
+    // Find the search subtitle element
+    const searchSubtitle = document.querySelector('.search-subtitle');
+    if (searchSubtitle) {
+        const rect = searchSubtitle.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(searchSubtitle);
+        
+        console.log('📍 Search Subtitle ("Pensato per chi vuole di più"):');
+        console.log('  - Text content:', searchSubtitle.textContent.trim());
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            margin: computedStyle.margin,
+            padding: computedStyle.padding,
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            transform: computedStyle.transform,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            opacity: computedStyle.opacity
+        });
+        console.log('  - Parent container:', searchSubtitle.parentElement?.className);
+    } else {
+        console.log('❌ Search subtitle element not found');
+    }
+    
+    // Check search section
+    const searchSection = document.querySelector('.search-section');
+    if (searchSection) {
+        const rect = searchSection.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(searchSection);
+        
+        console.log('📍 Search Section:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            minHeight: computedStyle.minHeight,
+            height: computedStyle.height,
+            padding: computedStyle.padding,
+            margin: computedStyle.margin,
+            position: computedStyle.position,
+            display: computedStyle.display
+        });
+        console.log('  - Has no-results class:', searchSection.classList.contains('has-results'));
+    }
+    
+    // Check documents grid
+    const documentsGrid = document.getElementById('documentsGrid');
+    if (documentsGrid) {
+        const rect = documentsGrid.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(documentsGrid);
+        const hasNoResults = documentsGrid.querySelector('.no-results');
+        
+        console.log('📍 Documents Grid:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            minHeight: computedStyle.minHeight,
+            height: computedStyle.height,
+            padding: computedStyle.padding,
+            margin: computedStyle.margin,
+            position: computedStyle.position,
+            display: computedStyle.display,
+            gridTemplateColumns: computedStyle.gridTemplateColumns
+        });
+        console.log('  - Has no-results:', !!hasNoResults);
+        console.log('  - Number of children:', documentsGrid.children.length);
+        console.log('  - Loading cards count:', documentsGrid.querySelectorAll('.document-card.loading').length);
+    }
+    
+    // Check main content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        const rect = mainContent.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(mainContent);
+        
+        console.log('📍 Main Content:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            padding: computedStyle.padding,
+            margin: computedStyle.margin,
+            position: computedStyle.position,
+            display: computedStyle.display
+        });
+    }
+    
+    // Check if we're in no-results state
+    const noResultsElement = document.querySelector('.no-results');
+    if (noResultsElement) {
+        const rect = noResultsElement.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(noResultsElement);
+        
+        console.log('📍 No-Results Element:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            transform: computedStyle.transform,
+            zIndex: computedStyle.zIndex,
+            display: computedStyle.display
+        });
+    }
+    
+    // Check elements below the grid that might be affected
+    const elementsBelowGrid = [];
+    if (documentsGrid) {
+        let nextElement = documentsGrid.nextElementSibling;
+        let count = 0;
+        while (nextElement && count < 5) {
+            const rect = nextElement.getBoundingClientRect();
+            elementsBelowGrid.push({
+                element: nextElement,
+                className: nextElement.className,
+                tagName: nextElement.tagName,
+                position: {
+                    top: rect.top,
+                    left: rect.left,
+                    bottom: rect.bottom,
+                    right: rect.right,
+                    width: rect.width,
+                    height: rect.height
+                }
+            });
+            nextElement = nextElement.nextElementSibling;
+            count++;
+        }
+    }
+    
+    if (elementsBelowGrid.length > 0) {
+        console.log('📍 Elements Below Grid:');
+        elementsBelowGrid.forEach((item, index) => {
+            console.log(`  ${index + 1}. ${item.tagName}.${item.className}:`, item.position);
+        });
+    }
+    
+    console.log('🔍 === END DEBUGGING ===\n');
+}
+
 // Handle CSP-compliant event handlers
 function handleCSPEventHandlers() {
     document.addEventListener('click', function(e) {
@@ -115,12 +292,15 @@ let isFiltersOpen = false;
         // Load files for both authenticated and guest users
         await loadAllFiles();
 
-        // Ensure documents are shown after loading
-        if (originalFiles && originalFiles.length > 0) {
-            renderDocuments(originalFiles);
-            currentFiles = originalFiles;
-            showStatus(`${originalFiles.length} documenti disponibili 📚`);
-        }
+            // Ensure documents are shown after loading
+    if (originalFiles && originalFiles.length > 0) {
+        renderDocuments(originalFiles);
+        currentFiles = originalFiles;
+        showStatus(`${originalFiles.length} documenti disponibili 📚`);
+        
+        // Debug position after initial render
+        setTimeout(() => debugPensatoTextPosition(), 200);
+    }
         
         // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
         setTimeout(() => {
@@ -3058,6 +3238,9 @@ function showLoadingCards(count = 8) {
         grid.appendChild(loadingCard);
     }
     
+    // Debug position after showing loading cards
+    setTimeout(() => debugPensatoTextPosition(), 100);
+    
 
 }
 
@@ -3471,6 +3654,10 @@ function renderDocuments(files) {
             <p>Non abbiamo trovato documenti che corrispondano ai tuoi criteri di ricerca. Prova a modificare i filtri o utilizzare termini di ricerca diversi.</p>
         `;
         grid.appendChild(noResults);
+        
+        // Debug the position after creating no-results
+        setTimeout(() => debugPensatoTextPosition(), 100);
+        
         return;
     }
 
@@ -6140,6 +6327,9 @@ async function performSearch(query) {
         // Update current files and render
         currentFiles = filteredResults;
         renderDocuments(filteredResults);
+        
+        // Debug position after search results
+        setTimeout(() => debugPensatoTextPosition(), 200);
         
         // Show enhanced search results status
         const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);

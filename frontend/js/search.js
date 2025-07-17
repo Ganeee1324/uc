@@ -5850,7 +5850,7 @@ function initializeAISearchToggle() {
             currentText = '';
             isDeleting = false;
             setTimeout(() => {
-                startTypingAnimation();
+                resumeTypingAnimation();
             }, 500);
         }
         
@@ -6142,6 +6142,7 @@ let typingAnimationInterval;
 let currentPlaceholderIndex = 0;
 let isDeleting = false;
 let currentText = '';
+let animationPaused = false;
 
 // Search suggestions for typing animation
 const standardSearchSuggestions = [
@@ -6173,7 +6174,7 @@ const aiSearchSuggestions = [
 // Typing animation function
 function startTypingAnimation() {
     const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return;
+    if (!searchInput || animationPaused) return;
     
     // Add typing class for styling
     searchInput.classList.add('typing');
@@ -6186,6 +6187,8 @@ function startTypingAnimation() {
     const suggestions = aiSearchEnabled ? aiSearchSuggestions : standardSearchSuggestions;
     
     function typeText() {
+        if (animationPaused) return;
+        
         const targetText = suggestions[currentPlaceholderIndex];
         
         if (!isDeleting) {
@@ -6196,7 +6199,9 @@ function startTypingAnimation() {
             } else {
                 // Finished typing, wait a bit then start deleting
                 setTimeout(() => {
-                    isDeleting = true;
+                    if (!animationPaused) {
+                        isDeleting = true;
+                    }
                 }, 2000);
             }
         } else {
@@ -6209,7 +6214,9 @@ function startTypingAnimation() {
                 isDeleting = false;
                 currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
                 setTimeout(() => {
-                    typeText();
+                    if (!animationPaused) {
+                        typeText();
+                    }
                 }, 500);
                 return;
             }
@@ -6225,6 +6232,16 @@ function stopTypingAnimation() {
     if (typingAnimationInterval) {
         clearInterval(typingAnimationInterval);
         typingAnimationInterval = null;
+    }
+    animationPaused = true;
+}
+
+// Resume typing animation
+function resumeTypingAnimation() {
+    animationPaused = false;
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && !searchInput.value.trim()) {
+        startTypingAnimation();
     }
 }
 
@@ -6252,13 +6269,13 @@ function initializeTypingAnimation() {
         if (!searchInput.value.trim()) {
             setTimeout(() => {
                 searchInput.classList.add('typing');
-                startTypingAnimation();
+                resumeTypingAnimation();
             }, 1000);
         }
     });
     
     // Start animation initially
     setTimeout(() => {
-        startTypingAnimation();
+        resumeTypingAnimation();
     }, 2000);
 }

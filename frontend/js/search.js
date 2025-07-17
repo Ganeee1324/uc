@@ -108,7 +108,6 @@ let isFiltersOpen = false;
         initializeFilters();
         initializeScrollToTop();
         initializeAISearchToggle();
-        initializeTypingAnimation();
         
         // Load valid tags from backend first
         await loadValidTags();
@@ -5818,43 +5817,30 @@ function initializeAISearchToggle() {
             aiToggle.classList.add('active');
             searchBar.classList.add('ai-active');
             updateSearchPlaceholder(true);
-            
+            updateTypewriterForAIMode();
+            if (searchInput.value.length === 0) resumeTypewriter();
             // Add a subtle animation effect
             aiToggle.style.transform = 'scale(1.1)';
             setTimeout(() => {
                 aiToggle.style.transform = '';
             }, 200);
-            
             showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
         } else {
             aiToggle.classList.remove('active');
             searchBar.classList.remove('ai-active');
             updateSearchPlaceholder(false);
-            
+            updateTypewriterForAIMode();
+            if (searchInput.value.length === 0) resumeTypewriter();
             // Add a subtle animation effect
             aiToggle.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 aiToggle.style.transform = '';
             }, 200);
-            
             showStatus('Ricerca standard attivata', 'success');
         }
         
         // Save state to localStorage
         localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
-        
-        // Restart typing animation with new suggestions
-        if (!searchInput.value.trim()) {
-            stopTypingAnimation();
-            currentPlaceholderIndex = 0;
-            currentText = '';
-            isDeleting = false;
-            setTimeout(() => {
-                if (!searchInput.matches(':focus')) {
-                    resumeTypingAnimation();
-                }
-            }, 500);
-        }
         
         // If there's a current search query, re-run the search with new mode
         const currentQuery = searchInput.value.trim();
@@ -5924,17 +5910,10 @@ function updateSearchPlaceholder(aiEnabled) {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
     
-    // Never update placeholder if animation is protected or active
-    if (animationProtected || animationActive || searchInput.classList.contains('typing')) {
-        return;
-    }
-    
     if (aiEnabled) {
         searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
-        searchInput.classList.add('ai-mode');
     } else {
         searchInput.placeholder = 'Cerca una dispensa...';
-        searchInput.classList.remove('ai-mode');
     }
 }
 
@@ -6146,178 +6125,136 @@ async function performSearch(query) {
     }
 }
 
-// Typing animation variables
-let typingInterval = null;
-let currentPlaceholderIndex = 0;
-let isDeleting = false;
-let currentText = '';
-let animationActive = false;
-let animationPaused = false;
-let animationProtected = false; // Global protection flag
+// ===========================
+// TYPEWRITER PLACEHOLDER ANIMATION
+// ===========================
 
-// Search suggestions for typing animation
-const standardSearchSuggestions = [
-    'Cerca una dispensa...',
-    'Esame di matematica...',
-    'Fisica quantistica...',
-    'Chimica organica...',
-    'Storia dell\'arte...',
-    'Programmazione Java...',
-    'Economia aziendale...',
-    'Diritto costituzionale...',
-    'Biologia molecolare...',
-    'Filosofia antica...'
+const standardSuggestions = [
+    'Cerca una dispensa... (es. "Analisi 1 2023")',
+    'Dispense, esercizi, riassunti, appunti...',
+    'Cerca per corso, docente, o argomento',
+    'Esempio: "Statistica Canale B"',
+    'Esempio: "Appunti Diritto Privato"',
+];
+const aiSuggestions = [
+    'Cerca con AI avanzata... (es. "concetti di fisica quantistica")',
+    'Chiedi: "Spiegami la teoria degli insiemi"',
+    'Trova documenti simili a un argomento',
+    'Esempio: "Appunti che spiegano la legge di Ohm"',
+    'Esempio: "Dispense su analisi complessa"',
 ];
 
-const aiSearchSuggestions = [
-    'Cerca con AI avanzata...',
-    'Spiega i concetti di fisica quantistica...',
-    'Come funziona la fotosintesi?',
-    'Teoria della relatività di Einstein...',
-    'Algoritmi di machine learning...',
-    'Storia del Rinascimento italiano...',
-    'Principi di economia Keynesiana...',
-    'Sistema nervoso centrale...',
-    'Filosofia di Platone e Socrate...',
-    'Chimica dei polimeri...'
-];
+let typewriterActive = true;
+let typewriterPaused = false;
+let typewriterTimeout = null;
+let currentTypewriterIndex = 0;
+let currentTypewriterSuggestions = standardSuggestions;
 
-// Typing animation function - simplified and robust
-function startTypingAnimation() {
-    const searchInput = document.getElementById('searchInput');
-    if (!searchInput || animationActive || animationPaused) return;
-    
-    animationActive = true;
-    animationProtected = true;
-    searchInput.classList.add('typing');
-    
-    // Clear any existing interval
-    if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
+function setTypewriterSuggestions() {
+    currentTypewriterSuggestions = aiSearchEnabled ? aiSuggestions : standardSuggestions;
+}
+
+function clearTypewriterPlaceholder(input) {
+    input.setAttribute('placeholder', '');
+}
+
+function typewriterAddLetter(letter, input) {
+    input.setAttribute('placeholder', input.getAttribute('placeholder') + letter);
+    return new Promise(resolve => setTimeout(resolve, 60));
+}
+
+function typewriterDeleteLetter(input) {
+    let current = input.getAttribute('placeholder');
+    if (current.length > 0) {
+        input.setAttribute('placeholder', current.slice(0, -1));
     }
-    
-    const suggestions = aiSearchEnabled ? aiSearchSuggestions : standardSearchSuggestions;
-    
-    function typeText() {
-        if (animationPaused || !animationActive) return;
-        
-        const targetText = suggestions[currentPlaceholderIndex];
-        
-        if (!isDeleting) {
-            // Typing phase
-            if (currentText.length < targetText.length) {
-                currentText = targetText.substring(0, currentText.length + 1);
-                searchInput.placeholder = currentText + '|';
-            } else {
-                // Finished typing, wait then start deleting
-                setTimeout(() => {
-                    if (!animationPaused && animationActive) {
-                        isDeleting = true;
-                    }
-                }, 2000);
-            }
-        } else {
-            // Deleting phase
-            if (currentText.length > 0) {
-                currentText = currentText.substring(0, currentText.length - 1);
-                searchInput.placeholder = currentText + '|';
-            } else {
-                // Finished deleting, move to next suggestion
-                isDeleting = false;
-                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
-                setTimeout(() => {
-                    if (!animationPaused && animationActive) {
-                        typeText();
-                    }
-                }, 500);
-                return;
-            }
+    return new Promise(resolve => setTimeout(resolve, 30));
+}
+
+async function typewriterPrintPhrase(phrase, input) {
+    clearTypewriterPlaceholder(input);
+    for (let i = 0; i < phrase.length; i++) {
+        if (!typewriterActive || typewriterPaused) return;
+        await typewriterAddLetter(phrase[i], input);
+    }
+    // Wait before deleting
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    // Delete letters
+    for (let i = phrase.length - 1; i >= 0; i--) {
+        if (!typewriterActive || typewriterPaused) return;
+        await typewriterDeleteLetter(input);
+    }
+    await new Promise(resolve => setTimeout(resolve, 300));
+}
+
+async function typewriterRun() {
+    const input = document.getElementById('searchInput');
+    if (!input) return;
+    setTypewriterSuggestions();
+    while (typewriterActive) {
+        if (typewriterPaused) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            continue;
         }
-    }
-    
-    // Start the animation
-    typingInterval = setInterval(typeText, 100);
-}
-
-// Stop typing animation completely
-function stopTypingAnimation() {
-    animationActive = false;
-    animationPaused = false;
-    animationProtected = false;
-    
-    if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
-    }
-    
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.classList.remove('typing');
+        const phrase = currentTypewriterSuggestions[currentTypewriterIndex];
+        await typewriterPrintPhrase(phrase, input);
+        currentTypewriterIndex = (currentTypewriterIndex + 1) % currentTypewriterSuggestions.length;
     }
 }
 
-// Pause typing animation
-function pauseTypingAnimation() {
-    animationPaused = true;
-    animationProtected = false;
-    
-    if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
-    }
-    
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.classList.remove('typing');
-    }
+function startTypewriter() {
+    typewriterActive = true;
+    typewriterPaused = false;
+    currentTypewriterIndex = 0;
+    setTypewriterSuggestions();
+    typewriterRun();
 }
 
-// Resume typing animation
-function resumeTypingAnimation() {
-    if (animationActive) return; // Already active
-    
-    animationPaused = false;
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput && !searchInput.value.trim()) {
-        startTypingAnimation();
-    }
+function stopTypewriter() {
+    typewriterActive = false;
 }
 
-// Initialize typing animation
-function initializeTypingAnimation() {
-    const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return;
-    
-    // Focus event - pause animation and show static placeholder
-    searchInput.addEventListener('focus', () => {
-        pauseTypingAnimation();
-        
-        // Show current mode placeholder
-        if (aiSearchEnabled) {
-            searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
-            searchInput.classList.add('ai-mode');
+function pauseTypewriter() {
+    typewriterPaused = true;
+}
+
+function resumeTypewriter() {
+    typewriterPaused = false;
+}
+
+// Hook into search input events
+window.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('searchInput');
+    if (!input) return;
+    // Pause animation when user focuses or types
+    input.addEventListener('focus', () => {
+        pauseTypewriter();
+    });
+    input.addEventListener('input', () => {
+        if (input.value.length > 0) {
+            pauseTypewriter();
         } else {
-            searchInput.placeholder = 'Cerca una dispensa...';
-            searchInput.classList.remove('ai-mode');
+            resumeTypewriter();
         }
     });
-    
-    // Blur event - resume animation if input is empty
-    searchInput.addEventListener('blur', () => {
-        if (!searchInput.value.trim()) {
-            setTimeout(() => {
-                if (!searchInput.matches(':focus')) { // Double check it's still not focused
-                    resumeTypingAnimation();
-                }
-            }, 1000);
+    input.addEventListener('blur', () => {
+        if (input.value.length === 0) {
+            resumeTypewriter();
         }
     });
-    
-    // Start animation initially after a delay
-    setTimeout(() => {
-        if (!searchInput.matches(':focus')) {
-            resumeTypingAnimation();
-        }
-    }, 2000);
+    startTypewriter();
+});
+
+// Update suggestions when AI mode changes
+function updateTypewriterForAIMode() {
+    setTypewriterSuggestions();
+    currentTypewriterIndex = 0;
 }
+
+// ... existing code ...
+// In initializeAISearchToggle, after updating the mode, call updateTypewriterForAIMode and resumeTypewriter if input is empty
+// ... existing code ...
+// In initializeAISearchToggle, after updateSearchPlaceholder(true/false):
+// updateTypewriterForAIMode();
+// if (searchInput.value.length === 0) resumeTypewriter();
+// ... existing code ...

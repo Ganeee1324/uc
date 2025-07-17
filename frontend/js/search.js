@@ -5789,42 +5789,43 @@ let aiSearchEnabled = false;
 
 // Initialize AI Search Toggle
 function initializeAISearchToggle() {
-    const aiToggle = document.getElementById('aiSearchToggle');
+    const aiToggleLabel = document.getElementById('aiSearchToggle');
+    const aiToggleInput = aiToggleLabel ? aiToggleLabel.querySelector('.switch__input') : null;
     const searchBar = document.querySelector('.search-bar');
     const searchInput = document.getElementById('searchInput');
-    
-    if (!aiToggle) return;
-    
+    if (!aiToggleLabel || !aiToggleInput) return;
+
     // Load saved state from localStorage
     const savedState = localStorage.getItem('aiSearchEnabled');
     if (savedState === 'true') {
         aiSearchEnabled = true;
-        aiToggle.checked = true;
-        if (searchBar) searchBar.classList.add('ai-active');
+        aiToggleInput.checked = true;
+        searchBar.classList.add('ai-active');
         updateSearchPlaceholder(true);
     } else {
         aiSearchEnabled = false;
-        aiToggle.checked = false;
-        if (searchBar) searchBar.classList.remove('ai-active');
+        aiToggleInput.checked = false;
+        searchBar.classList.remove('ai-active');
         updateSearchPlaceholder(false);
     }
-    
-    // Toggle event handler (use 'change' for checkbox)
-    aiToggle.addEventListener('change', function(e) {
-        aiSearchEnabled = aiToggle.checked;
+
+    // Toggle event handler
+    aiToggleInput.addEventListener('change', function(e) {
+        aiSearchEnabled = aiToggleInput.checked;
         if (aiSearchEnabled) {
-            if (searchBar) searchBar.classList.add('ai-active');
+            searchBar.classList.add('ai-active');
             updateSearchPlaceholder(true);
             updateTypewriterForAIMode();
             if (searchInput.value.length === 0) resumeTypewriter();
             showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
         } else {
-            if (searchBar) searchBar.classList.remove('ai-active');
+            searchBar.classList.remove('ai-active');
             updateSearchPlaceholder(false);
             updateTypewriterForAIMode();
             if (searchInput.value.length === 0) resumeTypewriter();
             showStatus('Ricerca standard attivata', 'success');
         }
+        // Save state to localStorage
         localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
         // If there's a current search query, re-run the search with new mode
         const currentQuery = searchInput.value.trim();
@@ -5832,26 +5833,54 @@ function initializeAISearchToggle() {
             performSearch(currentQuery);
         }
     });
-    
+
     // Keyboard shortcut: Ctrl+Shift+A to toggle AI search
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.shiftKey && e.key === 'A') {
             e.preventDefault();
-            aiToggle.checked = !aiToggle.checked;
-            aiToggle.dispatchEvent(new Event('change'));
+            aiToggleInput.checked = !aiToggleInput.checked;
+            aiToggleInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
     });
-    
-    // Add tooltip on hover (optional, not visible for label-based switch)
-    aiToggle.title = aiSearchEnabled ?
-        'Disattiva ricerca AI+Vectorial (Ctrl+Shift+A)' :
-        'Attiva ricerca AI+Vectorial (Ctrl+Shift+A)';
-    aiToggle.addEventListener('mouseenter', function() {
-        aiToggle.title = aiSearchEnabled ?
+
+    // Add tooltip on hover (optional, since label is accessible)
+    aiToggleLabel.addEventListener('mouseenter', function() {
+        const tooltip = aiSearchEnabled ?
             'Disattiva ricerca AI+Vectorial (Ctrl+Shift+A)' :
             'Attiva ricerca AI+Vectorial (Ctrl+Shift+A)';
+        aiToggleLabel.title = tooltip;
     });
-    // ... rest unchanged ...
+
+    // Initialize search input event listeners (unchanged)
+    if (searchInput) {
+        const debouncedSearch = debounce(async (query) => {
+            await performSearch(query);
+        }, 300);
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            if (query.length > 0) {
+                debouncedSearch(query);
+            } else {
+                loadAllFiles();
+            }
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = e.target.value.trim();
+                if (query.length > 0) {
+                    performSearch(query);
+                } else {
+                    loadAllFiles();
+                }
+            }
+        });
+        searchInput.addEventListener('focus', function() {
+            if (aiSearchEnabled) {
+                showStatus('Modalità AI+Vectorial attiva 🤖', 'success');
+            }
+        });
+    }
 }
 
 // Update search placeholder based on AI mode

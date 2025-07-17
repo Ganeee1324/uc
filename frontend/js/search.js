@@ -5850,7 +5850,9 @@ function initializeAISearchToggle() {
             currentText = '';
             isDeleting = false;
             setTimeout(() => {
-                resumeTypingAnimation();
+                if (!searchInput.matches(':focus')) {
+                    resumeTypingAnimation();
+                }
             }, 500);
         }
         
@@ -5922,10 +5924,13 @@ function updateSearchPlaceholder(aiEnabled) {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
     
-    if (aiEnabled) {
-        searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
-    } else {
-        searchInput.placeholder = 'Cerca una dispensa...';
+    // Only update placeholder if animation is not active
+    if (!animationActive) {
+        if (aiEnabled) {
+            searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
+        } else {
+            searchInput.placeholder = 'Cerca una dispensa...';
+        }
     }
 }
 
@@ -6138,10 +6143,11 @@ async function performSearch(query) {
 }
 
 // Typing animation variables
-let typingAnimationInterval;
+let typingAnimationInterval = null;
 let currentPlaceholderIndex = 0;
 let isDeleting = false;
 let currentText = '';
+let animationActive = false;
 let animationPaused = false;
 
 // Search suggestions for typing animation
@@ -6174,20 +6180,21 @@ const aiSearchSuggestions = [
 // Typing animation function
 function startTypingAnimation() {
     const searchInput = document.getElementById('searchInput');
-    if (!searchInput || animationPaused) return;
+    if (!searchInput || animationActive || animationPaused) return;
     
-    // Add typing class for styling
+    animationActive = true;
     searchInput.classList.add('typing');
     
     // Clear any existing interval
     if (typingAnimationInterval) {
         clearInterval(typingAnimationInterval);
+        typingAnimationInterval = null;
     }
     
     const suggestions = aiSearchEnabled ? aiSearchSuggestions : standardSearchSuggestions;
     
     function typeText() {
-        if (animationPaused) return;
+        if (animationPaused || !animationActive) return;
         
         const targetText = suggestions[currentPlaceholderIndex];
         
@@ -6199,7 +6206,7 @@ function startTypingAnimation() {
             } else {
                 // Finished typing, wait a bit then start deleting
                 setTimeout(() => {
-                    if (!animationPaused) {
+                    if (!animationPaused && animationActive) {
                         isDeleting = true;
                     }
                 }, 2000);
@@ -6214,7 +6221,7 @@ function startTypingAnimation() {
                 isDeleting = false;
                 currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
                 setTimeout(() => {
-                    if (!animationPaused) {
+                    if (!animationPaused && animationActive) {
                         typeText();
                     }
                 }, 500);
@@ -6227,17 +6234,41 @@ function startTypingAnimation() {
     typingAnimationInterval = setInterval(typeText, 100);
 }
 
-// Stop typing animation
+// Stop typing animation completely
 function stopTypingAnimation() {
+    animationActive = false;
+    animationPaused = false;
+    
     if (typingAnimationInterval) {
         clearInterval(typingAnimationInterval);
         typingAnimationInterval = null;
     }
+    
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.classList.remove('typing');
+    }
+}
+
+// Pause typing animation
+function pauseTypingAnimation() {
     animationPaused = true;
+    
+    if (typingAnimationInterval) {
+        clearInterval(typingAnimationInterval);
+        typingAnimationInterval = null;
+    }
+    
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.classList.remove('typing');
+    }
 }
 
 // Resume typing animation
 function resumeTypingAnimation() {
+    if (animationActive) return; // Already active
+    
     animationPaused = false;
     const searchInput = document.getElementById('searchInput');
     if (searchInput && !searchInput.value.trim()) {
@@ -6250,10 +6281,10 @@ function initializeTypingAnimation() {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
     
-    // Start animation when input is not focused
+    // Focus event - pause animation and show static placeholder
     searchInput.addEventListener('focus', () => {
-        stopTypingAnimation();
-        searchInput.classList.remove('typing');
+        pauseTypingAnimation();
+        
         // Show current mode placeholder
         if (aiSearchEnabled) {
             searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
@@ -6264,18 +6295,21 @@ function initializeTypingAnimation() {
         }
     });
     
+    // Blur event - resume animation if input is empty
     searchInput.addEventListener('blur', () => {
-        // Only start animation if input is empty
         if (!searchInput.value.trim()) {
             setTimeout(() => {
-                searchInput.classList.add('typing');
-                resumeTypingAnimation();
+                if (!searchInput.matches(':focus')) { // Double check it's still not focused
+                    resumeTypingAnimation();
+                }
             }, 1000);
         }
     });
     
-    // Start animation initially
+    // Start animation initially after a delay
     setTimeout(() => {
-        resumeTypingAnimation();
+        if (!searchInput.matches(':focus')) {
+            resumeTypingAnimation();
+        }
     }, 2000);
 }

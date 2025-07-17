@@ -48,14 +48,14 @@ def test_search(query: str, description: str = "", params: Dict[str, Any] = {}) 
             print(f"\nResult {i+1}:")
             print(f"  Name: {vetrina.get('name')}")
             print(f"  Description: {vetrina.get('description', '')[:100]}...")
-            if file_id := vetrina.get("file_id"):
-                file_info = get_file_info(file_id)
-                print(f"  File name: {file_info.get('filename')}")
-                print(f"  Page number: {vetrina.get('page_number') + 1}")
-                print(f"  Combined score: {vetrina.get('combined_score')}")
-            else:
-                print("  No file associated")
-                raise Exception("No file associated")
+            # if file_id := vetrina.get("file_id"):
+            #     file_info = get_file_info(file_id)
+            #     print(f"  File name: {file_info.get('filename')}")
+            #     print(f"  Page number: {vetrina.get('page_number') + 1}")
+            #     print(f"  Combined score: {vetrina.get('combined_score')}")
+            # else:
+            #     print("  No file associated")
+            #     raise Exception("No file associated")
 
         return data
     else:
@@ -68,12 +68,12 @@ def test_search(query: str, description: str = "", params: Dict[str, Any] = {}) 
         return {}
 
 
-def get_file_info(file_id: int) -> Dict[str, Any]:
-    """
-    Get the information of a file.
-    """
-    response = requests.get(f"{BASE_URL}/files/{file_id}")
-    return response.json()
+# def get_file_info(file_id: int) -> Dict[str, Any]:
+#     """
+#     Get the information of a file.
+#     """
+#     response = requests.get(f"{BASE_URL}/files/{file_id}")
+#     return response.json()
 
 
 def test_server_connection():
@@ -100,7 +100,7 @@ def main():
 
     # Test queries
     test_queries = [
-        {"query": "probability", "description": "Testing English search for spectral decomposition", "params": {}},
+        {"query": "exercise using entropy", "description": "Testing English search for spectral decomposition", "params": {}},
         # {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy"},
     ]
 

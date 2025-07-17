@@ -129,7 +129,6 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
 
         # process embeddings for pages
         for i, chunk in enumerate(all_chunks):
-            print(f"Processing chunk {i}/{len(all_chunks)}, page {chunk['page_number']}/{len(temp_files)}")
             image_path = temp_files[chunk['page_number'] - 1]  # page_number is 1-based
             image = Image.open(image_path)
             chunk['embedding'] = bge.get_chunk_embeddings(chunk['description'], image, chunk['context'])

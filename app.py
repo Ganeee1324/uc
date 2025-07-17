@@ -237,9 +237,9 @@ def new_search():
 
     results = database.new_search(query, filter_params, current_user_id)
     vetrine = []
-    for vetrina, (file_id, page_number, cs) in results:
+    for vetrina, file, chunk, score in results:
         vetrina_dict = vetrina.to_dict()
-        vetrina_dict.update({"file_id": file_id, "page_number": page_number, "combined_score": cs})
+        vetrina_dict.update({"file_id": file.file_id, "page_number": chunk.page_number, "combined_score": score})
         vetrine.append(vetrina_dict)
     return jsonify({"vetrine": vetrine, "count": len(results), "query": query, "filters": filter_params}), 200
 
@@ -569,7 +569,7 @@ def process_embedding_queue():
 if __name__ == "__main__":
     threading.Thread(target=process_embedding_queue, daemon=True).start()
     if os.name == "nt":  # Windows
-        app.run(host="0.0.0.0", debug=True)
+        app.run(host="0.0.0.0", debug=False)
     else:
         import ssl
 

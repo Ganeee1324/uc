@@ -6258,3 +6258,107 @@ function updateTypewriterForAIMode() {
 // updateTypewriterForAIMode();
 // if (searchInput.value.length === 0) resumeTypewriter();
 // ... existing code ...
+
+let typewriterCursorVisible = true;
+let typewriterCursorInterval = null;
+
+function setTypewriterCursor(input, show) {
+    let placeholder = input.getAttribute('placeholder') || '';
+    if (show) {
+        if (!placeholder.endsWith('|')) {
+            input.setAttribute('placeholder', placeholder + '|');
+        }
+    } else {
+        if (placeholder.endsWith('|')) {
+            input.setAttribute('placeholder', placeholder.slice(0, -1));
+        }
+    }
+}
+
+function startTypewriterCursor(input) {
+    if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
+    typewriterCursorVisible = true;
+    setTypewriterCursor(input, true);
+    typewriterCursorInterval = setInterval(() => {
+        typewriterCursorVisible = !typewriterCursorVisible;
+        setTypewriterCursor(input, typewriterCursorVisible);
+    }, 500);
+}
+
+function stopTypewriterCursor(input) {
+    if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
+    typewriterCursorInterval = null;
+    setTypewriterCursor(input, false);
+}
+
+function clearTypewriterPlaceholder(input) {
+    input.setAttribute('placeholder', '');
+}
+
+function typewriterAddLetter(letter, input) {
+    let base = input.getAttribute('placeholder') || '';
+    if (base.endsWith('|')) base = base.slice(0, -1);
+    input.setAttribute('placeholder', base + letter + (typewriterCursorVisible ? '|' : ''));
+    return new Promise(resolve => setTimeout(resolve, 60));
+}
+
+function typewriterDeleteLetter(input) {
+    let current = input.getAttribute('placeholder') || '';
+    if (current.endsWith('|')) current = current.slice(0, -1);
+    if (current.length > 0) {
+        input.setAttribute('placeholder', current.slice(0, -1) + (typewriterCursorVisible ? '|' : ''));
+    }
+    return new Promise(resolve => setTimeout(resolve, 30));
+}
+
+async function typewriterPrintPhrase(phrase, input) {
+    clearTypewriterPlaceholder(input);
+    startTypewriterCursor(input);
+    for (let i = 0; i < phrase.length; i++) {
+        if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
+        await typewriterAddLetter(phrase[i], input);
+    }
+    // Wait before deleting
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    // Delete letters
+    for (let i = phrase.length - 1; i >= 0; i--) {
+        if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
+        await typewriterDeleteLetter(input);
+    }
+    await new Promise(resolve => setTimeout(resolve, 300));
+    stopTypewriterCursor(input);
+}
+
+// In startTypewriter, after getting the input, start the cursor
+function startTypewriter() {
+    typewriterActive = true;
+    typewriterPaused = false;
+    currentTypewriterIndex = 0;
+    setTypewriterSuggestions();
+    const input = document.getElementById('searchInput');
+    if (input) startTypewriterCursor(input);
+    typewriterRun();
+}
+
+// In stopTypewriter and pauseTypewriter, stop the cursor
+function stopTypewriter() {
+    typewriterActive = false;
+    const input = document.getElementById('searchInput');
+    if (input) stopTypewriterCursor(input);
+}
+
+function pauseTypewriter() {
+    typewriterPaused = true;
+    const input = document.getElementById('searchInput');
+    if (input) stopTypewriterCursor(input);
+}
+
+function resumeTypewriter() {
+    typewriterPaused = false;
+    const input = document.getElementById('searchInput');
+    if (input && input.value.length === 0) startTypewriterCursor(input);
+}
+
+// ... existing code ...
+// In input event listeners, also stop the cursor when paused, and start when resumed
+// ... existing code ...

@@ -44,6 +44,12 @@ def get_sentence_embedding(sentence: str) -> np.ndarray:
     with torch.no_grad():
         return model.encode(text=sentence).detach().cpu().numpy()
 
+def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> np.ndarray:
+    load_model()
+    import torch
+    with torch.no_grad():
+        return model.encode(image=image, text=f"{description} {context}").detach().cpu().numpy()
+
 if __name__ == "__main__":
     path = r"C:\Users\fdimo\Desktop\Statistics Exam - DONE.pdf" if os.name == "nt" else r"/home/ubuntu/esercizi Ecolgia.pdf"
     embeddings = get_document_embedding(path)

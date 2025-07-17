@@ -5,8 +5,12 @@ from io import BytesIO
 import logging
 import os
 import tempfile
+import json
+from bge import get_chunk_embeddings
+from PIL import Image
+import numpy as np
 
-# logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
 def extract_page_images(doc_path: str, start_page: int, num_pages: int):
@@ -37,13 +41,13 @@ def get_current_context_length(chat: lms.Chat, model: lms.LLM) -> int:
     return len(model.tokenize(formatted))
 
 
-def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str):
-    """Process PDF in batches: first 3 pages, then 2 at a time"""
+def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> list[dict[str, str | int]]:
+    """Process PDF in batches: first 3 pages, then 2 at a time. Returns list of chunks."""
     doc = pymupdf.open(doc_path)
     total_pages = doc.page_count
     doc.close()
 
-    model = lms.llm("google/gemma-3-12b", config={"contextLength": 10000})
+    model = lms.llm("google/gemma-3-12b", config={"contextLength": 10000, "gpu": {"ratio": 0.625}})
     chat = lms.Chat()
 
     schema = {
@@ -74,6 +78,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str):
 
     current_page = 1
     temp_files = []
+    all_chunks = []
 
     try:
         # Process first 3 pages
@@ -94,6 +99,8 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str):
 
             # add response to chat
             chat.add_assistant_response(response.result())
+            temp_chunks = json.loads(response.result().content)
+            all_chunks.extend([chunk for chunk in temp_chunks.values()])
             print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
 
         # Process remaining pages 2 at a time
@@ -117,7 +124,16 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str):
             current_page += 2
 
             chat.add_assistant_response(response.result())
+            temp_chunks = json.loads(response.result().content)
+            all_chunks.extend([chunk for chunk in temp_chunks.values()])
             print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
+
+        # process embeddings for pages
+        for i, chunk in enumerate(all_chunks):
+            print(f"Processing chunk {i}/{len(all_chunks)}, page {chunk['page_number']}/{len(temp_files)}")
+            image_path = temp_files[chunk['page_number'] - 1]  # page_number is 1-based
+            image = Image.open(image_path)
+            chunk['embedding'] = get_chunk_embeddings(chunk['description'], image, chunk['context'])
 
     finally:
         # Clean up temporary files
@@ -126,6 +142,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str):
                 os.unlink(temp_file)
             except:
                 pass
+    return all_chunks
 
 
 if __name__ == "__main__":

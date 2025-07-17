@@ -441,19 +441,20 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             
             semantic_sql = f"""
                 SELECT 
-                    pe.vetrina_id,
-                    pe.file_id,
-                    pe.page_number,
-                    1.0 / (%s::integer + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS semantic_score,
+                    ce.vetrina_id,
+                    ce.file_id,
+                    ce.page_number,
+                    ce.description,
+                    1.0 / (%s::integer + RANK() OVER (ORDER BY ce.embedding <#> %s)) AS semantic_score,
                     v.name AS vetrina_name,
                     v.description AS vetrina_description
-                FROM page_embeddings pe
-                JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
+                FROM chunk_embeddings ce
+                JOIN vetrina v ON ce.vetrina_id = v.vetrina_id
                 JOIN course_instances ci ON v.course_instance_id = ci.instance_id
                 JOIN users u ON v.author_id = u.user_id
                 {file_join_clause}
                 WHERE {semantic_where_clause}
-                ORDER BY pe.embedding <#> %s
+                ORDER BY ce.embedding <#> %s
                 LIMIT 50
             """
             
@@ -517,17 +518,18 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             combined_sql = f"""
             WITH semantic_search AS (
                 SELECT 
-                    pe.vetrina_id,
-                    pe.file_id,
-                    pe.page_number,
-                    1.0 / (%s::integer + RANK() OVER (ORDER BY pe.embedding <#> %s)) AS semantic_score
-                FROM page_embeddings pe
-                JOIN vetrina v ON pe.vetrina_id = v.vetrina_id
+                    ce.vetrina_id,
+                    ce.file_id,
+                    ce.page_number,
+                    ce.description,
+                    1.0 / (%s::integer + RANK() OVER (ORDER BY ce.embedding <#> %s)) AS semantic_score
+                FROM chunk_embeddings ce
+                JOIN vetrina v ON ce.vetrina_id = v.vetrina_id
                 JOIN course_instances ci ON v.course_instance_id = ci.instance_id
                 JOIN users u ON v.author_id = u.user_id
                 {file_join_clause}
                 WHERE {semantic_where_clause}
-                ORDER BY pe.embedding <#> %s
+                ORDER BY ce.embedding <#> %s
                 LIMIT 50
             ),
             keyword_search AS (
@@ -558,6 +560,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 COALESCE(s.vetrina_id, k.vetrina_id) AS vetrina_id,
                 s.file_id AS file_id,
                 s.page_number AS page_number,
+                s.description AS description,
                 (COALESCE(s.semantic_score, 0) + COALESCE(k.keyword_score, 0)) AS combined_score,
                 COALESCE(s.semantic_score, 0) AS semantic_score,
                 COALESCE(k.keyword_score, 0) AS keyword_score,
@@ -793,17 +796,24 @@ def add_file_to_vetrina(
             return File.from_dict(file_data)
 
 
-def insert_file_embeddings(vetrina_id: int, file_id: int, embeddings: list[np.ndarray]) -> None:
+def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]]) -> None:
+    """Insert chunk embeddings into the database"""
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
-            for page_number, embedding in enumerate(embeddings):
+            for chunk in chunks:
+                page_number = chunk['page_number']
+                description = chunk['description']
+                embedding = chunk['embedding']
+                
                 pg_vector_data = embedding.squeeze()
                 cursor.execute(
-                    "INSERT INTO page_embeddings (vetrina_id, file_id, page_number, embedding) VALUES (%s, %s, %s, %s)",
-                    (vetrina_id, file_id, page_number, pg_vector_data),
+                    """INSERT INTO chunk_embeddings 
+                       (vetrina_id, file_id, page_number, description, embedding) 
+                       VALUES (%s, %s, %s, %s, %s)""",
+                    (vetrina_id, file_id, page_number, description, pg_vector_data),
                 )
                 conn.commit()
-            logging.debug(f"Inserted {len(embeddings)} embeddings for file {file_id} in vetrina {vetrina_id}")
+            logging.debug(f"Inserted {len(chunks)} chunk embeddings for file {file_id} in vetrina {vetrina_id}")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:

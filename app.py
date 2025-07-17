@@ -23,7 +23,7 @@ import uuid
 import pymupdf
 from io import BytesIO
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 load_dotenv()
 
@@ -340,8 +340,12 @@ def upload_file(vetrina_id):
     except Exception as e:
         logging.error(f"Error closing file: {e}")
 
-    embeddings = get_document_embedding(new_file_path)
-    database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
+    # Use chunk-based embedding system for PDFs
+    if extension == "pdf":
+        from chunker import process_pdf_chunks
+        chunks = process_pdf_chunks(new_file_path, db_file.display_name, "PDF Document")
+        database.insert_chunk_embeddings(vetrina_id, db_file.file_id, chunks)
+        logging.debug(f"Processed {len(chunks)} chunks for PDF file {db_file.file_id}")
 
     return jsonify({"msg": "File uploaded"}), 200
 

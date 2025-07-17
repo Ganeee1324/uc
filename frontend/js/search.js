@@ -6143,12 +6143,15 @@ async function performSearch(query) {
 }
 
 // Typing animation variables
-let typingAnimationInterval = null;
+let animationFrameId = null;
 let currentPlaceholderIndex = 0;
 let isDeleting = false;
 let currentText = '';
 let animationActive = false;
 let animationPaused = false;
+let lastUpdateTime = 0;
+let typingSpeed = 100; // milliseconds per character
+let pauseTime = 2000; // milliseconds to pause when fully typed
 
 // Search suggestions for typing animation
 const standardSearchSuggestions = [
@@ -6177,61 +6180,67 @@ const aiSearchSuggestions = [
     'Chimica dei polimeri...'
 ];
 
-// Typing animation function
+// Typing animation function using requestAnimationFrame for smooth performance
 function startTypingAnimation() {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput || animationActive || animationPaused) return;
     
     animationActive = true;
     searchInput.classList.add('typing');
+    lastUpdateTime = performance.now();
     
-    // Clear any existing interval
-    if (typingAnimationInterval) {
-        clearInterval(typingAnimationInterval);
-        typingAnimationInterval = null;
+    // Clear any existing animation frame
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
     
     const suggestions = aiSearchEnabled ? aiSearchSuggestions : standardSearchSuggestions;
     
-    function typeText() {
+    function animate(currentTime) {
         if (animationPaused || !animationActive) return;
         
-        const targetText = suggestions[currentPlaceholderIndex];
+        const deltaTime = currentTime - lastUpdateTime;
         
-        if (!isDeleting) {
-            // Typing phase
-            if (currentText.length < targetText.length) {
-                currentText = targetText.substring(0, currentText.length + 1);
-                searchInput.placeholder = currentText + '|';
-            } else {
-                // Finished typing, wait a bit then start deleting
-                setTimeout(() => {
-                    if (!animationPaused && animationActive) {
+        if (deltaTime >= typingSpeed) {
+            const targetText = suggestions[currentPlaceholderIndex];
+            
+            if (!isDeleting) {
+                // Typing phase
+                if (currentText.length < targetText.length) {
+                    currentText = targetText.substring(0, currentText.length + 1);
+                    searchInput.placeholder = currentText + '|';
+                    lastUpdateTime = currentTime;
+                } else {
+                    // Finished typing, wait then start deleting
+                    if (deltaTime >= pauseTime) {
                         isDeleting = true;
+                        lastUpdateTime = currentTime;
                     }
-                }, 2000);
-            }
-        } else {
-            // Deleting phase
-            if (currentText.length > 0) {
-                currentText = currentText.substring(0, currentText.length - 1);
-                searchInput.placeholder = currentText + '|';
+                }
             } else {
-                // Finished deleting, move to next suggestion
-                isDeleting = false;
-                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
-                setTimeout(() => {
-                    if (!animationPaused && animationActive) {
-                        typeText();
-                    }
-                }, 500);
-                return;
+                // Deleting phase
+                if (currentText.length > 0) {
+                    currentText = currentText.substring(0, currentText.length - 1);
+                    searchInput.placeholder = currentText + '|';
+                    lastUpdateTime = currentTime;
+                } else {
+                    // Finished deleting, move to next suggestion
+                    isDeleting = false;
+                    currentPlaceholderIndex = (currentPlaceholderIndex + 1) % suggestions.length;
+                    lastUpdateTime = currentTime;
+                }
             }
+        }
+        
+        // Continue animation
+        if (animationActive && !animationPaused) {
+            animationFrameId = requestAnimationFrame(animate);
         }
     }
     
     // Start the animation
-    typingAnimationInterval = setInterval(typeText, 100);
+    animationFrameId = requestAnimationFrame(animate);
 }
 
 // Stop typing animation completely
@@ -6239,9 +6248,9 @@ function stopTypingAnimation() {
     animationActive = false;
     animationPaused = false;
     
-    if (typingAnimationInterval) {
-        clearInterval(typingAnimationInterval);
-        typingAnimationInterval = null;
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
     
     const searchInput = document.getElementById('searchInput');
@@ -6254,9 +6263,9 @@ function stopTypingAnimation() {
 function pauseTypingAnimation() {
     animationPaused = true;
     
-    if (typingAnimationInterval) {
-        clearInterval(typingAnimationInterval);
-        typingAnimationInterval = null;
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
     
     const searchInput = document.getElementById('searchInput');

@@ -6880,150 +6880,153 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* === DARK MODE SWITCH BUTTON STYLES (appended for new switch) === */
 * {
- border: 0;
- box-sizing: border-box;
- margin: 0;
- padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 :root {
- --hue: 223;
- --bg: hsl(var(--hue),10%,90%);
- --fg: hsl(var(--hue),10%,10%);
- --primary: hsl(var(--hue),90%,50%);
- --trans-dur: 0.3s;
- --trans-timing: cubic-bezier(0.76,0.05,0.24,0.95);
- --trans-timing-in: cubic-bezier(0.76,0.05,0.86,0.06);
- --trans-timing-out: cubic-bezier(0.05,0.76,0.06,0.86);
- font-size: calc(10px + (20 - 10) * (100vw - 320px) / (2560 - 320));
+  --hue: 223;
+  --bg: hsl(var(--hue),10%,90%);
+  --fg: hsl(var(--hue),10%,10%);
+  --primary: hsl(var(--hue),90%,50%);
+  --trans-dur: 0.3s;
+  --trans-timing: cubic-bezier(0.76,0.05,0.24,0.95);
+  --trans-timing-in: cubic-bezier(0.76,0.05,0.86,0.06);
+  --trans-timing-out: cubic-bezier(0.05,0.76,0.06,0.86);
+  font-size: 20px;
 }
 body,
 input {
- color: var(--fg);
- font: 1em/1.5 sans-serif;
+  color: var(--fg);
+  font: 1em/1.5 sans-serif;
 }
 body {
- background-color: var(--bg);
- display: flex;
- height: 100vh;
- transition:
-   background-color var(--trans-dur),
-   color var(--trans-dur);
+  background-color: var(--bg);
+  display: flex;
+  height: 100vh;
+  transition:
+    background-color var(--trans-dur),
+    color var(--trans-dur);
 }
 body:has(.switch__input:checked) {
- background-color: var(--fg);
- color: var(--bg);
+  background-color: var(--fg);
+  color: var(--bg);
 }
 .switch {
- margin: auto;
- position: relative;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 .switch__icon,
 .switch__input {
- display: block;
+  display: block;
 }
 .switch__icon {
- position: absolute;
- top: 0.09375em;
- right: 0.09375em;
- width: 0.1875em;
- height: 0.1875em;
- transition:
-   opacity calc(var(--trans-dur) / 2),
-   transform calc(var(--trans-dur) / 2);
+  position: absolute;
+  top: 0.375em;
+  right: 0.375em;
+  width: 0.75em;
+  height: 0.75em;
+  transition:
+    opacity calc(var(--trans-dur) / 2),
+    transform calc(var(--trans-dur) / 2);
 }
 .switch__icon polyline {
- transition: stroke-dashoffset calc(var(--trans-dur) / 2);
+  transition: stroke-dashoffset calc(var(--trans-dur) / 2);
 }
 .switch__icon--light,
 .switch__icon--light polyline {
- transition-delay: calc(var(--trans-dur) / 2);
- transition-timing-function: var(--trans-timing-out);
+  transition-delay: calc(var(--trans-dur) / 2);
+  transition-timing-function: var(--trans-timing-out);
 }
 .switch__icon--dark {
- opacity: 0;
- transform: translateX(-0.1875em) rotate(30deg) scale(0.75);
- transition-timing-function: var(--trans-timing-in);
+  opacity: 0;
+  transform: translateX(-0.75em) rotate(30deg) scale(0.75);
+  transition-timing-function: var(--trans-timing-in);
 }
 .switch__input {
- background-color: hsl(210,90%,70%);
- border-radius: 0.1875em;
- box-shadow:
-   0 0 0 0.03125em hsla(var(--hue),90%,50%,0),
-   0.03125em 0.03125em 0.0625em hsla(var(--hue),90%,10%,0.2);
- outline: transparent;
- position: relative;
- width: 0.75em;
- height: 0.375em;
- -webkit-appearance: none;
- appearance: none;
- -webkit-tap-highlight-color: transparent;
- transition:
-   background-color var(--trans-dur) var(--trans-timing),
-   box-shadow 0.15s linear;
+  background-color: hsl(210,90%,70%);
+  border-radius: 0.75em;
+  box-shadow:
+    0 0 0 0.125em hsla(var(--hue),90%,50%,0),
+    0.125em 0.125em 0.25em hsla(var(--hue),90%,10%,0.2);
+  outline: transparent;
+  position: relative;
+  width: 3em;
+  height: 1.5em;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--trans-dur) var(--trans-timing),
+    box-shadow 0.15s linear;
 }
 .switch__input:focus-visible {
- box-shadow:
-   0 0 0 0.03125em hsl(var(--hue),90%,50%),
-   0.03125em 0.03125em 0.0625em hsla(var(--hue),90%,10%,0.2);
+  box-shadow:
+    0 0 0 0.125em hsl(var(--hue),90%,50%),
+    0.125em 0.125em 0.25em hsla(var(--hue),90%,10%,0.2);
 }
 .switch__input:before,
 .switch__input:after {
- content: "";
- display: block;
- position: absolute;
+  content: "";
+  display: block;
+  position: absolute;
 }
 .switch__input:before {
- background-color: hsl(50,90%,50%);
- border-radius: inherit;
- mask-image: linear-gradient(120deg,hsl(0,0%,0%) 20%,hsla(0,0%,0%,0) 80%);
- -webkit-mask-image: linear-gradient(120deg,hsl(0,0%,0%) 20%,hsla(0,0%,0%,0) 80%);
- inset: 0;
- transition: background-color var(--trans-dur) var(--trans-timing);
+  background-color: hsl(50,90%,50%);
+  border-radius: inherit;
+  mask-image: linear-gradient(120deg,hsl(0,0%,0%) 20%,hsla(0,0%,0%,0) 80%);
+  -webkit-mask-image: linear-gradient(120deg,hsl(0,0%,0%) 20%,hsla(0,0%,0%,0) 80%);
+  inset: 0;
+  transition: background-color var(--trans-dur) var(--trans-timing);
 }
 .switch__input:after {
- background-color: hsl(0,0%,100%);
- border-radius: 50%;
- box-shadow: 0.0125em 0.0125em 0.0125em hsla(var(--hue),90%,10%,0.1);
- top: 0.03125em;
- left: 0.03125em;
- width: 0.3125em;
- height: 0.3125em;
- transition:
-   background-color var(--trans-dur) var(--trans-timing),
-   transform var(--trans-dur) var(--trans-timing);
- z-index: 1;
+  background-color: hsl(0,0%,100%);
+  border-radius: 50%;
+  box-shadow: 0.05em 0.05em 0.05em hsla(var(--hue),90%,10%,0.1);
+  top: 0.125em;
+  left: 0.125em;
+  width: 1.25em;
+  height: 1.25em;
+  transition:
+    background-color var(--trans-dur) var(--trans-timing),
+    transform var(--trans-dur) var(--trans-timing);
+  z-index: 1;
 }
 .switch__input:checked {
- background-color: hsl(290,90%,40%);
+  background-color: hsl(290,90%,40%);
 }
 .switch__input:checked:before {
- background-color: hsl(220,90%,40%);
+  background-color: hsl(220,90%,40%);
 }
 .switch__input:checked:after {
- background-color: hsl(0,0%,0%);
- transform: translateX(0.375em);
+  background-color: hsl(0,0%,0%);
+  transform: translateX(1.5em);
 }
 .switch__input:checked ~ .switch__icon--light,
 .switch__input:checked ~ .switch__icon--light polyline {
- transition-delay: 0s;
- transition-timing-function: var(--trans-timing-in);
+  transition-delay: 0s;
+  transition-timing-function: var(--trans-timing-in);
 }
 .switch__input:checked ~ .switch__icon--light {
- opacity: 0;
- transform: translateX(-0.1875em) rotate(-30deg) scale(0.75);
+  opacity: 0;
+  transform: translateX(-0.75em) rotate(-30deg) scale(0.75);
 }
 .switch__input:checked ~ .switch__icon--light polyline {
- stroke-dashoffset: 1.5;
+  stroke-dashoffset: 1.5;
 }
 .switch__input:checked ~ .switch__icon--dark {
- opacity: 1;
- transform: translateX(-0.375em);
- transition-delay: calc(var(--trans-dur) / 2);
- transition-timing-function: var(--trans-timing-out);
+  opacity: 1;
+  transform: translateX(-1.5em);
+  transition-delay: calc(var(--trans-dur) / 2);
+  transition-timing-function: var(--trans-timing-out);
 }
 .switch__sr {
- overflow: hidden;
- position: absolute;
- width: 1px;
- height: 1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
 }

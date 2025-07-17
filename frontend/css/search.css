@@ -504,8 +504,8 @@ html {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     position: absolute;
-    top: -150px;
-    left: 0;
+    top: -175px;
+    left: -100px;
     right: 0;
     bottom: 0;
     overflow: hidden;
@@ -5157,10 +5157,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     animation: shimmerWave 3.2s ease-in-out infinite;
     background-size: 400% 100%;
     will-change: background-position;
-    /* Ensure proper card structure */
+    /* Ensure proper card structure - match regular cards exactly */
     height: 560px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    width: 100%;
 }
 
 .document-card.loading:hover,

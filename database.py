@@ -14,7 +14,6 @@ import pandas as pd
 import numpy as np
 from langdetect import detect
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
 load_dotenv()
 
 DB_NAME = os.getenv("DB_NAME")
@@ -65,6 +64,13 @@ def fill_courses(debug: bool = False) -> None:
                 cursor.execute("SELECT * FROM course_instances")
                 course_instances = cursor.fetchall()
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
+
+
+def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
+            conn.commit()
 
 
 # ---------------------------------------------
@@ -119,7 +125,7 @@ def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
             for sub_row in subscriptions_data:
                 subscription = VetrinaSubscription.from_dict(sub_row)
                 result.append(subscription)
-            logging.debug(f"Found {len(result)} subscriptions for user {user_id}")
+            logging.info(f"Found {len(result)} subscriptions for user {user_id}")
             return result
 
 
@@ -145,7 +151,7 @@ def get_vetrina_subscribers(vetrina_id: int) -> List[User]:
                 (vetrina_id,),
             )
             subscribers_data = cursor.fetchall()
-            logging.debug(f"Found {len(subscribers_data)} subscribers for vetrina {vetrina_id}")
+            logging.info(f"Found {len(subscribers_data)} subscribers for vetrina {vetrina_id}")
 
             return [User.from_dict(user_row) for user_row in subscribers_data]
 
@@ -184,7 +190,7 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
             )
             user_data = cursor.fetchone()
             conn.commit()
-            logging.debug(f"User {user_data['user_id']} created")
+            logging.info(f"User {user_data['user_id']} created")
 
             return User.from_dict(user_data)
 
@@ -209,7 +215,7 @@ def verify_user(email: str, password: str) -> User:
             user_data = cursor.fetchone()
             if not user_data or password != user_data["password"]:
                 raise UnauthorizedError("Invalid email or password")
-            logging.debug(f"User {user_data['user_id']} verified")
+            logging.info(f"User {user_data['user_id']} verified")
             return User.from_dict(user_data)
 
 
@@ -224,7 +230,7 @@ def delete_user(user_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
             conn.commit()
-            logging.debug(f"User {user_id} deleted")
+            logging.info(f"User {user_id} deleted")
 
 
 def get_user_by_id(user_id: int) -> User:
@@ -244,7 +250,7 @@ def get_user_by_id(user_id: int) -> User:
                 (user_id,),
             )
             user_data = cursor.fetchone()
-            logging.debug(f"User {user_id} retrieved")
+            logging.info(f"User {user_id} retrieved")
             return User.from_dict(user_data) if user_data else None
 
 
@@ -335,7 +341,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             value = type_(value)
             where_parts.append(f"{field_name} = %s")
             where_params.append(value)
-            logging.debug(f"Added vetrina filter {param_name} = {value} to query")
+            logging.info(f"Added vetrina filter {param_name} = {value} to query")
 
     # Add file filters (only when files are joined)
     if has_file_filters:
@@ -344,7 +350,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
                 value = type_(value)
                 where_parts.append(f"{field_name} = %s")
                 where_params.append(value)
-                logging.debug(f"Added file filter {param_name} = {value} to query")
+                logging.info(f"Added file filter {param_name} = {value} to query")
 
     # Build final query with proper parameter order
     where_clause = " AND ".join(where_parts)
@@ -357,7 +363,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
         with conn.cursor() as cursor:
             cursor.execute(final_query, tuple(all_params))
             vetrine_data = cursor.fetchall()
-            logging.debug(f"Retrieved {len(vetrine_data)} vetrine for user {user_id}")
+            logging.info(f"Retrieved {len(vetrine_data)} vetrine for user {user_id}")
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
@@ -436,9 +442,9 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             keyword_where_clause = " AND ".join(keyword_where_parts)
 
             # STEP 1: Execute semantic search independently
-            logging.debug(f"=== SEMANTIC SEARCH DEBUG ===")
-            logging.debug(f"Query: '{query}', Language detected: {lang}")
-            
+            logging.info(f"=== SEMANTIC SEARCH DEBUG ===")
+            logging.info(f"Query: '{query}', Language detected: {lang}")
+
             semantic_sql = f"""
                 SELECT 
                     ce.vetrina_id,
@@ -457,19 +463,21 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 ORDER BY ce.embedding <#> %s
                 LIMIT 50
             """
-            
+
             semantic_params = [k, embedding] + filter_params + [embedding]
             semantic_results = cursor.execute(semantic_sql, semantic_params).fetchall()
-            
-            logging.debug(f"Semantic results found: {len(semantic_results)}")
-            for i, row in enumerate(semantic_results[:5]):  # Show first 5
-                logging.debug(f"  {i+1}. vetrina_id={row['vetrina_id']}, file_id={row['file_id']}, page={row['page_number']}, score={row['semantic_score']:.6f}, name='{row['vetrina_name']}'")
-            if len(semantic_results) > 5:
-                logging.debug(f"  ... and {len(semantic_results) - 5} more semantic results")
 
-            # STEP 2: Execute keyword search independently  
-            logging.debug(f"=== KEYWORD SEARCH DEBUG ===")
-            
+            logging.info(f"Semantic results found: {len(semantic_results)}")
+            for i, row in enumerate(semantic_results[:5]):  # Show first 5
+                logging.info(
+                    f"  {i+1}. vetrina_id={row['vetrina_id']}, file_id={row['file_id']}, page={row['page_number']}, score={row['semantic_score']:.6f}, name='{row['vetrina_name']}'"
+                )
+            if len(semantic_results) > 5:
+                logging.info(f"  ... and {len(semantic_results) - 5} more semantic results")
+
+            # STEP 2: Execute keyword search independently
+            logging.info(f"=== KEYWORD SEARCH DEBUG ===")
+
             keyword_sql = f"""
                 SELECT 
                     v.vetrina_id,
@@ -502,19 +510,21 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                     END, plainto_tsquery('{tsquery_config}', %s::text)) DESC
                 LIMIT 50
             """
-            
+
             keyword_params = [k, query] + filter_params + [query, query, query]
             keyword_results = cursor.execute(keyword_sql, keyword_params).fetchall()
-            
-            logging.debug(f"Keyword results found: {len(keyword_results)}")
+
+            logging.info(f"Keyword results found: {len(keyword_results)}")
             for i, row in enumerate(keyword_results[:5]):  # Show first 5
-                logging.debug(f"  {i+1}. vetrina_id={row['vetrina_id']}, score={row['keyword_score']:.6f}, ts_rank={row['ts_rank']:.6f}, name='{row['vetrina_name']}', desc='{row['vetrina_description'][:50]}...'")
+                logging.info(
+                    f"  {i+1}. vetrina_id={row['vetrina_id']}, score={row['keyword_score']:.6f}, ts_rank={row['ts_rank']:.6f}, name='{row['vetrina_name']}', desc='{row['vetrina_description'][:50]}...'"
+                )
             if len(keyword_results) > 5:
-                logging.debug(f"  ... and {len(keyword_results) - 5} more keyword results")
+                logging.info(f"  ... and {len(keyword_results) - 5} more keyword results")
 
             # STEP 3: Combine results using the original FULL OUTER JOIN approach
-            logging.debug(f"=== COMBINING RESULTS ===")
-            
+            logging.info(f"=== COMBINING RESULTS ===")
+
             combined_sql = f"""
             WITH semantic_search AS (
                 SELECT 
@@ -584,31 +594,33 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             all_params = semantic_params_combined + keyword_params_combined
 
             final_results_raw = cursor.execute(combined_sql, all_params).fetchall()
-            
+
             # Debug the combination results
-            logging.debug(f"Final combined results: {len(final_results_raw)}")
-            
-            semantic_only_count = sum(1 for row in final_results_raw if row['semantic_score'] > 0 and row['keyword_score'] == 0)
-            keyword_only_count = sum(1 for row in final_results_raw if row['semantic_score'] == 0 and row['keyword_score'] > 0)
-            both_count = sum(1 for row in final_results_raw if row['semantic_score'] > 0 and row['keyword_score'] > 0)
-            
-            logging.debug(f"  Results from semantic only: {semantic_only_count}")
-            logging.debug(f"  Results from keyword only: {keyword_only_count}")
-            logging.debug(f"  Results from both searches: {both_count}")
-            
+            logging.info(f"Final combined results: {len(final_results_raw)}")
+
+            semantic_only_count = sum(1 for row in final_results_raw if row["semantic_score"] > 0 and row["keyword_score"] == 0)
+            keyword_only_count = sum(1 for row in final_results_raw if row["semantic_score"] == 0 and row["keyword_score"] > 0)
+            both_count = sum(1 for row in final_results_raw if row["semantic_score"] > 0 and row["keyword_score"] > 0)
+
+            logging.info(f"  Results from semantic only: {semantic_only_count}")
+            logging.info(f"  Results from keyword only: {keyword_only_count}")
+            logging.info(f"  Results from both searches: {both_count}")
+
             # Show top 10 combined results with score breakdown
             for i, row in enumerate(final_results_raw[:10]):
                 source = ""
-                if row['semantic_score'] > 0 and row['keyword_score'] > 0:
+                if row["semantic_score"] > 0 and row["keyword_score"] > 0:
                     source = "BOTH"
-                elif row['semantic_score'] > 0:
+                elif row["semantic_score"] > 0:
                     source = "SEM"
-                elif row['keyword_score'] > 0:
+                elif row["keyword_score"] > 0:
                     source = "KEY"
-                    
-                logging.debug(f"  {i+1}. [{source}] vetrina_id={row['vetrina_id']}, file_id={row['file_id']}, page={row['page_number']}, "
-                             f"combined={row['combined_score']:.6f} (sem={row['semantic_score']:.6f} + key={row['keyword_score']:.6f}), "
-                             f"name='{row['name']}'")
+
+                logging.info(
+                    f"  {i+1}. [{source}] vetrina_id={row['vetrina_id']}, file_id={row['file_id']}, page={row['page_number']}, "
+                    f"combined={row['combined_score']:.6f} (sem={row['semantic_score']:.6f} + key={row['keyword_score']:.6f}), "
+                    f"name='{row['name']}'"
+                )
 
             # Convert results to the expected format (maintaining compatibility)
             final_results = []
@@ -652,7 +664,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
             )
             vetrina_data = cursor.fetchone()
             conn.commit()
-            logging.debug(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id} with price {price}")
+            logging.info(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id} with price {price}")
 
             return Vetrina.from_dict(vetrina_data)
 
@@ -673,7 +685,7 @@ def delete_vetrina(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM vetrina WHERE vetrina_id = %s AND author_id = %s", (vetrina_id, user_id))
             conn.commit()
-            logging.debug(f"Vetrina {vetrina_id} deleted by user {user_id}")
+            logging.info(f"Vetrina {vetrina_id} deleted by user {user_id}")
 
 
 # ---------------------------------------------
@@ -726,7 +738,7 @@ def get_course_by_id(course_id: int) -> CourseInstance:
             if not course_data:
                 raise NotFoundException("Course not found")
 
-            logging.debug(f"Course {course_id} retrieved")
+            logging.info(f"Course {course_id} retrieved")
             return CourseInstance(**course_data)
 
 
@@ -792,7 +804,7 @@ def add_file_to_vetrina(
                 file_data = cursor.fetchone()
                 file = File.from_dict(file_data)
 
-                logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
+                logging.info(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
             return File.from_dict(file_data)
 
 
@@ -801,10 +813,10 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
             for chunk in chunks:
-                page_number = chunk['page_number']
-                description = chunk['description']
-                embedding = chunk['embedding']
-                
+                page_number = chunk["page_number"]
+                description = chunk["description"]
+                embedding = chunk["embedding"]
+
                 pg_vector_data = embedding.squeeze()
                 cursor.execute(
                     """INSERT INTO chunk_embeddings 
@@ -813,7 +825,7 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
                     (vetrina_id, file_id, page_number, description, pg_vector_data),
                 )
                 conn.commit()
-            logging.debug(f"Inserted {len(chunks)} chunk embeddings for file {file_id} in vetrina {vetrina_id}")
+            logging.info(f"Inserted {len(chunks)} chunk embeddings for file {file_id} in vetrina {vetrina_id}")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:
@@ -849,7 +861,7 @@ def update_file_display_name(user_id: int, file_id: int, new_display_name: str) 
             if cursor.rowcount == 0:
                 raise NotFoundException("File not found or you don't have permission to update it")
             file_data = cursor.fetchone()
-            logging.debug(f"File {file_id} display name updated to '{new_display_name}' by user {user_id}")
+            logging.info(f"File {file_id} display name updated to '{new_display_name}' by user {user_id}")
             return File.from_dict(file_data)
 
 
@@ -890,7 +902,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                     (vetrina_id,),
                 )
             files_data = cursor.fetchall()
-            # logging.debug(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
+            # logging.info(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
             return [File.from_dict(data) for data in files_data]
 
 
@@ -923,7 +935,7 @@ def delete_file(requester_id: int, file_id: int) -> File:
                 (file_id, requester_id),
             )
             conn.commit()
-            logging.debug(f"File {file_id} deleted by user {requester_id}")
+            logging.info(f"File {file_id} deleted by user {requester_id}")
 
 
 def get_file(file_id: int) -> File:
@@ -985,7 +997,7 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
 
             file = File.from_dict(file_data)
             file.owned = True
-            logging.debug(f"File {file_id} is owned by user {user_id}")
+            logging.info(f"File {file_id} is owned by user {user_id}")
             return file
 
 
@@ -1002,7 +1014,7 @@ def add_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO owned_files (owner_id, file_id) VALUES (%s, %s)", (user_id, file_id))
             conn.commit()
-            logging.debug(f"File {file_id} added to owned files of user {user_id}")
+            logging.info(f"File {file_id} added to owned files of user {user_id}")
 
 
 def remove_owned_file(user_id: int, file_id: int) -> None:
@@ -1013,7 +1025,7 @@ def remove_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM owned_files WHERE owner_id = %s AND file_id = %s", (user_id, file_id))
             conn.commit()
-            logging.debug(f"File {file_id} removed from owned files of user {user_id}")
+            logging.info(f"File {file_id} removed from owned files of user {user_id}")
 
 
 # ---------------------------------------------
@@ -1053,7 +1065,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You already own this file")
 
-                logging.debug(f"File {file_id} not owned by user {user_id}")
+                logging.info(f"File {file_id} not owned by user {user_id}")
 
                 cursor.execute(
                     "SELECT * FROM files WHERE file_id = %s",
@@ -1061,7 +1073,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 )
                 file_data = cursor.fetchone()
 
-                logging.debug(f"File {file_id} retrieved for transaction")
+                logging.info(f"File {file_id} retrieved for transaction")
 
                 if not file_data:
                     raise NotFoundException("File not found")
@@ -1074,13 +1086,13 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 )
                 transaction_data = cursor.fetchone()
                 transaction = Transaction.from_dict(transaction_data)
-                logging.debug(f"Transaction {transaction.transaction_id} created for file {file_id} bought by user {user_id}")
+                logging.info(f"Transaction {transaction.transaction_id} created for file {file_id} bought by user {user_id}")
 
                 cursor.execute(
                     "INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.transaction_id)
                 )
                 cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE file_id = %s", (file_id,))
-                logging.debug(f"File {file_id} bought by user {user_id} with transaction {transaction.transaction_id}")
+                logging.info(f"File {file_id} bought by user {user_id} with transaction {transaction.transaction_id}")
             return transaction, file
 
 
@@ -1110,7 +1122,7 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transac
                     raise NotFoundException("Vetrina not found")
 
                 price = vetrina_data["price"]
-                logging.debug(f"User {user_id} is not subscribed to vetrina {vetrina_id}, price: {price}")
+                logging.info(f"User {user_id} is not subscribed to vetrina {vetrina_id}, price: {price}")
 
                 cursor.execute(
                     "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING *",
@@ -1118,13 +1130,13 @@ def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transac
                 )
                 transaction_data = cursor.fetchone()
                 transaction = Transaction.from_dict(transaction_data)
-                logging.debug(f"Transaction {transaction.transaction_id} created for subscription {vetrina_id} bought by user {user_id}")
+                logging.info(f"Transaction {transaction.transaction_id} created for subscription {vetrina_id} bought by user {user_id}")
 
                 cursor.execute(
                     "INSERT INTO vetrina_subscriptions (subscriber_id, vetrina_id, transaction_id, price) VALUES (%s, %s, %s, %s)",
                     (user_id, vetrina_id, transaction.transaction_id, price),
                 )
-                logging.debug(f"Subscription {vetrina_id} bought by user {user_id} with transaction {transaction.transaction_id}")
+                logging.info(f"Subscription {vetrina_id} bought by user {user_id} with transaction {transaction.transaction_id}")
 
                 # Fetch the complete subscription data with all required fields for VetrinaSubscription.from_dict
                 cursor.execute(
@@ -1163,7 +1175,7 @@ def add_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO favourite_vetrine (user_id, vetrina_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, vetrina_id))
             conn.commit()
-            logging.debug(f"Vetrina {vetrina_id} added to favorites of user {user_id}")
+            logging.info(f"Vetrina {vetrina_id} added to favorites of user {user_id}")
 
 
 def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
@@ -1183,7 +1195,7 @@ def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
             if cursor.rowcount == 0:
                 raise NotFoundException("Favorite vetrina not found")
             conn.commit()
-            logging.debug(f"Vetrina {vetrina_id} removed from favorites of user {user_id}")
+            logging.info(f"Vetrina {vetrina_id} removed from favorites of user {user_id}")
 
 
 def add_favorite_file(user_id: int, file_id: int) -> None:
@@ -1201,7 +1213,7 @@ def add_favorite_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO favourite_file (user_id, file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, file_id))
             conn.commit()
-            logging.debug(f"File {file_id} added to favorites of user {user_id}")
+            logging.info(f"File {file_id} added to favorites of user {user_id}")
 
 
 def remove_favorite_file(user_id: int, file_id: int) -> None:
@@ -1221,7 +1233,7 @@ def remove_favorite_file(user_id: int, file_id: int) -> None:
             if cursor.rowcount == 0:
                 raise NotFoundException("Favorite file not found")
             conn.commit()
-            logging.debug(f"File {file_id} removed from favorites of user {user_id}")
+            logging.info(f"File {file_id} removed from favorites of user {user_id}")
 
 
 def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
@@ -1254,7 +1266,7 @@ def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
-            logging.debug(f"Retrieved {len(results)} vetrine with owned files for user {user_id}")
+            logging.info(f"Retrieved {len(results)} vetrine with owned files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
 
 
@@ -1287,7 +1299,7 @@ def get_favorites(user_id: int) -> List[Vetrina]:
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
-            logging.debug(f"Retrieved {len(results)} vetrine with favorite files for user {user_id}")
+            logging.info(f"Retrieved {len(results)} vetrine with favorite files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
 
 
@@ -1317,7 +1329,7 @@ def add_review(user_id: int, vetrina_id: int, rating: int, review_text: str, rev
             )
             review_data = cursor.fetchone()
             review = Review.from_dict(review_data)
-            logging.debug(f"Review added to vetrina {vetrina_id} by user {user_id}")
+            logging.info(f"Review added to vetrina {vetrina_id} by user {user_id}")
             return review
 
 
@@ -1338,7 +1350,7 @@ def get_reviews(vetrina_id: int) -> List[Review]:
                 (vetrina_id,),
             )
             reviews_data = cursor.fetchall()
-            logging.debug(f"Retrieved {len(reviews_data)} reviews for vetrina {vetrina_id}")
+            logging.info(f"Retrieved {len(reviews_data)} reviews for vetrina {vetrina_id}")
             return [Review.from_dict(row) for row in reviews_data]
 
 
@@ -1357,4 +1369,4 @@ def delete_review(user_id: int, vetrina_id: int) -> None:
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
-            logging.debug(f"Review deleted by user {user_id}")
+            logging.info(f"Review deleted by user {user_id}")

@@ -6,11 +6,8 @@ import logging
 import os
 import tempfile
 import json
-from bge import get_chunk_embeddings
+import bge
 from PIL import Image
-import numpy as np
-
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
 def extract_page_images(doc_path: str, start_page: int, num_pages: int):
@@ -128,12 +125,15 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
             all_chunks.extend([chunk for chunk in temp_chunks.values()])
             print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
 
+        model.unload()
+
         # process embeddings for pages
         for i, chunk in enumerate(all_chunks):
             print(f"Processing chunk {i}/{len(all_chunks)}, page {chunk['page_number']}/{len(temp_files)}")
             image_path = temp_files[chunk['page_number'] - 1]  # page_number is 1-based
             image = Image.open(image_path)
-            chunk['embedding'] = get_chunk_embeddings(chunk['description'], image, chunk['context'])
+            chunk['embedding'] = bge.get_chunk_embeddings(chunk['description'], image, chunk['context'])
+        bge.unload_model()
 
     finally:
         # Clean up temporary files

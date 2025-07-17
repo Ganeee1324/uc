@@ -6878,71 +6878,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: none;
 }
 
-/* === Custom Switch Button Styles (Dark Mode Toggle) === */
-* {
-  border: 0;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-:root {
-  --hue: 223;
-  --bg: hsl(var(--hue),10%,90%);
-  --fg: hsl(var(--hue),10%,10%);
-  --primary: hsl(var(--hue),90%,50%);
-  --trans-dur: 0.3s;
-  --trans-timing: cubic-bezier(0.76,0.05,0.24,0.95);
-  --trans-timing-in: cubic-bezier(0.76,0.05,0.86,0.06);
-  --trans-timing-out: cubic-bezier(0.05,0.76,0.06,0.86);
-  font-size: calc(40px + (80 - 40) * (100vw - 320px) / (2560 - 320));
-}
-body,
-input {
-  color: var(--fg);
-  font: 1em/1.5 sans-serif;
-}
-body {
-  background-color: var(--bg);
-  display: flex;
-  height: 100vh;
-  transition:
-    background-color var(--trans-dur),
-    color var(--trans-dur);
-}
-body:has(.switch__input:checked) {
-  background-color: var(--fg);
-  color: var(--bg);
-}
+/* --- Custom Switch Button for AI Toggle --- */
 .switch {
-  margin: auto;
+  margin-left: 16px;
   position: relative;
-}
-.switch__icon,
-.switch__input {
-  display: block;
-}
-.switch__icon {
-  position: absolute;
-  top: 0.375em;
-  right: 0.375em;
-  width: 0.75em;
-  height: 0.75em;
-  transition:
-    opacity calc(var(--trans-dur) / 2),
-    transform calc(var(--trans-dur) / 2);
-}
-.switch__icon polyline {
-  transition: stroke-dashoffset calc(var(--trans-dur) / 2);
-}
-.switch__icon--light,
-.switch__icon--light polyline {
-  transition-delay: calc(var(--trans-dur) / 2);
-  transition-timing-function: var(--trans-timing-out);
-}
-.switch__icon--dark {
-  opacity: 0;
-  transform: translateX(-0.75em) rotate(30deg) scale(0.75);
-  transition-timing-function: var(--trans-timing-in);
+  display: flex;
+  align-items: center;
+  height: 40px;
 }
 .switch__input {
   background-color: hsl(210,90%,70%);
@@ -6960,6 +6902,8 @@ body:has(.switch__input:checked) {
   transition:
     background-color var(--trans-dur) var(--trans-timing),
     box-shadow 0.15s linear;
+  margin: 0 0.5em 0 0;
+  vertical-align: middle;
 }
 .switch__input:focus-visible {
   box-shadow:
@@ -7003,6 +6947,33 @@ body:has(.switch__input:checked) {
   background-color: hsl(0,0%,0%);
   transform: translateX(1.5em);
 }
+.switch__icon,
+.switch__input {
+  display: block;
+}
+.switch__icon {
+  position: absolute;
+  top: 0.375em;
+  right: 0.375em;
+  width: 0.75em;
+  height: 0.75em;
+  transition:
+    opacity calc(var(--trans-dur) / 2),
+    transform calc(var(--trans-dur) / 2);
+}
+.switch__icon polyline {
+  transition: stroke-dashoffset calc(var(--trans-dur) / 2);
+}
+.switch__icon--light,
+.switch__icon--light polyline {
+  transition-delay: calc(var(--trans-dur) / 2);
+  transition-timing-function: var(--trans-timing-out);
+}
+.switch__icon--dark {
+  opacity: 0;
+  transform: translateX(-0.75em) rotate(30deg) scale(0.75);
+  transition-timing-function: var(--trans-timing-in);
+}
 .switch__input:checked ~ .switch__icon--light,
 .switch__input:checked ~ .switch__icon--light polyline {
   transition-delay: 0s;
@@ -7026,4 +6997,34 @@ body:has(.switch__input:checked) {
   position: absolute;
   width: 1px;
   height: 1px;
+}
+
+/* Make the switch fit inside the search bar */
+.search-bar .switch {
+  margin-left: 12px;
+  margin-right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+.search-bar .switch__input {
+  height: 32px;
+  width: 56px;
+  min-width: 48px;
+  margin: 0 0.5em 0 0;
+}
+.search-bar .switch__icon {
+  top: 0.5em;
+  right: 0.5em;
+}
+
+/* Remove old ai-search-toggle styles if present */
+.ai-search-toggle, .toggle-container, .toggle-track, .toggle-thumb, .toggle-label, .toggle-icon-off, .toggle-icon-on, .label-text-off, .label-text-on {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
 }

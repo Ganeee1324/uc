@@ -662,27 +662,41 @@ html {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
-    /* Keep the card in the layout flow */
+    /* Keep the card in the layout flow with full structure */
     position: static !important;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     /* Prevent any transforms that might affect layout */
     transform: none !important;
+    /* Ensure proper dimensions */
+    height: 560px !important;
+    width: 100% !important;
 }
 
-/* Position no-results as a grid item instead of absolute positioning */
+/* Ensure all skeleton elements within invisible loading cards are also hidden */
+.documents-grid:has(.no-results) .document-card.loading * {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Position no-results as absolute overlay on top of invisible grid */
 .documents-grid:has(.no-results) .no-results {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 10;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: transparent;
     margin: 0;
-    /* Remove height: auto - let it fill the space naturally */
+    width: auto;
+    height: auto;
+    /* Ensure proper centering and sizing */
+    max-width: 800px;
+    padding: var(--space-8) var(--space-20) var(--space-32) var(--space-20);
 }
 
 /* Debug boundaries removed - issue fixed */
@@ -731,6 +745,7 @@ html {
     
     .documents-grid:has(.no-results) .no-results {
         padding: var(--space-12) var(--space-12) var(--space-20) var(--space-12);
+        max-width: 100%;
     }
     
     .no-results .material-symbols-outlined {
@@ -778,6 +793,7 @@ html {
     
     .documents-grid:has(.no-results) .no-results {
         padding: var(--space-8) var(--space-8) var(--space-16) var(--space-8);
+        max-width: 90%;
     }
     
     .no-results .material-symbols-outlined {

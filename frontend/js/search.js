@@ -3419,14 +3419,47 @@ function renderDocuments(files) {
     grid.innerHTML = '';
     
     if (!files || files.length === 0) {
-        // Add invisible loading cards to maintain grid height
+        // Add invisible loading cards to maintain grid height and structure
         const loadingCardCount = 12; // Match the number used in showLoadingCards for search
         for (let i = 0; i < loadingCardCount; i++) {
             const loadingCard = document.createElement('div');
             loadingCard.className = 'document-card loading';
-            // These will be made invisible by CSS but will reserve space
+            loadingCard.style.animationDelay = `${i * 0.1}s`;
+            
+            // Create full structure matching real document cards
+            loadingCard.innerHTML = `
+                <div class="document-preview loading-preview">
+                    <div class="skeleton-preview-circle"></div>
+                    <div class="skeleton-rating-badge"></div>
+                    <div class="skeleton-preview-bar"></div>
+                    <div class="skeleton-favorite-button"></div>
+                </div>
+                <div class="document-content">
+                    <div class="document-header">
+                        <div class="document-title-section">
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-author"></div>
+                        </div>
+                    </div>
+                    <div class="document-info">
+                        <div class="skeleton-line info-item"></div>
+                        <div class="skeleton-line info-item"></div>
+                        <div class="skeleton-line info-item"></div>
+                        <div class="skeleton-line info-item"></div>
+                    </div>
+                    <div class="document-footer">
+                        <div class="document-footer-left">
+                            <div class="skeleton-avatar"></div>
+                            <div class="skeleton-meta"></div>
+                        </div>
+                        <div class="skeleton-price"></div>
+                    </div>
+                </div>
+            `;
+            
             grid.appendChild(loadingCard);
         }
+        
         // Now overlay the no-results element as the last child
         const noResults = document.createElement('div');
         noResults.className = 'no-results';

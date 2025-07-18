@@ -717,7 +717,7 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
                     (vetrina_id, file_id, page_number, description, pg_vector_data),
                 )
                 conn.commit()
-            logging.info(f"Inserted {len(chunks)} chunk embeddings for file {file_id} in vetrina {vetrina_id}")
+            logging.info(f"Inserted {len(chunks)} chunk embeddings")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:

@@ -555,7 +555,7 @@ def process_embedding_queue():
                             break
                         logging.info(f"Processing {len(rows)} files from embedding queue.")
                         for row in rows:
-                            logging.info(f"Processing embedding queue for file {row['filename']} in vetrina {row['vetrina_id']}")
+                            logging.info(f"Generating embeddings for file {row['display_name']}")
                             chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], "PDF Document")
                             database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
                             logging.info(f"Processed {len(chunks)} chunks for PDF file {row['file_id']}")

@@ -141,7 +141,8 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
             image_path = temp_files[chunk['page_number'] - 1]  # page_number is 1-based
             image = Image.open(image_path)
             chunk['embedding'] = bge.get_chunk_embeddings(chunk['description'], image, chunk['context'])
-        bge.unload_model()
+        if os.name == "nt":
+            bge.unload_model()
 
     finally:
         # Clean up temporary files

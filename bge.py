@@ -65,6 +65,7 @@ def unload_model():
     del model
     torch.cuda.empty_cache()
     model = None
+    logging.info(f"BGE model unloaded")
 
 
 if __name__ == "__main__":

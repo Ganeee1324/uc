@@ -519,7 +519,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 file = File.from_dict(row)
                 chunk = Chunk.from_dict(row)
                 final_results.append((vetrina, file, chunk, row["combined_score"]))
-                logging.info(f"{chunk.chunk_description[:int(len(chunk.chunk_description) * 0.8)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['combined_score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})")
+                logging.info(f"{chunk.chunk_description[:min(len(chunk.chunk_description), 120)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['combined_score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})")
             print(f"----------------------------------")
             return final_results
 

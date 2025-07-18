@@ -6000,31 +6000,28 @@ let aiSearchEnabled = false;
 // Initialize AI Search Toggle
 function initializeAISearchToggle() {
     const aiToggle = document.getElementById('aiSearchToggle');
+    const toggleInput = document.getElementById('toggle');
     const searchBar = document.querySelector('.search-bar');
     const searchInput = document.getElementById('searchInput');
     
-    if (!aiToggle) return;
+    if (!aiToggle || !toggleInput) return;
     
     // Load saved state from localStorage
     const savedState = localStorage.getItem('aiSearchEnabled');
     if (savedState === 'true') {
         aiSearchEnabled = true;
-        aiToggle.classList.add('active');
+        toggleInput.checked = true;
         searchBar.classList.add('ai-active');
         updateSearchPlaceholder(true);
     }
     
     // Toggle event handler
-    aiToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
+    toggleInput.addEventListener('change', function(e) {
         // Toggle state
-        aiSearchEnabled = !aiSearchEnabled;
+        aiSearchEnabled = toggleInput.checked;
         
         // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
-            aiToggle.classList.add('active');
             searchBar.classList.add('ai-active');
             updateSearchPlaceholder(true);
             updateTypewriterForAIMode();
@@ -6036,7 +6033,6 @@ function initializeAISearchToggle() {
             }, 200);
             showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
         } else {
-            aiToggle.classList.remove('active');
             searchBar.classList.remove('ai-active');
             updateSearchPlaceholder(false);
             updateTypewriterForAIMode();
@@ -6063,7 +6059,8 @@ function initializeAISearchToggle() {
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.shiftKey && e.key === 'A') {
             e.preventDefault();
-            aiToggle.click();
+            toggleInput.checked = !toggleInput.checked;
+            toggleInput.dispatchEvent(new Event('change'));
         }
     });
     
@@ -6440,10 +6437,7 @@ function resumeTypewriter() {
 window.addEventListener('DOMContentLoaded', function() {
     const input = document.getElementById('searchInput');
     if (!input) return;
-    // Pause animation when user focuses or types
-    input.addEventListener('focus', () => {
-        pauseTypewriter();
-    });
+    // Only pause animation when user actually types, not when they just focus
     input.addEventListener('input', () => {
         if (input.value.length > 0) {
             pauseTypewriter();

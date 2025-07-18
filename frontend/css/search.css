@@ -6901,37 +6901,26 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* === SPARKLE TOGGLE BUTTON STYLES === */
-.toggle-cont {
+.toggle-input {
+  display: none;
+}
+
+.toggle-label {
   --primary: #800080;
   --light: #d9d9d9;
   --dark: #121212;
   --gray: #414344;
-
-  position: relative;
-  z-index: 10;
-
-  width: fit-content;
-  height: 50px;
-
-  border-radius: 9999px;
-}
-
-.toggle-cont .toggle-input {
-  display: none;
-}
-
-.toggle-cont .toggle-label {
   --gap: 5px;
   --width: 50px;
 
   cursor: pointer;
-
   position: relative;
   display: inline-block;
+  z-index: 10;
 
   padding: 0.5rem;
   width: calc((var(--width) + var(--gap)) * 2);
-  height: 100%;
+  height: 50px;
   background-color: var(--dark);
 
   border: 1px solid #777777;
@@ -6980,7 +6969,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   border-radius: 9999px;
 }
 
-.toggle-cont .toggle-label .cont-icon {
+.toggle-label .cont-icon {
   position: relative;
 
   display: flex;
@@ -7042,67 +7031,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   fill: var(--light);
 }
 
-.toggle-cont:has(.toggle-input:checked) {
-  --checked: true;
-}
-
-@container style(--checked: true) {
-  .toggle-cont .toggle-label {
-    background-color: #41434400;
-
-    border: 1px solid #3d6970;
-    border-bottom: 0;
-  }
-
-  .toggle-cont .toggle-label::before {
-    box-shadow: 0 1rem 2.5rem -2rem #0080ff;
-  }
-
-  .toggle-cont .toggle-label .cont-icon {
-    overflow: visible;
-
-    background-image: radial-gradient(
-      circle at 50% 0%,
-      #045ab1 0%,
-      var(--primary) 100%
-    );
-
-    border: 1px solid var(--primary);
-    border-bottom: 0;
-
-    transform: translateX(calc((var(--gap) * 2) + 100%)) rotate(-225deg);
-  }
-
-  .toggle-cont .toggle-label .cont-icon .sparkle {
-    z-index: -10;
-
-    width: calc(var(--width) * 1.5px);
-    background-color: #acacac;
-
-    animation: sparkle calc(100s / var(--duration)) linear
-      calc(10s / var(--duration)) infinite;
-  }
-
-  @keyframes sparkle {
-    to {
-      width: calc(var(--width) * 1px);
-      transform: translate(5000%, -50%);
-    }
-  }
-}
-
-/* Fallback for browsers that don't support @container */
-.toggle-cont .toggle-input:checked + .toggle-label {
+.toggle-input:checked + .toggle-label {
   background-color: #41434400;
   border: 1px solid #3d6970;
   border-bottom: 0;
 }
 
-.toggle-cont .toggle-input:checked + .toggle-label::before {
+.toggle-input:checked + .toggle-label::before {
   box-shadow: 0 1rem 2.5rem -2rem #0080ff;
 }
 
-.toggle-cont .toggle-input:checked + .toggle-label .cont-icon {
+.toggle-input:checked + .toggle-label .cont-icon {
   overflow: visible;
   background-image: radial-gradient(
     circle at 50% 0%,
@@ -7114,7 +7053,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   transform: translateX(calc((var(--gap) * 2) + 100%)) rotate(-225deg);
 }
 
-.toggle-cont .toggle-input:checked + .toggle-label .cont-icon .sparkle {
+.toggle-input:checked + .toggle-label .cont-icon .sparkle {
   z-index: -10;
   width: calc(var(--width) * 1.5px);
   background-color: #acacac;
@@ -7123,7 +7062,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Position the toggle in the search bar */
-.search-bar .toggle-cont {
+.search-bar .toggle-label {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -7138,29 +7077,23 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Responsive adjustments for the toggle */
 @media (max-width: 768px) {
-  .toggle-cont {
+  .toggle-label {
     height: 40px;
-  }
-  
-  .toggle-cont .toggle-label {
     --width: 40px;
   }
   
-  .toggle-cont .toggle-label .cont-icon {
+  .toggle-label .cont-icon {
     height: 40px;
   }
 }
 
 @media (max-width: 480px) {
-  .toggle-cont {
+  .toggle-label {
     height: 35px;
-  }
-  
-  .toggle-cont .toggle-label {
     --width: 35px;
   }
   
-  .toggle-cont .toggle-label .cont-icon {
+  .toggle-label .cont-icon {
     height: 35px;
   }
 }

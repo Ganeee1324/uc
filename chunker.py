@@ -57,20 +57,19 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
     chat = lms.Chat()
 
     schema = {
-        "type": "object",
-        "patternProperties": {
-            "^[0-9]+$": {
-                "type": "object",
-                "properties": {
-                    "description": {"type": "string"},
-                    "context": {"type": "string"},
-                    "page_number": {"type": "integer"},
-                },
-                "required": ["description", "context", "page_number"],
-                "additionalProperties": False,
-            }
-        },
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "description": {"type": "string"},
+                "context":     {"type": "string"},
+                "page_number": {"type": "integer"}
+            },
+            "required": ["description", "context", "page_number"],
+            "additionalProperties": False
+        }
     }
+
 
     chat.add_system_prompt(
         """
@@ -78,7 +77,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
 
         HOW TO CHUNK: try to make the chunks based on titles, and try to make them corresponds to paragraphs. for example, a single chunk should contain a cluster of information related to the same concept. The goal is to do RAG on the chunks, so it is imperative to cluster any information that is relevant to the general concept of the chunk, in the same chunk, so don't split too much when you can make a bigger chunk that still makes sense. End a chunk only when the next part of the page begins to represent a different concept.
 
-        HOW TO OUTPUT: output in json format, example: {"1": {"description": "text1", "context": "context1", "page_number": n}, "2": {"description": "text2", "context": "context2", "page_number": n}}. The chunk ids need to be increasing and consistent across prompts, when I give you other pages, you must remember the last chunk you outputted and continue from there (for example: if in the previous prompt you finished with 4, the next chunk must be 5). A chunk can begin in one page and end in another, but don't output chunks that we already outputted, even if in previous responses. Description field: Don't return the exact text, don't return data too specific, and don't return one-time details (data of an exercise), but a description of what the chunk is about or what it explainsl, don't explain the stuff in the chunk, the description should just tell what information is inside. don't say "this chunk explains", or "this section", or "this part explains", just tell the content. When the chunk is an explanation, say "Explanation of", if its an exercise "Exercise on", if its an example "example of", etc... context field: include context from the document to enhance the performance of the rag system. Make this context as small as possible. This context is meant to expand on the chunk content, and include stuff that you know because you have the full picture. for example the course, file name or field. don't be afraid to repeat context across chunks. Don't say "This content is part of" or stuff like that, just say the context. For example, if you have a chunk explaining derivatives, the context would be: "(General context around the chunk), Derivatives, Calculus 1, Mathematics". Generate chunks until all the pages are covered.
+        HOW TO OUTPUT: output in json format, example: [{"description": "text1", "context": "context1", "page_number": n}, {"description": "text2", "context": "context2", "page_number": n}, ...]. When I give you other pages, you must remember the last chunk you outputted and continue from there. A chunk can begin in one page and end in another, but don't output chunks that we already outputted, even if in previous responses. Description field: Don't return the exact text, don't return data too specific, and don't return one-time details (data of an exercise), but a description of what the chunk is about or what it explainsl, don't explain the stuff in the chunk, the description should just tell what information is inside. don't say "this chunk explains", or "this section", or "this part explains", just tell the content. When the chunk is an explanation, say "Explanation of", if its an exercise "Exercise on", if its an example "example of", etc... context field: include context from the document to enhance the performance of the rag system. Make this context as small as possible. This context is meant to expand on the chunk content, and include stuff that you know because you have the full picture, for example the course, file name or field. don't be afraid to repeat context across chunks. Don't say "This content is part of" or stuff like that, just say the context. For example, if you have a chunk explaining derivatives, the context would be: "(General context around the chunk), Derivatives, Calculus 1, Mathematics". Generate chunks until all the pages are covered.
         """
     )
 
@@ -92,7 +91,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
             image_paths = extract_page_images(doc_path, 1, 3)
             temp_files.extend(image_paths)
 
-            file_handlers = [lms.prepare_image(src=path) for path in image_paths]
+            file_handlers = [lms.prepare_image(src=path, name=f"page_{i+current_page}") for i, path in enumerate(image_paths)]
             chat.add_user_message(content=f"File name: {file_name}, Collection name: {collection_name}, Pages: 1-3", images=file_handlers)
 
             response = model.respond_stream(chat, response_format=schema, config={"contextOverflowPolicy": "rollingWindow"})
@@ -106,7 +105,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
             # add response to chat
             chat.add_assistant_response(response.result())
             temp_chunks = json.loads(response.result().content)
-            all_chunks.extend([chunk for chunk in temp_chunks.values()])
+            all_chunks.extend(temp_chunks)
             print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
 
         # Process remaining pages 2 at a time
@@ -116,7 +115,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
             image_paths = extract_page_images(doc_path, current_page, 2)
             temp_files.extend(image_paths)
 
-            file_handlers = [lms.prepare_image(src=path) for path in image_paths]
+            file_handlers = [lms.prepare_image(src=path, name=f"page_{i+current_page}") for i, path in enumerate(image_paths)]
             chat.add_user_message(
                 content=f"File name: {file_name}, Collection name: {collection_name}, Pages: {current_page}-{end_page}", images=file_handlers
             )
@@ -131,7 +130,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
 
             chat.add_assistant_response(response.result())
             temp_chunks = json.loads(response.result().content)
-            all_chunks.extend([chunk for chunk in temp_chunks.values()])
+            all_chunks.extend(temp_chunks)
             print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
 
         model.unload()

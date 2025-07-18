@@ -6910,20 +6910,20 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   --light: #d9d9d9;
   --dark: #121212;
   --gray: #414344;
-  --gap: 5px;
-  --width: 50px;
+  --gap: 2.5px;
+  --width: 25px;
 
   cursor: pointer;
   position: relative;
   display: inline-block;
   z-index: 10;
 
-  padding: 0.5rem;
+  padding: 0.25rem;
   width: calc((var(--width) + var(--gap)) * 2);
-  height: 50px;
+  height: 25px;
   background-color: var(--dark);
 
-  border: 1px solid #777777;
+  border: 0.5px solid #777777;
   border-bottom: 0;
 
   border-radius: 9999px;
@@ -6939,11 +6939,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   left: 50%;
   transform: translate(-50%, -50%);
 
-  width: calc(100% + 1.5rem);
-  height: calc(100% + 1.5rem);
+  width: calc(100% + 0.75rem);
+  height: calc(100% + 0.75rem);
   background-color: var(--gray);
 
-  border: 1px solid #777777;
+  border: 0.5px solid #777777;
   border-bottom: 0;
   border-radius: 9999px;
 
@@ -6978,19 +6978,19 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
   position: relative;
   width: var(--width);
-  height: 50px;
+  height: 25px;
   background-image: radial-gradient(
     circle at 50% 0%,
     #666666 0%,
     var(--gray) 100%
   );
 
-  border: 1px solid #aaaaaa;
+  border: 0.5px solid #aaaaaa;
   border-bottom: 0;
   border-radius: 9999px;
   box-shadow:
-    inset 0 -0.15rem 0.15rem var(--primary),
-    inset 0 0 0.5rem 0.75rem var(--second);
+    inset 0 -0.075rem 0.075rem var(--primary),
+    inset 0 0 0.25rem 0.375rem var(--second);
 
   transition: transform 0.3s ease-in-out;
 }
@@ -7027,7 +7027,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .cont-icon .icon {
-  width: 1.1rem;
+  width: 0.55rem;
   fill: var(--light);
 }
 
@@ -7038,7 +7038,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .toggle-input:checked + .toggle-label::before {
-  box-shadow: 0 1rem 2.5rem -2rem #0080ff;
+  box-shadow: 0 0.5rem 1.25rem -1rem #0080ff;
 }
 
 .toggle-input:checked + .toggle-label .cont-icon {
@@ -7072,28 +7072,28 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Ensure the search input doesn't overlap with the toggle */
 .search-bar .search-input {
-  padding-right: 120px;
+  padding-right: 70px;
 }
 
 /* Responsive adjustments for the toggle */
 @media (max-width: 768px) {
   .toggle-label {
-    height: 40px;
-    --width: 40px;
+    height: 20px;
+    --width: 20px;
   }
   
   .toggle-label .cont-icon {
-    height: 40px;
+    height: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .toggle-label {
-    height: 35px;
-    --width: 35px;
+    height: 17.5px;
+    --width: 17.5px;
   }
   
   .toggle-label .cont-icon {
-    height: 35px;
+    height: 17.5px;
   }
 }

@@ -567,7 +567,7 @@ def process_embedding_queue():
 
 
 if __name__ == "__main__":
-    threading.Thread(target=process_embedding_queue, daemon=True).start()
+    threading.Thread(target=process_embedding_queue, daemon=False).start()
     if os.name == "nt":  # Windows
         app.run(host="0.0.0.0", debug=False)
     else:
@@ -587,4 +587,4 @@ if __name__ == "__main__":
             print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
             ssl_context = "adhoc"
 
-        app.run(host="0.0.0.0", debug=True, ssl_context=ssl_context)
+        app.run(host="0.0.0.0", debug=False, ssl_context=ssl_context)

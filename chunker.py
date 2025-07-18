@@ -47,8 +47,11 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
     # Specify the host IP and port
     SERVER_API_HOST = "lancionaco.love:1234"
 
-    # This must be the *first* convenience API interaction
-    lms.configure_default_client(SERVER_API_HOST)
+    try:
+        # This must be the *first* convenience API interaction
+        lms.configure_default_client(SERVER_API_HOST)
+    except Exception as e:
+        pass
 
     model = lms.llm("google/gemma-3-12b", config={"contextLength": 10000, "gpu": {"ratio": 0.625}})
     chat = lms.Chat()

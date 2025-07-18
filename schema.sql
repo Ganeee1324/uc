@@ -7,8 +7,9 @@ DROP TABLE IF EXISTS course_instances CASCADE;
 DROP TABLE IF EXISTS vetrina CASCADE;
 DROP TABLE IF EXISTS favourite_vetrine CASCADE;
 DROP TABLE IF EXISTS favourite_file CASCADE;
-DROP TABLE IF EXISTS page_embeddings CASCADE;
+DROP TABLE IF EXISTS chunk_embeddings CASCADE;
 DROP TABLE IF EXISTS review CASCADE;
+DROP TABLE IF EXISTS embedding_queue CASCADE;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -104,12 +105,13 @@ CREATE TABLE IF NOT EXISTS favourite_file (
     PRIMARY KEY (user_id, file_id)
 );
 
-CREATE TABLE IF NOT EXISTS page_embeddings (
+CREATE TABLE IF NOT EXISTS chunk_embeddings (
+    chunk_id SERIAL PRIMARY KEY,
+    description TEXT NOT NULL,
     page_number INTEGER NOT NULL,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
-    embedding vector(1024) NOT NULL,
-    PRIMARY KEY (page_number, vetrina_id, file_id)
+    embedding vector(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS review (
@@ -121,6 +123,13 @@ CREATE TABLE IF NOT EXISTS review (
     review_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, vetrina_id)
 );
+
+CREATE TABLE IF NOT EXISTS embedding_queue (
+    file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
+    PRIMARY KEY (file_id, vetrina_id)
+);
+
 
 CREATE INDEX ON vetrina USING GIN (to_tsvector('english', description)) WHERE language = 'en';
 CREATE INDEX ON vetrina USING GIN (to_tsvector('italian', description)) WHERE language = 'it';

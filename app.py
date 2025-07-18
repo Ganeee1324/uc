@@ -1,12 +1,13 @@
 from datetime import timedelta
 import logging
+import time
 
 # import threading
 import random
 import traceback
 
 # from bge import get_document_embedding
-from bge import get_document_embedding
+from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
@@ -22,10 +23,14 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 import uuid
 import pymupdf
 from io import BytesIO
+import threading
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 load_dotenv()
+
+file_uploaded = False
+file_uploaded_lock = threading.Lock()
 
 # Check if JWT secret key exists in environment
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
@@ -215,33 +220,28 @@ def new_search():
     Query parameter: 'q' - the search query string
     Additional filter parameters: course_name, faculty, canale, language, date_year, course_year, tag, extension
     """
-    query = request.args.get('q', '').strip()
+    query = request.args.get("q", "").strip()
     if not query:
         return jsonify({"error": "missing_query", "msg": "Query parameter 'q' is required"}), 400
-    
+
     # Extract filter parameters from request
     filter_params = {}
-    filter_keys = ['course_name', 'faculty', 'canale', 'language', 'date_year', 'course_year', 'tag', 'extension']
+    filter_keys = ["course_name", "faculty", "canale", "language", "date_year", "course_year", "tag", "extension"]
     for key in filter_keys:
         value = request.args.get(key)
         if value:
             filter_params[key] = value
-    
+
     # Get current user ID if authenticated
     current_user_id = get_jwt_identity()
-    
+
     results = database.new_search(query, filter_params, current_user_id)
     vetrine = []
-    for vetrina, (file_id, page_number, cs) in results:
+    for vetrina, file, chunk, score in results:
         vetrina_dict = vetrina.to_dict()
-        vetrina_dict.update({"file_id": file_id, "page_number": page_number, "combined_score": cs})
+        vetrina_dict.update({"file_id": file.file_id, "page_number": chunk.page_number, "combined_score": score})
         vetrine.append(vetrina_dict)
-    return jsonify({
-        "vetrine": vetrine, 
-        "count": len(results),
-        "query": query,
-        "filters": filter_params
-    }), 200
+    return jsonify({"vetrine": vetrine, "count": len(results), "query": query, "filters": filter_params}), 200
 
 
 # ---------------------------------------------
@@ -252,6 +252,7 @@ def new_search():
 @app.route("/vetrine/<int:vetrina_id>/files", methods=["POST"])
 @jwt_required()
 def upload_file(vetrina_id):
+    global file_uploaded
     requester_id = get_jwt_identity()
 
     # Check if file is provided in the request
@@ -340,8 +341,9 @@ def upload_file(vetrina_id):
     except Exception as e:
         logging.error(f"Error closing file: {e}")
 
-    embeddings = get_document_embedding(new_file_path)
-    database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
+    with file_uploaded_lock:
+        file_uploaded = True
+        database.insert_embedding_queue(db_file.file_id, vetrina_id)
 
     return jsonify({"msg": "File uploaded"}), 200
 
@@ -517,11 +519,11 @@ def delete_review(vetrina_id):
 def get_hierarchy():
     if database.faculties_courses_cache is None:
         database.faculties_courses_cache = database.scrape_faculties_courses()
-        logging.debug(
+        logging.info(
             f"Added {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses to cache"
         )
     else:
-        logging.debug(
+        logging.info(
             f"Retrieved {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses from cache"
         )
     return jsonify(database.faculties_courses_cache), 200
@@ -533,9 +535,41 @@ def get_valid_tags():
     return jsonify({"tags": VALID_TAGS}), 200
 
 
+def process_embedding_queue():
+    global file_uploaded
+    while True:
+        try:
+            time.sleep(10)
+            with database.connect(vector=True) as conn:
+                with conn.cursor() as cursor:
+                    while True:
+                        cursor.execute(
+                            """
+                            SELECT eq.file_id, eq.vetrina_id, f.filename, f.display_name
+                            FROM embedding_queue eq
+                            JOIN files f ON eq.file_id = f.file_id
+                            """
+                        )
+                        rows = cursor.fetchall()
+                        if not rows:
+                            break
+                        logging.info(f"Processing {len(rows)} files from embedding queue.")
+                        for row in rows:
+                            logging.info(f"Processing embedding queue for file {row['filename']} in vetrina {row['vetrina_id']}")
+                            chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], "PDF Document")
+                            database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
+                            logging.info(f"Processed {len(chunks)} chunks for PDF file {row['file_id']}")
+                            cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
+                            conn.commit()
+        except Exception as e:
+            logging.error(f"Error processing embedding queue: {e}")
+            time.sleep(1)
+
+
 if __name__ == "__main__":
+    threading.Thread(target=process_embedding_queue, daemon=True).start()
     if os.name == "nt":  # Windows
-        app.run(host="0.0.0.0", debug=True)
+        app.run(host="0.0.0.0", debug=False)
     else:
         import ssl
 

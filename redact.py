@@ -3,8 +3,6 @@ from PIL import Image, ImageFilter
 from io import BytesIO
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
-
 
 def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 0.2):
     doc = pymupdf.open(doc_path)

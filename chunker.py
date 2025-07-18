@@ -10,27 +10,19 @@ import bge
 from PIL import Image
 
 
-def extract_page_images(doc_path: str, start_page: int, num_pages: int):
+def extract_page_images(doc_path: str):
     """Extract images from PDF pages and return temporary file paths"""
     doc = pymupdf.open(doc_path)
-    image_paths = []
+    images = []
 
-    for i in range(num_pages):
-        page_num = start_page + i - 1  # Convert to 0-based index
-        if page_num >= doc.page_count:
-            break
-
-        page = doc.load_page(page_num)
-        mat = pymupdf.Matrix(2.0, 2.0)  # Higher resolution for better OCR
+    for i in range(doc.page_count):
+        page = doc.load_page(i)
+        mat = pymupdf.Matrix(1.0, 1.0)  # Higher resolution for better OCR
         image = page.get_pixmap(matrix=mat).pil_image()
-
-        # Save to temporary file
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-        image.save(temp_file.name, format="PNG")
-        image_paths.append(temp_file.name)
+        images.append((BytesIO(image.tobytes()), image))
 
     doc.close()
-    return image_paths
+    return images
 
 
 def get_current_context_length(chat: lms.Chat, model: lms.LLM) -> int:
@@ -80,16 +72,14 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
         """
     )
 
-    temp_files = []
     all_chunks = []
+    images = extract_page_images(doc_path)
 
     try:
         # Process one page at a time
-        for current_page in range(1, total_pages + 1):
-            image_paths = extract_page_images(doc_path, current_page, 1)
-            temp_files.extend(image_paths)
+        for current_page, (image_bio, _) in enumerate(images):
 
-            file_handlers = [lms.prepare_image(src=image_paths[0], name=f"page_{current_page}")]
+            file_handlers = [lms.prepare_image(src=image_bio, name=f"page_{current_page}")]
             chat.add_user_message(
                 content=f"{file_name}, {collection_name}, Page: {current_page}", 
                 images=file_handlers
@@ -114,20 +104,18 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
         model.unload()
 
         # process embeddings for pages
-        for i, chunk in enumerate(all_chunks):
-            image_path = temp_files[chunk['page_number'] - 1]  # page_number is 1-based
-            image = Image.open(image_path)
+        for chunk in all_chunks:
+            image = images[chunk['page_number']][1]
             chunk['embedding'] = bge.get_chunk_embeddings(chunk['description'], image, chunk['context'])
+
         if os.name == "nt":
             bge.unload_model()
 
     finally:
         # Clean up temporary files
-        for temp_file in temp_files:
-            try:
-                os.unlink(temp_file)
-            except:
-                pass
+        for image_bio, _ in images:
+            image_bio.close()
+
     return all_chunks
 
 

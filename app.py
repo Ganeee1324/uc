@@ -558,7 +558,7 @@ def process_embedding_queue():
                             logging.info(f"Generating embeddings for file {row['display_name']}")
                             chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], "PDF Document")
                             database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
-                            logging.info(f"Processed {len(chunks)} chunks for PDF file {row['file_id']}")
+                            logging.info(f"Processed {len(chunks)} chunks for PDF file {row['display_name']}")
                             cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
                             conn.commit()
         except Exception as e:

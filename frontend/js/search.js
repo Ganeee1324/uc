@@ -6020,6 +6020,12 @@ function initializeAISearchToggle() {
         // Toggle state
         aiSearchEnabled = toggleInput.checked;
         
+        // Trigger animated border effect
+        searchBar.classList.add('animate-border');
+        setTimeout(() => {
+            searchBar.classList.remove('animate-border');
+        }, 1500);
+        
         // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
             searchBar.classList.add('ai-active');

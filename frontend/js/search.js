@@ -3837,6 +3837,32 @@ function renderDocuments(files) {
                         <span class="info-text">${item.academic_year || 'N/A'}</span>
                     </div>
                 </div>
+                
+                ${item.hasSemanticResults ? `
+                <div class="semantic-results">
+                    <div class="semantic-results-header">
+                        <span class="material-symbols-outlined">psychology</span>
+                        <span>Risultati semantici</span>
+                    </div>
+                    <div class="semantic-chunks">
+                        ${item.semanticChunks.slice(0, 3).map(chunk => `
+                            <div class="semantic-chunk">
+                                <div class="chunk-description">${chunk.chunk_description || chunk.description || 'N/A'}</div>
+                                <div class="chunk-meta">
+                                    <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
+                                    <span class="chunk-score">Rilevanza: ${((chunk.semantic_score || 0) * 100).toFixed(1)}%</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${item.semanticChunks.length > 3 ? `
+                            <div class="semantic-chunk-more">
+                                <span class="material-symbols-outlined">more_horiz</span>
+                                <span>+${item.semanticChunks.length - 3} altri risultati</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
                 <div class="document-footer">
                     <div class="document-footer-left">
                         <div class="owner-avatar" title="Caricato da ${item.author_username || 'Unknown'}" data-action="navigate" data-url="vendor-page.html?user=${encodeURIComponent(item.author_username || 'Unknown')}" style="
@@ -6035,7 +6061,7 @@ function initializeAISearchToggle() {
             setTimeout(() => {
                 aiToggle.style.transform = '';
             }, 200);
-            showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
+            showStatus('Ricerca semantica attivata! 🚀', 'success');
         } else {
             searchBar.classList.remove('ai-active');
             const searchBarBackground = document.getElementById('searchBarBackground');
@@ -6073,8 +6099,8 @@ function initializeAISearchToggle() {
     // Add tooltip on hover
     aiToggle.addEventListener('mouseenter', function() {
         const tooltip = aiSearchEnabled ? 
-            'Disattiva ricerca AI+Vectorial (Ctrl+Shift+A)' : 
-            'Attiva ricerca AI+Vectorial (Ctrl+Shift+A)';
+            'Disattiva ricerca semantica (Ctrl+Shift+A)' : 
+            'Attiva ricerca semantica (Ctrl+Shift+A)';
         aiToggle.title = tooltip;
     });
     
@@ -6112,7 +6138,7 @@ function initializeAISearchToggle() {
         // Focus event to show current mode
         searchInput.addEventListener('focus', function() {
             if (aiSearchEnabled) {
-                showStatus('Modalità AI+Vectorial attiva 🤖', 'success');
+                showStatus('Modalità semantica attiva 🤖', 'success');
             }
         });
     }
@@ -6124,7 +6150,7 @@ function updateSearchPlaceholder(aiEnabled) {
     if (!searchInput) return;
     
     if (aiEnabled) {
-        searchInput.placeholder = 'Cerca con AI avanzata... (es. "concetti di fisica quantistica")';
+        searchInput.placeholder = 'Cerca con intelligenza semantica... (es. "concetti di fisica quantistica")';
     } else {
         searchInput.placeholder = 'Cerca una dispensa...';
     }
@@ -6136,16 +6162,16 @@ async function performSearch(query) {
         // Show loading cards immediately for search
         showLoadingCards(12);
         
-        // Show AI-specific loading message
+        // Show search-specific loading message
         if (aiSearchEnabled) {
-            showStatus('Ricerca AI+Vectorial in corso... 🤖', 'success');
+            showStatus('Ricerca semantica in corso... 🤖', 'success');
             // Add loading animation to toggle
             const aiToggle = document.getElementById('aiSearchToggle');
             if (aiToggle) {
                 aiToggle.classList.add('loading');
             }
         } else {
-            showStatus('Ricerca in corso... 🔍');
+            showStatus('Ricerca standard in corso... 🔍');
         }
         
         // If no query, load all files with current filters
@@ -6154,14 +6180,20 @@ async function performSearch(query) {
             return;
         }
         
-        // Build search parameters
-        const searchParams = new URLSearchParams();
-        searchParams.append('text', query.trim());
+        // Build search parameters based on search mode
+        let searchParams;
+        let endpoint;
         
-        // Add AI search parameter if enabled
         if (aiSearchEnabled) {
-            searchParams.append('ai_search', 'true');
-            searchParams.append('vector_search', 'true');
+            // Use new semantic search endpoint
+            endpoint = '/vetrine/search';
+            searchParams = new URLSearchParams();
+            searchParams.append('q', query.trim());
+        } else {
+            // Use standard search endpoint
+            endpoint = '/vetrine';
+            searchParams = new URLSearchParams();
+            searchParams.append('text', query.trim());
         }
         
         // Add any active filters to the search
@@ -6204,7 +6236,7 @@ async function performSearch(query) {
         // Make backend search request with fallback
         let response;
         try {
-            response = await makeAuthenticatedRequest(`/vetrine?${searchParams.toString()}`);
+            response = await makeAuthenticatedRequest(`${endpoint}?${searchParams.toString()}`);
         } catch (error) {
             console.warn('⚠️ Backend search failed:', error);
             
@@ -6215,7 +6247,7 @@ async function performSearch(query) {
             }
             
             if (aiSearchEnabled) {
-                showStatus('Ricerca AI non disponibile. Passaggio a ricerca standard...', 'error');
+                showStatus('Ricerca semantica non disponibile. Passaggio a ricerca standard...', 'error');
                 // Fallback to standard search
                 aiSearchEnabled = false;
                 const toggle = document.getElementById('aiSearchToggle');
@@ -6250,14 +6282,25 @@ async function performSearch(query) {
             return;
         }
         
-        const searchResults = response.vetrine || [];
-        const totalCount = response.count || searchResults.length;
+        // Handle different response formats based on search mode
+        let searchResults, totalCount, chunks;
+        
+        if (aiSearchEnabled) {
+            // New semantic search response format
+            searchResults = response.vetrine || [];
+            totalCount = response.count || searchResults.length;
+            chunks = response.chunks || {};
+        } else {
+            // Standard search response format
+            searchResults = response.vetrine || [];
+            totalCount = response.count || searchResults.length;
+        }
         
         // If backend search returns 0 results, show empty state
         if (searchResults.length === 0) {
             currentFiles = [];
             renderDocuments([]);
-            const searchMode = aiSearchEnabled ? 'AI+Vectorial' : 'standard';
+            const searchMode = aiSearchEnabled ? 'semantica' : 'standard';
             showStatus(`Nessun risultato trovato per "${query}" con ricerca ${searchMode} 🔍`);
             
             return;
@@ -6300,6 +6343,13 @@ async function performSearch(query) {
                     owner_username: vetrina.author?.username || 'Unknown'
                 }
             };
+            
+            // Add semantic search chunks if available
+            if (aiSearchEnabled && chunks && chunks[vetrina.vetrina_id]) {
+                vetrineCard.semanticChunks = chunks[vetrina.vetrina_id];
+                vetrineCard.hasSemanticResults = true;
+            }
+            
             return vetrineCard;
         });
         
@@ -6319,7 +6369,7 @@ async function performSearch(query) {
             ? `"${searchTerms.join('" + "')}"` 
             : `"${query}"`;
         
-        const searchMode = aiSearchEnabled ? 'AI+Vectorial' : 'standard';
+        const searchMode = aiSearchEnabled ? 'semantica' : 'standard';
         const aiIcon = aiSearchEnabled ? '🤖' : '🔍';
         
         if (totalCount > filteredResults.length) {

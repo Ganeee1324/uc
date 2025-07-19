@@ -7632,6 +7632,148 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   }
 }
 
+/* Semantic Search Results Styles */
+.semantic-results {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.semantic-results-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.semantic-results-header .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+.semantic-chunks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.semantic-chunk {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.semantic-chunk:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.chunk-description {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.chunk-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.chunk-page {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.chunk-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.semantic-chunk-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.semantic-chunk-more:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary-color);
+}
+
+.semantic-chunk-more .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* AI Search Toggle Loading State */
+#aiSearchToggle.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+#aiSearchToggle.loading .cont-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments for semantic results */
+@media (max-width: 768px) {
+  .semantic-results {
+    margin: 12px 0;
+    padding: 12px;
+  }
+  
+  .semantic-chunk {
+    padding: 10px;
+  }
+  
+  .chunk-description {
+    font-size: 12px;
+  }
+  
+  .chunk-meta {
+    font-size: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
 @media (max-width: 480px) {
   .toggle-label {
     height: 17.5px;

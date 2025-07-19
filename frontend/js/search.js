@@ -6012,6 +6012,8 @@ function initializeAISearchToggle() {
         aiSearchEnabled = true;
         toggleInput.checked = true;
         searchBar.classList.add('ai-active');
+        const searchBarBackground = document.getElementById('searchBarBackground');
+        if (searchBarBackground) searchBarBackground.classList.add('ai-active');
         updateSearchPlaceholder(true);
     }
     
@@ -6020,15 +6022,11 @@ function initializeAISearchToggle() {
         // Toggle state
         aiSearchEnabled = toggleInput.checked;
         
-        // Trigger animated border effect
-        searchBar.classList.add('animate-border');
-        setTimeout(() => {
-            searchBar.classList.remove('animate-border');
-        }, 1500);
-        
         // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
             searchBar.classList.add('ai-active');
+            const searchBarBackground = document.getElementById('searchBarBackground');
+            if (searchBarBackground) searchBarBackground.classList.add('ai-active');
             updateSearchPlaceholder(true);
             updateTypewriterForAIMode();
             if (searchInput.value.length === 0) resumeTypewriter();
@@ -6040,6 +6038,8 @@ function initializeAISearchToggle() {
             showStatus('Ricerca AI+Vectorial attivata! 🚀', 'success');
         } else {
             searchBar.classList.remove('ai-active');
+            const searchBarBackground = document.getElementById('searchBarBackground');
+            if (searchBarBackground) searchBarBackground.classList.remove('ai-active');
             updateSearchPlaceholder(false);
             updateTypewriterForAIMode();
             if (searchInput.value.length === 0) resumeTypewriter();

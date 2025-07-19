@@ -87,16 +87,6 @@
     --gradient-secondary: linear-gradient(135deg, var(--indigo-500) 0%, var(--purple-500) 100%);
     --gradient-accent: linear-gradient(135deg, var(--orange-500) 0%, var(--red-500) 100%);
     
-    /* Animated Border Colors - VSCode-inspired gradient */
-    --capra-ramp-1: #0d1117;
-    --capra-ramp-2: #161b22;
-    --capra-ramp-3: #21262d;
-    --capra-ramp-4: #30363d;
-    --capra-ramp-5: #484f58;
-    --vscode-foreground: #c9d1d9;
-    --vscode-panel-border: #30363d;
-    --border-radius: 10px;
-    
     /* Shadows - Professional grade */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
@@ -146,6 +136,11 @@
     --bg-offset-top: -900px; /* Move image up so 790px point aligns with subtitle area */
     --bg-offset-left: 0px;
     --bg-reference-point: 50% 50%; /* Center the image, then use offset for precise positioning */
+    
+    /* Search Bar Toggle Switch :after Pseudo-element */
+    --search-bar-toggle-after: 
+    ; 
+
 }
 
 /* Preload background image for immediate display */
@@ -1108,65 +1103,13 @@ html {
     height: 44px;
     background: var(--white);
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 10px;
     padding: 0 var(--space-4);
     transition: all 0.25s var(--ease-2);
-    overflow: hidden;
     margin-top: 0;
-    z-index: 20;
+    z-index: 1;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-}
-
-/* Animated border effect */
-.search-bar::after {
-    content: "";
-    position: absolute;
-    pointer-events: none;
-    inset: -1px;
-    border-radius: calc(var(--border-radius) + 1px);
-    background: -webkit-linear-gradient(135deg,var(--capra-ramp-5) 0,var(--capra-ramp-4) 8%,var(--capra-ramp-3) 17%,var(--capra-ramp-2) 25%,var(--capra-ramp-1) 33%,var(--vscode-foreground) 34%,var(--vscode-foreground) 40%,var(--vscode-panel-border) 45%,var(--vscode-panel-border) 100%);
-    background: linear-gradient(-45deg,var(--capra-ramp-5) 0,var(--capra-ramp-4) 8%,var(--capra-ramp-3) 17%,var(--capra-ramp-2) 25%,var(--capra-ramp-1) 33%,var(--vscode-foreground) 34%,var(--vscode-foreground) 40%,var(--vscode-panel-border) 45%,var(--vscode-panel-border) 100%);
-    background-size: 400% 200%;
-    background-position: 0 0;
-    -webkit-transition: background-position 1s ease;
-    transition: background-position 1s ease;
-    -webkit-transition-delay: .1s;
-    transition-delay: .1s;
-    -webkit-animation-fill-mode: backwards;
-    animation-fill-mode: backwards;
-    z-index: 0;
-    opacity: 0;
-    transform: scale(0.1);
-    transform-origin: center;
-}
-
-/* Animation when toggle is clicked */
-.search-bar.animate-border::after {
-    opacity: 1;
-    transform: scale(1);
-    background-position: 100% 100%;
-    -webkit-transition: opacity 0.3s ease, transform 0.6s var(--ease-spring), background-position 1.2s ease;
-    transition: opacity 0.3s ease, transform 0.6s var(--ease-spring), background-position 1.2s ease;
-    -webkit-transition-delay: 0s;
-    transition-delay: 0s;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-}
-
-/* Ensure search bar content stays above the animated border */
-.search-bar .search-input,
-.search-bar .toggle-label {
-    position: relative;
-    z-index: 10;
-}
-
-/* Enhanced animation for AI active state */
-.search-bar.ai-active::after {
-    background-position: 50% 50%;
-    opacity: 0.3;
-    transform: scale(1.02);
-    -webkit-transition: opacity 0.5s ease, transform 0.3s ease, background-position 2s ease;
-    transition: opacity 0.5s ease, transform 0.3s ease, background-position 2s ease;
 }
 
 /* Animation keyframes for border rotation */
@@ -7656,6 +7599,27 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   padding-right: 50px;
 }
 
+/* Search bar wrapper for proper layering */
+.search-bar-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Invisible element that matches search bar position */
+.search-bar-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: red;
+    border: none;
+    border-radius: inherit;
+    z-index: 0;
+    pointer-events: none;
+}
+
+
 /* Responsive adjustments for the toggle */
 @media (max-width: 768px) {
   .toggle-label {
@@ -7676,10 +7640,5 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   
   .toggle-label .cont-icon {
     height: 17.5px;
-  }
-  
-  /* Ensure animated border works on mobile */
-  .search-bar::after {
-    border-radius: calc(var(--border-radius) + 1px);
   }
 }

@@ -355,6 +355,138 @@ paths:
                     type: integer
                     description: Number of results returned
 
+  /vetrine/search:
+    get:
+      tags:
+        - Vetrine
+      summary: New semantic search
+      description: |
+        Search for vetrine using a semantic search approach that combines vector embeddings and full-text search.
+        
+        This endpoint performs a two-stage search:
+        1. **Semantic Search**: Uses vector embeddings to find semantically similar content
+        2. **Keyword Search**: Uses full-text search to find exact keyword matches
+        
+        Results are ranked by combining both semantic and keyword scores.
+        
+        **Query Parameters:**
+        - `q`: The search query string (required)
+        - Additional filter parameters: `course_name`, `faculty`, `canale`, `language`, `date_year`, `course_year`, `tag`, `extension`
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The search query string for semantic and keyword search
+        - name: course_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact course name
+        - name: faculty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact faculty name
+        - name: canale
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact canale (course channel/section)
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact language of instruction
+        - name: date_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact academic year (e.g., 2024)
+        - name: course_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact course year in curriculum (e.g., 1, 2, 3)
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Filter vetrine that contain files with the specified tag (exact match).
+            Valid options are:
+            - **dispense**
+            - **appunti**
+            - **esercizi**
+        - name: extension
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter vetrine that contain files with the specified extension (exact match)
+      responses:
+        "200":
+          description: Search results with semantic and keyword matching
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vetrina"
+                    description: List of vetrine matching the search criteria
+                  chunks:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Chunk"
+                    description: |
+                      Map of vetrina_id to chunks that matched the search query.
+                      Each chunk contains the specific page and content that matched.
+                    example:
+                      123:
+                        - vetrina_id: 123
+                          file_id: 456
+                          page_number: 1
+                          chunk_description: "This is a sample chunk from page 1"
+                      124:
+                        - vetrina_id: 124
+                          file_id: 789
+                          page_number: 3
+                          chunk_description: "Another sample chunk from page 3"
+                  count:
+                    type: integer
+                    description: Number of vetrine returned
+                  query:
+                    type: string
+                    description: The original search query
+                  filters:
+                    type: object
+                    description: The filter parameters that were applied
+        "400":
+          description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: missing_query
+                msg: Query parameter 'q' is required
+      
+
   /vetrine/{vetrina_id}:
     delete:
       tags:
@@ -1349,6 +1481,27 @@ components:
           type: string
           format: date-time
           description: Timestamp when the review was created
+
+    Chunk:
+      type: object
+      properties:
+        vetrina_id:
+          type: integer
+          description: ID of the vetrina this chunk belongs to
+        file_id:
+          type: integer
+          description: ID of the file this chunk belongs to
+        page_number:
+          type: integer
+          description: Page number within the file where this chunk is located
+        chunk_description:
+          type: string
+          description: The text content or description of this chunk
+      required:
+        - vetrina_id
+        - file_id
+        - page_number
+        - chunk_description
 
   securitySchemes:
     BearerAuth:

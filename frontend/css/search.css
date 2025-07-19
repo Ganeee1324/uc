@@ -921,6 +921,8 @@ html {
     overflow: hidden;
     z-index: -1;
     border-radius: 12px;
+    top: 0;
+    left: 0;
 }
 
 /* White border layer */
@@ -928,7 +930,7 @@ html {
     max-height: 63px;
     max-width: 407px;
     border-radius: 10px;
-    filter: blur(2px);
+    filter: blur(1px);
 }
 
 .search-bar-container .white::before {
@@ -960,7 +962,7 @@ html {
     max-height: 59px;
     max-width: 403px;
     border-radius: 11px;
-    filter: blur(0.5px);
+    filter: blur(0.3px);
 }
 
 .search-bar-container .border::before {
@@ -1019,8 +1021,8 @@ html {
 /* Glow layer */
 .search-bar-container .glow {
     overflow: hidden;
-    filter: blur(30px);
-    opacity: 0.4;
+    filter: blur(20px);
+    opacity: 0.6;
     max-height: 130px;
     max-width: 454px;
 }
@@ -1094,7 +1096,7 @@ html {
     width: 400px;
     max-width: 400px;
     height: 44px;
-    background: #010201;
+    background: var(--white);
     border: none;
     border-radius: 10px;
     padding: 0 var(--space-4);
@@ -1148,7 +1150,7 @@ html {
     outline: none;
     font-size: 16px;
     font-weight: 400;
-    color: white;
+    color: var(--gray-900);
     background: transparent;
     letter-spacing: -0.011em;
     line-height: 1.5;
@@ -1162,7 +1164,7 @@ html {
 }
 
 .search-input::placeholder {
-    color: #c0b9c0;
+    color: var(--gray-500);
     font-weight: 400;
 }
 
@@ -7578,7 +7580,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   right: 10px;
   top: 50%;
   margin-top: -16px; /* Half of toggle height (25px) for perfect centering */
-  z-index: 20;
+  z-index: 35;
+  cursor: pointer;
   /* Using margin-top instead of transform to avoid bouncing */
 }
 

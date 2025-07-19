@@ -901,7 +901,7 @@ html {
     align-items: center;
     justify-content: center;
     max-height: 70px;
-    max-width: 400px;
+    max-width: 420px;
     height: 100%;
     width: 100%;
     overflow: hidden;
@@ -914,7 +914,7 @@ html {
 .search-bar-container .white,
 .search-bar-container .border {
     max-height: 70px;
-    max-width: 400px;
+    max-width: 420px;
     height: 100%;
     width: 100%;
     position: absolute;
@@ -928,7 +928,7 @@ html {
 /* White border layer */
 .search-bar-container .white {
     max-height: 63px;
-    max-width: 407px;
+    max-width: 427px;
     border-radius: 10px;
     filter: blur(1px);
 }
@@ -960,7 +960,7 @@ html {
 /* Main border layer */
 .search-bar-container .border {
     max-height: 59px;
-    max-width: 403px;
+    max-width: 423px;
     border-radius: 11px;
     filter: blur(0.3px);
 }
@@ -992,7 +992,7 @@ html {
 /* Dark border background layer */
 .search-bar-container .darkBorderBg {
     max-height: 65px;
-    max-width: 412px;
+    max-width: 432px;
 }
 
 .search-bar-container .darkBorderBg::before {
@@ -1024,7 +1024,7 @@ html {
     filter: blur(20px);
     opacity: 0.6;
     max-height: 130px;
-    max-width: 454px;
+    max-width: 474px;
 }
 
 .search-bar-container .glow:before {
@@ -4187,14 +4187,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-bar-container {
-       max-width: 300px;
+       max-width: 320px;
    }
    
    .search-bar-container .glow,
    .search-bar-container .darkBorderBg,
    .search-bar-container .white,
    .search-bar-container .border {
-       max-width: 300px;
+       max-width: 320px;
    }
    
    .filters-btn {
@@ -4357,14 +4357,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-bar-container {
-       max-width: 250px;
+       max-width: 270px;
    }
    
    .search-bar-container .glow,
    .search-bar-container .darkBorderBg,
    .search-bar-container .white,
    .search-bar-container .border {
-       max-width: 250px;
+       max-width: 270px;
    }
    
    .search-input {
@@ -4446,14 +4446,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-bar-container {
-       max-width: 200px;
+       max-width: 220px;
    }
    
    .search-bar-container .glow,
    .search-bar-container .darkBorderBg,
    .search-bar-container .white,
    .search-bar-container .border {
-       max-width: 200px;
+       max-width: 220px;
    }
    
    .filters-btn {

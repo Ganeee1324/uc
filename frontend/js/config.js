@@ -2,7 +2,7 @@
 const config = {
     // Development
     development: {
-        API_BASE: 'https://symbia.it:5000'
+        API_BASE: 'http://localhost:5000'  // Local development
     },
     // Production - update this with your actual backend URL
     production: {

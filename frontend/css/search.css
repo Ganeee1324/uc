@@ -921,7 +921,6 @@ html {
     overflow: hidden;
     z-index: -1;
     border-radius: 12px;
-    filter: blur(3px);
 }
 
 /* White border layer */
@@ -1103,6 +1102,8 @@ html {
     overflow: hidden;
     margin-top: 0;
     z-index: 20;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 /* Animation keyframes for border rotation */
@@ -1125,6 +1126,7 @@ html {
     opacity: 0;
     transition: opacity 0.3s var(--ease-2);
     pointer-events: none;
+    z-index: -1;
 }
 
 .search-bar:hover {

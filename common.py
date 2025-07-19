@@ -388,7 +388,9 @@ class Chunk:
         self.chunk_description = chunk_description
 
     def __str__(self) -> str:
-        return f"Chunk(vetrina_id={self.vetrina_id}, file_id={self.file_id}, page_number={self.page_number}, chunk_description={self.chunk_description})"
+        return (
+            f"Chunk(vetrina_id={self.vetrina_id}, file_id={self.file_id}, page_number={self.page_number}, chunk_description={self.chunk_description})"
+        )
 
     def __repr__(self) -> str:
         return self.__str__()

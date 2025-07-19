@@ -40,22 +40,16 @@ def test_search(query: str, description: str = "", params: Dict[str, Any] = {}) 
         data = response.json()
         print(f"Results found: {data.get('count', 0)}")
         print(f"Query processed: {data.get('query', 'N/A')}")
+        print(f"Filters applied: {data.get('filters', {})}")
 
-        # Display results
-        vetrine = data.get("vetrine")
-        # print the first 5 results
-        for i, vetrina in enumerate(vetrine):
-            print(f"\nResult {i+1}:")
-            print(f"  Name: {vetrina.get('name')}")
-            print(f"  Description: {vetrina.get('description', '')[:100]}...")
-            # if file_id := vetrina.get("file_id"):
-            #     file_info = get_file_info(file_id)
-            #     print(f"  File name: {file_info.get('filename')}")
-            #     print(f"  Page number: {vetrina.get('page_number') + 1}")
-            #     print(f"  Combined score: {vetrina.get('combined_score')}")
-            # else:
-            #     print("  No file associated")
-            #     raise Exception("No file associated")
+        # Display results - now handling the new vetrine_chunks structure
+        vetrine = data.get("vetrine", [])
+        chunks = data.get("chunks", {})
+
+        print(f"Vetrine: {vetrine}")
+        print("-" * 60)
+        print(f"Chunks: {chunks}")
+        print("-" * 60)
 
         return data
     else:
@@ -100,8 +94,10 @@ def main():
 
     # Test queries
     test_queries = [
-        {"query": "exercise using entropy", "description": "Testing English search for spectral decomposition", "params": {}},
-        # {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy"},
+        {"query": "explanation of entropy", "description": "Testing English search for entropy", "params": {}},
+        {"query": "explanation of entropy and cross entropy", "description": "Testing English search for notes on entropy", "params": {}},
+        {"query": "machine learning", "description": "Testing general ML search", "params": {}},
+        {"query": "algorithms", "description": "Testing algorithms search", "params": {"faculty": "Computer Science"}},
     ]
 
     results = []

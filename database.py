@@ -13,6 +13,7 @@ import logging
 import pandas as pd
 import numpy as np
 from langdetect import detect
+import json
 
 load_dotenv()
 
@@ -367,7 +368,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> List[Tuple[Vetrina, File, Chunk, float]]:
+def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> Dict[str, List[str]]:
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
             try:
@@ -476,13 +477,13 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                     description, -- Keep description for the final join/select
                     SUM(semantic_score) as semantic_score,
                     SUM(keyword_score) as keyword_score,
-                    (SUM(semantic_score) + SUM(keyword_score)) as combined_score
+                    (SUM(semantic_score) + SUM(keyword_score)) as score
                 FROM combined_results
                 GROUP BY vetrina_id, file_id, page_number, description -- Correctly group by the full chunk key
             )
             -- Final Selection with Late Joins
             SELECT
-                r.combined_score,
+                r.score,
                 r.semantic_score,
                 r.keyword_score,
                 r.description as chunk_description, -- Get description from our ranked results
@@ -493,7 +494,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             JOIN users u ON v.author_id = u.user_id
             JOIN files f ON r.file_id = f.file_id
             JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-            ORDER BY r.combined_score DESC
+            ORDER BY r.score DESC
             LIMIT 15
             """
 
@@ -502,26 +503,23 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             keyword_params = [k, query] + filter_params + [query]
             all_params = semantic_params + keyword_params
 
-            # --- 4. Assemble Parameters and Execute ---
-            semantic_params = [k, embedding] + filter_params + [embedding]
-            keyword_params = [k, query] + filter_params + [query]
-            all_params = semantic_params + keyword_params
-
             cursor.execute(sql_query, all_params)
             final_results_raw = cursor.fetchall()
-                    
-            # --- 5. Process and Return Results ---
-            # (No changes needed in this section)
-            final_results = []
+
             print(f"----------------------------------")
+            vetrine = list()
+            chunks = dict()
+
             for row in final_results_raw:
                 vetrina = Vetrina.from_dict(row)
                 file = File.from_dict(row)
                 chunk = Chunk.from_dict(row)
-                final_results.append((vetrina, file, chunk, row["combined_score"]))
-                logging.info(f"{chunk.chunk_description[:min(len(chunk.chunk_description), 120)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['combined_score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})")
+                if vetrina not in vetrine:
+                    vetrine.append(vetrina)
+                chunks.setdefault(vetrina.vetrina_id, []).append(chunk)
+                logging.info(f"{chunk.chunk_description[:min(len(chunk.chunk_description), 120)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})")
             print(f"----------------------------------")
-            return final_results
+            return vetrine, chunks
 
 
 def create_vetrina(user_id: int, course_instance_id: int, name: str, description: str, price: float = 0.0) -> Vetrina:

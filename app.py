@@ -235,13 +235,19 @@ def new_search():
     # Get current user ID if authenticated
     current_user_id = get_jwt_identity()
 
-    results = database.new_search(query, filter_params, current_user_id)
-    vetrine = []
-    for vetrina, file, chunk, score in results:
-        vetrina_dict = vetrina.to_dict()
-        vetrina_dict.update({"file_id": file.file_id, "page_number": chunk.page_number, "combined_score": score})
-        vetrine.append(vetrina_dict)
-    return jsonify({"vetrine": vetrine, "count": len(results), "query": query, "filters": filter_params}), 200
+    vetrine, chunks = database.new_search(query, filter_params, current_user_id)
+    return (
+        jsonify(
+            {
+                "vetrine": [vetrina.to_dict() for vetrina in vetrine],
+                "chunks": {vetrina_id: [chunk.to_dict() for chunk in vetrina_chunks] for vetrina_id, vetrina_chunks in chunks.items()},
+                "count": len(vetrine),
+                "query": query,
+                "filters": filter_params,
+            }
+        ),
+        200,
+    )
 
 
 # ---------------------------------------------

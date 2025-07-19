@@ -1,9 +1,13 @@
 from datetime import timedelta
 import logging
+import time
+
 # import threading
+import random
 import traceback
 
 # from bge import get_document_embedding
+from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
@@ -19,10 +23,14 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 import uuid
 import pymupdf
 from io import BytesIO
+import threading
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 load_dotenv()
+
+file_uploaded = False
+file_uploaded_lock = threading.Lock()
 
 # Check if JWT secret key exists in environment
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
@@ -162,7 +170,8 @@ def create_vetrina():
     course_instance_id = int(data.get("course_instance_id"))
     name = str(data.get("name"))
     description = str(data.get("description"))
-    database.create_vetrina(user_id=user_id, course_instance_id=course_instance_id, name=name, description=description)
+    price = float(data.get("price", 0.0))  # Default to 0.0 if not provided
+    database.create_vetrina(user_id=user_id, course_instance_id=course_instance_id, name=name, description=description, price=price)
     return jsonify({"msg": "Vetrina created"}), 200
 
 
@@ -178,7 +187,7 @@ def delete_vetrina(vetrina_id):
 @jwt_required()
 def subscribe_to_vetrina(vetrina_id):
     user_id = get_jwt_identity()
-    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id, 100)  # TODO: remove hardcoded price
+    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id)
     return jsonify({"msg": "Subscribed to vetrina", "transaction": transaction.to_dict(), "subscription": subscription.to_dict()}), 200
 
 
@@ -203,6 +212,44 @@ def search_vetrine():
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in results], "count": len(results)}), 200
 
 
+@app.route("/vetrine/search", methods=["GET"])
+@jwt_required(optional=True)
+def new_search():
+    """
+    New semantic + keyword search endpoint using vector embeddings and full-text search.
+    Query parameter: 'q' - the search query string
+    Additional filter parameters: course_name, faculty, canale, language, date_year, course_year, tag, extension
+    """
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"error": "missing_query", "msg": "Query parameter 'q' is required"}), 400
+
+    # Extract filter parameters from request
+    filter_params = {}
+    filter_keys = ["course_name", "faculty", "canale", "language", "date_year", "course_year", "tag", "extension"]
+    for key in filter_keys:
+        value = request.args.get(key)
+        if value:
+            filter_params[key] = value
+
+    # Get current user ID if authenticated
+    current_user_id = get_jwt_identity()
+
+    vetrine, chunks = database.new_search(query, filter_params, current_user_id)
+    return (
+        jsonify(
+            {
+                "vetrine": [vetrina.to_dict() for vetrina in vetrine],
+                "chunks": {vetrina_id: [chunk.to_dict() for chunk in vetrina_chunks] for vetrina_id, vetrina_chunks in chunks.items()},
+                "count": len(vetrine),
+                "query": query,
+                "filters": filter_params,
+            }
+        ),
+        200,
+    )
+
+
 # ---------------------------------------------
 # File routes
 # ---------------------------------------------
@@ -211,6 +258,7 @@ def search_vetrine():
 @app.route("/vetrine/<int:vetrina_id>/files", methods=["POST"])
 @jwt_required()
 def upload_file(vetrina_id):
+    global file_uploaded
     requester_id = get_jwt_identity()
 
     # Check if file is provided in the request
@@ -230,6 +278,9 @@ def upload_file(vetrina_id):
     tag = request.form.get("tag")
     if tag and tag not in VALID_TAGS:
         return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
+
+    # Get display_name if provided
+    display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
 
     # Read file content into memory for processing
     file_content = file.read()
@@ -261,17 +312,18 @@ def upload_file(vetrina_id):
         file_name=new_file_name,
         sha256=file_hash,
         extension=extension,
-        price=0,
+        price=random.uniform(0.5, 1.0),
         size=file_size,
         tag=tag,
         num_pages=num_pages,
+        display_name=display_name,
     )
 
     try:
         # Save file content to disk
-        with open(new_file_path, 'wb') as f:
+        with open(new_file_path, "wb") as f:
             f.write(file_content)
-        
+
         # Create redacted version for PDFs
         if extension == "pdf":
             redact.blur_pages(new_file_path, [1])
@@ -280,24 +332,25 @@ def upload_file(vetrina_id):
         try:
             os.remove(new_file_path)
         except Exception as e:
-            print(f"Error deleting file: {e}")
+            logging.error(f"Error deleting file: {e}")
         try:
             os.remove(new_file_path.replace(".pdf", "_redacted.pdf"))
         except Exception as e:
-            print(f"Error deleting redacted file: {e}")
+            logging.error(f"Error deleting redacted file: {e}")
         try:
             database.delete_file(requester_id, db_file.file_id)
         except Exception as e:
-            print(f"Error deleting file from database: {e}")
+            logging.error(f"Error deleting file from database: {e}")
         return jsonify({"error": "redaction_failed", "msg": str(e)}), 500
-    file.close()
+    try:
+        file.close()
+    except Exception as e:
+        logging.error(f"Error closing file: {e}")
 
-    # def thread_function():
-    #     embeddings = get_document_embedding(new_file_path)
-    #     database.insert_file_embeddings(vetrina_id, db_file.file_id, embeddings)
+    with file_uploaded_lock:
+        file_uploaded = True
+        database.insert_embedding_queue(db_file.file_id, vetrina_id)
 
-    # thread = threading.Thread(target=thread_function)
-    # thread.start()
     return jsonify({"msg": "File uploaded"}), 200
 
 
@@ -329,7 +382,7 @@ def delete_file(file_id):
 
 
 @app.route("/vetrine/<int:vetrina_id>/files", methods=["GET"])
-@jwt_required()
+@jwt_required(optional=True)
 def get_files_for_vetrina(vetrina_id):
     user_id = get_jwt_identity()
     files = database.get_files_from_vetrina(vetrina_id, user_id)
@@ -337,7 +390,6 @@ def get_files_for_vetrina(vetrina_id):
 
 
 @app.route("/files/<int:file_id>", methods=["GET"])
-@jwt_required()
 def get_file(file_id):
     file = database.get_file(file_id)
     return jsonify(file.to_dict()), 200
@@ -349,6 +401,23 @@ def buy_file(file_id):
     user_id = get_jwt_identity()
     transaction, file = database.buy_file_transaction(user_id, file_id)
     return jsonify({"msg": "File bought", "transaction": transaction.to_dict(), "file": file.to_dict()}), 200
+
+
+@app.route("/files/<int:file_id>/display-name", methods=["PUT"])
+@jwt_required()
+def update_file_display_name(file_id):
+    user_id = get_jwt_identity()
+    data = request.json
+
+    if not data or "display_name" not in data:
+        return jsonify({"error": "missing_display_name", "msg": "display_name is required"}), 400
+
+    new_display_name = str(data.get("display_name")).strip()
+    if not new_display_name:
+        return jsonify({"error": "invalid_display_name", "msg": "display_name cannot be empty"}), 400
+
+    updated_file = database.update_file_display_name(user_id, file_id, new_display_name)
+    return jsonify({"msg": "Display name updated", "file": updated_file.to_dict()}), 200
 
 
 # ---------------------------------------------
@@ -483,11 +552,11 @@ def delete_review(vetrina_id):
 def get_hierarchy():
     if database.faculties_courses_cache is None:
         database.faculties_courses_cache = database.scrape_faculties_courses()
-        logging.debug(
+        logging.info(
             f"Added {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses to cache"
         )
     else:
-        logging.debug(
+        logging.info(
             f"Retrieved {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses from cache"
         )
     return jsonify(database.faculties_courses_cache), 200
@@ -499,5 +568,57 @@ def get_valid_tags():
     return jsonify({"tags": VALID_TAGS}), 200
 
 
+def process_embedding_queue():
+    global file_uploaded
+    while True:
+        try:
+            time.sleep(10)
+            with database.connect(vector=True) as conn:
+                with conn.cursor() as cursor:
+                    while True:
+                        cursor.execute(
+                            """
+                            SELECT eq.file_id, eq.vetrina_id, f.filename, f.display_name, v.name
+                            FROM embedding_queue eq
+                            JOIN files f ON eq.file_id = f.file_id
+                            JOIN vetrina v ON eq.vetrina_id = v.vetrina_id
+                            """
+                        )
+                        rows = cursor.fetchall()
+                        if not rows:
+                            break
+                        logging.info(f"Processing {len(rows)} files from embedding queue.")
+                        for i, row in enumerate(rows):
+                            logging.info(f"Generating embeddings for file '{row['display_name']}' (remaining: {len(rows) - i})")
+                            chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], row["name"])
+                            database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
+                            logging.info(f"Processed {len(chunks)} chunks for file '{row['display_name']}' in vetrina '{row['name']}'")
+                            cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
+                            conn.commit()
+        except Exception as e:
+            logging.error(f"Error processing embedding queue: {e}")
+            time.sleep(1)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    threading.Thread(target=process_embedding_queue, daemon=False).start()
+    if os.name == "nt":  # Windows
+        app.run(host="0.0.0.0", debug=False)
+    else:
+        import ssl
+
+        # Use Let's Encrypt certificate (copied to local directory)
+        cert_path = os.path.join(os.path.dirname(__file__), "certs", "fullchain.pem")
+        key_path = os.path.join(os.path.dirname(__file__), "certs", "privkey.pem")
+
+        # Check if certificate files exist
+        if os.path.exists(cert_path) and os.path.exists(key_path):
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(cert_path, key_path)
+            print(f"Using Let's Encrypt certificate from {cert_path}")
+            ssl_context = context
+        else:
+            print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
+            ssl_context = "adhoc"
+
+        app.run(host="0.0.0.0", debug=False, ssl_context=ssl_context)

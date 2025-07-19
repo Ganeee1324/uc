@@ -3,8 +3,6 @@ from PIL import Image, ImageFilter
 from io import BytesIO
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
-
 
 def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 0.2):
     doc = pymupdf.open(doc_path)
@@ -27,7 +25,7 @@ def blur_pages(doc_path: str, excluded_pages: list[int], blur_strength: int = 0.
         page.clean_contents()
         page.insert_image(page.rect, stream=bio)
     doc.save(doc_path.replace(".pdf", "_redacted.pdf"))
-    logging.debug(f"Redacted {doc_path} ({doc.page_count} pages) with pages excluded: {indexes}")
+    logging.debug(f"Redacted {doc.page_count} pages with pages excluded: {indexes}")
 
 
 if __name__ == "__main__":

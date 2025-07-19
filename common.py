@@ -8,6 +8,7 @@ class File:
         self,
         file_id: int,
         filename: str,
+        display_name: str,
         upload_date: datetime,
         size: int,
         vetrina_id: int,
@@ -25,6 +26,7 @@ class File:
     ):
         self.file_id = file_id
         self.filename = filename
+        self.display_name = display_name
         self.upload_date = upload_date
         self.fact_mark = fact_mark
         self.fact_mark_updated_at = fact_mark_updated_at
@@ -41,7 +43,7 @@ class File:
         self.num_pages = num_pages
 
     def __str__(self) -> str:
-        return f"File(file_id={self.file_id}, filename={self.filename}, upload_date={self.upload_date}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag}, extension={self.extension}, language={self.language}, num_pages={self.num_pages})"
+        return f"File(file_id={self.file_id}, filename={self.filename}, display_name={self.display_name}, upload_date={self.upload_date}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag}, extension={self.extension}, language={self.language}, num_pages={self.num_pages})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -50,6 +52,7 @@ class File:
         return {
             "file_id": self.file_id,
             "filename": self.filename,
+            "display_name": self.display_name,
             "upload_date": self.upload_date,
             "vetrina_id": self.vetrina_id,
             "sha256": self.sha256,
@@ -71,7 +74,7 @@ class File:
         """
         Create a File object from a dictionary.
         Requires:
-            - File object fields: file_id, filename, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension, language, num_pages
+            - File object fields: file_id, filename, display_name, upload_date, size, vetrina_id, sha256, download_count, fact_mark, fact_mark_updated_at, price, tag, extension, language, num_pages
         """
         return cls(**{key: data[key] for key in file_fields if key in data})
 
@@ -377,25 +380,51 @@ class Review:
         return cls(**args)
 
 
-class SearchResultDocument:
-    def __init__(self, filename: str, filepath: str, score: float):
-        self.filename = filename
-        self.filepath = filepath
-        self.score = score
+class Chunk:
+    def __init__(self, vetrina_id: int, file_id: int, page_number: int, chunk_description: str):
+        self.vetrina_id = vetrina_id
+        self.file_id = file_id
+        self.page_number = page_number
+        self.chunk_description = chunk_description
 
     def __str__(self) -> str:
-        return f"SearchResultDocument(filename={self.filename}, score={self.score})"
+        return (
+            f"Chunk(vetrina_id={self.vetrina_id}, file_id={self.file_id}, page_number={self.page_number}, chunk_description={self.chunk_description})"
+        )
 
     def __repr__(self) -> str:
         return self.__str__()
 
     def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, SearchResultDocument):
+        if not isinstance(other, Chunk):
             return False
-        return self.filename == other.filename and self.filepath == other.filepath
+        return (
+            self.vetrina_id == other.vetrina_id
+            and self.file_id == other.file_id
+            and self.page_number == other.page_number
+            and self.chunk_description == other.chunk_description
+        )
 
     def __hash__(self) -> int:
-        return hash("search_result_document" + self.filename + self.filepath)
+        return hash("chunk" + str(self.vetrina_id) + str(self.file_id) + str(self.page_number) + self.chunk_description)
+
+    def to_dict(self) -> dict:
+        return {
+            "vetrina_id": self.vetrina_id,
+            "file_id": self.file_id,
+            "page_number": self.page_number,
+            "chunk_description": self.chunk_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Chunk":
+        """
+        Create a Chunk object from a dictionary.
+        Requires:
+            - Chunk object fields: vetrina_id, file_id, page_number, chunk_description
+        """
+        args = {key: data[key] for key in chunk_fields if key in data}
+        return cls(**args)
 
 
 file_fields = [key for key in inspect.signature(File.__init__).parameters.keys() if key != "self"]
@@ -405,3 +434,4 @@ vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.
 vetrina_subscription_fields = [key for key in inspect.signature(VetrinaSubscription.__init__).parameters.keys() if key != "self"]
 transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != "self"]
 review_fields = [key for key in inspect.signature(Review.__init__).parameters.keys() if key != "self"]
+chunk_fields = [key for key in inspect.signature(Chunk.__init__).parameters.keys() if key != "self"]

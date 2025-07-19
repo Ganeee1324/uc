@@ -244,6 +244,11 @@ paths:
                 description:
                   type: string
                   description: Description of the vetrina
+                price:
+                  type: number
+                  minimum: 0
+                  description: Price of the vetrina (optional, defaults to 0.0)
+                  example: 10.50
       responses:
         "200":
           description: Vetrina created successfully
@@ -349,6 +354,138 @@ paths:
                   count:
                     type: integer
                     description: Number of results returned
+
+  /vetrine/search:
+    get:
+      tags:
+        - Vetrine
+      summary: New semantic search
+      description: |
+        Search for vetrine using a semantic search approach that combines vector embeddings and full-text search.
+        
+        This endpoint performs a two-stage search:
+        1. **Semantic Search**: Uses vector embeddings to find semantically similar content
+        2. **Keyword Search**: Uses full-text search to find exact keyword matches
+        
+        Results are ranked by combining both semantic and keyword scores.
+        
+        **Query Parameters:**
+        - `q`: The search query string (required)
+        - Additional filter parameters: `course_name`, `faculty`, `canale`, `language`, `date_year`, `course_year`, `tag`, `extension`
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The search query string for semantic and keyword search
+        - name: course_name
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact course name
+        - name: faculty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact faculty name
+        - name: canale
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact canale (course channel/section)
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by exact language of instruction
+        - name: date_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact academic year (e.g., 2024)
+        - name: course_year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by exact course year in curriculum (e.g., 1, 2, 3)
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Filter vetrine that contain files with the specified tag (exact match).
+            Valid options are:
+            - **dispense**
+            - **appunti**
+            - **esercizi**
+        - name: extension
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter vetrine that contain files with the specified extension (exact match)
+      responses:
+        "200":
+          description: Search results with semantic and keyword matching
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrine:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Vetrina"
+                    description: List of vetrine matching the search criteria
+                  chunks:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Chunk"
+                    description: |
+                      Map of vetrina_id to chunks that matched the search query.
+                      Each chunk contains the specific page and content that matched.
+                    example:
+                      123:
+                        - vetrina_id: 123
+                          file_id: 456
+                          page_number: 1
+                          chunk_description: "This is a sample chunk from page 1"
+                      124:
+                        - vetrina_id: 124
+                          file_id: 789
+                          page_number: 3
+                          chunk_description: "Another sample chunk from page 3"
+                  count:
+                    type: integer
+                    description: Number of vetrine returned
+                  query:
+                    type: string
+                    description: The original search query
+                  filters:
+                    type: object
+                    description: The filter parameters that were applied
+        "400":
+          description: Missing or invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: missing_query
+                msg: Query parameter 'q' is required
+      
 
   /vetrine/{vetrina_id}:
     delete:
@@ -464,6 +601,11 @@ paths:
                     - **dispense**: Course handouts or lecture materials
                     - **appunti**: Student notes
                     - **esercizi**: Exercises or practice problems
+                display_name:
+                  type: string
+                  description: |
+                    Optional display name for the file. If not provided, the original filename 
+                    (without the UUID and user ID prefix) will be used as the display name.
               required:
                 - file
       responses:
@@ -720,6 +862,72 @@ paths:
               example:
                 error: already_owned
                 msg: You already own this file
+
+  /files/{file_id}/display-name:
+    put:
+      tags:
+        - Files
+      summary: Update file display name
+      description: Update the display name of a file (only available to the author of the vetrina containing the file)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - display_name
+              properties:
+                display_name:
+                  type: string
+                  description: New display name for the file
+                  example: "My Updated File Name.pdf"
+      responses:
+        "200":
+          description: Display name updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Display name updated
+                  file:
+                    $ref: "#/components/schemas/File"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missing_display_name:
+                  value:
+                    error: missing_display_name
+                    msg: display_name is required
+                invalid_display_name:
+                  value:
+                    error: invalid_display_name
+                    msg: display_name cannot be empty
+        "404":
+          description: File not found or user doesn't have permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: not_found
+                msg: File not found or you don't have permission to update it
 
   /user/favorites/vetrine/{vetrina_id}:
     post:
@@ -1164,7 +1372,10 @@ components:
           description: Unique identifier for the file
         filename:
           type: string
-          description: Name of the file
+          description: Internal filename used for storage (includes UUID prefix)
+        display_name:
+          type: string
+          description: User-friendly display name for the file
         upload_date:
           type: string
           format: date-time
@@ -1270,6 +1481,27 @@ components:
           type: string
           format: date-time
           description: Timestamp when the review was created
+
+    Chunk:
+      type: object
+      properties:
+        vetrina_id:
+          type: integer
+          description: ID of the vetrina this chunk belongs to
+        file_id:
+          type: integer
+          description: ID of the file this chunk belongs to
+        page_number:
+          type: integer
+          description: Page number within the file where this chunk is located
+        chunk_description:
+          type: string
+          description: The text content or description of this chunk
+      required:
+        - vetrina_id
+        - file_id
+        - page_number
+        - chunk_description
 
   securitySchemes:
     BearerAuth:

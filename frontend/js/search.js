@@ -3205,27 +3205,20 @@ function showLoadingCards(count = null) {
     
     grid.innerHTML = '';
     
-    // Calculate the number of loading cards based on screen size
+    // Calculate the number of loading cards based on actual grid columns
     let loadingCardCount = count;
     if (loadingCardCount === null) {
-        const screenWidth = window.innerWidth;
-        if (screenWidth > 2500) {
-            loadingCardCount = 8; // Default for very large screens
-        } else if (screenWidth > 2300) {
-            loadingCardCount = 7;
-        } else if (screenWidth > 1800) {
-            loadingCardCount = 6;
-        } else if (screenWidth > 1600) {
-            loadingCardCount = 5;
-        } else if (screenWidth > 1400) {
-            loadingCardCount = 4;
-        } else if (screenWidth > 900) {
-            loadingCardCount = 2;
-        } else if (screenWidth > 600) {
-            loadingCardCount = 2;
-        } else {
-            loadingCardCount = 1; // Mobile
-        }
+        // Get the actual computed grid columns from CSS
+        const computedStyle = window.getComputedStyle(grid);
+        const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+        
+        // Count the number of columns by counting the number of '1fr' or similar values
+        const columnCount = gridTemplateColumns.split(' ').length;
+        
+        console.log(`📱 Grid template columns: "${gridTemplateColumns}" (${columnCount} columns)`);
+        
+        // Use the actual column count for the first row
+        loadingCardCount = columnCount;
     }
     
     console.log(`📱 Creating ${loadingCardCount} loading cards for screen width ${window.innerWidth}px`);

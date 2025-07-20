@@ -267,7 +267,7 @@ let isFiltersOpen = false;
     // Initialize the page
     window.onload = async function() {
         // Show loading cards immediately when page loads
-        showLoadingCards(8);
+        showLoadingCards();
         
         // Force clear any cached data that might be causing issues
         if (sessionStorage.getItem('lastCacheBuster') !== CACHE_BUSTER.toString()) {
@@ -2115,7 +2115,7 @@ async function applyFiltersAndRender() {
         showStatus(`${originalFiles.length} documenti disponibili 📚`);
     } else {
         // Show loading cards for client-side filtering
-        showLoadingCards(4);
+        showLoadingCards();
         
         // Apply only client-side filters to original data
         const filteredFiles = applyFiltersToFiles(originalFiles);
@@ -3182,7 +3182,7 @@ async function makeAuthenticatedRequest(url) {
 }
 
 // Function to create and display loading cards
-function showLoadingCards(count = 8) {
+function showLoadingCards(count = null) {
     const grid = document.getElementById('documentsGrid');
     if (!grid) {
         console.error('❌ Grid element not found!');
@@ -3205,8 +3205,33 @@ function showLoadingCards(count = 8) {
     
     grid.innerHTML = '';
     
+    // Calculate the number of loading cards based on screen size
+    let loadingCardCount = count;
+    if (loadingCardCount === null) {
+        const screenWidth = window.innerWidth;
+        if (screenWidth > 2500) {
+            loadingCardCount = 8; // Default for very large screens
+        } else if (screenWidth > 2300) {
+            loadingCardCount = 7;
+        } else if (screenWidth > 1800) {
+            loadingCardCount = 6;
+        } else if (screenWidth > 1600) {
+            loadingCardCount = 5;
+        } else if (screenWidth > 1400) {
+            loadingCardCount = 4;
+        } else if (screenWidth > 900) {
+            loadingCardCount = 2;
+        } else if (screenWidth > 600) {
+            loadingCardCount = 2;
+        } else {
+            loadingCardCount = 1; // Mobile
+        }
+    }
+    
+    console.log(`📱 Creating ${loadingCardCount} loading cards for screen width ${window.innerWidth}px`);
+    
     // Add loading cards directly to the grid (no separate container)
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < loadingCardCount; i++) {
         const loadingCard = document.createElement('div');
         loadingCard.className = 'document-card loading-card';
         loadingCard.style.animationDelay = `${i * 0.1}s`;
@@ -3247,7 +3272,18 @@ function showLoadingCards(count = 8) {
     // Debug position after showing loading cards
     setTimeout(() => debugPensatoTextPosition(), 100);
     
-
+    // Add resize listener to update loading cards when screen size changes
+    if (!window.loadingCardsResizeListener) {
+        window.loadingCardsResizeListener = debounce(() => {
+            const grid = document.getElementById('documentsGrid');
+            if (grid && grid.classList.contains('loading')) {
+                console.log('📱 Screen resized, updating loading cards...');
+                showLoadingCards(); // Recalculate and update loading cards
+            }
+        }, 250); // Debounce resize events
+        
+        window.addEventListener('resize', window.loadingCardsResizeListener);
+    }
 }
 
 
@@ -6169,7 +6205,7 @@ function updateSearchPlaceholder(aiEnabled) {
 async function performSearch(query) {
     try {
         // Show loading cards immediately for search
-        showLoadingCards(12);
+        showLoadingCards();
         
         // Show search-specific loading message
         if (aiSearchEnabled) {

@@ -1126,13 +1126,17 @@ html {
     color: inherit;
 }
 
-.order-option .az-text {
+.order-option .order-option-text {
+    font-size: 14px;
     font-weight: 500;
-    color: inherit;
+    color: var(--gray-700);
     flex: 1;
     text-align: left;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.025em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 0;
     line-height: 1.4;
 }
 

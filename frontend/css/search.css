@@ -912,7 +912,7 @@ html {
     height: 100%;
     width: 100%;
     overflow: hidden;
-    border-radius: 20px;
+    border-radius: 12px;
 }
 
 /* Border Animation Layers */
@@ -927,7 +927,7 @@ html {
     position: absolute;
     overflow: hidden;
     z-index: -1;
-    border-radius: 20px;
+    border-radius: 12px;
     top: 0;
     left: 0;
 }
@@ -936,7 +936,7 @@ html {
 .search-bar-container .white {
     min-height: 53px;
     max-width: 417px;
-    border-radius: 20px;
+    border-radius: 10px;
     filter: blur(1px);
 }
 
@@ -968,7 +968,7 @@ html {
 .search-bar-container .border {
     min-height: 67px;
     min-width: 423px;
-    border-radius: 20px;
+    border-radius: 11px;
     filter: blur(0.3px);
 }
 
@@ -1105,7 +1105,7 @@ html {
     height: 44px;
     background: var(--white);
     border: none;
-    border-radius: 20px;
+    border-radius: 10px;
     padding: 0 var(--space-4);
     transition: all 0.25s var(--ease-2);
     margin-top: 0;
@@ -1361,8 +1361,7 @@ html {
     overflow: hidden;
 }
 
-.order-dropdown-container.open .order-dropdown-content,
-.order-dropdown-content.show {
+.order-dropdown-container.open .order-dropdown-content {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -4198,13 +4197,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 300px;
        max-width: 300px;
        height: 40px;
-       border-radius: 20px;
+       border-radius: 10px;
    }
    
    .search-bar-container {
        max-width: 310px;
        min-height: 60px;
-       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4213,7 +4211,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 310px;
        min-height: 60px;
-       border-radius: 20px;
    }
    
    .filters-btn {
@@ -4371,14 +4368,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 250px;
        max-width: 250px;
        height: 38px;
-       border-radius: 20px;
+       border-radius: 10px;
        padding: 0 var(--space-3);
    }
    
    .search-bar-container {
        max-width: 260px;
        min-height: 60px;
-       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4386,7 +4382,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 260px;
        min-height: 60px;
-       border-radius: 20px;
    }
    
    .search-input {
@@ -4464,13 +4459,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 200px;
        max-width: 200px;
        height: 36px;
-       border-radius: 20px;
+       border-radius: 10px;
    }
    
    .search-bar-container {
        max-width: 210px;
        min-height: 60px;
-       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4479,7 +4473,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 210px;
        min-height: 60px;
-       border-radius: 20px;
    }
    
    .filters-btn {

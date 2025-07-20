@@ -2,7 +2,7 @@
 const CACHE_BUSTER = Date.now();
 
 // 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
-const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
+const DEV_MODE_NO_RESULTS = true; // Change to true to test no-results state
 
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
@@ -5496,13 +5496,15 @@ function initializeStickySearch() {
     }
 
     function setStickyTop() {
-        const headerHeight = header.offsetHeight;
+        const header = document.querySelector('.header');
+        const headerHeight = header ? header.offsetHeight : 72; // Default to 72px if header not found
         const searchContainer = searchContainerWrapper.querySelector('.search-container');
         const searchContainerHeight = searchContainer.offsetHeight;
         
-        // Make the search bar stick at the top of the header (0px)
-        // Then use CSS to center it within the header area
-        const stickyTopValue = 0;
+        // Calculate the center position of the header
+        // We want the search bar to stick at the center of the header
+        const searchBarHeight = searchContainerHeight;
+        const stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
         
         // Use a more robust way to set the custom property on the root.
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);

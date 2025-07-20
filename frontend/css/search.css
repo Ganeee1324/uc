@@ -878,7 +878,7 @@ html {
     margin-top: 0px; /* Restore the original spacing between subtitle and search bar. */
 
     position: sticky;
-    top: var(--sticky-top-offset); /* Calculated by JS */
+    top: 16px; /* Fixed absolute value - 16px from top of viewport */
     z-index: 1001; /* High z-index to stay on top */
 
     /* The background and padding are only applied when it's stuck. */

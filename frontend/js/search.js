@@ -5504,15 +5504,18 @@ function initializeStickySearch() {
         let stickyTopValue = 0;
         
         if (caricaButton) {
-            // Get the position of the "Carica" button relative to the viewport
-            const caricaRect = caricaButton.getBoundingClientRect();
-            const headerRect = header.getBoundingClientRect();
+            // Get the search bar height to calculate proper centering
+            const searchBar = searchContainerWrapper.querySelector('.search-bar');
+            const searchBarHeight = searchBar ? searchBar.offsetHeight : 44;
             
-            // Calculate the top position of the "Carica" button relative to the header
-            const caricaTopPosition = caricaRect.top - headerRect.top;
+            // The "Carica" button is centered in the header
+            // We want the search bar to stick at the center of the header
+            // This means the search bar should be positioned so its center aligns with the header center
+            const headerCenter = headerHeight / 2;
+            const searchBarCenter = searchBarHeight / 2;
             
-            // The search bar should stick at the same vertical position as the "Carica" button
-            stickyTopValue = Math.max(0, caricaTopPosition);
+            // Calculate the top position that centers the search bar in the header
+            stickyTopValue = Math.max(0, headerCenter - searchBarCenter);
         } else {
             // Fallback: center the search bar in the header
             const searchBar = searchContainerWrapper.querySelector('.search-bar');

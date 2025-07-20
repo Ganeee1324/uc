@@ -3189,6 +3189,9 @@ function showLoadingCards(count = 8) {
         return;
     }
     
+    // Remove no-results-state class when showing loading cards
+    grid.classList.remove('no-results-state');
+    
     // Always add loading class to grid to show existing loading cards
     grid.classList.add('loading');
     
@@ -3615,6 +3618,9 @@ function renderDocuments(files) {
     }
     
     if (!files || files.length === 0) {
+        // Add no-results-state class to the grid to trigger CSS display
+        grid.classList.add('no-results-state');
+        
         // Keep loading cards invisible but add no-results overlay
         // Remove any existing no-results element first
         const existingNoResults = grid.querySelector('.no-results');
@@ -3636,6 +3642,9 @@ function renderDocuments(files) {
         
         return;
     }
+    
+    // Remove no-results-state class when we have results
+    grid.classList.remove('no-results-state');
     
     // Clear the grid only when we have results to show
     grid.innerHTML = '';

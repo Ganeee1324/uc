@@ -3650,7 +3650,21 @@ function renderDocuments(files) {
         // Add no-results-state class to the grid to trigger CSS display
         grid.classList.add('no-results-state');
         
-        // Keep loading cards invisible but add no-results overlay
+        // Ensure only one row of loading cards is shown in no-results state
+        const existingLoadingCards = grid.querySelectorAll('.loading-card');
+        const computedStyle = window.getComputedStyle(grid);
+        const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+        const columnCount = gridTemplateColumns.split(' ').length;
+        
+        console.log(`📱 No results: Ensuring only ${columnCount} loading cards (one row)`);
+        
+        // Remove excess loading cards beyond the first row
+        existingLoadingCards.forEach((card, index) => {
+            if (index >= columnCount) {
+                card.remove();
+            }
+        });
+        
         // Remove any existing no-results element first
         const existingNoResults = grid.querySelector('.no-results');
         if (existingNoResults) {

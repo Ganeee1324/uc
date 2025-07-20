@@ -5498,12 +5498,11 @@ function initializeStickySearch() {
     function setStickyTop() {
         const header = document.querySelector('.header');
         const headerHeight = header ? header.offsetHeight : 72; // Default to 72px if header not found
-        const searchContainer = searchContainerWrapper.querySelector('.search-container');
-        const searchContainerHeight = searchContainer.offsetHeight;
+        const searchBar = searchContainerWrapper.querySelector('.search-bar');
+        const searchBarHeight = searchBar ? searchBar.offsetHeight : 44; // Default to 44px if search bar not found
         
         // Calculate the center position of the header
         // We want the search bar to stick at the center of the header
-        const searchBarHeight = searchContainerHeight;
         let stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
         
         // Ensure minimum spacing for very small screens

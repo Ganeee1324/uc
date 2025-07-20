@@ -906,8 +906,8 @@ html {
     width: calc(100% + 2 * var(--space-5));
     max-width: none;
     
-    /* Debug: Make it very obvious when stuck */
-    border: 2px solid #007bff;
+    /* Professional styling when stuck */
+    border: none;
 }
 
 /* Search Container - Compact for Header */
@@ -925,12 +925,12 @@ html {
 
 /* Professional styling for stuck search bar */
 .search-container-wrapper.is-stuck .search-container {
-    max-width: 800px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 16px;
-    padding: var(--space-2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 100%;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
 }
 
 /* Animated Border Search Bar Container */
@@ -4083,10 +4083,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
    .search-container-wrapper.is-stuck .search-container {
        max-width: 100%;
-       background: rgba(255, 255, 255, 0.95);
-       border-radius: 12px;
-       padding: var(--space-2);
-       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+       background: transparent;
+       border-radius: 0;
+       padding: 0;
+       box-shadow: none;
+       border: none;
    }
 
    /* Ensure filters panel stays fixed on mobile too */
@@ -4462,10 +4463,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
    .search-container-wrapper.is-stuck .search-container {
        max-width: 100%;
-       background: rgba(255, 255, 255, 0.98);
-       border-radius: 10px;
-       padding: var(--space-2);
-       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+       background: transparent;
+       border-radius: 0;
+       padding: 0;
+       box-shadow: none;
+       border: none;
    }
 
    .header {

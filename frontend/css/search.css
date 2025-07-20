@@ -888,16 +888,6 @@ html {
     transform: translateZ(0);
 }
 
-.search-container-wrapper.is-stuck {
-    background: linear-gradient(135deg, rgba(157, 218, 253, 0.95), rgba(132, 208, 252, 0.95));
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    
-    /* A little padding for aesthetics when it sticks */
-    padding-top: var(--space-2);
-    padding-bottom: var(--space-2);
-}
-
 /* Search Container - Compact for Header */
 .search-container {
     display: flex;
@@ -922,7 +912,7 @@ html {
     height: 100%;
     width: 100%;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: 20px;
 }
 
 /* Border Animation Layers */
@@ -937,7 +927,7 @@ html {
     position: absolute;
     overflow: hidden;
     z-index: -1;
-    border-radius: 12px;
+    border-radius: 20px;
     top: 0;
     left: 0;
 }
@@ -946,7 +936,7 @@ html {
 .search-bar-container .white {
     min-height: 53px;
     max-width: 417px;
-    border-radius: 10px;
+    border-radius: 20px;
     filter: blur(1px);
 }
 
@@ -978,7 +968,7 @@ html {
 .search-bar-container .border {
     min-height: 67px;
     min-width: 423px;
-    border-radius: 11px;
+    border-radius: 20px;
     filter: blur(0.3px);
 }
 
@@ -1115,7 +1105,7 @@ html {
     height: 44px;
     background: var(--white);
     border: none;
-    border-radius: 10px;
+    border-radius: 20px;
     padding: 0 var(--space-4);
     transition: all 0.25s var(--ease-2);
     margin-top: 0;
@@ -3929,12 +3919,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .documents-grid {
-       grid-template-columns: repeat(2, minmax(0, 1fr));
+       grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
    }
    
    .documents-grid.no-results-state {
-       grid-template-columns: repeat(2, minmax(0, 1fr));
+       grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
    }
    
@@ -3978,7 +3968,15 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-4) var(--space-8) var(--space-16) var(--space-8);
    }
    
-   /* Grid layout handled by 1400px breakpoint (2 cards) */
+   .documents-grid {
+       grid-template-columns: repeat(3, minmax(0, 1fr));
+       gap: var(--space-4);
+   }
+   
+   .documents-grid.no-results-state {
+       grid-template-columns: repeat(3, minmax(0, 1fr));
+       gap: var(--space-4);
+   }
    
    .documents-grid.filters-open {
        /* No changes - documents stay exactly as they are */
@@ -4199,12 +4197,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 300px;
        max-width: 300px;
        height: 40px;
-       border-radius: 10px;
+       border-radius: 20px;
    }
    
    .search-bar-container {
        max-width: 310px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4213,6 +4212,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 310px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .filters-btn {
@@ -4370,13 +4370,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 250px;
        max-width: 250px;
        height: 38px;
-       border-radius: 10px;
+       border-radius: 20px;
        padding: 0 var(--space-3);
    }
    
    .search-bar-container {
        max-width: 260px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4384,6 +4385,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 260px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-input {
@@ -4461,12 +4463,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 200px;
        max-width: 200px;
        height: 36px;
-       border-radius: 10px;
+       border-radius: 20px;
    }
    
    .search-bar-container {
        max-width: 210px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4475,6 +4478,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 210px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .filters-btn {
@@ -4589,10 +4593,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .document-info {
-       position: relative;
-       margin: var(--space-3) 0;
-       min-height: 110px;
-       max-height: 130px;
+       position: absolute;
+       top: 70px;
+       left: var(--space-5);
+       right: var(--space-5);
+       min-height: 90px;
+       max-height: 110px;
        
        display: flex;
        flex-direction: column;
@@ -6045,12 +6051,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 1400px) {
     .documents-grid.loading {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 1200px) {
-    /* Loading grid layout handled by 1400px breakpoint (2 cards) */
+    .documents-grid.loading {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 900px) {
@@ -7624,22 +7632,19 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     inherits: false;
     initial-value: 0deg;
 }
-.search-bar-background {
+.search-bar-background, .search-bar-background::before {
     position: absolute;
-    top: -5px; /* Move up to create space */
-    left: -5px; /* Move left to create space */
-    width: calc(100% + 10px); /* Increase width to account for padding */
-    height: calc(100% + 10px); /* Increase height to account for padding */
-    background-image: conic-gradient(from var(--angle), transparent 0deg, transparent 30deg, #cf30aa 60deg, transparent 90deg, transparent 210deg, #006aff 240deg, transparent 270deg, transparent 300deg, transparent 360deg);
+    top: -2px; /* Move up to create space */
+    left: -2px; /* Move left to create space */
+    width: calc(100% + 4px); /* Increase width to account for padding */
+    height: calc(100% + 4px); /* Increase height to account for padding */
+    background-image: conic-gradient(from var(--angle), transparent 0deg, transparent 30deg, #402fb5 60deg, transparent 90deg, transparent 210deg, #cf30aa 240deg, transparent 270deg, transparent 300deg, transparent 360deg);
     border: none;
-    border-radius: 12px; /* Slightly larger radius */
+    border-radius: 20px; /* Slightly larger radius */
     z-index: 0;
     pointer-events: none;
     animation: spin 3s linear infinite;
-    box-shadow:
-    0 0 10px rgba(0, 255, 255, 0.3),  /* soft inner glow */
-    0 0 20px rgba(0, 255, 255, 0.2),  /* outer glow */
-    0 0 40px rgba(0, 255, 255, 0.1);  /* farther fade */
+    filter: brightness(1.5);
 }
 .search-bar-background::before {
     content: '';
@@ -7648,9 +7653,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: conic-gradient(from var(--angle), transparent 0deg, transparent 30deg, #cf30aa 60deg, transparent 90deg, transparent 210deg, #006aff 240deg, transparent 270deg, transparent 300deg, transparent 360deg);
-    filter: blur(1.5rem);
-    opacity: 1;
+    filter: blur(20px);
+    opacity: 0.7;
     border-radius: 12px;
     z-index: 0;
 }

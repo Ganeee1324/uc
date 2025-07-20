@@ -192,6 +192,45 @@
             <div id="documentCountContainer" class="document-count-container" style="display: block;">
                 <div class="document-count-and-filters">
                     <span id="documentCount" class="document-count">Caricamento...</span>
+                    
+                    <!-- Order Dropdown Button -->
+                    <div class="order-dropdown-container">
+                        <button class="order-btn" id="orderBtn">
+                            <span class="material-symbols-outlined">sort</span>
+                            <span class="order-text">Ordina</span>
+                        </button>
+                        <div class="order-dropdown-content">
+                            <div class="order-option" data-order="relevance">
+                                <span class="material-symbols-outlined">trending_up</span>
+                                <span class="az-text">Rilevanza</span>
+                            </div>
+                            <div class="order-option" data-order="name-asc">
+                                <span class="material-symbols-outlined">sort_by_alpha</span>
+                                <span class="az-text">Nome A-Z</span>
+                            </div>
+                            <div class="order-option" data-order="name-desc">
+                                <span class="material-symbols-outlined">sort_by_alpha</span>
+                                <span class="az-text">Nome Z-A</span>
+                            </div>
+                            <div class="order-option" data-order="date-newest">
+                                <span class="material-symbols-outlined">schedule</span>
+                                <span class="az-text">Più recenti</span>
+                            </div>
+                            <div class="order-option" data-order="date-oldest">
+                                <span class="material-symbols-outlined">schedule</span>
+                                <span class="az-text">Più vecchi</span>
+                            </div>
+                            <div class="order-option" data-order="price-lowest">
+                                <span class="material-symbols-outlined">euro</span>
+                                <span class="az-text">Prezzo crescente</span>
+                            </div>
+                            <div class="order-option" data-order="price-highest">
+                                <span class="material-symbols-outlined">euro</span>
+                                <span class="az-text">Prezzo decrescente</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div id="activeFiltersDisplay" class="active-filters-display">
                         <!-- Active filter pills will be dynamically added here -->
                     </div>

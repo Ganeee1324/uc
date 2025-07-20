@@ -532,6 +532,9 @@ function initializeFilterControls() {
     
     // Price range filters
     initializePriceRangeFilter();
+    
+    // Order functionality
+    initializeOrderDropdown();
 }
 
 function handleFilterChangeImmediate(e) {
@@ -2088,6 +2091,143 @@ function updatePriceSliderFill() {
         
         rangeFill.style.left = `${minPercent}%`;
         rangeFill.style.width = `${maxPercent - minPercent}%`;
+    }
+}
+
+// Order functionality
+let currentOrder = 'relevance';
+
+function initializeOrderDropdown() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderDropdown = document.querySelector('.order-dropdown-content');
+    const orderOptions = document.querySelectorAll('.order-option');
+    
+    if (!orderBtn || !orderDropdown) return;
+    
+    // Toggle dropdown on button click
+    orderBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        orderDropdown.classList.toggle('show');
+        
+        // Close other dropdowns
+        closeAllDropdowns();
+    });
+    
+    // Handle order option selection
+    orderOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const orderType = option.getAttribute('data-order');
+            selectOrderOption(orderType);
+            orderDropdown.classList.remove('show');
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
+            orderDropdown.classList.remove('show');
+        }
+    });
+    
+    // Close dropdown on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            orderDropdown.classList.remove('show');
+        }
+    });
+}
+
+function selectOrderOption(orderType) {
+    currentOrder = orderType;
+    
+    // Update button text based on selection
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = orderBtn.querySelector('.order-text');
+    
+    const orderLabels = {
+        'relevance': 'Rilevanza',
+        'name-asc': 'Nome A-Z',
+        'name-desc': 'Nome Z-A',
+        'date-newest': 'Più recenti',
+        'date-oldest': 'Più vecchi',
+        'price-lowest': 'Prezzo crescente',
+        'price-highest': 'Prezzo decrescente'
+    };
+    
+    if (orderText) {
+        orderText.textContent = orderLabels[orderType] || 'Ordina';
+    }
+    
+    // Apply the order to current results
+    applyOrderToResults();
+}
+
+function applyOrderToResults() {
+    if (!originalFiles || originalFiles.length === 0) return;
+    
+    // Get current filtered results
+    const currentResults = applyClientSideFilters(originalFiles);
+    
+    // Sort the results based on current order
+    const sortedResults = sortDocuments(currentResults, currentOrder);
+    
+    // Re-render the documents with new order
+    renderDocuments(sortedResults);
+}
+
+function sortDocuments(documents, orderType) {
+    const sorted = [...documents];
+    
+    switch (orderType) {
+        case 'relevance':
+            // Keep original order (relevance from search)
+            return sorted;
+            
+        case 'name-asc':
+            return sorted.sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                return titleA.localeCompare(titleB);
+            });
+            
+        case 'name-desc':
+            return sorted.sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                return titleB.localeCompare(titleA);
+            });
+            
+        case 'date-newest':
+            return sorted.sort((a, b) => {
+                const dateA = new Date(a.upload_date || 0);
+                const dateB = new Date(b.upload_date || 0);
+                return dateB - dateA;
+            });
+            
+        case 'date-oldest':
+            return sorted.sort((a, b) => {
+                const dateA = new Date(a.upload_date || 0);
+                const dateB = new Date(b.upload_date || 0);
+                return dateA - dateB;
+            });
+            
+        case 'price-lowest':
+            return sorted.sort((a, b) => {
+                const priceA = parseFloat(a.price || 0);
+                const priceB = parseFloat(b.price || 0);
+                return priceA - priceB;
+            });
+            
+        case 'price-highest':
+            return sorted.sort((a, b) => {
+                const priceA = parseFloat(a.price || 0);
+                const priceB = parseFloat(b.price || 0);
+                return priceB - priceA;
+            });
+            
+        default:
+            return sorted;
     }
 }
 

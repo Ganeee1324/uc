@@ -2022,7 +2022,9 @@ function selectOrderOption(orderType) {
         'price-lowest': 'Prezzo crescente',
         'price-highest': 'Prezzo decrescente',
         'name-asc': 'Nome A-Z',
-        'name-desc': 'Nome Z-A'
+        'name-desc': 'Nome Z-A',
+        'date-newest': 'Più recenti',
+        'date-oldest': 'Più vecchi'
     };
     
     if (orderText) {
@@ -2054,20 +2056,6 @@ function sortDocuments(documents, orderType) {
             // Keep original order (relevance from search)
             return sorted;
             
-        case 'price-lowest':
-            return sorted.sort((a, b) => {
-                const priceA = parseFloat(a.price || 0);
-                const priceB = parseFloat(b.price || 0);
-                return priceA - priceB;
-            });
-            
-        case 'price-highest':
-            return sorted.sort((a, b) => {
-                const priceA = parseFloat(a.price || 0);
-                const priceB = parseFloat(b.price || 0);
-                return priceB - priceA;
-            });
-            
         case 'name-asc':
             return sorted.sort((a, b) => {
                 const titleA = (a.title || '').toLowerCase();
@@ -2080,6 +2068,34 @@ function sortDocuments(documents, orderType) {
                 const titleA = (a.title || '').toLowerCase();
                 const titleB = (b.title || '').toLowerCase();
                 return titleB.localeCompare(titleA);
+            });
+            
+        case 'date-newest':
+            return sorted.sort((a, b) => {
+                const dateA = new Date(a.upload_date || 0);
+                const dateB = new Date(b.upload_date || 0);
+                return dateB - dateA;
+            });
+            
+        case 'date-oldest':
+            return sorted.sort((a, b) => {
+                const dateA = new Date(a.upload_date || 0);
+                const dateB = new Date(b.upload_date || 0);
+                return dateA - dateB;
+            });
+            
+        case 'price-lowest':
+            return sorted.sort((a, b) => {
+                const priceA = parseFloat(a.price || 0);
+                const priceB = parseFloat(b.price || 0);
+                return priceA - priceB;
+            });
+            
+        case 'price-highest':
+            return sorted.sort((a, b) => {
+                const priceA = parseFloat(a.price || 0);
+                const priceB = parseFloat(b.price || 0);
+                return priceB - priceA;
             });
             
         default:

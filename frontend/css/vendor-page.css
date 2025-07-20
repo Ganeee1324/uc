@@ -1126,17 +1126,13 @@ html {
     color: inherit;
 }
 
-.order-option .order-option-text {
-    font-size: 14px;
+.order-option .order-text {
     font-weight: 500;
-    color: var(--gray-700);
+    color: inherit;
     flex: 1;
     text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-    padding: 0;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.025em;
     line-height: 1.4;
 }
 

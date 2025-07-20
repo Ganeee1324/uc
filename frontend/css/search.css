@@ -912,7 +912,7 @@ html {
     height: 100%;
     width: 100%;
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: 20px;
 }
 
 /* Border Animation Layers */
@@ -927,7 +927,7 @@ html {
     position: absolute;
     overflow: hidden;
     z-index: -1;
-    border-radius: 12px;
+    border-radius: 20px;
     top: 0;
     left: 0;
 }
@@ -936,7 +936,7 @@ html {
 .search-bar-container .white {
     min-height: 53px;
     max-width: 417px;
-    border-radius: 10px;
+    border-radius: 20px;
     filter: blur(1px);
 }
 
@@ -968,7 +968,7 @@ html {
 .search-bar-container .border {
     min-height: 67px;
     min-width: 423px;
-    border-radius: 11px;
+    border-radius: 20px;
     filter: blur(0.3px);
 }
 
@@ -1105,7 +1105,7 @@ html {
     height: 44px;
     background: var(--white);
     border: none;
-    border-radius: 10px;
+    border-radius: 20px;
     padding: 0 var(--space-4);
     transition: all 0.25s var(--ease-2);
     margin-top: 0;
@@ -1361,7 +1361,8 @@ html {
     overflow: hidden;
 }
 
-.order-dropdown-container.open .order-dropdown-content {
+.order-dropdown-container.open .order-dropdown-content,
+.order-dropdown-content.show {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -1372,6 +1373,9 @@ html {
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-2);
+    border-bottom: 1px solid var(--gray-100);
     font-size: 14px;
     color: var(--gray-700);
     cursor: pointer;
@@ -1398,20 +1402,15 @@ html {
     flex-shrink: 0;
 }
 
-.order-option .az-text {
+.order-option .order-text {
     font-size: 14px;
-    font-weight: 700;
-    color: var(--gray-600);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: -0.5px;
+    font-weight: 500;
+    color: var(--gray-700);
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .order-option span {
@@ -4197,12 +4196,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 300px;
        max-width: 300px;
        height: 40px;
-       border-radius: 10px;
+       border-radius: 20px;
    }
    
    .search-bar-container {
        max-width: 310px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4211,6 +4211,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 310px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .filters-btn {
@@ -4368,13 +4369,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 250px;
        max-width: 250px;
        height: 38px;
-       border-radius: 10px;
+       border-radius: 20px;
        padding: 0 var(--space-3);
    }
    
    .search-bar-container {
        max-width: 260px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4382,6 +4384,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 260px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-input {
@@ -4459,12 +4462,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 200px;
        max-width: 200px;
        height: 36px;
-       border-radius: 10px;
+       border-radius: 20px;
    }
    
    .search-bar-container {
        max-width: 210px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .search-bar-container .glow,
@@ -4473,6 +4477,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    .search-bar-container .border {
        max-width: 210px;
        min-height: 60px;
+       border-radius: 20px;
    }
    
    .filters-btn {

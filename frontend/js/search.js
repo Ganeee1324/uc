@@ -5504,26 +5504,22 @@ function initializeStickySearch() {
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);
     }
 
-    // Use scroll event listener for more reliable sticky detection
-    function checkStickyState() {
-        const rect = searchContainerWrapper.getBoundingClientRect();
-        const isStuck = rect.top <= 16; // 16px is our sticky top value
-        
-        searchContainerWrapper.classList.toggle('is-stuck', isStuck);
+    // Simple scroll event listener to detect when search bar is stuck
+    function handleScroll() {
+        const searchSection = document.querySelector('.search-section');
+        if (searchSection) {
+            const searchSectionRect = searchSection.getBoundingClientRect();
+            const isStuck = searchSectionRect.top < 0;
+            
+            searchContainerWrapper.classList.toggle('is-stuck', isStuck);
+        }
     }
 
-    // Check on scroll
-    window.addEventListener('scroll', checkStickyState);
-    
-    // Check on resize
-    window.addEventListener('resize', () => {
-        setStickyTop();
-        checkStickyState();
-    });
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
     
     // Initial check
-    setStickyTop();
-    checkStickyState();
+    handleScroll();
 }
 
 document.addEventListener('DOMContentLoaded', initializeStickySearch);

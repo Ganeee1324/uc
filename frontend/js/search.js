@@ -5496,37 +5496,9 @@ function initializeStickySearch() {
     }
 
     function setStickyTop() {
-        const header = document.querySelector('.header');
-        const headerHeight = header ? header.offsetHeight : 72; // Default to 72px if header not found
-        
-        // Find the "Carica" button (nav-link) to match its position
-        const caricaButton = header ? header.querySelector('.nav-link') : null;
-        let stickyTopValue = 0;
-        
-        if (caricaButton) {
-            // Get the search bar height to calculate proper centering
-            const searchBar = searchContainerWrapper.querySelector('.search-bar');
-            const searchBarHeight = searchBar ? searchBar.offsetHeight : 44;
-            
-            // The "Carica" button is centered in the header
-            // We want the search bar to stick at the center of the header
-            // This means the search bar should be positioned so its center aligns with the header center
-            const headerCenter = headerHeight / 2;
-            const searchBarCenter = searchBarHeight / 2;
-            
-            // Calculate the top position that centers the search bar in the header
-            stickyTopValue = Math.max(0, headerCenter - searchBarCenter);
-        } else {
-            // Fallback: center the search bar in the header
-            const searchBar = searchContainerWrapper.querySelector('.search-bar');
-            const searchBarHeight = searchBar ? searchBar.offsetHeight : 44;
-            
-            stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
-        }
-        
-        // Ensure minimum spacing for very small screens
-        const minSpacing = 4; // 4px minimum spacing from top
-        stickyTopValue = Math.max(minSpacing, stickyTopValue);
+        // Set a fixed absolute value for the sticky top offset
+        // This positions the search bar at a specific distance from the top of the viewport
+        const stickyTopValue = 12; // 12px from the top of the viewport
         
         // Use a more robust way to set the custom property on the root.
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);

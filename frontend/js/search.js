@@ -5498,7 +5498,7 @@ function initializeStickySearch() {
     function setStickyTop() {
         // Set a fixed absolute value for the sticky top offset
         // This positions the search bar at a specific distance from the top of the viewport
-        const stickyTopValue = 12; // 12px from the top of the viewport
+        const stickyTopValue = 16; // 16px from the top of the viewport
         
         // Use a more robust way to set the custom property on the root.
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);

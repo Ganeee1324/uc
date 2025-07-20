@@ -882,10 +882,13 @@ html {
     z-index: 1001; /* High z-index to stay on top */
 
     /* The background and padding are only applied when it's stuck. */
-    transition: padding 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
     
     /* Ensure negative values work properly */
     transform: translateZ(0);
+    
+    /* Debug: Add a subtle border to see the sticky area */
+    border: 1px solid transparent;
 }
 
 .search-container-wrapper.is-stuck {
@@ -902,6 +905,9 @@ html {
     /* Ensure it spans the full width */
     width: calc(100% + 2 * var(--space-5));
     max-width: none;
+    
+    /* Debug: Make it very obvious when stuck */
+    border: 2px solid #007bff;
 }
 
 /* Search Container - Compact for Header */

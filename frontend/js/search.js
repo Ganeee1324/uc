@@ -5504,7 +5504,18 @@ function initializeStickySearch() {
         // Calculate the center position of the header
         // We want the search bar to stick at the center of the header
         const searchBarHeight = searchContainerHeight;
-        const stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
+        let stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
+        
+        // Ensure minimum spacing for very small screens
+        // This prevents the search bar from being too close to the top on tiny screens
+        const minSpacing = 4; // 4px minimum spacing from top
+        stickyTopValue = Math.max(minSpacing, stickyTopValue);
+        
+        // Handle edge case where search bar is taller than header
+        // In this case, stick to the top with minimum spacing
+        if (searchBarHeight > headerHeight) {
+            stickyTopValue = minSpacing;
+        }
         
         // Use a more robust way to set the custom property on the root.
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);

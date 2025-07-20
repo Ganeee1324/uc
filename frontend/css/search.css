@@ -752,7 +752,7 @@ html {
     }
     
     .documents-grid.no-results-state .no-results {
-        display: none;
+        display: flex;
     }
     
     .no-results .material-symbols-outlined {
@@ -807,7 +807,7 @@ html {
     }
     
     .documents-grid.no-results-state .no-results {
-        display: none;
+        display: flex;
     }
     
     .no-results .material-symbols-outlined {

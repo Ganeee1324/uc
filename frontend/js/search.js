@@ -5498,23 +5498,32 @@ function initializeStickySearch() {
     function setStickyTop() {
         const header = document.querySelector('.header');
         const headerHeight = header ? header.offsetHeight : 72; // Default to 72px if header not found
-        const searchBar = searchContainerWrapper.querySelector('.search-bar');
-        const searchBarHeight = searchBar ? searchBar.offsetHeight : 44; // Default to 44px if search bar not found
         
-        // Calculate the center position of the header
-        // We want the search bar to stick at the center of the header
-        let stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
+        // Find the "Carica" button (nav-link) to match its position
+        const caricaButton = header ? header.querySelector('.nav-link') : null;
+        let stickyTopValue = 0;
+        
+        if (caricaButton) {
+            // Get the position of the "Carica" button relative to the viewport
+            const caricaRect = caricaButton.getBoundingClientRect();
+            const headerRect = header.getBoundingClientRect();
+            
+            // Calculate the top position of the "Carica" button relative to the header
+            const caricaTopPosition = caricaRect.top - headerRect.top;
+            
+            // The search bar should stick at the same vertical position as the "Carica" button
+            stickyTopValue = Math.max(0, caricaTopPosition);
+        } else {
+            // Fallback: center the search bar in the header
+            const searchBar = searchContainerWrapper.querySelector('.search-bar');
+            const searchBarHeight = searchBar ? searchBar.offsetHeight : 44;
+            
+            stickyTopValue = Math.max(0, (headerHeight - searchBarHeight) / 2);
+        }
         
         // Ensure minimum spacing for very small screens
-        // This prevents the search bar from being too close to the top on tiny screens
         const minSpacing = 4; // 4px minimum spacing from top
         stickyTopValue = Math.max(minSpacing, stickyTopValue);
-        
-        // Handle edge case where search bar is taller than header
-        // In this case, stick to the top with minimum spacing
-        if (searchBarHeight > headerHeight) {
-            stickyTopValue = minSpacing;
-        }
         
         // Use a more robust way to set the custom property on the root.
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);

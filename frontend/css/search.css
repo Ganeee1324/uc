@@ -882,9 +882,9 @@ html {
     z-index: 1001; /* High z-index to stay on top */
 
     /* The background and padding are only applied when it's stuck. */
-    transition: padding 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
     
-    /* Ensure negative values work properly */
+    /* Ensure sticky positioning works properly */
     transform: translateZ(0);
 }
 
@@ -896,44 +896,6 @@ html {
     /* A little padding for aesthetics when it sticks */
     padding-top: var(--space-2);
     padding-bottom: var(--space-2);
-    
-    /* Professional styling when stuck */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Responsive behavior for smaller screens when stuck */
-@media (max-width: 900px) {
-    .search-container-wrapper.is-stuck {
-        /* Expand to cover header completely on mobile */
-        margin: 0;
-        padding: var(--space-3) var(--space-4);
-        border-radius: 0;
-        width: 100vw;
-        left: 0;
-        right: 0;
-        position: fixed;
-        top: 0;
-        z-index: 1002; /* Higher than header */
-    }
-    
-    .search-container-wrapper.is-stuck .search-container {
-        /* Ensure search container fits properly */
-        max-width: 100%;
-        margin: 0 auto;
-    }
-}
-
-@media (max-width: 600px) {
-    .search-container-wrapper.is-stuck {
-        /* Even more compact on very small screens */
-        padding: var(--space-2) var(--space-3);
-    }
-    
-    .search-container-wrapper.is-stuck .search-bar {
-        /* Ensure search bar is properly sized */
-        height: 36px;
-    }
 }
 
 /* Search Container - Compact for Header */

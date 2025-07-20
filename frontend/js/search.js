@@ -5487,39 +5487,25 @@ window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
 
 
 
+// Simple scroll handler for sticky search bar
 function initializeStickySearch() {
     const searchContainerWrapper = document.querySelector('.search-container-wrapper');
-    const header = document.querySelector('.header');
     
-    if (!searchContainerWrapper || !header) {
+    if (!searchContainerWrapper) {
         return;
     }
 
-    function setStickyTop() {
-        // Set a fixed absolute value for the sticky top offset
-        // This positions the search bar at a specific distance from the top of the viewport
-        const stickyTopValue = 16; // 16px from the top of the viewport
+    // Simple scroll event listener to add/remove stuck class
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         
-        // Use a more robust way to set the custom property on the root.
-        document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);
-    }
-
-    // Simple scroll event listener to detect when search bar is stuck
-    function handleScroll() {
-        const searchSection = document.querySelector('.search-section');
-        if (searchSection) {
-            const searchSectionRect = searchSection.getBoundingClientRect();
-            const isStuck = searchSectionRect.top < 0;
-            
-            searchContainerWrapper.classList.toggle('is-stuck', isStuck);
+        // Add stuck class when scrolled down
+        if (scrollTop > 100) {
+            searchContainerWrapper.classList.add('is-stuck');
+        } else {
+            searchContainerWrapper.classList.remove('is-stuck');
         }
-    }
-
-    // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
-    
-    // Initial check
-    handleScroll();
+    });
 }
 
 document.addEventListener('DOMContentLoaded', initializeStickySearch);

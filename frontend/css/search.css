@@ -744,11 +744,16 @@ html {
 /* Responsive adjustments for empty state */
 @media (max-width: 768px) {
     .no-results {
-        padding: var(--space-12) var(--space-12) var(--space-20) var(--space-12);
+        padding: var(--space-8) var(--space-6) var(--space-12) var(--space-6);
         margin: 0 auto;
-        max-width: 95%;
-        width: 95%;
-        min-height: 500px;
+        max-width: 100%;
+        width: 100%;
+        min-height: auto;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     
     .documents-grid.no-results-state .no-results {
@@ -756,27 +761,28 @@ html {
     }
     
     .no-results .material-symbols-outlined {
-        font-size: 64px;
-        margin-bottom: var(--space-6);
+        font-size: clamp(48px, 8vw, 64px);
+        margin-bottom: var(--space-4);
         width: 100%;
         text-align: center;
     }
     
     .no-results h3 {
-        font-size: 28px;
-        margin-bottom: var(--space-4);
+        font-size: clamp(20px, 5vw, 28px);
+        margin-bottom: var(--space-3);
         width: 100%;
         text-align: center;
-        max-width: 95%;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
     
     .no-results p {
-        font-size: 16px;
-        max-width: 95%;
+        font-size: clamp(14px, 3.5vw, 16px);
+        max-width: 100%;
         width: 100%;
         text-align: center;
+        line-height: 1.5;
     }
     
 
@@ -798,12 +804,17 @@ html {
 
 @media (max-width: 480px) {
     .no-results {
-        padding: var(--space-8) var(--space-8) var(--space-16) var(--space-8);
+        padding: var(--space-6) var(--space-4) var(--space-8) var(--space-4);
         margin: 0 auto;
         border-radius: 0;
-        max-width: 98%;
-        width: 98%;
-        min-height: 450px;
+        max-width: 100%;
+        width: 100%;
+        min-height: auto;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     
     .documents-grid.no-results-state .no-results {
@@ -811,26 +822,26 @@ html {
     }
     
     .no-results .material-symbols-outlined {
-        font-size: 56px;
-        margin-bottom: var(--space-4);
+        font-size: clamp(40px, 10vw, 56px);
+        margin-bottom: var(--space-3);
         width: 100%;
         text-align: center;
     }
     
     .no-results h3 {
-        font-size: 24px;
-        margin-bottom: var(--space-3);
+        font-size: clamp(18px, 6vw, 24px);
+        margin-bottom: var(--space-2);
         width: 100%;
         text-align: center;
-        max-width: 98%;
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
     
     .no-results p {
-        font-size: 15px;
-        line-height: 1.6;
-        max-width: 98%;
+        font-size: clamp(13px, 4vw, 15px);
+        line-height: 1.4;
+        max-width: 100%;
         width: 100%;
         text-align: center;
     }

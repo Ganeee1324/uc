@@ -545,7 +545,7 @@ html {
 .documents-grid .no-results {
     display: none; /* Hidden by default */
     position: absolute;
-    top: 0; /* Position at the top of the grid */
+    top: -300px; /* Move up by 100px */
     left: 0;
     right: 0;
     bottom: 0;
@@ -752,7 +752,7 @@ html {
     }
     
     .documents-grid.no-results-state .no-results {
-        display: none;
+        display: flex;
     }
     
     .no-results .material-symbols-outlined {
@@ -807,7 +807,7 @@ html {
     }
     
     .documents-grid.no-results-state .no-results {
-        display: none;
+        display: flex;
     }
     
     .no-results .material-symbols-outlined {

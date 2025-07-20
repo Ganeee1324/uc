@@ -1476,7 +1476,7 @@ html {
     margin-left: 0;
     margin-bottom: var(--space-4);
     position: relative;
-    z-index: 100000;
+    z-index: 999;
     width: 100%;
     max-width: none;
     text-align: left !important;

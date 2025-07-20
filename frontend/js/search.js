@@ -1,6 +1,9 @@
 // Add cache-busting timestamp to force browser refresh
 const CACHE_BUSTER = Date.now();
 
+// 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
+const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
+
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
@@ -3283,6 +3286,16 @@ function showLoadingCards(count = null) {
 
 async function loadAllFiles() {
     try {
+        // 🚀 DEVELOPMENT MODE: Check if we should bypass backend
+        if (DEV_MODE_NO_RESULTS) {
+            console.log('🚀 DEV MODE: Bypassing backend, showing no results');
+            showStatus('Modalità sviluppo: Nessun risultato');
+            currentFiles = [];
+            originalFiles = [];
+            renderDocuments([]);
+            return;
+        }
+        
         showStatus('Caricamento vetrine... 📚');
         
         // Use authenticated or simple request based on auth
@@ -6211,6 +6224,15 @@ function updateSearchPlaceholder(aiEnabled) {
 // Enhanced performSearch function with AI support
 async function performSearch(query) {
     try {
+        // 🚀 DEVELOPMENT MODE: Check if we should bypass backend
+        if (DEV_MODE_NO_RESULTS) {
+            console.log('🚀 DEV MODE: Bypassing backend search, showing no results');
+            showStatus('Modalità sviluppo: Nessun risultato di ricerca');
+            currentFiles = [];
+            renderDocuments([]);
+            return;
+        }
+        
         // Show loading cards immediately for search
         showLoadingCards();
         

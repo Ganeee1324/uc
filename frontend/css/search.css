@@ -4149,7 +4149,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    /* Professional Mobile Search Section */
    .search-section {
        padding: var(--space-8) var(--space-5) var(--space-10) var(--space-5);
-       min-height: 2190px; /* Match the exact height when loading (from debug logs) */
+       min-height: auto; /* Let content determine height */
        display: flex;
        flex-direction: column;
        justify-content: center;
@@ -4415,7 +4415,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    
    .search-section {
        padding: var(--space-6) var(--space-4) var(--space-8) var(--space-4);
-       min-height: 2190px; /* Match the exact height when loading (from debug logs) */
+       min-height: auto; /* Let content determine height */
    }
    
    /* Adjust background positioning line for small screens */

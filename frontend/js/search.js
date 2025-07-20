@@ -2,7 +2,7 @@
 const CACHE_BUSTER = Date.now();
 
 // 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
-const DEV_MODE_NO_RESULTS = true; // Change to true to test no-results state
+const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
@@ -5504,25 +5504,26 @@ function initializeStickySearch() {
         document.documentElement.style.setProperty('--sticky-top-offset', `${stickyTopValue}px`);
     }
 
-    // This observer will watch the sticky element itself.
-    // It triggers when the element's position changes from 'relative' to 'sticky' (stuck) and back.
-    const observer = new IntersectionObserver(
-        ([e]) => {
-            // e.intersectionRatio < 1 means the element is "stuck" at the top or bottom of its container.
-            // We only care about when it's stuck at the top.
-            if (e.boundingClientRect.top <= parseFloat(getComputedStyle(e.target).top)) {
-                 e.target.classList.toggle('is-stuck', e.intersectionRatio < 1);
-            }
-        },
-        { threshold: [1.0] } // Trigger when the element is fully in view (unstuck) or not (stuck).
-    );
+    // Use scroll event listener for more reliable sticky detection
+    function checkStickyState() {
+        const rect = searchContainerWrapper.getBoundingClientRect();
+        const isStuck = rect.top <= 16; // 16px is our sticky top value
+        
+        searchContainerWrapper.classList.toggle('is-stuck', isStuck);
+    }
 
-    // Start observing the wrapper.
-    observer.observe(searchContainerWrapper);
-
-    // Set the initial value and update on resize.
+    // Check on scroll
+    window.addEventListener('scroll', checkStickyState);
+    
+    // Check on resize
+    window.addEventListener('resize', () => {
+        setStickyTop();
+        checkStickyState();
+    });
+    
+    // Initial check
     setStickyTop();
-    window.addEventListener('resize', setStickyTop);
+    checkStickyState();
 }
 
 document.addEventListener('DOMContentLoaded', initializeStickySearch);

@@ -6831,3 +6831,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 // ... existing code ...
+
+// ... existing code ...
+    // Failsafe: always show price slider if 'Tutti' is active after restoring filters
+    setTimeout(() => {
+        const priceRangeContainer = document.getElementById('priceRangeContainer');
+        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        if (tuttiToggle && priceRangeContainer) {
+            priceRangeContainer.style.display = 'block';
+        }
+    }, 0);
+// ... existing code ...

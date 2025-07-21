@@ -1532,8 +1532,7 @@ body.filters-open .document-count-container {
     margin-bottom: 8px;
     white-space: nowrap;
     scrollbar-width: none; /* Firefox */
-    scroll-padding-left: 16px;
-    scroll-snap-type: x mandatory;
+    /* Removed scroll-padding-left and scroll-snap-type for free scrolling */
 }
 
 .active-filters-display::-webkit-scrollbar {

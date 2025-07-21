@@ -2883,15 +2883,18 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  /* Filter Header */
  .filters-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
-    padding: var(--space-8) var(--space-8) var(--space-6) var(--space-8);
-    border-bottom: 1px solid rgba(233, 236, 239, 0.6);
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    position: relative;
-    z-index: 10;
- }
+}
+
+.filters-title {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.filters-subtitle {
+    white-space: normal;
+    word-break: break-word;
+}
  
  .filters-title h2 {
     font-size: 24px;

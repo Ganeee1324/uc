@@ -1928,49 +1928,7 @@ function initializeToggleFilters() {
         });
     });
 
-    // Size toggles
-    const sizeToggles = document.querySelectorAll('.size-toggle');
-    
-    sizeToggles.forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            sizeToggles.forEach(t => t.classList.remove('active'));
-            toggle.classList.add('active');
-            
-            const sizeType = toggle.dataset.size;
-            
-            if (sizeType === 'all') {
-                delete activeFilters.sizeType;
-            } else {
-                activeFilters.sizeType = sizeType;
-            }
-            
-            // Apply filters immediately
-            applyFiltersAndRender();
-            saveFiltersToStorage();
-        });
-    });
 
-    // Time toggles
-    const timeToggles = document.querySelectorAll('.time-toggle');
-    
-    timeToggles.forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            timeToggles.forEach(t => t.classList.remove('active'));
-                toggle.classList.add('active');
-            
-            const timeType = toggle.dataset.time;
-            
-            if (timeType === 'all') {
-                delete activeFilters.timeType;
-            } else {
-                activeFilters.timeType = timeType;
-            }
-            
-            // Apply filters immediately
-            applyFiltersAndRender();
-            saveFiltersToStorage();
-        });
-    });
 
     // Vetrina toggles
     const vetrinaToggles = document.querySelectorAll('.vetrina-toggle');
@@ -2739,43 +2697,7 @@ function applyFiltersToFiles(files) {
             }
         }
         
-        // Size filter
-        if (activeFilters.sizeType && activeFilters.sizeType !== 'all') {
-            const fileSize = parseInt(file.size) || 0;
-            const fileSizeMB = fileSize / (1024 * 1024);
-            
-            switch (activeFilters.sizeType) {
-                case 'small':
-                    if (fileSizeMB >= 5) return false;
-                    break;
-                case 'medium':
-                    if (fileSizeMB < 5 || fileSizeMB > 20) return false;
-                    break;
-                case 'large':
-                    if (fileSizeMB <= 20) return false;
-                    break;
-            }
-        }
-        
-        // Time filter - publication date
-        if (activeFilters.timeType && activeFilters.timeType !== 'all') {
-            const fileDate = new Date(file.created_at);
-            const now = new Date();
-            const diffTime = now - fileDate;
-            const diffDays = diffTime / (1000 * 60 * 60 * 24);
-            
-            switch (activeFilters.timeType) {
-                case 'week':
-                    if (diffDays > 7) return false;
-                    break;
-                case 'month':
-                    if (diffDays > 30) return false;
-                    break;
-                case 'year':
-                    if (diffDays > 365) return false;
-                    break;
-            }
-        }
+
         
         // Vetrina type filter - single vs multiple files
         if (activeFilters.vetrinaType && activeFilters.vetrinaType !== 'all') {
@@ -2909,24 +2831,7 @@ function updateActiveFiltersDisplay() {
                     displayValue = 'A pagamento';
                 }
                 break;
-            case 'sizeType':
-                const sizeLabels = {
-                    'small': '< 5MB',
-                    'medium': '5-20MB',
-                    'large': '> 20MB'
-                };
-                label = 'Dimensione';
-                displayValue = sizeLabels[value];
-                break;
-            case 'timeType':
-                const timeLabels = {
-                    'week': 'Ultima settimana',
-                    'month': 'Ultimo mese',
-                    'year': 'Ultimo anno'
-                };
-                label = 'Periodo';
-                displayValue = timeLabels[value];
-                break;
+
             case 'vetrinaType':
                 const vetrinaLabels = {
                     'single': 'Singolo File',
@@ -3144,21 +3049,7 @@ function removeFilter(filterKey) {
             updatePriceSliderFill();
         }
         
-        if (filterKey === 'sizeType') {
-            document.querySelectorAll('.size-toggle').forEach(toggle => {
-                toggle.classList.remove('active');
-            });
-            const allSizeToggle = document.querySelector('.size-toggle[data-size="all"]');
-            if (allSizeToggle) allSizeToggle.classList.add('active');
-        }
-        
-        if (filterKey === 'timeType') {
-            document.querySelectorAll('.time-toggle').forEach(toggle => {
-                toggle.classList.remove('active');
-            });
-            const allTimeToggle = document.querySelector('.time-toggle[data-time="all"]');
-            if (allTimeToggle) allTimeToggle.classList.add('active');
-        }
+
         
         if (filterKey === 'vetrinaType') {
             document.querySelectorAll('.vetrina-toggle').forEach(toggle => {
@@ -4944,7 +4835,7 @@ function updateFilterInputs() {
     });
     
     // Reset all toggle states first
-    const toggleTypes = ['priceType', 'sizeType', 'timeType', 'vetrinaType'];
+    const toggleTypes = ['priceType', 'vetrinaType'];
     toggleTypes.forEach(type => {
         const toggleClass = type.replace('Type', '-toggle');
         document.querySelectorAll(`.${toggleClass}`).forEach(toggle => {

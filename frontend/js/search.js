@@ -1021,20 +1021,17 @@ function toggleDropdown(container, type) {
     if (!isOpen) {
         container.classList.add('open');
         const input = document.getElementById(`${type}Filter`);
-        
+        // Always clear input value so all options are shown
+        if (input) input.value = '';
         // Update input styling for multi-select
         if (isMultiSelect && filterManager.filters[type] && Array.isArray(filterManager.filters[type]) && filterManager.filters[type].length > 0) {
             input.setAttribute('data-multi-selected', 'true');
-            
-            // Keep academic context filters searchable when reopening
             const academicContextFilters = ['faculty', 'course', 'canale'];
             if (academicContextFilters.includes(type) && filterManager.filters[type].length > 1) {
-                input.value = '';
                 input.setAttribute('placeholder', `${filterManager.filters[type].length} selezionati - scrivi per cercarne altri...`);
             }
         }
-        
-        filterDropdownOptions(type, input.value || '');
+        filterDropdownOptions(type, '');
     }
 }
 

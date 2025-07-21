@@ -2352,31 +2352,38 @@ class FilterManager {
     
     // Get current filter count
     getActiveFilterCount() {
-        const filters = this.filters;
+        const filters = this.filters || {};
         let count = 0;
-        // Pages range: count as 1 if either minPages or maxPages is set and not default
-        const minPagesSet = filters.minPages !== undefined && filters.minPages !== 1;
-        const maxPagesSet = filters.maxPages !== undefined && filters.maxPages !== 1000;
-        if (minPagesSet || maxPagesSet) count++;
-        // Price range: count as 1 if either minPrice or maxPrice is set and not default
+
+        // Price range: count as 1 filter if changed from default
         const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
         const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
-        if (minPriceSet || maxPriceSet) count++;
-        // Count all other filters except min/max pages and min/max price, and skip if already counted
-        Object.keys(filters).forEach(key => {
-            if ((key === "minPages" && (minPagesSet || maxPagesSet)) ||
-                (key === "maxPages" && (minPagesSet || maxPagesSet)) ||
-                (key === "minPrice" && (minPriceSet || maxPriceSet)) ||
-                (key === "maxPrice" && (minPriceSet || maxPriceSet))) {
-                // Already counted above
+        if (minPriceSet || maxPriceSet) {
+            count += 1;
+        }
+
+        // Pages range: count as 1 filter if changed from default
+        const minPagesSet = filters.minPages !== undefined && filters.minPages !== 1;
+        const maxPagesSet = filters.maxPages !== undefined && filters.maxPages !== 1000;
+        if (minPagesSet || maxPagesSet) {
+            count += 1;
+        }
+
+        // All other filters (skip priceType if 'all')
+        Object.entries(filters).forEach(([key, value]) => {
+            if (
+                key === "minPrice" || key === "maxPrice" ||
+                key === "minPages" || key === "maxPages" ||
+                (key === "priceType" && value === "all")
+            ) {
                 return;
             }
-            if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
-            count++;
+            if (value !== null && value !== undefined && value !== "") {
+                count += 1;
+            }
         });
-        // Debug log
-        console.log('[FilterManager] getActiveFilterCount:', { filters: { ...filters }, count });
-        return count;
+
+        return { filters, count };
     }
     
     // Debounced count update to prevent race conditions

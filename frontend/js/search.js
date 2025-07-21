@@ -2337,22 +2337,14 @@ function addBottomClearAllButton() {
 function updateBottomFilterCount() {
     const bottomFilterCountElement = document.getElementById('bottomFilterCount');
     if (!bottomFilterCountElement) return;
-    
-    // Count active filters properly
+
+    // Count the number of visible filter pills
+    const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
     let activeCount = 0;
-    
-    Object.entries(activeFilters).forEach(([key, value]) => {
-        if (key === 'minPrice' || key === 'maxPrice') {
-            // Price range counts as one filter - only count once
-            if (key === 'minPrice' && activeFilters.priceType === 'paid' && 
-                (activeFilters.minPrice !== 0 || activeFilters.maxPrice !== 100)) {
-                activeCount++;
-            }
-        } else if (value !== null && value !== undefined && value !== 'all' && value !== '') {
-            activeCount++;
-        }
-    });
-    
+    if (activeFiltersContainer) {
+        activeCount = activeFiltersContainer.querySelectorAll('.filter-pill').length;
+    }
+
     bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
         activeCount === 1 ? '1 filtro attivo' : `${activeCount} filtri attivi`;
 }

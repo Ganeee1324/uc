@@ -188,37 +188,23 @@
         .space-icon.purple { background: transparent; }
         .space-icon.yellow { background: transparent; }
 
-        .space-number {
-            font-size: 18px;
+        .space-number, .overview-number {
+            font-size: 15px;
             font-weight: 600;
             margin-bottom: 5px;
             display: flex;
             justify-content: center;
         }
-        .space-number-container {
+        .space-number-container, .overview-number-container {
             display: inline-block;
-            padding: 4px 14px;
-            border-radius: 16px;
+            padding: 2px 10px;
+            border-radius: 14px;
             font-size: inherit;
             font-weight: inherit;
-            color: white;
-            background: rgba(25, 118, 210, 0.18); /* default fallback */
         }
-        .space-number-container.blue {
-            background: rgba(22, 161, 247, 0.35);
-            color: #16a1f7;
-        }
-        .space-number-container.purple {
-            background: rgba(140, 0, 191, 0.35);
-            color: #8C00BF;
-        }
-        .space-number-container.yellow {
-            background: rgba(255, 221, 0, 0.35);
-            color: #6DA000;
-        }
-
-        .space-label {
+        .space-label, .overview-label {
             font-size: 12px;
+            font-weight: bold;
             line-height: 1.3;
         }
         .space-label.blue {
@@ -254,22 +240,6 @@
             font-size: 12px;
         }
 
-        .overview-number {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: flex;
-            justify-content: center;
-        }
-        .overview-number-container {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: inherit;
-            font-weight: inherit;
-            color: #6b7280;
-            background: rgba(255, 197, 6, 0.18); /* default fallback */
-        }
         .overview-number-container.gold {
             background: rgba(255, 197, 6, 0.18);
             color: #B88A00;
@@ -283,10 +253,6 @@
             color: #6DA000;
         }
 
-        .overview-label {
-            font-size: 12px;
-            /* color will be set by color class */
-        }
         .overview-label.gold {
             color: #B88A00;
         }
@@ -456,7 +422,7 @@
                             </svg>
                         </div>
                         <div class="space-number"><span class="space-number-container blue">7</span></div>
-                        <div class="space-label blue">Uploaded<br>documents</div>
+                        <div class="space-label blue">Uploaded documents</div>
                     </div>
                     <div class="space-item">
                         <div class="space-icon purple">
@@ -486,7 +452,7 @@
                             </svg>
                         </div>
                         <div class="space-number"><span class="space-number-container yellow">300</span></div>
-                        <div class="space-label yellow">ClaryCoin<br>Credits</div>
+                        <div class="space-label yellow">ClaryCoin Credits</div>
                     </div>
                 </div>
             </div>

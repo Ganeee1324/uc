@@ -2028,7 +2028,6 @@ function handlePriceRangeChange() {
         updatePriceSliderFill();
     
     // Update filter count immediately for responsive UI
-    updateFilterCount();
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
     
@@ -2231,7 +2230,6 @@ async function applyFiltersAndRender() {
         renderDocuments(originalFiles);
         currentFiles = originalFiles;
         updateActiveFiltersDisplay();
-        updateFilterCount();
         updateBottomFilterCount();
         showStatus(`${originalFiles.length} documenti disponibili 📚`);
     } else {
@@ -2243,7 +2241,6 @@ async function applyFiltersAndRender() {
         currentFiles = filteredFiles;
         renderDocuments(filteredFiles);
         updateActiveFiltersDisplay();
-        updateFilterCount();
         updateBottomFilterCount();
         
         // Show filter status
@@ -2543,7 +2540,7 @@ function clearAllFiltersAction() {
     
     // Update all filter indicators and displays
     updateActiveFilterIndicators();
-    updateFilterCount();
+    updateBottomFilterCount();
     updateActiveFiltersDisplay();
     
     // Apply changes immediately
@@ -4765,7 +4762,7 @@ function restoreFiltersFromStorage() {
     // Reset UI to clean state
     updateFilterInputs();
     updateActiveFilterIndicators();
-    updateFilterCount();
+    updateBottomFilterCount();
     updateActiveFiltersDisplay();
     
     // Show all documents
@@ -4788,7 +4785,7 @@ function restoreFiltersFromStorage() {
         // Then update all UI elements with clean filter states
         updateFilterInputs();
         updateActiveFilterIndicators();
-        updateFilterCount();
+        updateBottomFilterCount();
         updateActiveFiltersDisplay();
         
         // Force update of all filter-related UI elements
@@ -4806,7 +4803,7 @@ function restoreFiltersFromStorage() {
         
         // Final check to ensure everything is properly updated
         setTimeout(() => {
-            updateFilterCount();
+            updateBottomFilterCount();
             updateActiveFilterIndicators();
             updateActiveFiltersDisplay();
             
@@ -6815,7 +6812,6 @@ function handlePagesRangeChange() {
     if (maxPagesValue) maxPagesValue.textContent = maxVal;
 
     updatePagesSliderFill();
-    updateFilterCount();
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
     debouncedApplyFilters();

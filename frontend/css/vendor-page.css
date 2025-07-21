@@ -6668,3 +6668,26 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     padding: 0;
   }
 }
+
+@media (max-width: 600px) {
+  .filters-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .filters-title {
+    width: 100%;
+    flex: none;
+    min-width: 0;
+  }
+  .filters-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .filters-subtitle {
+    white-space: normal;
+    word-break: break-word;
+    width: 100%;
+  }
+}

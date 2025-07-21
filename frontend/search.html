@@ -616,6 +616,22 @@
                                 </button>
                             </div>
                         </div>
+                        <!-- Pagine Filter -->
+                        <div class="filter-item" id="pagesRangeContainer">
+                            <label class="filter-label">Numero di Pagine</label>
+                            <div class="pages-range-filter">
+                                <div class="dual-range-container">
+                                    <div class="range-track">
+                                        <div class="range-fill" id="pagesRangeFill"></div>
+                                    </div>
+                                    <input type="range" id="minPagesRange" class="range-slider range-slider-min" min="1" max="1000" value="1" step="1">
+                                    <input type="range" id="maxPagesRange" class="range-slider range-slider-max" min="1" max="1000" value="1000" step="1">
+                                </div>
+                                <div class="range-values">
+                                    <span id="minPagesValue">1</span> - <span id="maxPagesValue">1000</span> pagine
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

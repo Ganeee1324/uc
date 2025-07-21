@@ -3267,21 +3267,98 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Pages Range Filter */
 .pages-range-filter {
-    margin-top: var(--space-4);
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 
-.pages-values {
+.pages-range-filter .dual-range-container {
+    position: relative;
+    width: 100%;
+    height: 32px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: var(--space-2);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--blue-600);
 }
- 
- /* Toggle Groups */
- .price-toggle-group,
+
+.pages-range-filter .range-track {
+    position: absolute;
+    height: 4px;
+    background: var(--gray-300);
+    width: 100%;
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.pages-range-filter .range-fill {
+    position: absolute;
+    height: 4px;
+    background: var(--primary-500);
+    border-radius: 2px;
+    z-index: 2;
+}
+
+.pages-range-filter .range-slider {
+    position: absolute;
+    width: 100%;
+    height: 32px;
+    background: none;
+    pointer-events: all;
+    z-index: 3;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.pages-range-filter .range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-500);
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pages-range-filter .range-slider:focus::-webkit-slider-thumb {
+    outline: 2px solid var(--primary-700);
+}
+
+.pages-range-filter .range-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-500);
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pages-range-filter .range-slider:focus::-moz-range-thumb {
+    outline: 2px solid var(--primary-700);
+}
+
+.pages-range-filter .range-slider::-ms-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-500);
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.pages-range-filter .range-values {
+    margin-top: 4px;
+    font-size: 0.95em;
+    color: var(--gray-700);
+    text-align: left;
+}
+
+/* Toggle Groups */
+.price-toggle-group,
 .size-toggle-group,
 .time-toggle-group,
 .vetrina-toggle-group {
@@ -3289,8 +3366,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: var(--space-2);
 }
- 
- .price-toggle,
+
+.price-toggle,
 .size-toggle,
 .time-toggle,
 .vetrina-toggle {
@@ -3312,16 +3389,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     line-height: 1.2;
     min-height: 60px;
 }
- 
- .price-toggle .material-symbols-outlined,
+
+.price-toggle .material-symbols-outlined,
 .size-toggle .material-symbols-outlined,
 .time-toggle .material-symbols-outlined,
 .vetrina-toggle .material-symbols-outlined {
     font-size: 18px;
     margin-bottom: var(--space-1);
 }
- 
- .price-toggle:hover,
+
+.price-toggle:hover,
 .size-toggle:hover,
 .time-toggle:hover,
 .vetrina-toggle:hover {
@@ -3329,8 +3406,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
- 
- .price-toggle.active,
+
+.price-toggle.active,
 .size-toggle.active,
 .time-toggle.active,
 .vetrina-toggle.active {
@@ -3340,11 +3417,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     transform: translateY(-2px);
     box-shadow: var(--shadow-glow);
 }
- 
- /* ===========================
+
+/* ===========================
    PROFESSIONAL ACTIVE FILTERS DISPLAY
    =========================== */
- 
+
 .filter-tag {
     display: inline-flex;
     align-items: center;
@@ -3365,8 +3442,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     animation: filterTagSlideIn 0.3s var(--ease-bounce);
     box-shadow: 0 2px 4px rgba(2, 132, 199, 0.08);
 }
- 
- .filter-tag::before {
+
+.filter-tag::before {
     content: '';
     position: absolute;
     top: 0;
@@ -3378,24 +3455,24 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     transition: opacity 0.3s var(--ease-2);
     border-radius: var(--radius-xl);
  }
- 
- .filter-tag:hover {
+
+.filter-tag:hover {
     background: linear-gradient(135deg, var(--blue-100) 0%, rgba(240, 249, 255, 0.9) 100%);
     border-color: var(--blue-300);
     color: var(--blue-800);
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
     transform: translateY(-1px);
  }
- 
- .filter-tag:hover::before {
+
+.filter-tag:hover::before {
     opacity: 1;
  }
- 
- .filter-tag:active {
+
+.filter-tag:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1);
  }
- 
+
 .filter-tag .material-symbols-outlined {
     font-size: 14px;
     color: inherit;
@@ -3404,8 +3481,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     z-index: 1;
 }
- 
- .filter-tag span {
+
+.filter-tag span {
     color: inherit;
     font-weight: inherit;
     white-space: nowrap;
@@ -3414,16 +3491,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     z-index: 1;
  }
- 
- /* Clear All Filter Tag */
- .filter-tag.clear-all-tag {
+
+/* Clear All Filter Tag */
+.filter-tag.clear-all-tag {
     background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
     border: 1px solid var(--purple-200);
     order: -1;
     font-weight: 700;
     box-shadow: 0 2px 4px rgba(124, 58, 237, 0.08);
 }
- 
+
 .filter-tag.clear-all-tag::before {
     background: linear-gradient(135deg, var(--purple-50) 0%, var(--purple-100) 100%);
 }
@@ -3434,7 +3511,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     color: var(--purple-700);
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
 }
- 
+
 .filter-tag.clear-all-tag::after {
     content: '×';
     font-size: 14px;
@@ -3443,8 +3520,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     z-index: 1;
 }
- 
- @keyframes filterTagSlideIn {
+
+@keyframes filterTagSlideIn {
     0% {
         opacity: 0;
         transform: translateY(10px) scale(0.8);
@@ -3455,7 +3532,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
  }
 
- 
+
  .bottom-clear-container {
     display: flex;
     flex-direction: column;

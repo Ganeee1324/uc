@@ -2713,6 +2713,15 @@ function applyFiltersToFiles(files) {
             }
         }
         
+        // Pages (Pagine) filter
+        if (typeof activeFilters.minPages === 'number' && typeof activeFilters.maxPages === 'number') {
+            const filePages = file.pages || file.vetrina_info?.pages;
+            if (typeof filePages !== 'number') return false;
+            if (filePages < activeFilters.minPages || filePages > activeFilters.maxPages) {
+                return false;
+            }
+        }
+        
         return true;
     });
 }
@@ -6730,14 +6739,81 @@ function resumeTypewriter() {
 // In input event listeners, also stop the cursor when paused, and start when resumed
 // ... existing code ...
 
+// --- Pagine (Pages) Range Filter ---
+function initializePagesRangeFilter() {
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    const minPagesValue = document.getElementById('minPagesValue');
+    const maxPagesValue = document.getElementById('maxPagesValue');
+    const pagesRangeFill = document.getElementById('pagesRangeFill');
 
+    if (minPagesRange && maxPagesRange) {
+        if (minPagesValue) minPagesValue.textContent = '1';
+        if (maxPagesValue) maxPagesValue.textContent = '1000';
+        updatePagesSliderFill();
 
+        minPagesRange.addEventListener('input', handlePagesRangeChange);
+        maxPagesRange.addEventListener('input', handlePagesRangeChange);
+        minPagesRange.addEventListener('change', handlePagesRangeChange);
+        maxPagesRange.addEventListener('change', handlePagesRangeChange);
+    }
+}
 
+function handlePagesRangeChange() {
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    const minPagesValue = document.getElementById('minPagesValue');
+    const maxPagesValue = document.getElementById('maxPagesValue');
 
+    let minVal = parseInt(minPagesRange.value);
+    let maxVal = parseInt(maxPagesRange.value);
 
+    if (minVal > maxVal) {
+        minVal = maxVal;
+        minPagesRange.value = minVal;
+    }
+    if (maxVal < minVal) {
+        maxVal = minVal;
+        maxPagesRange.value = maxVal;
+    }
 
+    activeFilters.minPages = minVal;
+    activeFilters.maxPages = maxVal;
 
+    if (minPagesValue) minPagesValue.textContent = minVal;
+    if (maxPagesValue) maxPagesValue.textContent = maxVal;
 
+    updatePagesSliderFill();
+    updateFilterCount();
+    updateBottomFilterCount();
+    updateActiveFiltersDisplay();
+    debouncedApplyFilters();
+}
 
+function updatePagesSliderFill() {
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    const pagesRangeFill = document.getElementById('pagesRangeFill');
 
+    if (minPagesRange && maxPagesRange && pagesRangeFill) {
+        const min = parseInt(minPagesRange.min);
+        const max = parseInt(minPagesRange.max);
+        const minVal = parseInt(minPagesRange.value);
+        const maxVal = parseInt(maxPagesRange.value);
+
+        const minPercent = ((minVal - min) / (max - min)) * 100;
+        const maxPercent = ((maxVal - min) / (max - min)) * 100;
+
+        pagesRangeFill.style.left = `${minPercent}%`;
+        pagesRangeFill.style.width = `${maxPercent - minPercent}%`;
+    }
+}
+
+// ... existing code ...
+// In the main initialization section, call initializePagesRangeFilter()
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    initializePagesRangeFilter();
+    // ... existing code ...
+});
 // ... existing code ...

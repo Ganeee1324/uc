@@ -2871,9 +2871,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Ensure filters-bottom-actions always stays at the bottom */
 .filters-bottom-actions {
-    margin-top: auto;
+    margin-top: 0;
     margin-bottom: 0;
-    padding: 16px 0;
+    padding:0;
     border-top: 1px solid #e5e7eb;
     background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
     position: sticky;
@@ -3538,8 +3538,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Mobile responsive styles for filters overlay footer */
 @media (max-width: 768px) {
     .filters-bottom-actions {
-        margin-top: 12px;
-        padding: 8px 0;
+        margin-top: 0px;
+        padding: 0px 0;
     }
     
     .bottom-clear-container {
@@ -3563,8 +3563,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 480px) {
     .filters-bottom-actions {
-        margin-top: 8px;
-        padding: 6px 0;
+        margin-top: 0px;
+        padding: 0px 0;
     }
     
     .bottom-clear-container {
@@ -7842,5 +7842,28 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   
   .toggle-label .cont-icon {
     height: 17.5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-panel,
+  .filters-content {
+    height: 100vh !important;
+    min-height: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+  .filters-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+  }
+  .filters-bottom-actions {
+    flex-shrink: 0;
+    position: relative;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
   }
 }

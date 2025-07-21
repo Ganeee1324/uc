@@ -6631,3 +6631,26 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         font-size: 10px;
     }
 }
+
+@media (max-width: 768px) {
+  .filters-panel,
+  .filters-content {
+    height: 100vh !important;
+    min-height: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+  .filters-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+  }
+  .filters-bottom-actions {
+    flex-shrink: 0;
+    position: relative;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+  }
+}

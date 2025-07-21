@@ -2333,6 +2333,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     min-width: 0;
 }
 .filters-subtitle {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--gray-600);
+    font-weight: 500;
+    letter-spacing: -0.01em;
     white-space: normal;
     word-break: break-word;
 }

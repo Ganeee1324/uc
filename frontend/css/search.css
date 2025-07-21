@@ -2891,7 +2891,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .filters-title-row {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     width: 100%;
 }
@@ -2901,13 +2901,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     line-height: 1.2;
     font-size: 1.5rem;
     font-weight: 700;
+    padding: 0;
 }
 
 .filters-actions {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: var(--space-2);
-    height: 44px;
+    height: auto;
 }
 
 .filters-subtitle {

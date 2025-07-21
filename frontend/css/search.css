@@ -901,6 +901,20 @@ html {
     flex-wrap: nowrap;
 }
 
+/* Animated Border Search Bar Container */
+.search-bar-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    max-width: 410px;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
 
 
 /* Search Bar - Updated for animated border */
@@ -4007,6 +4021,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        border-radius: 20px;
    }
    
+   .search-bar-container {
+       max-width: 310px;
+       min-height: 60px;
+       border-radius: 20px;
+   }
+   
 
    
    .filters-btn {
@@ -4168,6 +4188,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: 0 var(--space-3);
    }
    
+   .search-bar-container {
+       max-width: 260px;
+       min-height: 60px;
+       border-radius: 20px;
+   }
+   
 
    
    .search-input {
@@ -4245,6 +4271,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        width: 200px;
        max-width: 200px;
        height: 36px;
+       border-radius: 20px;
+   }
+   
+   .search-bar-container {
+       max-width: 210px;
+       min-height: 60px;
        border-radius: 20px;
    }
    
@@ -7395,7 +7427,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     border-radius: 12px;
 }
 
-/* Invisible element that matches search bar position */
+/* Animated border background that moves with search bar */
 @property --angle{
     syntax: "<angle>";
     inherits: false;
@@ -7412,14 +7444,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     border-radius: 20px; /* Slightly larger radius */
     z-index: 0;
     pointer-events: none;
-    animation: none; /* No animation by default */
     filter: brightness(1.5);
     transition: all 0.25s var(--ease-2);
+    opacity: 0;
+    animation: none;
 }
-.search-bar-background {
-    opacity: 0; /* Hidden by default */
-}
-
 .search-bar-background::before {
     content: '';
     position: absolute;
@@ -7428,10 +7457,21 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     width: 100%;
     height: 100%;
     filter: blur(20px);
-    opacity: 0.8; /* Visible by default - the glow effect */
-    border-radius: 12px;
+    opacity: 0.7;
+    border-radius: 20px;
     z-index: 0;
-    transition: all 0.25s var(--ease-2);
+}
+
+/* Animation starts when toggle is checked */
+.toggle-input:checked ~ .search-bar-background {
+    opacity: 1;
+    animation: spin 3s linear infinite;
+}
+
+/* Move with search bar hover/focus animation */
+.search-bar:hover ~ .search-bar-background,
+.search-bar:focus-within ~ .search-bar-background {
+    transform: translateY(-2px);
 }
 @keyframes spin {
     from {
@@ -7440,23 +7480,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     to {
         --angle: 360deg;
     }
-}
-
-/* Show search-bar-background animation only when semantic search is activated */
-.search-bar-background.ai-active {
-    animation: spin 3s linear infinite;
-    opacity: 1;
-}
-
-/* Show the glow effect (::before) when semantic search is activated */
-.search-bar-background.ai-active::before {
-    opacity: 0.8;
-}
-
-/* Make search-bar-background move with search bar animation only when visible */
-.search-bar-wrapper:hover .search-bar-background,
-.search-bar-wrapper:focus-within .search-bar-background {
-    transform: translateY(-2px);
 }
 
 /* Responsive adjustments for the toggle */

@@ -2369,29 +2369,19 @@ class FilterManager {
     updateBottomFilterCount() {
         const bottomFilterCountElement = document.getElementById('bottomFilterCount');
         const filterCountBadge = document.getElementById('filterCount');
-        
         const activeCount = this.getActiveFilterCount();
-        
         // Update footer text
         if (bottomFilterCountElement) {
             bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
                 activeCount === 1 ? '1 filtro attivo' : `${activeCount} filtri attivi`;
         }
-        
         // Update badge
         if (filterCountBadge) {
+            filterCountBadge.textContent = activeCount;
             if (activeCount > 0) {
-                filterCountBadge.textContent = activeCount;
-                filterCountBadge.style.display = '';
-                filterCountBadge.style.opacity = '1';
+                filterCountBadge.classList.add('active');
             } else {
-                filterCountBadge.style.opacity = '0';
-                // Hide after fade animation
-                setTimeout(() => {
-                    if (this.getActiveFilterCount() === 0) {
-                        filterCountBadge.style.display = 'none';
-                    }
-                }, 200);
+                filterCountBadge.classList.remove('active');
             }
         }
     }

@@ -1498,15 +1498,21 @@ body.filters-open .document-count-container {
 .document-count-and-filters {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: var(--space-4);
-    flex-wrap: wrap;
     width: 100%;
+    overflow-x: auto;
 }
 
-.document-count-section {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
+.document-count,
+.order-dropdown-container,
+.active-filters-display {
+    flex-shrink: 0;
+}
+
+.active-filters-display {
+    flex: 0 0 auto;
+    min-width: unset;
 }
 
 .document-count {

@@ -1334,6 +1334,22 @@ html {
     padding: 0;
 }
 
+.sort-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--gray-600);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0px;
+    transition: color 0.2s ease;
+}
+
+.order-btn:hover .sort-icon {
+    color: var(--gray-700);
+}
+
 /* Dropdown arrow removed - no longer needed */
 
 .order-text {

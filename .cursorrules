@@ -4,7 +4,7 @@ Backend is present only for knowledge purposes on how it works. Never run app.py
 
 Always think of cybersecurity before sending code. Always take in account all cybersecurity risks and make the most secure app to exist ever on planet earth.
 
-Commit to github automatically every once in a while, especially after having made an important change.
+Commit to github automatically every change we make, especially after having made an important change. Make sure to explain extensively exactly what was added/changed/removed in this commit.
 
 Never change backend code. Only change frontend code.
 

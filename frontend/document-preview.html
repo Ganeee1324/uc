@@ -64,6 +64,46 @@
     <main class="preview-main">
     </main>
 
+    <!-- Filter Panel Overlay -->
+    <div class="filters-overlay" id="filtersOverlay"></div>
+    
+    <!-- Filter Panel -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-content">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <h2>Filtri</h2>
+                    <p class="filters-subtitle">Personalizza la tua ricerca</p>
+                </div>
+                <div class="filters-actions">
+                    <button class="filter-clear-btn" id="clearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        <span>Pulisci</span>
+                    </button>
+                    <button class="filters-close" id="closeFilters">
+                        <i class="material-symbols-outlined">close</i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters-grid" id="filtersGrid">
+                <!-- Filter sections will be dynamically populated -->
+            </div>
+            
+            <div class="filters-bottom-actions">
+                <div class="bottom-clear-container">
+                    <button class="bottom-clear-all-btn" id="bottomClearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        <span>Pulisci tutti i filtri</span>
+                    </button>
+                    <div class="bottom-clear-info">
+                        <span class="status-message" id="filterStatusMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Reviews Overlay -->
     <div class="reviews-overlay" id="reviewsOverlay">
         <div class="reviews-overlay-content">

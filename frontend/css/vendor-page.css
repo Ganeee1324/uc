@@ -6463,3 +6463,20 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         padding: var(--space-4);
     }
 }
+
+/* Sort Icon Styles */
+.sort-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--gray-600);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    transition: color 0.2s ease;
+}
+
+.order-btn:hover .sort-icon {
+    color: var(--gray-700);
+}

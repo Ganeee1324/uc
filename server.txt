@@ -2,7 +2,6 @@ cd frontend
 python3 -m http.server
 
 
-Pushed branch main to remote origin (uc repo) – hash d850c4f.
-
+git commit -m "Update all search bars to have 20px border radius across all screen sizes\n\nCHANGES MADE:\n- Updated main search bar border-radius from 10px to 20px in search.css\n- Updated responsive search bar border-radius values in search.css:\n  - 900px media query: 10px → 20px\n  - 520px media query: 10px → 20px\n  - 600px media query: 10px → 20px\n- Updated vendor-page search bar 520px media query: var(--radius-3xl) → 20px\n- All search bars now consistently use 20px border radius across all screen sizes\n- Maintained existing responsive design and functionality\n\nFILES MODIFIED:\n- frontend/css/search.css: Updated search bar border radius in main and responsive rules\n- frontend/css/vendor-page.css: Updated search bar border radius in 520px media query\n\nAll search bars now have a consistent 20px border radius regardless of screen size, providing a uniform visual appearance across the entire application."
 
 Make overlay in vendor page and in document preview page be the exact same as it is in search page.

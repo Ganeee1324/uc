@@ -506,16 +506,8 @@ function initializeFilters() {
     // Filter actions
     if (clearAllFilters) clearAllFilters.addEventListener('click', clearAllFiltersAction);
 
-    // Ensure priceType is set on first load
-    if (!filterManager.filters.priceType) {
-        filterManager.filters.priceType = 'all';
-    }
-
     // Initialize all filter controls
     initializeFilterControls();
-
-    // Update filter pills UI after initialization
-    updateActiveFiltersDisplay();
 
     // Close on escape key
     document.addEventListener('keydown', (e) => {
@@ -1884,19 +1876,15 @@ function initializeToggleFilters() {
         if (toggle.dataset.price === 'all' && !initialSet) {
             toggle.classList.add('active');
             filterManager.filters.priceType = 'all';
+            if (priceRangeContainer) priceRangeContainer.style.display = 'block';
             initialSet = true;
         } else {
             toggle.classList.remove('active');
         }
     });
-
-    // Hide price range container unless priceType is 'paid'
-    if (priceRangeContainer) {
-        if (filterManager.filters.priceType === 'paid') {
-            priceRangeContainer.style.display = 'block';
-        } else {
-            priceRangeContainer.style.display = 'none';
-        }
+    // Always show price range for 'Tutti' (all) on initialization
+    if (priceRangeContainer && filterManager.filters.priceType === 'all') {
+        priceRangeContainer.style.display = 'block';
     }
 
     priceToggles.forEach(toggle => {
@@ -1942,25 +1930,18 @@ function initializeToggleFilters() {
         });
     });
 
-
-
     // Vetrina toggles
     const vetrinaToggles = document.querySelectorAll('.vetrina-toggle');
-    
     vetrinaToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             vetrinaToggles.forEach(t => t.classList.remove('active'));
             toggle.classList.add('active');
-            
             const vetrinaType = toggle.dataset.vetrina;
-            
             if (vetrinaType === 'all') {
                 delete filterManager.filters.vetrinaType;
             } else {
                 filterManager.filters.vetrinaType = vetrinaType;
             }
-            
-            // Apply filters immediately
             applyFiltersAndRender();
             saveFiltersToStorage();
         });
@@ -2008,40 +1989,26 @@ function handlePriceRangeChange() {
     const maxPriceRange = document.getElementById('maxPriceRange');
     const minPriceValue = document.getElementById('minPriceValue');
     const maxPriceValue = document.getElementById('maxPriceValue');
-    
     let minVal = parseFloat(minPriceRange.value);
     let maxVal = parseFloat(maxPriceRange.value);
-    
-    // Ensure min doesn't exceed max
     if (minVal > maxVal) {
         minVal = maxVal;
         minPriceRange.value = minVal;
     }
-    
-    // Ensure max doesn't go below min
     if (maxVal < minVal) {
         maxVal = minVal;
         maxPriceRange.value = maxVal;
     }
-    
-    // Apply price range filter for 'all' and 'paid' price types
+    // Apply price range filter for both 'paid' and 'all' price types
     if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
         filterManager.filters.minPrice = minVal;
         filterManager.filters.maxPrice = maxVal;
     }
-    
-    // Update display values
     if (minPriceValue) minPriceValue.textContent = `€${minVal}`;
     if (maxPriceValue) maxPriceValue.textContent = `€${maxVal}`;
-    
-    // Update the visual fill
-        updatePriceSliderFill();
-    
-    // Update filter count immediately for responsive UI
+    updatePriceSliderFill();
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
-    
-    // Apply filters with debounce to prevent too many renders
     debouncedApplyFilters();
 }
 
@@ -2451,10 +2418,10 @@ class FilterManager {
             `;
             activeFiltersContainer.appendChild(pill);
         }
-        // Price range pill (show for both 'all' and 'paid')
+        // Price range pill
         const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
         const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
-        if ((filters.priceType === 'paid' || filters.priceType === 'all') && (minPriceSet || maxPriceSet)) {
+        if (minPriceSet || maxPriceSet) {
             const min = filters.minPrice !== undefined ? filters.minPrice : 0;
             const max = filters.maxPrice !== undefined ? filters.maxPrice : 100;
             const pill = document.createElement('div');
@@ -2471,14 +2438,9 @@ class FilterManager {
         // All other filters
         Object.entries(filters).forEach(([key, value]) => {
             if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
-            // Do not show a pill for priceType: 'paid'
-            if (key === 'priceType' && value === 'paid') return;
             const pill = this.createFilterPill(key, value);
             activeFiltersContainer.appendChild(pill);
         });
-        // Log all pills in the UI after rendering
-        const pills = Array.from(activeFiltersContainer.querySelectorAll('.filter-pill')).map(pill => pill.getAttribute('data-filter-key'));
-        console.log('[DEBUG] Current filter pills in UI:', pills);
         // Use proper timing for animations and count updates
         requestAnimationFrame(() => {
             activeFiltersContainer.classList.add('visible');
@@ -4893,25 +4855,23 @@ function saveFiltersToStorage() {
 }
 
 function restoreFiltersFromStorage() {
-    // Try to restore filters from localStorage
-    let restored = false;
+    
+    // Clear all filters on page refresh - treat it like a fresh visit
+    filterManager.filters = {};
+    
+    // Clear filters from localStorage
     try {
-        const saved = localStorage.getItem('searchFilters');
-        if (saved) {
-            filterManager.filters = JSON.parse(saved);
-            restored = true;
-        }
+        localStorage.removeItem('searchFilters');
     } catch (e) {
-        console.warn('Could not restore filters from localStorage:', e);
+        console.warn('Could not clear filters from localStorage:', e);
     }
-    if (!restored) {
-        filterManager.filters = {};
-    }
+    
     // Reset UI to clean state
     updateFilterInputs();
     updateActiveFilterIndicators();
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
+    
     // Show all documents
     setTimeout(() => {
         if (originalFiles && originalFiles.length > 0) {
@@ -4920,38 +4880,46 @@ function restoreFiltersFromStorage() {
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
     }, 300);
+    
     // Force a re-render of dropdown options to ensure clean visual states
     setTimeout(() => {
+        
         // First populate dropdown options
         if (window.facultyCoursesData) {
             populateDropdownOptions();
         }
+        
         // Then update all UI elements with clean filter states
         updateFilterInputs();
         updateActiveFilterIndicators();
         updateBottomFilterCount();
         updateActiveFiltersDisplay();
+        
         // Force update of all filter-related UI elements
         const filterCount = document.getElementById('filterCount');
         if (filterCount) {
             filterCount.textContent = '0';
             filterCount.classList.remove('active');
         }
+        
         // Force update of filters button state
         const filtersBtn = document.getElementById('filtersBtn');
         if (filtersBtn) {
             filtersBtn.classList.remove('has-filters');
         }
+        
         // Final check to ensure everything is properly updated
         setTimeout(() => {
             updateBottomFilterCount();
             updateActiveFilterIndicators();
             updateActiveFiltersDisplay();
+            
             // Ensure filter pills are hidden
             const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
             if (activeFiltersContainer) {
                 activeFiltersContainer.classList.remove('visible');
             }
+            
         }, 100);
     }, 200);
 }

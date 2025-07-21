@@ -1663,6 +1663,10 @@ body.filters-open .document-count-container {
     opacity: 0;
     transform: translateX(-12px);
     animation: clearAllSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+    /* Prevent squishing */
+    flex: 0 0 auto;
+    min-width: max-content;
+    white-space: nowrap;
 }
 
 .clear-all-filters-btn::before {

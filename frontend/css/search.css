@@ -7880,15 +7880,37 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     align-items: stretch;
     gap: 8px;
   }
-  .filters-title {
+  .filters-header-top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
-    flex: none;
+    gap: 8px;
+  }
+  .filters-title {
+    width: auto;
+    flex: 1 1 auto;
     min-width: 0;
   }
   .filters-actions {
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
     justify-content: flex-end;
     gap: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .filter-clear-btn,
+  .filters-close {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 100%;
+    max-height: 100%;
+    font-size: 15px;
+    padding: 0 10px;
   }
   .filters-subtitle {
     white-space: normal;

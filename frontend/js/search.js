@@ -2007,6 +2007,10 @@ function handlePriceRangeChange() {
         maxVal = minVal;
         maxPriceRange.value = maxVal;
     }
+    // Defensive: always delete priceRange array if present
+    if (filterManager.filters.priceRange) {
+        delete filterManager.filters.priceRange;
+    }
     // Apply price range filter for both 'paid' and 'all' price types
     if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
         filterManager.filters.minPrice = minVal;

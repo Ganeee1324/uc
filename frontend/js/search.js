@@ -1875,32 +1875,38 @@ function initializeToggleFilters() {
     const priceToggles = document.querySelectorAll('.price-toggle');
     const priceRangeContainer = document.getElementById('priceRangeContainer');
 
+    // Ensure 'Tutti' is active and price slider is visible on initial load
+    let initialSet = false;
+    priceToggles.forEach(toggle => {
+        if (toggle.dataset.price === 'all' && !initialSet) {
+            toggle.classList.add('active');
+            activeFilters.priceType = 'all';
+            if (priceRangeContainer) priceRangeContainer.style.display = 'block';
+            initialSet = true;
+        } else {
+            toggle.classList.remove('active');
+        }
+    });
+
     priceToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             priceToggles.forEach(t => t.classList.remove('active'));
             toggle.classList.add('active');
-            
             const priceType = toggle.dataset.price;
-            
             if (priceType === 'all') {
-                // Show price slider for "All" to allow range filtering across all documents
                 activeFilters.priceType = 'all';
                 delete activeFilters.minPrice;
                 delete activeFilters.maxPrice;
                 if (priceRangeContainer) priceRangeContainer.style.display = 'block';
-                
-                // Reset price sliders to default when switching to "All"
                 const minPriceRange = document.getElementById('minPriceRange');
                 const maxPriceRange = document.getElementById('maxPriceRange');
                 const minPriceValue = document.getElementById('minPriceValue');
                 const maxPriceValue = document.getElementById('maxPriceValue');
-                
                 if (minPriceRange) minPriceRange.value = 0;
                 if (maxPriceRange) maxPriceRange.value = 100;
                 if (minPriceValue) minPriceValue.textContent = '€0';
                 if (maxPriceValue) maxPriceValue.textContent = '€100';
                 updatePriceSliderFill();
-                
             } else if (priceType === 'free') {
                 activeFilters.priceType = 'free';
                 delete activeFilters.minPrice;
@@ -1909,7 +1915,6 @@ function initializeToggleFilters() {
             } else if (priceType === 'paid') {
                 activeFilters.priceType = 'paid';
                 if (priceRangeContainer) priceRangeContainer.style.display = 'block';
-                // Initialize price range values when showing the slider
                 const minPriceRange = document.getElementById('minPriceRange');
                 const maxPriceRange = document.getElementById('maxPriceRange');
                 if (minPriceRange && maxPriceRange) {
@@ -1921,8 +1926,6 @@ function initializeToggleFilters() {
                     }
                 }
             }
-            
-            // Apply filters immediately
             applyFiltersAndRender();
             saveFiltersToStorage();
         });

@@ -2354,7 +2354,22 @@ class FilterManager {
     
     // Get current filter count
     getActiveFilterCount() {
-        return Object.keys(this.filters).length;
+        const filters = this.filters;
+        let count = 0;
+        // Pages range: count as 1 if either minPages or maxPages is set and not default
+        const minPagesSet = filters.minPages !== undefined && filters.minPages !== 1;
+        const maxPagesSet = filters.maxPages !== undefined && filters.maxPages !== 1000;
+        if (minPagesSet || maxPagesSet) count++;
+        // Price range: count as 1 if either minPrice or maxPrice is set and not default
+        const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
+        const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
+        if (minPriceSet || maxPriceSet) count++;
+        // Count all other filters except min/max pages and min/max price
+        Object.keys(filters).forEach(key => {
+            if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
+            count++;
+        });
+        return count;
     }
     
     // Debounced count update to prevent race conditions

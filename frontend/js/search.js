@@ -2331,26 +2331,137 @@ function addBottomClearAllButton() {
     updateBottomFilterCount();
 }
 
+// Enhanced filter counting system
+class FilterManager {
+    constructor() {
+        this.filters = {};
+        this.updateCountTimeout = null;
+    }
+    
+    // Add or update a filter
+    setFilter(key, value) {
+        if (value === null || value === '' || value === undefined || 
+            (Array.isArray(value) && value.length === 0)) {
+            delete this.filters[key];
+        } else {
+            this.filters[key] = value;
+        }
+        this.debouncedUpdateCounts();
+        this.updateActiveFiltersDisplay();
+    }
+    
+    // Remove a filter
+    removeFilter(key) {
+        delete this.filters[key];
+        this.debouncedUpdateCounts();
+        this.updateActiveFiltersDisplay();
+    }
+    
+    // Get current filter count
+    getActiveFilterCount() {
+        return Object.keys(this.filters).length;
+    }
+    
+    // Debounced count update to prevent race conditions
+    debouncedUpdateCounts() {
+        clearTimeout(this.updateCountTimeout);
+        this.updateCountTimeout = setTimeout(() => {
+            this.updateBottomFilterCount();
+        }, 100);
+    }
+    
+    // Updated count function that uses state instead of DOM counting
+    updateBottomFilterCount() {
+        const bottomFilterCountElement = document.getElementById('bottomFilterCount');
+        const filterCountBadge = document.getElementById('filterCount');
+        
+        const activeCount = this.getActiveFilterCount();
+        
+        // Update footer text
+        if (bottomFilterCountElement) {
+            bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
+                activeCount === 1 ? '1 filtro attivo' : `${activeCount} filtri attivi`;
+        }
+        
+        // Update badge
+        if (filterCountBadge) {
+            if (activeCount > 0) {
+                filterCountBadge.textContent = activeCount;
+                filterCountBadge.style.display = '';
+                filterCountBadge.style.opacity = '1';
+            } else {
+                filterCountBadge.style.opacity = '0';
+                // Hide after fade animation
+                setTimeout(() => {
+                    if (this.getActiveFilterCount() === 0) {
+                        filterCountBadge.style.display = 'none';
+                    }
+                }, 200);
+            }
+        }
+    }
+    
+    // Enhanced display update with proper timing
+    updateActiveFiltersDisplay() {
+        const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+        if (!activeFiltersContainer) return;
+        
+        // Clear existing pills
+        activeFiltersContainer.innerHTML = '';
+        
+        // Create pills for each active filter
+        Object.entries(this.filters).forEach(([key, value]) => {
+            const pill = this.createFilterPill(key, value);
+            activeFiltersContainer.appendChild(pill);
+        });
+        
+        // Use proper timing for animations and count updates
+        requestAnimationFrame(() => {
+            activeFiltersContainer.classList.add('visible');
+            // Ensure DOM is fully rendered before counting
+            requestAnimationFrame(() => {
+                this.updateBottomFilterCount();
+            });
+        });
+    }
+    
+    // Helper function to create filter pills
+    createFilterPill(key, value) {
+        const pill = document.createElement('div');
+        pill.className = 'filter-pill';
+        pill.setAttribute('data-filter-key', key);
+        
+        // Display logic based on your filter types
+        let displayText = '';
+        if (typeof value === 'string') {
+            displayText = value;
+        } else if (Array.isArray(value)) {
+            displayText = value.join(', ');
+        } else {
+            displayText = String(value);
+        }
+        
+        pill.innerHTML = `
+            <span class="filter-label">${key}: ${displayText}</span>
+            <button class="filter-remove" onclick="filterManager.removeFilter('${key}')">
+                <i class="material-symbols-outlined">close</i>
+            </button>
+        `;
+        
+        return pill;
+    }
+}
+
+// Initialize the filter manager
+const filterManager = new FilterManager();
+
+// Replace your existing functions with calls to the filter manager
 function updateBottomFilterCount() {
-    const bottomFilterCountElement = document.getElementById('bottomFilterCount');
-    if (!bottomFilterCountElement) return;
+    filterManager.updateBottomFilterCount();
+}
 
-    // Count the number of visible filter pills
-    const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-    let activeCount = 0;
-    if (activeFiltersContainer) {
-        activeCount = activeFiltersContainer.querySelectorAll('.filter-pill').length;
-    }
-
-    bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
-        activeCount === 1 ? '1 filtro attivo' : `${activeCount} filtri attivi`;
-
-    // Show only the number in the badge over the Filtri button
-    const filterCountBadge = document.getElementById('filterCount');
-    if (filterCountBadge) {
-        filterCountBadge.textContent = activeCount > 0 ? activeCount : '';
-        filterCountBadge.style.display = activeCount > 0 ? '' : 'none';
-    }
+function updateActiveFiltersDisplay() {
+    filterManager.updateActiveFiltersDisplay();
 }
 
 function closeFiltersPanel() {
@@ -2492,36 +2603,6 @@ function populateSelect(selectId, options) {
     // Restore selection if it still exists
     if (currentValue && options.includes(currentValue)) {
         select.value = currentValue;
-    }
-}
-
-function updateFilterCount() {
-    const filterCount = document.getElementById('filterCount');
-    const filtersBtn = document.getElementById('filtersBtn');
-    
-    // Count active filters properly
-    let activeCount = 0;
-    
-    Object.entries(activeFilters).forEach(([key, value]) => {
-        if (key === 'minPrice' || key === 'maxPrice') {
-            // Price range counts as one filter - only count once
-            if (key === 'minPrice' && activeFilters.priceType === 'paid' && 
-                (activeFilters.minPrice !== 0 || activeFilters.maxPrice !== 100)) {
-                activeCount++;
-            }
-        } else if (value !== null && value !== undefined && value !== 'all' && value !== '') {
-            activeCount++;
-        }
-    });
-    
-    if (filterCount) {
-        filterCount.textContent = activeCount;
-        filterCount.classList.toggle('active', activeCount > 0);
-    }
-    
-    // Make button responsive based on filter count
-    if (filtersBtn) {
-        filtersBtn.classList.toggle('has-filters', activeCount > 0);
     }
 }
 

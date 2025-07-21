@@ -1511,20 +1511,20 @@ body.filters-open .document-count-container {
 }
 
 .active-filters-display {
-    flex: 0 0 auto;
-    min-width: unset;
-    width: auto;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: var(--space-2);
     flex-wrap: nowrap;
+    gap: var(--space-2);
     overflow-x: auto;
+    overflow-y: hidden;
     white-space: nowrap;
+    width: auto;
+    min-width: unset;
+    flex: 0 0 auto;
     scrollbar-width: none;
     scroll-padding-left: 16px;
     scroll-snap-type: x mandatory;
 }
-
 .active-filters-display::-webkit-scrollbar {
     display: none;
 }

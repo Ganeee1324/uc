@@ -6849,3 +6849,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 0);
 // ... existing code ...
+
+// ... existing code ...
+    // Add pages range pill if min/max are set and not default values
+    if ((activeFilters.minPages !== undefined || activeFilters.maxPages !== undefined) &&
+        (activeFilters.minPages !== 1 || activeFilters.maxPages !== 1000)) {
+        const minPages = activeFilters.minPages !== undefined ? activeFilters.minPages : 1;
+        const maxPages = activeFilters.maxPages !== undefined ? activeFilters.maxPages : 1000;
+        filterPills.push(`
+            <div class="filter-pill" data-filter-key="pagesRange" data-action="remove-filter">
+                <span class="filter-pill-label">Pagine:</span>
+                <span class="filter-pill-value">${minPages}-${maxPages}</span>
+                <div class="filter-pill-remove"></div>
+            </div>
+        `);
+    }
+// ... existing code ...

@@ -2024,8 +2024,8 @@ function handlePriceRangeChange() {
         maxPriceRange.value = maxVal;
     }
     
-    // Apply price range filter for both 'paid' and 'all' price types
-    if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
+    // Apply price range filter for 'paid' price type only
+    if (filterManager.filters.priceType === 'paid') {
         // Always set the price range when slider is moved, even if values are default
         filterManager.filters.minPrice = minVal;
         filterManager.filters.maxPrice = maxVal;

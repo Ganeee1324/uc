@@ -518,22 +518,21 @@ function initializeFilters() {
 }
 
 function initializeFilterControls() {
-
-    
     // Professional dropdowns (includes all dropdown types now)
     setupDropdowns();
-
     // Rating filter
     initializeRatingFilter();
-    
     // Toggle group filters
     initializeToggleFilters();
-    
     // Price range filters
     initializePriceRangeFilter();
-    
     // Order functionality
     initializeOrderDropdown();
+    // Ensure price range is visible for 'Tutti' after all initializations
+    const priceRangeContainer = document.getElementById('priceRangeContainer');
+    if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
+        priceRangeContainer.style.display = 'block';
+    }
 }
 
 function handleFilterChangeImmediate(e) {

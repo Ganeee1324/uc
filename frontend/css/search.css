@@ -2873,7 +2873,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .filters-bottom-actions {
     padding: 16px 0 !important;
     background: #f8fafc !important;
-    border: 2px dashed #e5e7eb !important;
+    border: 2px solid #e5e7eb !important;
 }
 
 .bottom-clear-container {
@@ -2885,6 +2885,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 0;
 }
 
 .filters-title {
@@ -2895,13 +2896,24 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .filters-title h2 {
-    margin-bottom: 0;
+    margin: 0;
+    line-height: 1;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gray-900);
+    font-family: 'Space Grotesk', sans-serif;
 }
 
 .filters-actions {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+}
+
+.filter-clear-btn,
+.filters-close {
+    margin: 0;
+    vertical-align: middle;
 }
 
 .filter-clear-btn {
@@ -3435,18 +3447,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         transform: translateY(0) scale(1);
     }
  }
- 
- /* Bottom Clear All Button Section */
- .filters-bottom-actions {
-    margin-top: auto;
-    margin-bottom: 0;
-    padding: 16px 0;
-    border-top: 1px solid #e5e7eb;
-    background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
- }
+
  
  .bottom-clear-container {
     display: flex;

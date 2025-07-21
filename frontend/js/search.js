@@ -506,6 +506,11 @@ function initializeFilters() {
     // Filter actions
     if (clearAllFilters) clearAllFilters.addEventListener('click', clearAllFiltersAction);
 
+    // Always set priceType to 'all' as default on initialization
+    if (!filterManager.filters.priceType) {
+        filterManager.filters.priceType = 'all';
+    }
+
     // Initialize all filter controls
     initializeFilterControls();
 

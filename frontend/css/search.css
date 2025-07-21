@@ -3516,6 +3516,57 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-weight: 500;
     opacity: 0.8;
  }
+
+/* Mobile responsive styles for filters overlay footer */
+@media (max-width: 768px) {
+    .filters-bottom-actions {
+        margin-top: 12px;
+        padding: 8px 0;
+    }
+    
+    .bottom-clear-container {
+        gap: 4px;
+    }
+    
+    .bottom-clear-all-btn {
+        padding: 8px 16px;
+        min-width: 140px;
+        font-size: 12px;
+    }
+    
+    .bottom-clear-all-btn i {
+        font-size: 16px;
+    }
+    
+    .bottom-clear-info {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .filters-bottom-actions {
+        margin-top: 8px;
+        padding: 6px 0;
+    }
+    
+    .bottom-clear-container {
+        gap: 3px;
+    }
+    
+    .bottom-clear-all-btn {
+        padding: 6px 12px;
+        min-width: 120px;
+        font-size: 11px;
+    }
+    
+    .bottom-clear-all-btn i {
+        font-size: 14px;
+    }
+    
+    .bottom-clear-info {
+        font-size: 10px;
+    }
+}
  
  /* Status Messages */
  .status-message {

@@ -1476,63 +1476,46 @@ function selectDropdownOption(type, value, displayText = null) {
         if (!filterManager.filters[filterKey]) {
             filterManager.filters[filterKey] = [];
         }
-        
-        // Add value if not already present
         if (!filterManager.filters[filterKey].includes(value)) {
             filterManager.filters[filterKey].push(value);
         }
-        
-        // Update input display
         const selectedCount = filterManager.filters[filterKey].length;
         const academicContextFilters = ['faculty', 'course', 'canale'];
-        
         if (academicContextFilters.includes(type)) {
-            // Keep academic context filters searchable - don't show "N selected"
             if (selectedCount === 1) {
                 input.value = displayText || value;
             } else {
-                // Clear input to allow searching for more options
                 input.value = '';
                 input.setAttribute('placeholder', `${selectedCount} selezionati - scrivi per cercarne altri...`);
             }
         } else {
-            // For other filters, show count when multiple selected
             if (selectedCount === 1) {
                 input.value = displayText || value;
             } else {
                 input.value = `${selectedCount} selected`;
             }
         }
-        
-        // Keep dropdown open for multi-select
-        // Don't close the dropdown - let user continue selecting
-        
-        // Re-populate options to move selected item to top
         setTimeout(() => {
             filterDropdownOptions(type, '');
         }, 10);
-        
     } else {
-        // Single-select behavior (existing logic)
+        // Single-select: update value, keep dropdown open, and repopulate options
         input.value = displayText || value;
-        container.classList.remove('open');
-        
-        // Update active filters
+        // Do NOT close dropdown
         if (value && value.trim()) {
             filterManager.filters[filterKey] = value.trim();
         } else {
             delete filterManager.filters[filterKey];
         }
-        
-        // Update dependent dropdowns
         if (type === 'faculty') {
-            // Clear course filter since faculty selection changed
             const courseInput = document.getElementById('courseFilter');
             courseInput.value = '';
             delete filterManager.filters.course;
-            // Update course dropdown options based on new faculty selection(s)
             filterDropdownOptions('course', '');
         }
+        setTimeout(() => {
+            filterDropdownOptions(type, '');
+        }, 10);
     }
     
     // Refresh active filter indicators in all dropdowns

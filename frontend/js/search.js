@@ -2425,6 +2425,16 @@ class FilterManager {
         // Clear existing pills
         activeFiltersContainer.innerHTML = '';
         const filters = this.filters;
+        // Clear All pill (always first)
+        const clearAllPill = document.createElement('div');
+        clearAllPill.className = 'filter-pill clear-all-filters-btn sticky-left';
+        clearAllPill.innerHTML = `
+            <span class="filter-label">Rimuovi tutti</span>
+            <button class="filter-remove" onclick="filterManager.clearAllFiltersAction()">
+                <i class="material-symbols-outlined">close</i>
+            </button>
+        `;
+        activeFiltersContainer.appendChild(clearAllPill);
         // Pages range pill
         const minPagesSet = filters.minPages !== undefined && filters.minPages !== 1;
         const maxPagesSet = filters.maxPages !== undefined && filters.maxPages !== 1000;

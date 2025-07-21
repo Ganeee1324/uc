@@ -1884,12 +1884,20 @@ function initializeToggleFilters() {
         if (toggle.dataset.price === 'all' && !initialSet) {
             toggle.classList.add('active');
             filterManager.filters.priceType = 'all';
-            if (priceRangeContainer) priceRangeContainer.style.display = 'block';
             initialSet = true;
         } else {
             toggle.classList.remove('active');
         }
     });
+
+    // Hide price range container unless priceType is 'paid'
+    if (priceRangeContainer) {
+        if (filterManager.filters.priceType === 'paid') {
+            priceRangeContainer.style.display = 'block';
+        } else {
+            priceRangeContainer.style.display = 'none';
+        }
+    }
 
     priceToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {

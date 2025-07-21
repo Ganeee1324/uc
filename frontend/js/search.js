@@ -2293,6 +2293,13 @@ function toggleFiltersPanel() {
         addBottomClearAllButton();
         
         showStatus('Panel filtri aperto 🎯');
+
+        // Always show price slider if 'Tutti' is active when opening filters
+        const priceRangeContainer = document.getElementById('priceRangeContainer');
+        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        if (tuttiToggle && priceRangeContainer) {
+            priceRangeContainer.style.display = 'block';
+        }
     } else {
         closeFiltersPanel();
     }

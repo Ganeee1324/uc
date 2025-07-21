@@ -6820,3 +6820,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // ... existing code ...
 });
 // ... existing code ...
+
+// ... existing code ...
+    // Failsafe: always show price slider if 'Tutti' is active after initialization
+    window.addEventListener('DOMContentLoaded', () => {
+        const priceRangeContainer = document.getElementById('priceRangeContainer');
+        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        if (tuttiToggle && priceRangeContainer) {
+            priceRangeContainer.style.display = 'block';
+        }
+    });
+// ... existing code ...

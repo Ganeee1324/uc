@@ -498,10 +498,11 @@ html {
 /* Base grid container - consistent for all states */
 .documents-grid {
     margin-top: var(--space-2);
+    margin-bottom: 40px;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: var(--space-5);
-    max-width: 2400px;
+    max-width: 2400px; /* Increased max-width for 8 cards */
     position: relative;
     z-index: 2;
     transform: translate3d(0, 0, 0);
@@ -509,8 +510,6 @@ html {
     contain: layout;
     margin-left: auto;
     margin-right: auto;
-    width: 100%;
-    padding: 0 var(--space-5);
 }
 
 /* Loading state - remove min-height to prevent excess space */
@@ -1820,6 +1819,7 @@ body.filters-open .document-count-container {
 
 .documents-grid {
     margin-top: var(--space-2);
+    margin-bottom: 40px;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: var(--space-5);

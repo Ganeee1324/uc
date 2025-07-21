@@ -7943,48 +7943,42 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
 
-/* Animation for toggle OFF (left direction) */
+/* Animation for toggle OFF (pink right, purple left) */
 .search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background {
-    background-image: linear-gradient(315deg, 
-        transparent 0%, 
-        transparent calc(var(--expand-progress) * 1% - 80%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 75%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 25%), 
-        #5a189a calc(var(--expand-progress) * 1% - 20%), 
-        #7b2cbf calc(var(--expand-progress) * 1% - 15%), 
-        #9d4edd calc(var(--expand-progress) * 1% - 10%), 
-        #b75cff calc(var(--expand-progress) * 1% - 5%), 
-        #d166e6 calc(var(--expand-progress) * 1%), 
-        #e070d1 calc(var(--expand-progress) * 1% + 5%), 
-        #ed7abc calc(var(--expand-progress) * 1% + 10%), 
-        #f584a7 calc(var(--expand-progress) * 1% + 15%), 
-        #fb8e92 calc(var(--expand-progress) * 1% + 20%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 25%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 30%), 
-        transparent calc(var(--expand-progress) * 1% + 35%)
+    background-image: linear-gradient(270deg, 
+        #cf30aa 0%, /* pink left */
+        #cf30aa 5%,
+        #fb8e92 10%,
+        #f584a7 15%,
+        #ed7abc 20%,
+        #e070d1 25%,
+        #d166e6 30%,
+        #b75cff 35%,
+        #9d4edd 40%,
+        #7b2cbf 60%,
+        #5a189a 80%,
+        #402fb5 95%, /* purple right */
+        #402fb5 100%
     );
     animation: expandFromBottomRight 2s ease-out forwards;
 }
 
-/* Animation for toggle ON (right direction) */
+/* Animation for toggle ON (purple right, pink left) */
 .search-bar-wrapper:has(.toggle-input:checked) .search-bar-background {
-    background-image: linear-gradient(135deg, 
-        transparent 0%, 
-        transparent calc(var(--expand-progress) * 1% - 80%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 75%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 25%), 
-        #5a189a calc(var(--expand-progress) * 1% - 20%), 
-        #7b2cbf calc(var(--expand-progress) * 1% - 15%), 
-        #9d4edd calc(var(--expand-progress) * 1% - 10%), 
-        #b75cff calc(var(--expand-progress) * 1% - 5%), 
-        #d166e6 calc(var(--expand-progress) * 1%), 
-        #e070d1 calc(var(--expand-progress) * 1% + 5%), 
-        #ed7abc calc(var(--expand-progress) * 1% + 10%), 
-        #f584a7 calc(var(--expand-progress) * 1% + 15%), 
-        #fb8e92 calc(var(--expand-progress) * 1% + 20%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 25%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 30%), 
-        transparent calc(var(--expand-progress) * 1% + 35%)
+    background-image: linear-gradient(90deg, 
+        #cf30aa 0%, /* pink left */
+        #cf30aa 5%,
+        #fb8e92 10%,
+        #f584a7 15%,
+        #ed7abc 20%,
+        #e070d1 25%,
+        #d166e6 30%,
+        #b75cff 35%,
+        #9d4edd 40%,
+        #7b2cbf 60%,
+        #5a189a 80%,
+        #402fb5 95%, /* purple right */
+        #402fb5 100%
     );
     animation: expandFromTopLeft 2s ease-out forwards;
 }

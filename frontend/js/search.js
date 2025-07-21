@@ -2405,16 +2405,49 @@ class FilterManager {
     updateActiveFiltersDisplay() {
         const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
         if (!activeFiltersContainer) return;
-        
         // Clear existing pills
         activeFiltersContainer.innerHTML = '';
-        
-        // Create pills for each active filter
-        Object.entries(this.filters).forEach(([key, value]) => {
+        const filters = this.filters;
+        // Pages range pill
+        const minPagesSet = filters.minPages !== undefined && filters.minPages !== 1;
+        const maxPagesSet = filters.maxPages !== undefined && filters.maxPages !== 1000;
+        if (minPagesSet || maxPagesSet) {
+            const min = filters.minPages !== undefined ? filters.minPages : 1;
+            const max = filters.maxPages !== undefined ? filters.maxPages : 1000;
+            const pill = document.createElement('div');
+            pill.className = 'filter-pill';
+            pill.setAttribute('data-filter-key', 'pagesRange');
+            pill.innerHTML = `
+                <span class="filter-label">Pagine: ${min}-${max}</span>
+                <button class="filter-remove" onclick="filterManager.removeFilter('minPages');filterManager.removeFilter('maxPages')">
+                    <i class="material-symbols-outlined">close</i>
+                </button>
+            `;
+            activeFiltersContainer.appendChild(pill);
+        }
+        // Price range pill
+        const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
+        const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
+        if (minPriceSet || maxPriceSet) {
+            const min = filters.minPrice !== undefined ? filters.minPrice : 0;
+            const max = filters.maxPrice !== undefined ? filters.maxPrice : 100;
+            const pill = document.createElement('div');
+            pill.className = 'filter-pill';
+            pill.setAttribute('data-filter-key', 'priceRange');
+            pill.innerHTML = `
+                <span class="filter-label">Prezzo: €${min}-€${max}</span>
+                <button class="filter-remove" onclick="filterManager.removeFilter('minPrice');filterManager.removeFilter('maxPrice')">
+                    <i class="material-symbols-outlined">close</i>
+                </button>
+            `;
+            activeFiltersContainer.appendChild(pill);
+        }
+        // All other filters
+        Object.entries(filters).forEach(([key, value]) => {
+            if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
             const pill = this.createFilterPill(key, value);
             activeFiltersContainer.appendChild(pill);
         });
-        
         // Use proper timing for animations and count updates
         requestAnimationFrame(() => {
             activeFiltersContainer.classList.add('visible');

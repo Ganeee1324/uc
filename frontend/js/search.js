@@ -7049,7 +7049,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const updatePages = () => {
             const min = parseInt(minPagesRange.value, 10);
             const max = parseInt(maxPagesRange.value, 10);
-            filterManager.setFilter('pagesRange', [min, max]);
+            filterManager.setFilter('minPages', min);
+            filterManager.setFilter('maxPages', max);
         };
         minPagesRange.addEventListener('input', updatePages);
         maxPagesRange.addEventListener('input', updatePages);

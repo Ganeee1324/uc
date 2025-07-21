@@ -546,28 +546,29 @@ def process_embedding_queue():
     while True:
         try:
             time.sleep(10)
-            with database.connect(vector=True) as conn:
+            with database.connect() as conn:
                 with conn.cursor() as cursor:
-                    while True:
-                        cursor.execute(
-                            """
-                            SELECT eq.file_id, eq.vetrina_id, f.filename, f.display_name, v.name
-                            FROM embedding_queue eq
-                            JOIN files f ON eq.file_id = f.file_id
-                            JOIN vetrina v ON eq.vetrina_id = v.vetrina_id
-                            """
-                        )
-                        rows = cursor.fetchall()
-                        if not rows:
-                            break
-                        logging.info(f"Processing {len(rows)} files from embedding queue.")
-                        for i, row in enumerate(rows):
-                            logging.info(f"Generating embeddings for file '{row['display_name']}' (remaining: {len(rows) - i})")
-                            chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], row["name"])
-                            database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
-                            logging.info(f"Processed {len(chunks)} chunks for file '{row['display_name']}' in vetrina '{row['name']}'")
-                            cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
-                            conn.commit()
+                    cursor.execute(
+                        """
+                        SELECT eq.file_id, eq.vetrina_id, f.filename, f.display_name, v.name
+                        FROM embedding_queue eq
+                        JOIN files f ON eq.file_id = f.file_id
+                        JOIN vetrina v ON eq.vetrina_id = v.vetrina_id
+                        """
+                    )
+                    rows = cursor.fetchall()
+                    if not rows:
+                        continue
+            logging.info(f"Processing {len(rows)} files from embedding queue.")
+            for i, row in enumerate(rows):
+                logging.info(f"Generating embeddings for file '{row['display_name']}' (remaining: {len(rows) - i})")
+                chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], row["name"])
+                database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
+                logging.info(f"Processed {len(chunks)} chunks for file '{row['display_name']}' in vetrina '{row['name']}'")
+                with database.connect() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
+                        conn.commit()
         except Exception as e:
             logging.error(f"Error processing embedding queue: {e}")
             time.sleep(1)

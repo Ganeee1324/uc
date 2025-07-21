@@ -2867,17 +2867,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  
  /* Bottom Clear All Button Section */
  .filters-bottom-actions {
-    margin-top: auto;
-    margin-bottom: 0;
-    padding: 12px 0;
-    border-top: 1px solid #e5e7eb;
-    background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
- }
+    padding: 16px 0 !important;
+    background: #f8fafc !important;
+    border: 2px dashed #e5e7eb !important;
+}
  
  .bottom-clear-container {
+    margin: 0 !important;
     display: flex;
     flex-direction: column;
     align-items: center;

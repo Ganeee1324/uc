@@ -7621,10 +7621,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Invisible element that matches search bar position */
-@property --angle{
-    syntax: "<angle>";
+@property --expand-progress{
+    syntax: "<number>";
     inherits: false;
-    initial-value: 0deg;
+    initial-value: 0;
 }
 .search-bar-background, .search-bar-background::before {
     position: absolute;
@@ -7632,12 +7632,18 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     left: -2px; /* Move left to create space */
     width: calc(100% + 4px); /* Increase width to account for padding */
     height: calc(100% + 4px); /* Increase height to account for padding */
-    background-image: conic-gradient(from var(--angle), transparent 0deg, transparent 30deg, #402fb5 60deg, transparent 90deg, transparent 210deg, #cf30aa 240deg, transparent 270deg, transparent 300deg, transparent 360deg);
+    background-image: linear-gradient(315deg, 
+        transparent 0%, 
+        transparent calc(var(--expand-progress) * 1% - 10%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 5%), 
+        #cf30aa calc(var(--expand-progress) * 1%), 
+        transparent calc(var(--expand-progress) * 1% + 5%)
+    );
     border: none;
     border-radius: 20px; /* Slightly larger radius */
-    z-index: 0;
+    z-index: 22;
     pointer-events: none;
-    animation: spin 3s linear infinite;
+    animation: expandFromBottomRight 2s ease-out forwards;
     filter: brightness(1.5);
 }
 .search-bar-background::before {
@@ -7659,12 +7665,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar-wrapper:has(.search-bar:focus-within) .search-bar-background {
     transform: translateY(-2px);
 }
-@keyframes spin {
-    from {
-        --angle: 0deg;
+@keyframes expandFromBottomRight {
+    0% {
+        --expand-progress: 0;
     }
-    to {
-        --angle: 360deg;
+    100% {
+        --expand-progress: 100;
     }
 }
 

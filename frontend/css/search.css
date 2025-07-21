@@ -2873,7 +2873,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .filters-bottom-actions {
     margin-top: 0;
     margin-bottom: 0;
-    padding:0;
+    padding: 12px 0;
     border-top: 1px solid #e5e7eb;
     background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
     position: sticky;
@@ -3539,7 +3539,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 @media (max-width: 768px) {
     .filters-bottom-actions {
         margin-top: 0px;
-        padding: 0px 0;
+        padding: 12px 0;
     }
     
     .bottom-clear-container {
@@ -3564,7 +3564,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 @media (max-width: 480px) {
     .filters-bottom-actions {
         margin-top: 0px;
-        padding: 0px 0;
+        padding: 12px 0;
     }
     
     .bottom-clear-container {

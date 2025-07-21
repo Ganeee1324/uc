@@ -2869,7 +2869,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  .filters-bottom-actions {
     margin-top: auto;
     margin-bottom: 0;
-    padding: 16px 0;
+    padding: 12px 0;
     border-top: 1px solid #e5e7eb;
     background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
     position: sticky;

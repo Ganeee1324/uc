@@ -4893,23 +4893,25 @@ function saveFiltersToStorage() {
 }
 
 function restoreFiltersFromStorage() {
-    
-    // Clear all filters on page refresh - treat it like a fresh visit
-    filterManager.filters = {};
-    
-    // Clear filters from localStorage
+    // Try to restore filters from localStorage
+    let restored = false;
     try {
-        localStorage.removeItem('searchFilters');
+        const saved = localStorage.getItem('searchFilters');
+        if (saved) {
+            filterManager.filters = JSON.parse(saved);
+            restored = true;
+        }
     } catch (e) {
-        console.warn('Could not clear filters from localStorage:', e);
+        console.warn('Could not restore filters from localStorage:', e);
     }
-    
+    if (!restored) {
+        filterManager.filters = {};
+    }
     // Reset UI to clean state
     updateFilterInputs();
     updateActiveFilterIndicators();
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
-    
     // Show all documents
     setTimeout(() => {
         if (originalFiles && originalFiles.length > 0) {
@@ -4918,46 +4920,38 @@ function restoreFiltersFromStorage() {
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
     }, 300);
-    
     // Force a re-render of dropdown options to ensure clean visual states
     setTimeout(() => {
-        
         // First populate dropdown options
         if (window.facultyCoursesData) {
             populateDropdownOptions();
         }
-        
         // Then update all UI elements with clean filter states
         updateFilterInputs();
         updateActiveFilterIndicators();
         updateBottomFilterCount();
         updateActiveFiltersDisplay();
-        
         // Force update of all filter-related UI elements
         const filterCount = document.getElementById('filterCount');
         if (filterCount) {
             filterCount.textContent = '0';
             filterCount.classList.remove('active');
         }
-        
         // Force update of filters button state
         const filtersBtn = document.getElementById('filtersBtn');
         if (filtersBtn) {
             filtersBtn.classList.remove('has-filters');
         }
-        
         // Final check to ensure everything is properly updated
         setTimeout(() => {
             updateBottomFilterCount();
             updateActiveFilterIndicators();
             updateActiveFiltersDisplay();
-            
             // Ensure filter pills are hidden
             const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
             if (activeFiltersContainer) {
                 activeFiltersContainer.classList.remove('visible');
             }
-            
         }, 100);
     }, 200);
 }

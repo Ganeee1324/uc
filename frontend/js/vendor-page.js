@@ -1969,6 +1969,15 @@ function updatePriceSliderFill() {
 // Order functionality
 let currentOrder = 'relevance';
 
+// Initialize order button text on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = orderBtn?.querySelector('.order-text');
+    if (orderText) {
+        orderText.textContent = 'Rilevanza';
+    }
+});
+
 function initializeOrderDropdown() {
     const orderBtn = document.getElementById('orderBtn');
     const orderDropdown = document.querySelector('.order-dropdown-content');

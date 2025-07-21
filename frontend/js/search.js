@@ -506,8 +506,16 @@ function initializeFilters() {
     // Filter actions
     if (clearAllFilters) clearAllFilters.addEventListener('click', clearAllFiltersAction);
 
+    // Ensure priceType is set on first load
+    if (!filterManager.filters.priceType) {
+        filterManager.filters.priceType = 'all';
+    }
+
     // Initialize all filter controls
     initializeFilterControls();
+
+    // Update filter pills UI after initialization
+    updateActiveFiltersDisplay();
 
     // Close on escape key
     document.addEventListener('keydown', (e) => {
@@ -2442,6 +2450,7 @@ class FilterManager {
         if (minPriceSet || maxPriceSet) {
             const min = filters.minPrice !== undefined ? filters.minPrice : 0;
             const max = filters.maxPrice !== undefined ? filters.maxPrice : 100;
+            console.log('[DEBUG] Adding price filter pill:', { min, max, minPriceSet, maxPriceSet, filters });
             const pill = document.createElement('div');
             pill.className = 'filter-pill';
             pill.setAttribute('data-filter-key', 'priceRange');
@@ -2459,6 +2468,9 @@ class FilterManager {
             const pill = this.createFilterPill(key, value);
             activeFiltersContainer.appendChild(pill);
         });
+        // Log all pills in the UI after rendering
+        const pills = Array.from(activeFiltersContainer.querySelectorAll('.filter-pill')).map(pill => pill.getAttribute('data-filter-key'));
+        console.log('[DEBUG] Current filter pills in UI:', pills);
         // Use proper timing for animations and count updates
         requestAnimationFrame(() => {
             activeFiltersContainer.classList.add('visible');

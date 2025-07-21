@@ -6963,3 +6963,73 @@ document.addEventListener('DOMContentLoaded', function() {
         `);
     }
 // ... existing code ...
+
+// ... existing code ...
+    // Faculty filter
+    const facultyInput = document.getElementById('facultyFilter');
+    if (facultyInput) {
+        facultyInput.addEventListener('change', (e) => {
+            filterManager.setFilter('faculty', e.target.value);
+        });
+    }
+    // Course filter
+    const courseInput = document.getElementById('courseFilter');
+    if (courseInput) {
+        courseInput.addEventListener('change', (e) => {
+            filterManager.setFilter('course', e.target.value);
+        });
+    }
+    // Canale filter
+    const canaleInput = document.getElementById('canaleFilter');
+    if (canaleInput) {
+        canaleInput.addEventListener('change', (e) => {
+            filterManager.setFilter('canale', e.target.value);
+        });
+    }
+    // Price range sliders
+    const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    if (minPriceRange && maxPriceRange) {
+        const updatePrice = () => {
+            const min = parseInt(minPriceRange.value, 10);
+            const max = parseInt(maxPriceRange.value, 10);
+            filterManager.setFilter('priceRange', [min, max]);
+        };
+        minPriceRange.addEventListener('input', updatePrice);
+        maxPriceRange.addEventListener('input', updatePrice);
+    }
+    // Pages range sliders
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    if (minPagesRange && maxPagesRange) {
+        const updatePages = () => {
+            const min = parseInt(minPagesRange.value, 10);
+            const max = parseInt(maxPagesRange.value, 10);
+            filterManager.setFilter('pagesRange', [min, max]);
+        };
+        minPagesRange.addEventListener('input', updatePages);
+        maxPagesRange.addEventListener('input', updatePages);
+    }
+    // Rating filter (example for stars)
+    document.querySelectorAll('.rating-star-filter').forEach(star => {
+        star.addEventListener('click', (e) => {
+            const rating = parseInt(star.getAttribute('data-rating'), 10);
+            filterManager.setFilter('minRating', rating);
+        });
+    });
+    // Toggle groups (example for priceType)
+    document.querySelectorAll('.price-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
+        });
+    });
+    // Clear all button
+    const clearAllBtn = document.getElementById('clearAllFilters');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            filterManager.filters = {};
+            filterManager.updateActiveFiltersDisplay();
+        });
+    }
+    // Pills are handled by FilterManager.createFilterPill
+    // ... existing code ...

@@ -3747,7 +3747,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        max-width: calc(100% - 40px);
        margin: 0 20px;
        height: 56px;
-       border-radius: var(--radius-3xl);
+       border-radius: 20px;
        padding: 0 var(--space-4);
    }
    

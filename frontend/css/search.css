@@ -2961,13 +2961,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .filters-close .material-symbols-outlined {
     font-size: 20px;
     pointer-events: none;
+    color: #374151;
 }
 .filters-close:hover, .filters-close:focus {
     background: #ef4444;
-    color: #fff;
+    color: #374151;
     border-color: #ef4444;
     box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
-    transform: scale(1.08) rotate(-8deg);
+    transform: scale(1.08);
 }
 .filters-close:focus-visible {
     outline: 2px solid #2563eb;

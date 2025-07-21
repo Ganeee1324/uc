@@ -7468,6 +7468,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     animation: spin 3s linear infinite;
 }
 
+/* Show glow effect when toggle is checked */
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background::before {
+    opacity: 0.7;
+}
+
 /* Move with search bar hover/focus animation */
 .search-bar-wrapper:hover .search-bar-background,
 .search-bar-wrapper:has(.search-bar:hover) .search-bar-background,

@@ -2436,7 +2436,7 @@ class FilterManager {
             `;
             activeFiltersContainer.appendChild(pill);
         }
-        // Price range pill
+        // Price range pill (make sure it always shows like pages)
         const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
         const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
         if (minPriceSet || maxPriceSet) {

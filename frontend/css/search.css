@@ -7463,7 +7463,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Animation starts when toggle is checked */
-.toggle-input:checked ~ .search-bar-background {
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background {
     opacity: 1;
     animation: spin 3s linear infinite;
 }

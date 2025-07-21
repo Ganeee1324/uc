@@ -71,20 +71,20 @@
     <div class="filters-panel" id="filtersPanel">
         <div class="filters-content">
             <div class="filters-header">
-                <div class="filters-title">
+                <div class="filters-title-row" style="display: flex; align-items: center; width: 100%;">
                     <h2>Filtri</h2>
+                    <div class="filters-actions">
+                        <button class="filter-clear-btn" id="clearAllFilters">
+                            <i class="material-symbols-outlined">clear_all</i>
+                            <span>Pulisci</span>
+                        </button>
+                        <button class="filters-close" id="closeFilters">
+                            <i class="material-symbols-outlined">close</i>
+                        </button>
+                    </div>
                 </div>
-                <div class="filters-actions">
-                    <button class="filter-clear-btn" id="clearAllFilters">
-                        <i class="material-symbols-outlined">clear_all</i>
-                        <span>Pulisci</span>
-                    </button>
-                    <button class="filters-close" id="closeFilters">
-                        <i class="material-symbols-outlined">close</i>
-                    </button>
-                </div>
+                <p class="filters-subtitle">Personalizza la tua ricerca</p>
             </div>
-            <p class="filters-subtitle">Personalizza la tua ricerca</p>
             
             <div class="filters-grid" id="filtersGrid">
                 <!-- Filter sections will be dynamically populated -->

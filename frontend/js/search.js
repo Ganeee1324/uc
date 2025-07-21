@@ -262,7 +262,6 @@ function checkAuthentication() {
 let currentVetrine = [];
 let currentFiles = [];
 let originalFiles = []; // Keep original unfiltered data
-let activeFilters = {};
 let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
@@ -557,7 +556,7 @@ function initializeCourseFilter() {
     // Extract courses from hierarchy data
     function updateCourses() {
         if (window.facultyCoursesData) {
-            const selectedFaculty = activeFilters.faculty;
+            const selectedFaculty = filterManager.filters.faculty;
             if (selectedFaculty && window.facultyCoursesData[selectedFaculty]) {
                 courses = window.facultyCoursesData[selectedFaculty].map(course => course[1]).sort();
             } else {
@@ -579,8 +578,7 @@ function initializeCourseFilter() {
         
         if (query.length === 0) {
             hideSuggestions();
-            delete activeFilters.course;
-            triggerFilterUpdate();
+            filterManager.removeFilter('course');
             return;
         }
         
@@ -661,9 +659,8 @@ function initializeCourseFilter() {
     
     function selectCourse(course) {
         courseInput.value = course;
-        activeFilters.course = course;
+        filterManager.setFilter('course', course);
         hideSuggestions();
-        applyFiltersAndRender();
     }
     
     // Expose update function for faculty changes
@@ -683,8 +680,7 @@ function initializeCanaleFilter() {
         
         if (query.length === 0) {
             hideSuggestions();
-            delete activeFilters.canale;
-            applyFiltersAndRender();
+            filterManager.removeFilter('canale');
             return;
         }
         
@@ -767,9 +763,8 @@ function initializeCanaleFilter() {
     
     function selectCanale(canale) {
         canaleInput.value = canale;
-        activeFilters.canale = canale;
+        filterManager.setFilter('canale', canale);
         hideSuggestions();
-        applyFiltersAndRender();
     }
 }
 
@@ -778,7 +773,7 @@ function clearCourseFilter() {
     const courseInput = document.getElementById('courseFilter');
     if (courseInput) {
         courseInput.value = '';
-        delete activeFilters.course;
+        filterManager.removeFilter('course');
     }
 }
 
@@ -824,11 +819,11 @@ function setupDropdowns() {
                 
                 // Clear filter if input is empty
                 if (value === '') {
-                    delete activeFilters[type];
+                    delete filterManager.filters[type];
                     if (type === 'faculty') {
                         const courseInput = document.getElementById('courseFilter');
                         courseInput.value = '';
-                        delete activeFilters.course;
+                        delete filterManager.filters.course;
                     }
                     container.classList.remove('open');
                     applyFiltersAndRender();
@@ -975,15 +970,15 @@ function setupDropdowns() {
                         const isMultiSelect = multiSelectFilters.includes(type);
                         
                         if (!isMultiSelect) {
-                            const isValidSelection = activeFilters[type] === currentValue;
+                            const isValidSelection = filterManager.filters[type] === currentValue;
                             
                             if (!isValidSelection && currentValue !== '' && !currentValue.includes(' selected')) {
                                 input.value = '';
-                                delete activeFilters[type];
+                                delete filterManager.filters[type];
                                 if (type === 'faculty') {
                                     const courseInput = document.getElementById('courseFilter');
                                     courseInput.value = '';
-                                    delete activeFilters.course;
+                                    delete filterManager.filters.course;
                                 }
                                 applyFiltersAndRender();
                             }
@@ -1024,14 +1019,14 @@ function toggleDropdown(container, type) {
         const input = document.getElementById(`${type}Filter`);
         
         // Update input styling for multi-select
-        if (isMultiSelect && activeFilters[type] && Array.isArray(activeFilters[type]) && activeFilters[type].length > 0) {
+        if (isMultiSelect && filterManager.filters[type] && Array.isArray(filterManager.filters[type]) && filterManager.filters[type].length > 0) {
             input.setAttribute('data-multi-selected', 'true');
             
             // Keep academic context filters searchable when reopening
             const academicContextFilters = ['faculty', 'course', 'canale'];
-            if (academicContextFilters.includes(type) && activeFilters[type].length > 1) {
+            if (academicContextFilters.includes(type) && filterManager.filters[type].length > 1) {
                 input.value = '';
-                input.setAttribute('placeholder', `${activeFilters[type].length} selezionati - scrivi per cercarne altri...`);
+                input.setAttribute('placeholder', `${filterManager.filters[type].length} selezionati - scrivi per cercarne altri...`);
             }
         }
         
@@ -1274,7 +1269,7 @@ function populateOptions(type, items) {
     };
     
     const filterKey = filterKeyMap[type] || type;
-    const activeFilterValues = activeFilters[filterKey];
+    const activeFilterValues = filterManager.filters[filterKey];
     
     // Determine which filters support multi-selection
     const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
@@ -1392,7 +1387,7 @@ function filterDropdownOptions(type, searchTerm) {
     if (type === 'faculty') {
         items = Object.keys(window.facultyCoursesData || {}).sort();
     } else if (type === 'course') {
-        const selectedFaculties = activeFilters.faculty;
+        const selectedFaculties = filterManager.filters.faculty;
         if (selectedFaculties && window.facultyCoursesData) {
             const courses = [];
             if (Array.isArray(selectedFaculties)) {
@@ -1496,17 +1491,17 @@ function selectDropdownOption(type, value, displayText = null) {
     
     if (isMultiSelect) {
         // Multi-select behavior
-        if (!activeFilters[filterKey]) {
-            activeFilters[filterKey] = [];
+        if (!filterManager.filters[filterKey]) {
+            filterManager.filters[filterKey] = [];
         }
         
         // Add value if not already present
-        if (!activeFilters[filterKey].includes(value)) {
-            activeFilters[filterKey].push(value);
+        if (!filterManager.filters[filterKey].includes(value)) {
+            filterManager.filters[filterKey].push(value);
         }
         
         // Update input display
-        const selectedCount = activeFilters[filterKey].length;
+        const selectedCount = filterManager.filters[filterKey].length;
         const academicContextFilters = ['faculty', 'course', 'canale'];
         
         if (academicContextFilters.includes(type)) {
@@ -1542,9 +1537,9 @@ function selectDropdownOption(type, value, displayText = null) {
         
         // Update active filters
         if (value && value.trim()) {
-            activeFilters[filterKey] = value.trim();
+            filterManager.filters[filterKey] = value.trim();
         } else {
-            delete activeFilters[filterKey];
+            delete filterManager.filters[filterKey];
         }
         
         // Update dependent dropdowns
@@ -1552,7 +1547,7 @@ function selectDropdownOption(type, value, displayText = null) {
             // Clear course filter since faculty selection changed
             const courseInput = document.getElementById('courseFilter');
             courseInput.value = '';
-            delete activeFilters.course;
+            delete filterManager.filters.course;
             // Update course dropdown options based on new faculty selection(s)
             filterDropdownOptions('course', '');
         }
@@ -1584,15 +1579,15 @@ function removeSpecificFilterValue(type, value) {
     const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     const isMultiSelect = multiSelectFilters.includes(type);
     
-    if (isMultiSelect && activeFilters[filterKey] && Array.isArray(activeFilters[filterKey])) {
+    if (isMultiSelect && filterManager.filters[filterKey] && Array.isArray(filterManager.filters[filterKey])) {
         // Remove specific value from array
-        activeFilters[filterKey] = activeFilters[filterKey].filter(v => v !== value);
+        filterManager.filters[filterKey] = filterManager.filters[filterKey].filter(v => v !== value);
         
         // Update input display
         const academicContextFilters = ['faculty', 'course', 'canale'];
         
-        if (activeFilters[filterKey].length === 0) {
-            delete activeFilters[filterKey];
+        if (filterManager.filters[filterKey].length === 0) {
+            delete filterManager.filters[filterKey];
             input.value = '';
             // Reset placeholder to default
             if (academicContextFilters.includes(type)) {
@@ -1603,9 +1598,9 @@ function removeSpecificFilterValue(type, value) {
                 };
                 input.setAttribute('placeholder', defaultPlaceholders[type] || '');
             }
-        } else if (activeFilters[filterKey].length === 1) {
+        } else if (filterManager.filters[filterKey].length === 1) {
             // Show the single remaining item
-            const remainingValue = activeFilters[filterKey][0];
+            const remainingValue = filterManager.filters[filterKey][0];
             let displayText = remainingValue;
             
             // Apply display mappings
@@ -1640,10 +1635,10 @@ function removeSpecificFilterValue(type, value) {
             if (academicContextFilters.includes(type)) {
                 // Keep academic context filters searchable
                 input.value = '';
-                input.setAttribute('placeholder', `${activeFilters[filterKey].length} selezionati - scrivi per cercarne altri...`);
+                input.setAttribute('placeholder', `${filterManager.filters[filterKey].length} selezionati - scrivi per cercarne altri...`);
             } else {
                 // For other filters, show count
-                input.value = `${activeFilters[filterKey].length} selected`;
+                input.value = `${filterManager.filters[filterKey].length} selected`;
             }
         }
         
@@ -1657,7 +1652,7 @@ function removeSpecificFilterValue(type, value) {
             // Clear course filter since faculty selection changed
             const courseInput = document.getElementById('courseFilter');
             courseInput.value = '';
-            delete activeFilters.course;
+            delete filterManager.filters.course;
             // Update course dropdown options based on remaining faculty selection(s)
             setTimeout(() => {
                 filterDropdownOptions('course', '');
@@ -1666,7 +1661,7 @@ function removeSpecificFilterValue(type, value) {
         
     } else {
         // Single-select removal (existing logic)
-        delete activeFilters[filterKey];
+        delete filterManager.filters[filterKey];
         input.value = '';
         
         // Handle dependent dropdowns
@@ -1674,7 +1669,7 @@ function removeSpecificFilterValue(type, value) {
             // Clear course filter since faculty selection changed
             const courseInput = document.getElementById('courseFilter');
             courseInput.value = '';
-            delete activeFilters.course;
+            delete filterManager.filters.course;
             // Update course dropdown options based on remaining faculty selection(s)
             filterDropdownOptions('course', '');
         }
@@ -1706,7 +1701,7 @@ function updateActiveFilterIndicators() {
         };
         
         const filterKey = filterKeyMap[type] || type;
-        const activeFilterValue = activeFilters[filterKey];
+        const activeFilterValue = filterManager.filters[filterKey];
         
         options.querySelectorAll('.dropdown-option').forEach(option => {
             const hasActiveFilter = activeFilterValue === option.dataset.value;
@@ -1724,7 +1719,7 @@ function removeFilterFromDropdown(type, filterKey) {
     container.classList.remove('open');
     
     // Remove from active filters
-    delete activeFilters[filterKey];
+    delete filterManager.filters[filterKey];
     
     // Update visual selection in dropdown
     const options = document.getElementById(`${type}Options`);
@@ -1738,7 +1733,7 @@ function removeFilterFromDropdown(type, filterKey) {
     if (type === 'faculty') {
         const courseInput = document.getElementById('courseFilter');
         courseInput.value = '';
-        delete activeFilters.course;
+        delete filterManager.filters.course;
         filterDropdownOptions('course', '');
     }
     
@@ -1835,14 +1830,14 @@ function initializeRatingFilter() {
             const rating = index + 1;
             
             // Check if clicking the same rating to deactivate
-            if (activeFilters.minRating === rating) {
+            if (filterManager.filters.minRating === rating) {
                 // Deactivate
-                delete activeFilters.minRating;
+                delete filterManager.filters.minRating;
                 ratingStars.forEach(s => s.classList.remove('active'));
                 ratingText.textContent = 'Qualsiasi rating';
             } else {
                 // Activate up to clicked rating
-                activeFilters.minRating = rating;
+                filterManager.filters.minRating = rating;
                 ratingStars.forEach((s, i) => {
                     s.classList.toggle('active', i < rating);
                 });
@@ -1880,7 +1875,7 @@ function initializeToggleFilters() {
     priceToggles.forEach(toggle => {
         if (toggle.dataset.price === 'all' && !initialSet) {
             toggle.classList.add('active');
-            activeFilters.priceType = 'all';
+            filterManager.filters.priceType = 'all';
             if (priceRangeContainer) priceRangeContainer.style.display = 'block';
             initialSet = true;
         } else {
@@ -1894,9 +1889,9 @@ function initializeToggleFilters() {
             toggle.classList.add('active');
             const priceType = toggle.dataset.price;
             if (priceType === 'all') {
-                activeFilters.priceType = 'all';
-                delete activeFilters.minPrice;
-                delete activeFilters.maxPrice;
+                filterManager.filters.priceType = 'all';
+                delete filterManager.filters.minPrice;
+                delete filterManager.filters.maxPrice;
                 if (priceRangeContainer) priceRangeContainer.style.display = 'block';
                 const minPriceRange = document.getElementById('minPriceRange');
                 const maxPriceRange = document.getElementById('maxPriceRange');
@@ -1908,12 +1903,12 @@ function initializeToggleFilters() {
                 if (maxPriceValue) maxPriceValue.textContent = '€100';
                 updatePriceSliderFill();
             } else if (priceType === 'free') {
-                activeFilters.priceType = 'free';
-                delete activeFilters.minPrice;
-                delete activeFilters.maxPrice;
+                filterManager.filters.priceType = 'free';
+                delete filterManager.filters.minPrice;
+                delete filterManager.filters.maxPrice;
                 if (priceRangeContainer) priceRangeContainer.style.display = 'none';
             } else if (priceType === 'paid') {
-                activeFilters.priceType = 'paid';
+                filterManager.filters.priceType = 'paid';
                 if (priceRangeContainer) priceRangeContainer.style.display = 'block';
                 const minPriceRange = document.getElementById('minPriceRange');
                 const maxPriceRange = document.getElementById('maxPriceRange');
@@ -1921,8 +1916,8 @@ function initializeToggleFilters() {
                     const minVal = parseFloat(minPriceRange.value);
                     const maxVal = parseFloat(maxPriceRange.value);
                     if (minVal !== 0 || maxVal !== 100) {
-                        activeFilters.minPrice = minVal;
-                        activeFilters.maxPrice = maxVal;
+                        filterManager.filters.minPrice = minVal;
+                        filterManager.filters.maxPrice = maxVal;
                     }
                 }
             }
@@ -1944,9 +1939,9 @@ function initializeToggleFilters() {
             const vetrinaType = toggle.dataset.vetrina;
             
             if (vetrinaType === 'all') {
-                delete activeFilters.vetrinaType;
+                delete filterManager.filters.vetrinaType;
             } else {
-                activeFilters.vetrinaType = vetrinaType;
+                filterManager.filters.vetrinaType = vetrinaType;
             }
             
             // Apply filters immediately
@@ -2014,10 +2009,10 @@ function handlePriceRangeChange() {
     }
     
     // Apply price range filter for both 'paid' and 'all' price types
-    if (activeFilters.priceType === 'paid' || activeFilters.priceType === 'all') {
+    if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
         // Always set the price range when slider is moved, even if values are default
-        activeFilters.minPrice = minVal;
-        activeFilters.maxPrice = maxVal;
+        filterManager.filters.minPrice = minVal;
+        filterManager.filters.maxPrice = maxVal;
     }
     
     // Update display values
@@ -2220,12 +2215,12 @@ async function applyFiltersAndRender() {
     const searchInput = document.getElementById('searchInput');
     const currentQuery = searchInput?.value?.trim() || '';
     
-    const hasBackendFilters = activeFilters.course || activeFilters.faculty || activeFilters.canale || activeFilters.language || activeFilters.tag || activeFilters.documentType || activeFilters.academicYear || activeFilters.courseYear;
+    const hasBackendFilters = filterManager.filters.course || filterManager.filters.faculty || filterManager.filters.canale || filterManager.filters.language || filterManager.filters.tag || filterManager.filters.documentType || filterManager.filters.academicYear || filterManager.filters.courseYear;
     
     if (hasBackendFilters || currentQuery) {
         // Use backend search with filters
         await performSearch(currentQuery);
-    } else if (Object.keys(activeFilters).length === 0) {
+    } else if (Object.keys(filterManager.filters).length === 0) {
         // No filters active, show all original files
         renderDocuments(originalFiles);
         currentFiles = originalFiles;
@@ -2244,7 +2239,7 @@ async function applyFiltersAndRender() {
         updateBottomFilterCount();
         
         // Show filter status
-        const filterCount = Object.keys(activeFilters).length;
+        const filterCount = Object.keys(filterManager.filters).length;
         if (filterCount > 0) {
             if (filteredFiles.length > 0) {
                 showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtri attivi 🎯`);
@@ -2543,7 +2538,7 @@ function populateDropdownFilter(type, options) {
 
     // Save current selection and input value
     const input = document.getElementById(`${type}Filter`);
-    const currentValue = activeFilters[type] || '';
+    const currentValue = filterManager.filters[type] || '';
     const currentInputValue = input ? input.value : '';
 
     // Clear existing options except the first one (default "All" option)
@@ -2607,7 +2602,7 @@ function populateSelect(selectId, options) {
 }
 
 function clearAllFiltersAction() {
-    activeFilters = {};
+    filterManager.filters = {};
     
     // Clear filters from localStorage
     try {
@@ -2632,40 +2627,40 @@ function clearAllFiltersAction() {
 
 function applyFiltersToFiles(files) {
     // If no filters are active, return all files
-    if (!activeFilters || Object.keys(activeFilters).length === 0) {
+    if (!filterManager.filters || Object.keys(filterManager.filters).length === 0) {
         return files;
     }
     
     return files.filter(file => {
         // Faculty filter - case insensitive partial match (supports multiple)
-        if (activeFilters.faculty) {
+        if (filterManager.filters.faculty) {
             const fileFaculty = file.faculty_name || file.vetrina_info?.faculty_name || '';
-            if (Array.isArray(activeFilters.faculty)) {
-                const hasMatchingFaculty = activeFilters.faculty.some(selectedFaculty => 
+            if (Array.isArray(filterManager.filters.faculty)) {
+                const hasMatchingFaculty = filterManager.filters.faculty.some(selectedFaculty => 
                     fileFaculty.toLowerCase().includes(selectedFaculty.toLowerCase())
                 );
                 if (!hasMatchingFaculty) {
                     return false;
                 }
             } else {
-                if (!fileFaculty.toLowerCase().includes(activeFilters.faculty.toLowerCase())) {
+                if (!fileFaculty.toLowerCase().includes(filterManager.filters.faculty.toLowerCase())) {
                     return false;
                 }
             }
         }
         
         // Course filter - case insensitive partial match (supports multiple)
-        if (activeFilters.course) {
+        if (filterManager.filters.course) {
             const fileCourse = file.course_name || file.vetrina_info?.course_name || '';
-            if (Array.isArray(activeFilters.course)) {
-                const hasMatchingCourse = activeFilters.course.some(selectedCourse => 
+            if (Array.isArray(filterManager.filters.course)) {
+                const hasMatchingCourse = filterManager.filters.course.some(selectedCourse => 
                     fileCourse.toLowerCase().includes(selectedCourse.toLowerCase())
                 );
                 if (!hasMatchingCourse) {
                     return false;
                 }
             } else {
-                if (!fileCourse.toLowerCase().includes(activeFilters.course.toLowerCase())) {
+                if (!fileCourse.toLowerCase().includes(filterManager.filters.course.toLowerCase())) {
                     return false;
                 }
             }
@@ -2674,67 +2669,67 @@ function applyFiltersToFiles(files) {
         
         
         // Document type filter - exact match (supports multiple)
-        if (activeFilters.documentType) {
+        if (filterManager.filters.documentType) {
             const fileType = file.document_type || '';
-            if (Array.isArray(activeFilters.documentType)) {
-                if (!activeFilters.documentType.includes(fileType)) {
+            if (Array.isArray(filterManager.filters.documentType)) {
+                if (!filterManager.filters.documentType.includes(fileType)) {
                     return false;
                 }
             } else {
-                if (fileType !== activeFilters.documentType) {
+                if (fileType !== filterManager.filters.documentType) {
                     return false;
                 }
             }
         }
         
         // Language filter - exact match (supports multiple)
-        if (activeFilters.language) {
+        if (filterManager.filters.language) {
             const fileLanguage = file.language || '';
-            if (Array.isArray(activeFilters.language)) {
-                if (!activeFilters.language.includes(fileLanguage)) {
+            if (Array.isArray(filterManager.filters.language)) {
+                if (!filterManager.filters.language.includes(fileLanguage)) {
                     return false;
                 }
             } else {
-                if (fileLanguage !== activeFilters.language) {
+                if (fileLanguage !== filterManager.filters.language) {
                     return false;
                 }
             }
         }
         
         // Canale filter - exact match (supports multiple)
-        if (activeFilters.canale) {
+        if (filterManager.filters.canale) {
             const fileCanale = file.canale || file.vetrina_info?.canale || '';
-            if (Array.isArray(activeFilters.canale)) {
-                if (!activeFilters.canale.includes(fileCanale)) {
+            if (Array.isArray(filterManager.filters.canale)) {
+                if (!filterManager.filters.canale.includes(fileCanale)) {
                     return false;
                 }
             } else {
-                if (fileCanale !== activeFilters.canale) {
+                if (fileCanale !== filterManager.filters.canale) {
                     return false;
                 }
             }
         }
         
         // Academic year filter - exact match (supports multiple)
-        if (activeFilters.academicYear) {
+        if (filterManager.filters.academicYear) {
             const fileYear = file.academic_year || '';
-            if (Array.isArray(activeFilters.academicYear)) {
-                if (!activeFilters.academicYear.includes(fileYear)) {
+            if (Array.isArray(filterManager.filters.academicYear)) {
+                if (!filterManager.filters.academicYear.includes(fileYear)) {
                     return false;
                 }
             } else {
-                if (fileYear !== activeFilters.academicYear) {
+                if (fileYear !== filterManager.filters.academicYear) {
                     return false;
                 }
             }
         }
         
         // Tag filter - supports multiple tags
-        if (activeFilters.tag) {
+        if (filterManager.filters.tag) {
             const fileTags = file.tags || [];
-            if (Array.isArray(activeFilters.tag)) {
+            if (Array.isArray(filterManager.filters.tag)) {
                 // File must have at least one of the selected tags
-                const hasMatchingTag = activeFilters.tag.some(selectedTag => 
+                const hasMatchingTag = filterManager.filters.tag.some(selectedTag => 
                     fileTags.includes(selectedTag)
                 );
                 if (!hasMatchingTag) {
@@ -2742,44 +2737,44 @@ function applyFiltersToFiles(files) {
                 }
             } else {
                 // Single tag filter (backward compatibility)
-                if (!fileTags.includes(activeFilters.tag)) {
+                if (!fileTags.includes(filterManager.filters.tag)) {
                     return false;
                 }
             }
         }
         
         // Rating filter - minimum rating
-        if (activeFilters.minRating) {
+        if (filterManager.filters.minRating) {
             const fileRating = parseFloat(file.rating) || 0;
-            if (fileRating < activeFilters.minRating) {
+            if (fileRating < filterManager.filters.minRating) {
                 return false;
             }
         }
         
         // Price type filter
-        if (activeFilters.priceType) {
+        if (filterManager.filters.priceType) {
             const filePrice = parseFloat(file.price) || 0;
             
-            if (activeFilters.priceType === 'free' && filePrice > 0) {
+            if (filterManager.filters.priceType === 'free' && filePrice > 0) {
                 return false;
             }
-            if (activeFilters.priceType === 'paid' && filePrice === 0) {
+            if (filterManager.filters.priceType === 'paid' && filePrice === 0) {
                 return false;
             }
             // For 'all', we don't filter by price type, but we may filter by range below
         }
         
         // Price range filter - works for both 'paid' and 'all' price types
-        if (activeFilters.minPrice !== undefined || activeFilters.maxPrice !== undefined) {
+        if (filterManager.filters.minPrice !== undefined || filterManager.filters.maxPrice !== undefined) {
             const filePrice = parseFloat(file.price) || 0;
             
             // Apply minimum price filter
-            if (activeFilters.minPrice !== undefined && filePrice < activeFilters.minPrice) {
+            if (filterManager.filters.minPrice !== undefined && filePrice < filterManager.filters.minPrice) {
                 return false;
             }
             
             // Apply maximum price filter
-            if (activeFilters.maxPrice !== undefined && filePrice > activeFilters.maxPrice) {
+            if (filterManager.filters.maxPrice !== undefined && filePrice > filterManager.filters.maxPrice) {
                 return false;
             }
         }
@@ -2787,10 +2782,10 @@ function applyFiltersToFiles(files) {
 
         
         // Vetrina type filter - single vs multiple files
-        if (activeFilters.vetrinaType && activeFilters.vetrinaType !== 'all') {
+        if (filterManager.filters.vetrinaType && filterManager.filters.vetrinaType !== 'all') {
             const fileCount = file.fileCount || 1;
             
-            switch (activeFilters.vetrinaType) {
+            switch (filterManager.filters.vetrinaType) {
                 case 'single':
                     if (fileCount > 1) return false;
                     break;
@@ -2801,10 +2796,10 @@ function applyFiltersToFiles(files) {
         }
         
         // Pages (Pagine) filter
-        if (typeof activeFilters.minPages === 'number' && typeof activeFilters.maxPages === 'number') {
+        if (typeof filterManager.filters.minPages === 'number' && typeof filterManager.filters.maxPages === 'number') {
             const filePages = file.pages || file.vetrina_info?.pages;
             if (typeof filePages !== 'number') return false;
-            if (filePages < activeFilters.minPages || filePages > activeFilters.maxPages) {
+            if (filePages < filterManager.filters.minPages || filePages > filterManager.filters.maxPages) {
                 return false;
             }
         }
@@ -2817,7 +2812,7 @@ function updateActiveFiltersDisplay() {
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
     if (!activeFiltersContainer) return;
     
-    const filterEntries = Object.entries(activeFilters).filter(([key, value]) => {
+    const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
     
@@ -2954,10 +2949,10 @@ function updateActiveFiltersDisplay() {
     });
     
     // Add price range pill if min/max are set and not default values
-    if ((activeFilters.minPrice !== undefined || activeFilters.maxPrice !== undefined) &&
-        (activeFilters.minPrice !== 0 || activeFilters.maxPrice !== 100)) {
-        const minPrice = activeFilters.minPrice !== undefined ? activeFilters.minPrice : 0;
-        const maxPrice = activeFilters.maxPrice !== undefined ? activeFilters.maxPrice : 100;
+    if ((filterManager.filters.minPrice !== undefined || filterManager.filters.maxPrice !== undefined) &&
+        (filterManager.filters.minPrice !== 0 || filterManager.filters.maxPrice !== 100)) {
+        const minPrice = filterManager.filters.minPrice !== undefined ? filterManager.filters.minPrice : 0;
+        const maxPrice = filterManager.filters.maxPrice !== undefined ? filterManager.filters.maxPrice : 100;
         filterPills.push(`
             <div class="filter-pill" data-filter-key="priceRange">
                 <span class="filter-pill-label">Prezzo:</span>
@@ -2967,10 +2962,10 @@ function updateActiveFiltersDisplay() {
         `);
     }
     // Add pages range pill if min/max are set and not default values
-    if ((activeFilters.minPages !== undefined || activeFilters.maxPages !== undefined) &&
-        (activeFilters.minPages !== 1 || activeFilters.maxPages !== 1000)) {
-        const minPages = activeFilters.minPages !== undefined ? activeFilters.minPages : 1;
-        const maxPages = activeFilters.maxPages !== undefined ? activeFilters.maxPages : 1000;
+    if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
+        (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
+        const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
+        const maxPages = filterManager.filters.maxPages !== undefined ? filterManager.filters.maxPages : 1000;
         filterPills.push(`
             <div class="filter-pill" data-filter-key="pagesRange">
                 <span class="filter-pill-label">Pagine:</span>
@@ -3033,21 +3028,21 @@ function removeActiveFilter(filterKey, event, specificValue = null) {
 }
 
 function removeSpecificFilterValueFromPill(filterKey, specificValue) {
-    if (activeFilters[filterKey] && Array.isArray(activeFilters[filterKey])) {
-        activeFilters[filterKey] = activeFilters[filterKey].filter(v => v !== specificValue);
+    if (filterManager.filters[filterKey] && Array.isArray(filterManager.filters[filterKey])) {
+        filterManager.filters[filterKey] = filterManager.filters[filterKey].filter(v => v !== specificValue);
         
-        if (activeFilters[filterKey].length === 0) {
-            delete activeFilters[filterKey];
+        if (filterManager.filters[filterKey].length === 0) {
+            delete filterManager.filters[filterKey];
         }
         
         // Update the input display
         const input = document.getElementById(`${filterKey}Filter`);
         if (input) {
-            if (!activeFilters[filterKey] || activeFilters[filterKey].length === 0) {
+            if (!filterManager.filters[filterKey] || filterManager.filters[filterKey].length === 0) {
                 input.value = '';
-            } else if (activeFilters[filterKey].length === 1) {
+            } else if (filterManager.filters[filterKey].length === 1) {
                 // Apply display mappings for single remaining item
-                const remainingValue = activeFilters[filterKey][0];
+                const remainingValue = filterManager.filters[filterKey][0];
                 let displayText = remainingValue;
                 
                 const languageDisplayMap = {
@@ -3062,7 +3057,7 @@ function removeSpecificFilterValueFromPill(filterKey, specificValue) {
                 
                 input.value = displayText;
             } else {
-                input.value = `${activeFilters[filterKey].length} selected`;
+                input.value = `${filterManager.filters[filterKey].length} selected`;
             }
         }
         
@@ -3096,8 +3091,8 @@ function clearAllActiveFilters(event) {
 function removeFilter(filterKey) {
     if (filterKey === 'priceRange') {
         // Reset price range but keep priceType
-        delete activeFilters.minPrice;
-        delete activeFilters.maxPrice;
+        delete filterManager.filters.minPrice;
+        delete filterManager.filters.maxPrice;
         
         const minPriceRange = document.getElementById('minPriceRange');
         const maxPriceRange = document.getElementById('maxPriceRange');
@@ -3111,7 +3106,7 @@ function removeFilter(filterKey) {
         updatePriceSliderFill();
         
     } else {
-        delete activeFilters[filterKey];
+        delete filterManager.filters[filterKey];
         
         // Update UI elements
         const filterMap = {
@@ -3142,8 +3137,8 @@ function removeFilter(filterKey) {
         
         if (filterKey === 'priceType') {
             // Reset all price-related filters
-            delete activeFilters.minPrice;
-            delete activeFilters.maxPrice;
+            delete filterManager.filters.minPrice;
+            delete filterManager.filters.maxPrice;
             
             document.querySelectorAll('.price-toggle').forEach(toggle => {
                 toggle.classList.remove('active');
@@ -4778,7 +4773,7 @@ function applyClientSideFilters(files) {
     let filtered = [...files];
     
     // Apply filters that aren't handled by backend
-    Object.entries(activeFilters).forEach(([key, value]) => {
+    Object.entries(filterManager.filters).forEach(([key, value]) => {
         if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear') return; // Skip backend-handled filters
         
         filtered = filtered.filter(file => {
@@ -4822,7 +4817,7 @@ function triggerFilterUpdate() {
 
 function saveFiltersToStorage() {
     try {
-        localStorage.setItem('searchFilters', JSON.stringify(activeFilters));
+        localStorage.setItem('searchFilters', JSON.stringify(filterManager.filters));
     } catch (e) {
         console.warn('Could not save filters to localStorage:', e);
     }
@@ -4831,7 +4826,7 @@ function saveFiltersToStorage() {
 function restoreFiltersFromStorage() {
     
     // Clear all filters on page refresh - treat it like a fresh visit
-    activeFilters = {};
+    filterManager.filters = {};
     
     // Clear filters from localStorage
     try {
@@ -4938,14 +4933,14 @@ function updateFilterInputs() {
     dropdownTypes.forEach(type => {
         const input = document.getElementById(`${type}Filter`);
         const filterKey = type;
-        if (input && activeFilters[filterKey]) {
-            let displayValue = activeFilters[filterKey];
+        if (input && filterManager.filters[filterKey]) {
+            let displayValue = filterManager.filters[filterKey];
             
             // Use display text mapping for language and tag
-            if (type === 'language' && languageDisplayMap[activeFilters[filterKey]]) {
-                displayValue = languageDisplayMap[activeFilters[filterKey]];
+            if (type === 'language' && languageDisplayMap[filterManager.filters[filterKey]]) {
+                displayValue = languageDisplayMap[filterManager.filters[filterKey]];
             } else if (type === 'tag') {
-                displayValue = getTagDisplayName(activeFilters[filterKey]);
+                displayValue = getTagDisplayName(filterManager.filters[filterKey]);
             }
             
             input.value = displayValue;
@@ -4966,9 +4961,9 @@ function updateFilterInputs() {
         const toggleClass = type.replace('Type', '-toggle');
         const dataAttr = type.replace('Type', '');
         
-        if (activeFilters[type] && activeFilters[type] !== 'all') {
+        if (filterManager.filters[type] && filterManager.filters[type] !== 'all') {
             // Add active class to the correct toggle
-            const activeToggle = document.querySelector(`[data-${dataAttr}="${activeFilters[type]}"]`);
+            const activeToggle = document.querySelector(`[data-${dataAttr}="${filterManager.filters[type]}"]`);
             if (activeToggle) {
                 activeToggle.classList.add('active');
             }
@@ -4988,11 +4983,11 @@ function updateFilterInputs() {
     const maxPriceValue = document.getElementById('maxPriceValue');
     const priceRangeContainer = document.getElementById('priceRangeContainer');
     
-    if (activeFilters.minPrice !== undefined && activeFilters.maxPrice !== undefined) {
-        if (minPriceRange) minPriceRange.value = activeFilters.minPrice;
-        if (maxPriceRange) maxPriceRange.value = activeFilters.maxPrice;
-        if (minPriceValue) minPriceValue.textContent = `€${activeFilters.minPrice}`;
-        if (maxPriceValue) maxPriceValue.textContent = `€${activeFilters.maxPrice}`;
+    if (filterManager.filters.minPrice !== undefined && filterManager.filters.maxPrice !== undefined) {
+        if (minPriceRange) minPriceRange.value = filterManager.filters.minPrice;
+        if (maxPriceRange) maxPriceRange.value = filterManager.filters.maxPrice;
+        if (minPriceValue) minPriceValue.textContent = `€${filterManager.filters.minPrice}`;
+        if (maxPriceValue) maxPriceValue.textContent = `€${filterManager.filters.maxPrice}`;
     } else {
         // Default values
         if (minPriceRange) minPriceRange.value = 0;
@@ -5006,7 +5001,7 @@ function updateFilterInputs() {
     
     // Show/hide price range container based on price type
     if (priceRangeContainer) {
-        if (activeFilters.priceType === 'paid') {
+        if (filterManager.filters.priceType === 'paid') {
             priceRangeContainer.style.display = 'block';
         } else {
             priceRangeContainer.style.display = 'none';
@@ -5023,8 +5018,8 @@ function updateFilterInputs() {
         star.style.color = '#d1d5db';
     });
     
-    if (activeFilters.rating) {
-        const rating = parseInt(activeFilters.rating);
+    if (filterManager.filters.rating) {
+        const rating = parseInt(filterManager.filters.rating);
         for (let i = 0; i < rating; i++) {
             if (ratingStars[i]) {
                 ratingStars[i].classList.add('active');
@@ -5049,8 +5044,8 @@ function updateFilterInputs() {
                 option.classList.remove('selected');
             });
             
-            if (activeFilters[type]) {
-                const selectedOptions = Array.isArray(activeFilters[type]) ? activeFilters[type] : [activeFilters[type]];
+            if (filterManager.filters[type]) {
+                const selectedOptions = Array.isArray(filterManager.filters[type]) ? filterManager.filters[type] : [filterManager.filters[type]];
                 selectedOptions.forEach(selectedValue => {
                     const selectedOption = optionsContainer.querySelector(`[data-value="${selectedValue}"]`);
                     if (selectedOption) {
@@ -5110,7 +5105,7 @@ document.addEventListener('DOMContentLoaded', function() {
             searchTimeout = setTimeout(async () => {
                 if (!this.value.trim()) {
                     // If search is cleared, apply current filters or show all
-                    if (Object.keys(activeFilters).length > 0) {
+                    if (Object.keys(filterManager.filters).length > 0) {
                         await applyFiltersAndRender();
                 } else {
                         await loadAllFiles();
@@ -6417,38 +6412,38 @@ async function performSearch(query) {
         
         // Add any active filters to the search
         // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
-        if (activeFilters.course) {
-            const courseValue = Array.isArray(activeFilters.course) ? activeFilters.course[0] : activeFilters.course;
+        if (filterManager.filters.course) {
+            const courseValue = Array.isArray(filterManager.filters.course) ? filterManager.filters.course[0] : filterManager.filters.course;
             searchParams.append('course_name', courseValue);
         }
-        if (activeFilters.faculty) {
-            const facultyValue = Array.isArray(activeFilters.faculty) ? activeFilters.faculty[0] : activeFilters.faculty;
+        if (filterManager.filters.faculty) {
+            const facultyValue = Array.isArray(filterManager.filters.faculty) ? filterManager.filters.faculty[0] : filterManager.filters.faculty;
             searchParams.append('faculty', facultyValue);
         }
-        if (activeFilters.canale) {
-            const canaleValue = Array.isArray(activeFilters.canale) ? activeFilters.canale[0] : activeFilters.canale;
+        if (filterManager.filters.canale) {
+            const canaleValue = Array.isArray(filterManager.filters.canale) ? filterManager.filters.canale[0] : filterManager.filters.canale;
             const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
             searchParams.append('canale', backendCanaleValue);
         }
-        if (activeFilters.language) {
-            const languageValue = Array.isArray(activeFilters.language) ? activeFilters.language[0] : activeFilters.language;
+        if (filterManager.filters.language) {
+            const languageValue = Array.isArray(filterManager.filters.language) ? filterManager.filters.language[0] : filterManager.filters.language;
             searchParams.append('language', languageValue);
         }
-        if (activeFilters.tag) {
-            const tagValue = Array.isArray(activeFilters.tag) ? activeFilters.tag[0] : activeFilters.tag;
+        if (filterManager.filters.tag) {
+            const tagValue = Array.isArray(filterManager.filters.tag) ? filterManager.filters.tag[0] : filterManager.filters.tag;
             searchParams.append('tag', tagValue);
         }
-        if (activeFilters.documentType) {
-            const docTypeValue = Array.isArray(activeFilters.documentType) ? activeFilters.documentType[0] : activeFilters.documentType;
+        if (filterManager.filters.documentType) {
+            const docTypeValue = Array.isArray(filterManager.filters.documentType) ? filterManager.filters.documentType[0] : filterManager.filters.documentType;
             searchParams.append('extension', docTypeValue);
         }
-        if (activeFilters.academicYear) {
-            const yearValue = Array.isArray(activeFilters.academicYear) ? activeFilters.academicYear[0] : activeFilters.academicYear;
+        if (filterManager.filters.academicYear) {
+            const yearValue = Array.isArray(filterManager.filters.academicYear) ? filterManager.filters.academicYear[0] : filterManager.filters.academicYear;
             const year = yearValue.split('/')[0];
             searchParams.append('date_year', year);
         }
-        if (activeFilters.courseYear) {
-            const courseYearValue = Array.isArray(activeFilters.courseYear) ? activeFilters.courseYear[0] : activeFilters.courseYear;
+        if (filterManager.filters.courseYear) {
+            const courseYearValue = Array.isArray(filterManager.filters.courseYear) ? filterManager.filters.courseYear[0] : filterManager.filters.courseYear;
             searchParams.append('course_year', courseYearValue);
         }
         
@@ -6886,8 +6881,8 @@ function handlePagesRangeChange() {
         maxPagesRange.value = maxVal;
     }
 
-    activeFilters.minPages = minVal;
-    activeFilters.maxPages = maxVal;
+    filterManager.filters.minPages = minVal;
+    filterManager.filters.maxPages = maxVal;
 
     if (minPagesValue) minPagesValue.textContent = minVal;
     if (maxPagesValue) maxPagesValue.textContent = maxVal;
@@ -6950,10 +6945,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ... existing code ...
     // Add pages range pill if min/max are set and not default values
-    if ((activeFilters.minPages !== undefined || activeFilters.maxPages !== undefined) &&
-        (activeFilters.minPages !== 1 || activeFilters.maxPages !== 1000)) {
-        const minPages = activeFilters.minPages !== undefined ? activeFilters.minPages : 1;
-        const maxPages = activeFilters.maxPages !== undefined ? activeFilters.maxPages : 1000;
+    if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
+        (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
+        const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
+        const maxPages = filterManager.filters.maxPages !== undefined ? filterManager.filters.maxPages : 1000;
         filterPills.push(`
             <div class="filter-pill" data-filter-key="pagesRange">
                 <span class="filter-pill-label">Pagine:</span>

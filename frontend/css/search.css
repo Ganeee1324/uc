@@ -7995,3 +7995,85 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     width: 100%;
   }
 }
+
+/* Pages Range Filter - Use same styles as price slider */
+.pages-range-filter {
+    margin: var(--space-4) 0;
+}
+.pages-range-filter .dual-range-container {
+    position: relative;
+    height: 40px;
+    margin: 0;
+}
+.pages-range-filter .range-track {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 3px;
+    z-index: 1;
+}
+.pages-range-filter .range-fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: 3px;
+}
+.pages-range-filter .range-slider {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 6px;
+    background: transparent;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    pointer-events: none;
+}
+.pages-range-filter .range-slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    border: 2px solid var(--white);
+    pointer-events: all;
+}
+.pages-range-filter .range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+.pages-range-filter .range-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--white);
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    pointer-events: all;
+}
+.pages-range-filter .range-slider-min {
+    z-index: 2;
+}
+.pages-range-filter .range-slider-max {
+    z-index: 3;
+}
+.pages-range-filter .range-values {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-2);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue-600);
+}

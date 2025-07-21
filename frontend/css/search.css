@@ -1498,30 +1498,42 @@ body.filters-open .document-count-container {
 .document-count-and-filters {
     display: flex;
     align-items: center;
-    flex-wrap: nowrap;
     gap: var(--space-4);
-    max-width: 100%;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    width: 100%;
+    position: relative;
 }
 
-.document-count,
-.order-dropdown-container,
-.active-filters-display {
+.document-count {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-dropdown-container {
+    margin-left: auto;
     flex-shrink: 0;
 }
 
 .active-filters-display {
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: var(--space-2);
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-    width: auto;
-    min-width: unset;
     flex: 0 0 auto;
-    scrollbar-width: none;
+    min-width: 0;
+    margin-left: 0;
+}
+
+/* Active Filters Display */
+.active-filters-display {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: nowrap;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 0 0 auto;
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
     scroll-padding-left: 16px;
     scroll-snap-type: x mandatory;
 }

@@ -2347,6 +2347,13 @@ function updateBottomFilterCount() {
 
     bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
         activeCount === 1 ? '1 filtro attivo' : `${activeCount} filtri attivi`;
+
+    // Also update the badge over the Filtri button
+    const filterCountBadge = document.getElementById('filterCount');
+    if (filterCountBadge) {
+        filterCountBadge.textContent = activeCount;
+        filterCountBadge.style.display = activeCount > 0 ? '' : 'none';
+    }
 }
 
 function closeFiltersPanel() {

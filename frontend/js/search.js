@@ -2024,9 +2024,8 @@ function handlePriceRangeChange() {
         maxPriceRange.value = maxVal;
     }
     
-    // Apply price range filter for 'paid' price type only
-    if (filterManager.filters.priceType === 'paid') {
-        // Always set the price range when slider is moved, even if values are default
+    // Apply price range filter for 'all' and 'paid' price types
+    if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
         filterManager.filters.minPrice = minVal;
         filterManager.filters.maxPrice = maxVal;
     }
@@ -2452,13 +2451,12 @@ class FilterManager {
             `;
             activeFiltersContainer.appendChild(pill);
         }
-        // Price range pill (make sure it always shows like pages)
+        // Price range pill (show for both 'all' and 'paid')
         const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
         const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
-        if (minPriceSet || maxPriceSet) {
+        if ((filters.priceType === 'paid' || filters.priceType === 'all') && (minPriceSet || maxPriceSet)) {
             const min = filters.minPrice !== undefined ? filters.minPrice : 0;
             const max = filters.maxPrice !== undefined ? filters.maxPrice : 100;
-            console.log('[DEBUG] Adding price filter pill:', { min, max, minPriceSet, maxPriceSet, filters });
             const pill = document.createElement('div');
             pill.className = 'filter-pill';
             pill.setAttribute('data-filter-key', 'priceRange');
@@ -2473,6 +2471,8 @@ class FilterManager {
         // All other filters
         Object.entries(filters).forEach(([key, value]) => {
             if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
+            // Do not show a pill for priceType: 'paid'
+            if (key === 'priceType' && value === 'paid') return;
             const pill = this.createFilterPill(key, value);
             activeFiltersContainer.appendChild(pill);
         });

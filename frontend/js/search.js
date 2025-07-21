@@ -1866,6 +1866,10 @@ function initializeRatingFilter() {
 }
 
 function initializeToggleFilters() {
+    // Ensure priceType is always set to 'all' by default
+    if (!filterManager.filters.priceType) {
+        filterManager.filters.priceType = 'all';
+    }
     // Price toggles
     const priceToggles = document.querySelectorAll('.price-toggle');
     const priceRangeContainer = document.getElementById('priceRangeContainer');

@@ -2398,7 +2398,8 @@ class FilterManager {
     updateBottomFilterCount() {
         const bottomFilterCountElement = document.getElementById('bottomFilterCount');
         const filterCountBadge = document.getElementById('filterCount');
-        const activeCount = this.getActiveFilterCount();
+        const activeCountObj = this.getActiveFilterCount();
+        const activeCount = activeCountObj.count;
         // Debug log
         console.log('[FilterManager] updateBottomFilterCount: activeCount =', activeCount, 'filters:', { ...this.filters });
         // Update footer text

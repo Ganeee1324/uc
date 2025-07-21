@@ -250,6 +250,78 @@
             </div>
         </div>
     </div>
+    <div class="filters-overlay" id="filtersOverlay"></div>
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-content">
+            <div class="filters-header">
+                <div class="filters-header-top">
+                <div class="filters-title">
+                    <h2>🎯 Filtri</h2>
+                </div>
+                <div class="filters-actions">
+                    <button class="filter-clear-btn" id="clearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        Reset
+                    </button>
+                    <button class="filters-close" id="filtersClose">
+                        <i class="material-symbols-outlined">close</i>
+                    </button>
+                </div>
+                </div>
+                <div class="filters-header-bottom">
+                <div class="filters-subtitle">Trova esattamente quello che cerchi</div>
+                </div>
+            </div>
+            <div class="filters-grid">
+                <!-- Academic Context Section -->
+                <div class="filter-section">
+                    <h3 class="filter-section-title">
+                        <i class="material-symbols-outlined">school</i>
+                        Contesto Accademico
+                    </h3>
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label for="facultyFilter" class="filter-label">Facoltà</label>
+                            <div class="dropdown-container" data-dropdown="faculty">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="facultyFilter" class="dropdown-input" placeholder="Scrivi o scegli una facoltà...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="facultyDropdown">
+                                    <div class="dropdown-options" id="facultyOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="courseFilter" class="filter-label">Corso</label>
+                            <div class="dropdown-container" data-dropdown="course">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="courseFilter" class="dropdown-input" placeholder="Scrivi o scegli un corso...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="courseDropdown">
+                                    <div class="dropdown-options" id="courseOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-item">
+                            <label for="canaleFilter" class="filter-label">Canale</label>
+                            <div class="dropdown-container" data-dropdown="canale">
+                                <div class="dropdown-input-wrapper">
+                                    <input type="text" id="canaleFilter" class="dropdown-input" placeholder="Scrivi o scegli un canale...">
+                                    <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
+                                </div>
+                                <div class="dropdown-content" id="canaleDropdown">
+                                    <div class="dropdown-options" id="canaleOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add other filter sections as needed, copied from search.html -->
+            </div>
+        </div>
+    </div>
 </body>
 <script src="js/v-dashboard.js"></script>
 </html>

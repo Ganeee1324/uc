@@ -65,6 +65,78 @@ function initializeAISearchToggle() {
     });
 }
 
+// ===========================
+// ADVANCED FILTER SYSTEM - FULLY FUNCTIONAL (copied from search.js)
+// ===========================
+
+let isFiltersOpen = false;
+
+function toggleFiltersPanel() {
+    isFiltersOpen = !isFiltersOpen;
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const mainContent = document.querySelector('.main-content');
+    // Optionally, add: const documentsGrid = document.getElementById('documentsGrid');
+    if (isFiltersOpen) {
+        if (filtersPanel) {
+            filtersPanel.style.position = 'fixed';
+            filtersPanel.style.top = '0';
+            filtersPanel.style.right = '0';
+            filtersPanel.style.bottom = '0';
+            filtersPanel.style.height = '100vh';
+            filtersPanel.style.zIndex = '9999';
+            filtersPanel.style.width = window.innerWidth <= 900 ? '90%' : '380px';
+            filtersPanel.style.maxWidth = window.innerWidth <= 900 ? '350px' : '380px';
+            filtersPanel.style.margin = '0';
+            filtersPanel.style.padding = '0';
+            filtersPanel.classList.add('active');
+        }
+        if (filtersOverlay) filtersOverlay.classList.add('active');
+        if (mainContent) mainContent.classList.add('filters-open');
+        // if (documentsGrid) documentsGrid.classList.add('filters-open');
+        document.body.classList.add('filters-open');
+        document.body.style.overflow = 'hidden';
+    } else {
+        closeFiltersPanel();
+    }
+}
+
+function closeFiltersPanel() {
+    isFiltersOpen = false;
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const mainContent = document.querySelector('.main-content');
+    // Optionally, add: const documentsGrid = document.getElementById('documentsGrid');
+    if (filtersPanel) filtersPanel.classList.remove('active');
+    if (filtersOverlay) filtersOverlay.classList.remove('active');
+    if (mainContent) mainContent.classList.remove('filters-open');
+    // if (documentsGrid) documentsGrid.classList.remove('filters-open');
+    document.body.classList.remove('filters-open');
+    document.body.style.overflow = '';
+}
+
+function initializeFilters() {
+    const filtersBtn = document.getElementById('filtersBtn');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const filtersClose = document.getElementById('filtersClose');
+    const clearAllFilters = document.getElementById('clearAllFilters');
+    if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
+    if (filtersClose) filtersClose.addEventListener('click', closeFiltersPanel);
+    if (filtersOverlay) filtersOverlay.addEventListener('click', closeFiltersPanel);
+    if (clearAllFilters) clearAllFilters.addEventListener('click', function() {
+        // Reset all filter inputs (basic version)
+        document.querySelectorAll('.dropdown-input').forEach(input => input.value = '');
+        closeFiltersPanel();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isFiltersOpen) {
+            closeFiltersPanel();
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeAISearchToggle();
+    initializeFilters();
 }); 

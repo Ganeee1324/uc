@@ -1377,7 +1377,8 @@ html {
     overflow: hidden;
 }
 
-.order-dropdown-container.open .order-dropdown-content {
+.order-dropdown-container.open .order-dropdown-content,
+.order-dropdown-content.show {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);

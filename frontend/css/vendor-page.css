@@ -6493,3 +6493,84 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .order-btn:hover .sort-icon {
     color: var(--gray-700);
 }
+
+/* Order Dropdown Styles */
+.order-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.order-dropdown-content {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    left: 0;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    min-width: 200px;
+    z-index: 100001;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.25s var(--ease-2);
+    overflow: hidden;
+}
+
+.order-dropdown-container.open .order-dropdown-content,
+.order-dropdown-content.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.order-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    font-size: 14px;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-2);
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.order-option:last-child {
+    border-bottom: none;
+}
+
+.order-option:hover {
+    background: var(--gray-50);
+    color: var(--gray-900);
+}
+
+.order-option.active {
+    background: var(--primary);
+    color: var(--gray-700);
+}
+
+.order-option .material-symbols-outlined {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.order-option .az-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-600);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.order-option span {
+    font-weight: 500;
+}

@@ -1325,24 +1325,8 @@ function populateOptions(type, items) {
         
         optionsHTML += otherOptionsHTML;
         
-    } else if (!isMultiSelect && activeFilterValues && activeFilterValues !== '') {
-        // Single-select behavior (for faculty, course, canale)
-        let displayText = activeFilterValues;
-        if (type === 'language' && languageDisplayMap[activeFilterValues]) {
-            displayText = languageDisplayMap[activeFilterValues];
-        } else if (type === 'tag' && tagDisplayMap[activeFilterValues]) {
-            displayText = tagDisplayMap[activeFilterValues];
-        }
-        
-        optionsHTML = `
-        <div class="dropdown-option selected has-active-filter" data-value="${activeFilterValues}">
-            <span>${displayText}</span>
-            <i class="material-symbols-outlined dropdown-option-remove">close</i>
-        </div>
-        `;
-        
     } else {
-        // Show all options when no selection or for single-select without selection
+        // Always show all options for single-select, highlight the selected one
         optionsHTML = items.map(item => {
             let displayText = item;
             if (type === 'language' && languageDisplayMap[item]) {
@@ -1350,12 +1334,9 @@ function populateOptions(type, items) {
             } else if (type === 'tag' && tagDisplayMap[item]) {
                 displayText = tagDisplayMap[item];
             }
-            
-            const isSelected = item === currentValue;
-            
+            const isSelected = item === activeFilterValues;
             let classes = 'dropdown-option';
-            if (isSelected) classes += ' selected';
-            
+            if (isSelected) classes += ' selected has-active-filter';
             return `
             <div class="${classes}" data-value="${item}">
                 <span>${displayText}</span>

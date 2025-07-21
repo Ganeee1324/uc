@@ -2868,6 +2868,18 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     overflow: visible;
 }
+
+/* Ensure filters-bottom-actions always stays at the bottom */
+.filters-bottom-actions {
+    margin-top: auto;
+    margin-bottom: 0;
+    padding: 16px 0;
+    border-top: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+}
  
  /* Filter Header */
  .filters-header {
@@ -3426,10 +3438,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  
  /* Bottom Clear All Button Section */
  .filters-bottom-actions {
-    margin-top: 20px;
+    margin-top: auto;
+    margin-bottom: 0;
     padding: 16px 0;
     border-top: 1px solid #e5e7eb;
     background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
  }
  
  .bottom-clear-container {

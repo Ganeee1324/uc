@@ -2011,6 +2011,10 @@ function handlePriceRangeChange() {
     if (filterManager.filters.priceRange) {
         delete filterManager.filters.priceRange;
     }
+    // If priceType is not set, set it to 'all'
+    if (!filterManager.filters.priceType) {
+        filterManager.filters.priceType = 'all';
+    }
     // Apply price range filter for both 'paid' and 'all' price types
     if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
         filterManager.filters.minPrice = minVal;

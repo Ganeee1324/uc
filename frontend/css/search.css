@@ -7412,9 +7412,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     border-radius: 20px; /* Slightly larger radius */
     z-index: 0;
     pointer-events: none;
-    animation: spin 3s linear infinite;
+    animation: none; /* No animation by default */
     filter: brightness(1.5);
     transition: all 0.25s var(--ease-2);
+    opacity: 0; /* Hidden by default */
 }
 .search-bar-background::before {
     content: '';
@@ -7437,7 +7438,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
 
-/* Make search-bar-background move with search bar animation */
+/* Show search-bar-background animation only when semantic search is activated */
+.toggle-input:checked ~ .search-bar-background {
+    animation: spin 3s linear infinite;
+    opacity: 1;
+}
+
+/* Make search-bar-background move with search bar animation only when visible */
 .search-bar-wrapper:hover .search-bar-background,
 .search-bar-wrapper:focus-within .search-bar-background {
     transform: translateY(-2px);

@@ -2386,26 +2386,36 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  }
  
  .filters-close {
-    width: 40px;
-    height: 40px;
-    background: var(--gray-100);
-    border: 1px solid var(--gray-200);
+    width: 44px;
+    height: 44px;
+    background: #f3f4f6;
+    border: 1.5px solid #e5e7eb;
     border-radius: 50%;
-    color: var(--gray-600);
+    color: #374151;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.25s var(--ease-2);
- }
- 
- .filters-close:hover {
-    background: var(--red-500);
-    border-color: var(--red-500);
-    color: var(--white);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
- }
+    transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(31, 41, 55, 0.06);
+    outline: none;
+    position: relative;
+}
+.filters-close .material-symbols-outlined {
+    font-size: 20px;
+    pointer-events: none;
+}
+.filters-close:hover, .filters-close:focus {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+    transform: scale(1.08) rotate(-8deg);
+}
+.filters-close:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
  
  /* Filter Grid */
  .filters-grid {
@@ -3937,14 +3947,35 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .filters-close {
-       width: 40px;
-       height: 40px;
-       border-radius: var(--radius-xl);
-       background: rgba(0, 0, 0, 0.04);
+       width: 44px;
+       height: 44px;
+       background: #f3f4f6;
+       border: 1.5px solid #e5e7eb;
+       border-radius: 50%;
+       color: #374151;
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s, transform 0.2s;
+       box-shadow: 0 2px 8px rgba(31, 41, 55, 0.06);
+       outline: none;
+       position: relative;
    }
-   
-   .filters-close:hover {
-       background: rgba(0, 0, 0, 0.08);
+   .filters-close .material-symbols-outlined {
+       font-size: 20px;
+       pointer-events: none;
+   }
+   .filters-close:hover, .filters-close:focus {
+       background: #ef4444;
+       color: #fff;
+       border-color: #ef4444;
+       box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+       transform: scale(1.08) rotate(-8deg);
+   }
+   .filters-close:focus-visible {
+       outline: 2px solid #2563eb;
+       outline-offset: 2px;
    }
    
    .filters-grid {

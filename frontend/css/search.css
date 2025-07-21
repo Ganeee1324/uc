@@ -1378,10 +1378,7 @@ html {
 }
 
 .order-dropdown-content.open-upwards {
-    bottom: calc(100% + var(--space-2));
-    top: auto;
-    right: 0;
-    left: auto;
+    /* No longer used: always open downwards */
 }
 
 .order-dropdown-container.open .order-dropdown-content,

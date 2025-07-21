@@ -2070,20 +2070,8 @@ function initializeOrderDropdown() {
     orderBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         orderDropdown.classList.toggle('show');
-        
-        // Position dropdown: open upwards if not enough space below
-        if (orderDropdown.classList.contains('show')) {
-            const rect = orderDropdown.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.top - orderBtn.offsetHeight;
-            const dropdownHeight = orderDropdown.offsetHeight || 220; // fallback height
-            if (spaceBelow < dropdownHeight + 20) {
-                orderDropdown.classList.add('open-upwards');
-            } else {
-                orderDropdown.classList.remove('open-upwards');
-            }
-        } else {
-            orderDropdown.classList.remove('open-upwards');
-        }
+        // Always open downwards: remove .open-upwards if present
+        orderDropdown.classList.remove('open-upwards');
         // Close other dropdowns
         closeAllDropdowns();
     });

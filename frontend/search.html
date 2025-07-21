@@ -189,57 +189,61 @@
             </div>
             
             <!-- Document Count and Active Filters Display -->
-            <div class="document-count-and-filters">
-                <span id="documentCount" class="document-count">Caricamento...</span>
-                <!-- Order Dropdown Button -->
-                <div class="order-dropdown-container">
-                    <button class="order-btn" id="orderBtn">
-                        <svg class="sort-icon" width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                            <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none">
-                                <path d="M1982 4688 c-24 -4 -56 -15 -70 -25 -52 -35 -1340 -1338 -1358 -1373 -27 -55 -23 -137 10 -194 39 -66 93 -99 170 -104 49 -3 71 0 102 16 23 12 234 216 504 486 l465 466 5 -1693 5 -1694 30 -48 c40 -65 97 -95 179 -95 104 1 182 53 206 138 7 25 10 680 10 2000 0 2134 3 2000 -53 2060 -46 49 -129 74 -205 60z"/>
-                                <path d="M2995 4671 c-50 -22 -91 -69 -105 -119 -7 -25 -10 -680 -10 -2000 0 -1749 2 -1967 15 -2000 35 -83 103 -123 207 -123 50 0 77 5 96 18 51 35 1350 1348 1368 1383 10 21 17 57 17 91 0 109 -81 198 -187 207 -105 9 -90 20 -608 -496 l-478 -476 -2 1695 -3 1696 -30 48 c-40 65 -97 95 -179 95 -37 0 -77 -8 -101 -19z"/>
-                            </g>
-                        </svg>
-                        <span class="order-text">Rilevanza</span>
-                    </button>
-                    <div class="order-dropdown-content">
-                        <div class="order-option" data-order="relevance">
-                            <span class="material-symbols-outlined">auto_awesome</span>
+            <div id="documentCountContainer" class="document-count-container" style="display: block;">
+                <div class="document-count-and-filters">
+                    <span id="documentCount" class="document-count">Caricamento...</span>
+                    
+                    <!-- Order Dropdown Button -->
+                    <div class="order-dropdown-container">
+                        <button class="order-btn" id="orderBtn">
+                            <svg class="sort-icon" width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none">
+                                    <path d="M1982 4688 c-24 -4 -56 -15 -70 -25 -52 -35 -1340 -1338 -1358 -1373 -27 -55 -23 -137 10 -194 39 -66 93 -99 170 -104 49 -3 71 0 102 16 23 12 234 216 504 486 l465 466 5 -1693 5 -1694 30 -48 c40 -65 97 -95 179 -95 104 1 182 53 206 138 7 25 10 680 10 2000 0 2134 3 2000 -53 2060 -46 49 -129 74 -205 60z"/>
+                                    <path d="M2995 4671 c-50 -22 -91 -69 -105 -119 -7 -25 -10 -680 -10 -2000 0 -1749 2 -1967 15 -2000 35 -83 103 -123 207 -123 50 0 77 5 96 18 51 35 1350 1348 1368 1383 10 21 17 57 17 91 0 109 -81 198 -187 207 -105 9 -90 20 -608 -496 l-478 -476 -2 1695 -3 1696 -30 48 c-40 65 -97 95 -179 95 -37 0 -77 -8 -101 -19z"/>
+                                </g>
+                            </svg>
                             <span class="order-text">Rilevanza</span>
-                        </div>
-                        <div class="order-option" data-order="reviews">
-                            <span class="material-symbols-outlined">star</span>
-                            <span class="order-text">Recensioni</span>
-                        </div>
-                        <div class="order-option" data-order="price-lowest">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            <span class="order-text">Prezzo crescente</span>
-                        </div>
-                        <div class="order-option" data-order="price-highest">
-                            <span class="material-symbols-outlined">trending_down</span>
-                            <span class="order-text">Prezzo decrescente</span>
-                        </div>
-                        <div class="order-option" data-order="date-newest">
-                            <span class="material-symbols-outlined">schedule</span>
-                            <span class="order-text">Più recenti</span>
-                        </div>
-                        <div class="order-option" data-order="date-oldest">
-                            <span class="material-symbols-outlined">history</span>
-                            <span class="order-text">Meno recenti</span>
-                        </div>
-                        <div class="order-option" data-order="name-asc">
-                            <span class="az-text">AZ</span>
-                            <span class="order-text">Nome A-Z</span>
-                        </div>
-                        <div class="order-option" data-order="name-desc">
-                            <span class="az-text">ZA</span>
-                            <span class="order-text">Nome Z-A</span>
+                        </button>
+                        <div class="order-dropdown-content">
+                            <div class="order-option" data-order="relevance">
+                                <span class="material-symbols-outlined">auto_awesome</span>
+                                <span class="order-text">Rilevanza</span>
+                            </div>
+                            <div class="order-option" data-order="reviews">
+                                <span class="material-symbols-outlined">star</span>
+                                <span class="order-text">Recensioni</span>
+                            </div>
+                            <div class="order-option" data-order="price-lowest">
+                                <span class="material-symbols-outlined">trending_up</span>
+                                <span class="order-text">Prezzo crescente</span>
+                            </div>
+                            <div class="order-option" data-order="price-highest">
+                                <span class="material-symbols-outlined">trending_down</span>
+                                <span class="order-text">Prezzo decrescente</span>
+                            </div>
+                            <div class="order-option" data-order="date-newest">
+                                <span class="material-symbols-outlined">schedule</span>
+                                <span class="order-text">Più recenti</span>
+                            </div>
+                            <div class="order-option" data-order="date-oldest">
+                                <span class="material-symbols-outlined">history</span>
+                                <span class="order-text">Meno recenti</span>
+                            </div>
+                            <div class="order-option" data-order="name-asc">
+                                <span class="az-text">AZ</span>
+                                <span class="order-text">Nome A-Z</span>
+                            </div>
+                            <div class="order-option" data-order="name-desc">
+                                <span class="az-text">ZA</span>
+                                <span class="order-text">Nome Z-A</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div id="activeFiltersDisplay" class="active-filters-display">
-                <!-- Active filter pills will be dynamically added here -->
+                <div id="activeFiltersDisplay" class="active-filters-display">
+                    <!-- Active filter pills will be dynamically added here -->
+                </div>
+
             </div>
 
             <!-- Documents Grid - Will be populated dynamically -->

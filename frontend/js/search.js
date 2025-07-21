@@ -2882,10 +2882,23 @@ function updateActiveFiltersDisplay() {
         const minPrice = activeFilters.minPrice !== undefined ? activeFilters.minPrice : 0;
         const maxPrice = activeFilters.maxPrice !== undefined ? activeFilters.maxPrice : 100;
         filterPills.push(`
-            <div class="filter-pill" data-filter-key="priceRange" data-action="remove-filter">
+            <div class="filter-pill" data-filter-key="priceRange">
                 <span class="filter-pill-label">Prezzo:</span>
                 <span class="filter-pill-value">€${minPrice}-€${maxPrice}</span>
-                <div class="filter-pill-remove"></div>
+                <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="priceRange"></span>
+            </div>
+        `);
+    }
+    // Add pages range pill if min/max are set and not default values
+    if ((activeFilters.minPages !== undefined || activeFilters.maxPages !== undefined) &&
+        (activeFilters.minPages !== 1 || activeFilters.maxPages !== 1000)) {
+        const minPages = activeFilters.minPages !== undefined ? activeFilters.minPages : 1;
+        const maxPages = activeFilters.maxPages !== undefined ? activeFilters.maxPages : 1000;
+        filterPills.push(`
+            <div class="filter-pill" data-filter-key="pagesRange">
+                <span class="filter-pill-label">Pagine:</span>
+                <span class="filter-pill-value">${minPages}-${maxPages}</span>
+                <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="pagesRange"></span>
             </div>
         `);
     }
@@ -6865,10 +6878,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const minPages = activeFilters.minPages !== undefined ? activeFilters.minPages : 1;
         const maxPages = activeFilters.maxPages !== undefined ? activeFilters.maxPages : 1000;
         filterPills.push(`
-            <div class="filter-pill" data-filter-key="pagesRange" data-action="remove-filter">
+            <div class="filter-pill" data-filter-key="pagesRange">
                 <span class="filter-pill-label">Pagine:</span>
                 <span class="filter-pill-value">${minPages}-${maxPages}</span>
-                <div class="filter-pill-remove"></div>
+                <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="pagesRange"></span>
             </div>
         `);
     }

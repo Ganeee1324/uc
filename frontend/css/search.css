@@ -2883,23 +2883,31 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
 }
 
 .filters-title {
     flex: 1 1 0;
     min-width: 0;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
 }
 
 .filters-title h2 {
     margin-bottom: 0;
+    margin-top: 0;
+    line-height: 1.2;
 }
 
 .filters-actions {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
+    height: 44px;
 }
 
 .filter-clear-btn {
@@ -2916,20 +2924,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     cursor: pointer;
     transition: all 0.25s var(--ease-2);
     height: 36px;
- }
- 
- .filter-clear-btn:hover {
-    background: var(--gray-200);
-    border-color: var(--gray-300);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
- }
- 
- .filter-clear-btn .material-symbols-outlined {
-    font-size: 16px;
- }
- 
- .filters-close {
+    margin-right: 4px;
+}
+
+.filters-close {
     width: 44px;
     height: 44px;
     background: #f3f4f6;
@@ -2945,11 +2943,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     outline: none;
     position: relative;
 }
+
 .filters-close .material-symbols-outlined {
     font-size: 20px;
     pointer-events: none;
     color: #374151;
 }
+
 .filters-close:hover, .filters-close:focus {
     background: #ef4444;
     color: #374151;
@@ -2957,6 +2957,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
     transform: scale(1.08);
 }
+
 .filters-close:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 2px;

@@ -7439,7 +7439,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Show search-bar-background animation only when semantic search is activated */
-.toggle-input:checked ~ .search-bar-background {
+.search-bar-background.ai-active {
     animation: spin 3s linear infinite;
     opacity: 1;
 }

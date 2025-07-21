@@ -3042,7 +3042,7 @@ function updateActiveFiltersDisplay() {
     
     // Add clear all button if there are filters
     if (filterPills.length > 0) {
-        filterPills.push(`
+        filterPills.unshift(`
             <button class="clear-all-filters-btn" data-action="clear-all-filters">
                 <span class="material-symbols-outlined">clear_all</span>
                 <span class="clear-all-filters-btn-text">Rimuovi tutti</span>

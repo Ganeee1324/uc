@@ -1917,6 +1917,8 @@ function initializeToggleFilters() {
 function initializePriceRangeFilter() {
     const minPriceRange = document.getElementById('minPriceRange');
     const maxPriceRange = document.getElementById('maxPriceRange');
+    const minPriceInput = document.getElementById('minPriceInput');
+    const maxPriceInput = document.getElementById('maxPriceInput');
     const minPriceValue = document.getElementById('minPriceValue');
     const maxPriceValue = document.getElementById('maxPriceValue');
     const rangeFill = document.getElementById('rangeFill');
@@ -1927,10 +1929,19 @@ function initializePriceRangeFilter() {
         if (maxPriceValue) maxPriceValue.textContent = '€100';
         updatePriceSliderFill();
         
+        // Range slider events
         minPriceRange.addEventListener('input', handlePriceRangeChange);
         maxPriceRange.addEventListener('input', handlePriceRangeChange);
         minPriceRange.addEventListener('change', handlePriceRangeChange);
         maxPriceRange.addEventListener('change', handlePriceRangeChange);
+        
+        // Input field events
+        if (minPriceInput && maxPriceInput) {
+            minPriceInput.addEventListener('input', handlePriceInputChange);
+            maxPriceInput.addEventListener('input', handlePriceInputChange);
+            minPriceInput.addEventListener('blur', handlePriceInputBlur);
+            maxPriceInput.addEventListener('blur', handlePriceInputBlur);
+        }
     }
 }
 
@@ -1953,10 +1964,14 @@ const debouncedApplyFilters = debounce(applyFiltersAndRender, 200);
 function handlePriceRangeChange() {
     const minPriceRange = document.getElementById('minPriceRange');
     const maxPriceRange = document.getElementById('maxPriceRange');
+    const minPriceInput = document.getElementById('minPriceInput');
+    const maxPriceInput = document.getElementById('maxPriceInput');
     const minPriceValue = document.getElementById('minPriceValue');
     const maxPriceValue = document.getElementById('maxPriceValue');
+    
     let minVal = parseFloat(minPriceRange.value);
     let maxVal = parseFloat(maxPriceRange.value);
+    
     if (minVal > maxVal) {
         minVal = maxVal;
         minPriceRange.value = minVal;
@@ -1965,25 +1980,19 @@ function handlePriceRangeChange() {
         maxVal = minVal;
         maxPriceRange.value = maxVal;
     }
-    // Defensive: always delete priceRange array if present
-    if (filterManager.filters.priceRange) {
-        delete filterManager.filters.priceRange;
-    }
-    // If priceType is not set, set it to 'all'
-    if (!filterManager.filters.priceType) {
-        filterManager.filters.priceType = 'all';
-    }
-    // Apply price range filter for both 'paid' and 'all' price types
-    if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
-        filterManager.filters.minPrice = minVal;
-        filterManager.filters.maxPrice = maxVal;
-    }
+    
+    // Update input fields
+    if (minPriceInput) minPriceInput.value = minVal;
+    if (maxPriceInput) maxPriceInput.value = maxVal;
+    
+    // Update display values
     if (minPriceValue) minPriceValue.textContent = `€${minVal}`;
     if (maxPriceValue) maxPriceValue.textContent = `€${maxVal}`;
+    
     updatePriceSliderFill();
-    updateBottomFilterCount();
-    updateActiveFiltersDisplay();
-    debouncedApplyFilters();
+    
+    // Apply filters
+    applyPriceFilters(minVal, maxVal);
 }
 
 function updatePriceSliderFill() {
@@ -2003,6 +2012,81 @@ function updatePriceSliderFill() {
         rangeFill.style.left = `${minPercent}%`;
         rangeFill.style.width = `${maxPercent - minPercent}%`;
     }
+}
+
+function handlePriceInputChange() {
+    const minPriceInput = document.getElementById('minPriceInput');
+    const maxPriceInput = document.getElementById('maxPriceInput');
+    const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    
+    if (!minPriceInput || !maxPriceInput || !minPriceRange || !maxPriceRange) return;
+    
+    let minVal = parseFloat(minPriceInput.value) || 0;
+    let maxVal = parseFloat(maxPriceInput.value) || 100;
+    
+    // Constrain values to range limits
+    const minLimit = parseFloat(minPriceRange.min);
+    const maxLimit = parseFloat(minPriceRange.max);
+    
+    minVal = Math.max(minLimit, Math.min(maxLimit, minVal));
+    maxVal = Math.max(minLimit, Math.min(maxLimit, maxVal));
+    
+    // Ensure min doesn't exceed max
+    if (minVal > maxVal) {
+        minVal = maxVal;
+        minPriceInput.value = minVal;
+    }
+    
+    // Update range sliders
+    minPriceRange.value = minVal;
+    maxPriceRange.value = maxVal;
+    
+    // Update display values
+    const minPriceValue = document.getElementById('minPriceValue');
+    const maxPriceValue = document.getElementById('maxPriceValue');
+    if (minPriceValue) minPriceValue.textContent = `€${minVal}`;
+    if (maxPriceValue) maxPriceValue.textContent = `€${maxVal}`;
+    
+    // Update slider fill
+    updatePriceSliderFill();
+    
+    // Apply filters
+    applyPriceFilters(minVal, maxVal);
+}
+
+function handlePriceInputBlur() {
+    const minPriceInput = document.getElementById('minPriceInput');
+    const maxPriceInput = document.getElementById('maxPriceInput');
+    
+    if (!minPriceInput || !maxPriceInput) return;
+    
+    // Format values to ensure proper display
+    const minVal = parseFloat(minPriceInput.value) || 0;
+    const maxVal = parseFloat(maxPriceInput.value) || 100;
+    
+    minPriceInput.value = minVal;
+    maxPriceInput.value = maxVal;
+}
+
+function applyPriceFilters(minVal, maxVal) {
+    // Defensive: always delete priceRange array if present
+    if (filterManager.filters.priceRange) {
+        delete filterManager.filters.priceRange;
+    }
+    // If priceType is not set, set it to 'all'
+    if (!filterManager.filters.priceType) {
+        filterManager.filters.priceType = 'all';
+    }
+    // Apply price range filter for both 'paid' and 'all' price types
+    if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
+        filterManager.filters.minPrice = minVal;
+        filterManager.filters.maxPrice = maxVal;
+    }
+    
+    updateBottomFilterCount();
+    updateActiveFiltersDisplay();
+    debouncedApplyFilters();
 }
 
 // Order functionality
@@ -6871,6 +6955,8 @@ function resumeTypewriter() {
 function initializePagesRangeFilter() {
     const minPagesRange = document.getElementById('minPagesRange');
     const maxPagesRange = document.getElementById('maxPagesRange');
+    const minPagesInput = document.getElementById('minPagesInput');
+    const maxPagesInput = document.getElementById('maxPagesInput');
     const minPagesValue = document.getElementById('minPagesValue');
     const maxPagesValue = document.getElementById('maxPagesValue');
     const pagesRangeFill = document.getElementById('pagesRangeFill');
@@ -6880,16 +6966,27 @@ function initializePagesRangeFilter() {
         if (maxPagesValue) maxPagesValue.textContent = '1000';
         updatePagesSliderFill();
 
+        // Range slider events
         minPagesRange.addEventListener('input', handlePagesRangeChange);
         maxPagesRange.addEventListener('input', handlePagesRangeChange);
         minPagesRange.addEventListener('change', handlePagesRangeChange);
         maxPagesRange.addEventListener('change', handlePagesRangeChange);
+        
+        // Input field events
+        if (minPagesInput && maxPagesInput) {
+            minPagesInput.addEventListener('input', handlePagesInputChange);
+            maxPagesInput.addEventListener('input', handlePagesInputChange);
+            minPagesInput.addEventListener('blur', handlePagesInputBlur);
+            maxPagesInput.addEventListener('blur', handlePagesInputBlur);
+        }
     }
 }
 
 function handlePagesRangeChange() {
     const minPagesRange = document.getElementById('minPagesRange');
     const maxPagesRange = document.getElementById('maxPagesRange');
+    const minPagesInput = document.getElementById('minPagesInput');
+    const maxPagesInput = document.getElementById('maxPagesInput');
     const minPagesValue = document.getElementById('minPagesValue');
     const maxPagesValue = document.getElementById('maxPagesValue');
 
@@ -6905,16 +7002,18 @@ function handlePagesRangeChange() {
         maxPagesRange.value = maxVal;
     }
 
-    filterManager.filters.minPages = minVal;
-    filterManager.filters.maxPages = maxVal;
+    // Update input fields
+    if (minPagesInput) minPagesInput.value = minVal;
+    if (maxPagesInput) maxPagesInput.value = maxVal;
 
+    // Update display values
     if (minPagesValue) minPagesValue.textContent = minVal;
     if (maxPagesValue) maxPagesValue.textContent = maxVal;
 
     updatePagesSliderFill();
-    updateBottomFilterCount();
-    updateActiveFiltersDisplay();
-    debouncedApplyFilters();
+    
+    // Apply filters
+    applyPagesFilters(minVal, maxVal);
 }
 
 function updatePagesSliderFill() {
@@ -6934,6 +7033,70 @@ function updatePagesSliderFill() {
         pagesRangeFill.style.left = `${minPercent}%`;
         pagesRangeFill.style.width = `${maxPercent - minPercent}%`;
     }
+}
+
+function handlePagesInputChange() {
+    const minPagesInput = document.getElementById('minPagesInput');
+    const maxPagesInput = document.getElementById('maxPagesInput');
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    
+    if (!minPagesInput || !maxPagesInput || !minPagesRange || !maxPagesRange) return;
+    
+    let minVal = parseInt(minPagesInput.value) || 1;
+    let maxVal = parseInt(maxPagesInput.value) || 1000;
+    
+    // Constrain values to range limits
+    const minLimit = parseInt(minPagesRange.min);
+    const maxLimit = parseInt(minPagesRange.max);
+    
+    minVal = Math.max(minLimit, Math.min(maxLimit, minVal));
+    maxVal = Math.max(minLimit, Math.min(maxLimit, maxVal));
+    
+    // Ensure min doesn't exceed max
+    if (minVal > maxVal) {
+        minVal = maxVal;
+        minPagesInput.value = minVal;
+    }
+    
+    // Update range sliders
+    minPagesRange.value = minVal;
+    maxPagesRange.value = maxVal;
+    
+    // Update display values
+    const minPagesValue = document.getElementById('minPagesValue');
+    const maxPagesValue = document.getElementById('maxPagesValue');
+    if (minPagesValue) minPagesValue.textContent = minVal;
+    if (maxPagesValue) maxPagesValue.textContent = maxVal;
+    
+    // Update slider fill
+    updatePagesSliderFill();
+    
+    // Apply filters
+    applyPagesFilters(minVal, maxVal);
+}
+
+function handlePagesInputBlur() {
+    const minPagesInput = document.getElementById('minPagesInput');
+    const maxPagesInput = document.getElementById('maxPagesInput');
+    
+    if (!minPagesInput || !maxPagesInput) return;
+    
+    // Format values to ensure proper display
+    const minVal = parseInt(minPagesInput.value) || 1;
+    const maxVal = parseInt(maxPagesInput.value) || 1000;
+    
+    minPagesInput.value = minVal;
+    maxPagesInput.value = maxVal;
+}
+
+function applyPagesFilters(minVal, maxVal) {
+    filterManager.filters.minPages = minVal;
+    filterManager.filters.maxPages = maxVal;
+    
+    updateBottomFilterCount();
+    updateActiveFiltersDisplay();
+    debouncedApplyFilters();
 }
 
 // ... existing code ...

@@ -2328,7 +2328,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0;
 }
 .filters-title {
     flex: 1 1 0;
@@ -2337,22 +2336,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     align-items: center;
 }
 .filters-title h2 {
-    margin: 0;
-    line-height: 1;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--gray-900);
-    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 0;
 }
 .filters-actions {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-}
-.filter-clear-btn,
-.filters-close {
-    margin: 0;
-    vertical-align: middle;
 }
  
  .filters-close {

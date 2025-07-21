@@ -497,6 +497,7 @@ html {
 
 /* Base grid container - consistent for all states */
 .documents-grid {
+    padding-top: 10px;
     margin-top: var(--space-2);
     margin-bottom: 40px;
     display: grid;
@@ -1212,7 +1213,7 @@ html {
     transition: all 0.25s var(--ease-2);
     box-shadow: var(--shadow-lg);
     height: 44px;
-    min-width: 120px;
+    min-width: 85px;
     white-space: nowrap;
     position: relative;
     overflow: visible;
@@ -3374,6 +3375,83 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-size: 0.95em;
     color: var(--gray-700);
     text-align: left;
+}
+
+/* Price and Pages Input Fields */
+.price-inputs,
+.pages-inputs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.price-input-group,
+.pages-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.price-input-label,
+.pages-input-label {
+    font-size: 0.8em;
+    font-weight: 500;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.price-input,
+.pages-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--gray-900);
+    background: var(--white);
+    transition: all 0.2s var(--ease-2);
+    text-align: center;
+}
+
+.price-input:focus,
+.pages-input:focus {
+    outline: none;
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.price-input:hover,
+.pages-input:hover {
+    border-color: var(--gray-400);
+}
+
+.price-input::placeholder,
+.pages-input::placeholder {
+    color: var(--gray-400);
+    font-weight: 400;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .price-inputs,
+    .pages-inputs {
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .price-input,
+    .pages-input {
+        padding: 6px 10px;
+        font-size: 0.85em;
+    }
+    
+    .price-input-label,
+    .pages-input-label {
+        font-size: 0.75em;
+    }
 }
  
  /* Toggle Groups */

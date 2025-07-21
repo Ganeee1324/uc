@@ -248,6 +248,29 @@
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+        }
+        .overview-number-container {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: inherit;
+            font-weight: inherit;
+            color: #6b7280;
+            background: rgba(255, 197, 6, 0.18); /* default fallback */
+        }
+        .overview-number-container.gold {
+            background: rgba(255, 197, 6, 0.18);
+            color: #B88A00;
+        }
+        .overview-number-container.blue {
+            background: rgba(0, 161, 255, 0.18);
+            color: #125F8C;
+        }
+        .overview-number-container.green {
+            background: rgba(144, 211, 0, 0.18);
+            color: #6DA000;
         }
 
         .overview-label {
@@ -464,7 +487,7 @@
                                 </defs>
                             </svg>
                         </div>
-                        <div class="overview-number">4</div>
+                        <div class="overview-number"><span class="overview-number-container gold">4</span></div>
                         <div class="overview-label">Ranking</div>
                     </div>
                     <div class="overview-item">
@@ -484,7 +507,7 @@
                                 </defs>
                             </svg>
                         </div>
-                        <div class="overview-number">4.2</div>
+                        <div class="overview-number"><span class="overview-number-container blue">4.2</span></div>
                         <div class="overview-label">Sells</div>
                     </div>
                     <div class="overview-item">
@@ -509,7 +532,7 @@
                                 </defs>
                             </svg>
                         </div>
-                        <div class="overview-number">37</div>
+                        <div class="overview-number"><span class="overview-number-container green">37</span></div>
                         <div class="overview-label">Downloads</div>
                     </div>
                 </div>

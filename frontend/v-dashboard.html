@@ -189,9 +189,30 @@
         .space-icon.yellow { background: transparent; }
 
         .space-number {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 600;
             margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+        }
+        .space-number-container {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: inherit;
+            font-weight: inherit;
+            color: white;
+            background: rgba(25, 118, 210, 0.18); /* default fallback */
+        }
+        .space-number-container.blue {
+            background: rgba(18, 162, 246, 0.18);
+        }
+        .space-number-container.purple {
+            background: rgba(140, 0, 191, 0.18);
+        }
+        .space-number-container.yellow {
+            background: rgba(255, 221, 0, 0.18);
+            color: #6DA000;
         }
 
         .space-label {
@@ -392,7 +413,7 @@
                                 <path opacity="0.5" d="M15.2001 11.782C14.5178 14.3457 14.5178 17.9343 14.5178 23.2272V46.4545C14.5178 51.7474 14.5178 55.3331 15.2001 57.8997L14.5178 57.8475C11.687 57.5687 9.78238 56.9387 8.35971 55.516C5.80762 52.9668 5.80762 48.8585 5.80762 40.6477V29.034C5.80762 20.8203 5.80762 16.7149 8.35971 14.1657C9.78238 12.743 11.687 12.113 14.5178 11.8342L15.2001 11.782ZM54.4832 57.8997C55.1655 55.3331 55.1655 51.7445 55.1655 46.4545V23.2272C55.1655 17.9343 55.1655 14.3457 54.4832 11.782L55.1655 11.8342C57.9964 12.113 59.901 12.743 61.3237 14.1657C63.8758 16.7149 63.8758 20.8174 63.8758 29.0311V40.6448C63.8758 48.8614 63.8758 52.9639 61.3237 55.516C59.901 56.9387 57.9964 57.5687 55.1655 57.8475L54.4832 57.8997Z" fill="#12A2F6"/>
                             </svg>
                         </div>
-                        <div class="space-number">7</div>
+                        <div class="space-number"><span class="space-number-container blue">7</span></div>
                         <div class="space-label">Uploaded<br>documents</div>
                     </div>
                     <div class="space-item">
@@ -407,7 +428,7 @@
                                 </defs>
                             </svg>
                         </div>
-                        <div class="space-number">Premium</div>
+                        <div class="space-number"><span class="space-number-container purple">Premium</span></div>
                         <div class="space-label">Package</div>
                     </div>
                     <div class="space-item">
@@ -422,7 +443,7 @@
                                 </defs>
                             </svg>
                         </div>
-                        <div class="space-number">300</div>
+                        <div class="space-number"><span class="space-number-container yellow">300</span></div>
                         <div class="space-label">Carrysoft<br>Credits</div>
                     </div>
                 </div>

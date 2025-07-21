@@ -2906,6 +2906,13 @@ function updateActiveFiltersDisplay() {
     setTimeout(() => {
         activeFiltersContainer.classList.add('visible');
     }, 50);
+
+    // Add event delegation for priceRange and pagesRange pills
+    activeFiltersContainer.querySelectorAll('.filter-pill[data-filter-key="priceRange"], .filter-pill[data-filter-key="pagesRange"]').forEach(pill => {
+        pill.addEventListener('click', function(event) {
+            removeActiveFilter(pill.getAttribute('data-filter-key'), event);
+        });
+    });
 }
 
 // New function to handle individual filter removal with animation

@@ -1281,16 +1281,16 @@ function populateOptions(type, items) {
     
     let optionsHTML = '';
     
-    // Show selected options at the top for multi-select filters
-    if (isMultiSelect && activeFilterValues && Array.isArray(activeFilterValues) && activeFilterValues.length > 0) {
-        const selectedOptionsHTML = activeFilterValues.map(value => {
+    // Show selected options at the top for both multi-select and single-select filters
+    if ((isMultiSelect || (!isMultiSelect && activeFilterValues && activeFilterValues !== '')) && activeFilterValues && ((Array.isArray(activeFilterValues) && activeFilterValues.length > 0) || (!Array.isArray(activeFilterValues) && activeFilterValues !== ''))) {
+        const selectedValues = Array.isArray(activeFilterValues) ? activeFilterValues : [activeFilterValues];
+        const selectedOptionsHTML = selectedValues.map(value => {
             let displayText = value;
             if (type === 'language' && languageDisplayMap[value]) {
                 displayText = languageDisplayMap[value];
             } else if (type === 'tag' && tagDisplayMap[value]) {
                 displayText = tagDisplayMap[value];
             }
-            
             return `
             <div class="dropdown-option selected has-active-filter" data-value="${value}">
                 <span>${displayText}</span>
@@ -1298,23 +1298,19 @@ function populateOptions(type, items) {
             </div>
             `;
         }).join('');
-        
         optionsHTML += selectedOptionsHTML;
-        
         // Add separator if there are other options
-        if (items.length > activeFilterValues.length) {
+        if (items.length > selectedValues.length) {
             optionsHTML += '<div class="dropdown-separator"></div>';
         }
-        
         // Show ALL other options (not just unselected ones)
-        const otherOptionsHTML = items.filter(item => !activeFilterValues.includes(item)).map(item => {
+        const otherOptionsHTML = items.filter(item => !selectedValues.includes(item)).map(item => {
             let displayText = item;
             if (type === 'language' && languageDisplayMap[item]) {
                 displayText = languageDisplayMap[item];
             } else if (type === 'tag' && tagDisplayMap[item]) {
                 displayText = tagDisplayMap[item];
             }
-            
             return `
             <div class="dropdown-option" data-value="${item}">
                 <span>${displayText}</span>
@@ -1322,11 +1318,9 @@ function populateOptions(type, items) {
             </div>
             `;
         }).join('');
-        
         optionsHTML += otherOptionsHTML;
-        
     } else {
-        // Always show all options for single-select, highlight the selected one
+        // Show all options when no selection or for single-select without selection
         optionsHTML = items.map(item => {
             let displayText = item;
             if (type === 'language' && languageDisplayMap[item]) {
@@ -1334,9 +1328,12 @@ function populateOptions(type, items) {
             } else if (type === 'tag' && tagDisplayMap[item]) {
                 displayText = tagDisplayMap[item];
             }
-            const isSelected = item === activeFilterValues;
+            
+            const isSelected = item === currentValue;
+            
             let classes = 'dropdown-option';
-            if (isSelected) classes += ' selected has-active-filter';
+            if (isSelected) classes += ' selected';
+            
             return `
             <div class="${classes}" data-value="${item}">
                 <span>${displayText}</span>

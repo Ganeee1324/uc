@@ -2910,6 +2910,7 @@ function updateActiveFiltersDisplay() {
     // Trigger animation
     setTimeout(() => {
         activeFiltersContainer.classList.add('visible');
+        updateBottomFilterCount();
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)

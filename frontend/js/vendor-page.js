@@ -2019,12 +2019,13 @@ function selectOrderOption(orderType) {
     
     const orderLabels = {
         'relevance': 'Rilevanza',
+        'reviews': 'Recensioni',
         'price-lowest': 'Prezzo crescente',
         'price-highest': 'Prezzo decrescente',
         'name-asc': 'Nome A-Z',
         'name-desc': 'Nome Z-A',
         'date-newest': 'Più recenti',
-        'date-oldest': 'Più vecchi'
+        'date-oldest': 'Meno recenti'
     };
     
     if (orderText) {
@@ -2055,6 +2056,13 @@ function sortDocuments(documents, orderType) {
         case 'relevance':
             // Keep original order (relevance from search)
             return sorted;
+            
+        case 'reviews':
+            return sorted.sort((a, b) => {
+                const ratingA = parseFloat(a.rating || 0);
+                const ratingB = parseFloat(b.rating || 0);
+                return ratingB - ratingA; // Higher ratings first
+            });
             
         case 'name-asc':
             return sorted.sort((a, b) => {

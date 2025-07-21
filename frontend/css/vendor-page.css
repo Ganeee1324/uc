@@ -1362,13 +1362,22 @@ html {
 @media (max-width: 768px) {
     .document-count-and-filters {
         gap: var(--space-3);
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .document-count-section {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        flex-shrink: 0;
     }
     
     .active-filters-display {
         width: 100%;
         justify-content: flex-start;
+        order: 3;
     }
     
     .filter-pill {
@@ -1379,6 +1388,10 @@ html {
     .clear-all-filters-btn {
         padding: 6px 12px;
         font-size: 0.7rem;
+    }
+    
+    .order-btn {
+        flex-shrink: 0;
     }
 }
 

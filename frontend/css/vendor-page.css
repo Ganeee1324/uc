@@ -2416,6 +2416,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     scrollbar-width: thin;
     scrollbar-color: var(--gray-300) transparent;
     position: relative;
+    max-height: calc(100vh - 200px);
+    min-height: 0;
 }
  
  .filters-grid::-webkit-scrollbar {

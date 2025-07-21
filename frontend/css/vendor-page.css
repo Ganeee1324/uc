@@ -940,14 +940,15 @@ html {
 }
 
 /* Animation starts when toggle is checked */
-.toggle-input:checked ~ .search-bar-background {
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background {
     opacity: 1;
     animation: spin 3s linear infinite;
 }
 
 /* Move with search bar hover/focus animation */
-.search-bar:hover ~ .search-bar-background,
-.search-bar:focus-within ~ .search-bar-background {
+.search-bar-wrapper:hover .search-bar-background,
+.search-bar-wrapper:has(.search-bar:hover) .search-bar-background,
+.search-bar-wrapper:has(.search-bar:focus-within) .search-bar-background {
     transform: translateY(-2px);
 }
 

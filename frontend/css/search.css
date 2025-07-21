@@ -7469,8 +7469,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Move with search bar hover/focus animation */
-.search-bar:hover ~ .search-bar-background,
-.search-bar:focus-within ~ .search-bar-background {
+.search-bar-wrapper:hover .search-bar-background,
+.search-bar-wrapper:has(.search-bar:hover) .search-bar-background,
+.search-bar-wrapper:has(.search-bar:focus-within) .search-bar-background {
     transform: translateY(-2px);
 }
 @keyframes spin {

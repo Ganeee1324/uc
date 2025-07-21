@@ -34,10 +34,7 @@
     min-height: 1em;
     text-align: center;
     vertical-align: middle;
-}
-
-/* Ensure icons are visible immediately when font loads */
-.material-symbols-outlined {
+    /* Ensure icons are visible immediately when font loads */
     opacity: 1;
 }
 
@@ -2885,7 +2882,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0;
 }
 
 .filters-title {
@@ -2896,24 +2892,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .filters-title h2 {
-    margin: 0;
-    line-height: 1;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--gray-900);
-    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 0;
 }
 
 .filters-actions {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-}
-
-.filter-clear-btn,
-.filters-close {
-    margin: 0;
-    vertical-align: middle;
 }
 
 .filter-clear-btn {

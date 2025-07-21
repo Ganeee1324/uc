@@ -6232,6 +6232,26 @@ function initializeAISearchToggle() {
         // Toggle state
         aiSearchEnabled = toggleInput.checked;
         
+        // Trigger the background animation
+        const searchBarBackground = document.getElementById('searchBarBackground');
+        if (searchBarBackground) {
+            // Reset animation by removing and re-adding the element
+            const parent = searchBarBackground.parentNode;
+            const nextSibling = searchBarBackground.nextSibling;
+            parent.removeChild(searchBarBackground);
+            
+            // Recreate the element to restart animation
+            const newBackground = document.createElement('div');
+            newBackground.className = 'search-bar-background';
+            newBackground.id = 'searchBarBackground';
+            
+            if (nextSibling) {
+                parent.insertBefore(newBackground, nextSibling);
+            } else {
+                parent.appendChild(newBackground);
+            }
+        }
+        
         // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
             searchBar.classList.add('ai-active');

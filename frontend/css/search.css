@@ -3998,15 +3998,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        border-radius: var(--radius-2xl);
    }
    
-   .filters-btn {
-       border-left: 1px solid var(--gray-200);
-       border-radius: var(--radius-2xl);
-       height: 42px;
-       width: 75px;
-       min-width: 75px;
-       font-size: 12px;
-   }
-   
    /* Search bar maintains default size at 1200px */
    
    .search-title {
@@ -7634,16 +7625,27 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     height: calc(100% + 4px); /* Increase height to account for padding */
     background-image: linear-gradient(315deg, 
         transparent 0%, 
-        transparent calc(var(--expand-progress) * 1% - 10%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 5%), 
-        #cf30aa calc(var(--expand-progress) * 1%), 
-        transparent calc(var(--expand-progress) * 1% + 5%)
+        transparent calc(var(--expand-progress) * 1% - 80%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 75%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 25%), 
+        #5a189a calc(var(--expand-progress) * 1% - 20%), 
+        #7b2cbf calc(var(--expand-progress) * 1% - 15%), 
+        #9d4edd calc(var(--expand-progress) * 1% - 10%), 
+        #b75cff calc(var(--expand-progress) * 1% - 5%), 
+        #d166e6 calc(var(--expand-progress) * 1%), 
+        #e070d1 calc(var(--expand-progress) * 1% + 5%), 
+        #ed7abc calc(var(--expand-progress) * 1% + 10%), 
+        #f584a7 calc(var(--expand-progress) * 1% + 15%), 
+        #fb8e92 calc(var(--expand-progress) * 1% + 20%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 25%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 30%), 
+        transparent calc(var(--expand-progress) * 1% + 35%)
     );
     border: none;
     border-radius: 20px; /* Slightly larger radius */
-    z-index: 22;
+    z-index: 0;
     pointer-events: none;
-    animation: expandFromBottomRight 2s ease-out forwards;
+    animation: expandFromBottomRight 1s ease-out forwards;
     filter: brightness(1.5);
 }
 .search-bar-background::before {
@@ -7670,8 +7672,63 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         --expand-progress: 0;
     }
     100% {
-        --expand-progress: 100;
+        --expand-progress: 100;  /* Animation goes to 100% */
     }
+}
+
+@keyframes expandFromTopLeft {
+    0% {
+        --expand-progress: 0;
+    }
+    100% {
+        --expand-progress: 100;  /* Animation goes to 100% */
+    }
+}
+
+/* Animation for toggle OFF (left direction) */
+.search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background {
+    background-image: linear-gradient(315deg, 
+        transparent 0%, 
+        transparent calc(var(--expand-progress) * 1% - 80%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 75%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 25%), 
+        #5a189a calc(var(--expand-progress) * 1% - 20%), 
+        #7b2cbf calc(var(--expand-progress) * 1% - 15%), 
+        #9d4edd calc(var(--expand-progress) * 1% - 10%), 
+        #b75cff calc(var(--expand-progress) * 1% - 5%), 
+        #d166e6 calc(var(--expand-progress) * 1%), 
+        #e070d1 calc(var(--expand-progress) * 1% + 5%), 
+        #ed7abc calc(var(--expand-progress) * 1% + 10%), 
+        #f584a7 calc(var(--expand-progress) * 1% + 15%), 
+        #fb8e92 calc(var(--expand-progress) * 1% + 20%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 25%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 30%), 
+        transparent calc(var(--expand-progress) * 1% + 35%)
+    );
+    animation: expandFromBottomRight 2s ease-out forwards;
+}
+
+/* Animation for toggle ON (right direction) */
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background {
+    background-image: linear-gradient(135deg, 
+        transparent 0%, 
+        transparent calc(var(--expand-progress) * 1% - 80%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 75%), 
+        #402fb5 calc(var(--expand-progress) * 1% - 25%), 
+        #5a189a calc(var(--expand-progress) * 1% - 20%), 
+        #7b2cbf calc(var(--expand-progress) * 1% - 15%), 
+        #9d4edd calc(var(--expand-progress) * 1% - 10%), 
+        #b75cff calc(var(--expand-progress) * 1% - 5%), 
+        #d166e6 calc(var(--expand-progress) * 1%), 
+        #e070d1 calc(var(--expand-progress) * 1% + 5%), 
+        #ed7abc calc(var(--expand-progress) * 1% + 10%), 
+        #f584a7 calc(var(--expand-progress) * 1% + 15%), 
+        #fb8e92 calc(var(--expand-progress) * 1% + 20%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 25%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 30%), 
+        transparent calc(var(--expand-progress) * 1% + 35%)
+    );
+    animation: expandFromTopLeft 2s ease-out forwards;
 }
 
 /* Responsive adjustments for the toggle */

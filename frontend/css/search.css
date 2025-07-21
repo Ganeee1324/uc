@@ -1362,7 +1362,8 @@ html {
 .order-dropdown-content {
     position: absolute;
     top: calc(100% + var(--space-2));
-    left: 0;
+    right: 0;
+    left: auto;
     background: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
@@ -1379,6 +1380,8 @@ html {
 .order-dropdown-content.open-upwards {
     bottom: calc(100% + var(--space-2));
     top: auto;
+    right: 0;
+    left: auto;
 }
 
 .order-dropdown-container.open .order-dropdown-content,

@@ -2376,6 +2376,8 @@ class FilterManager {
             if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
             count++;
         });
+        // Debug log
+        console.log('[FilterManager] getActiveFilterCount:', { filters: { ...filters }, count });
         return count;
     }
     
@@ -2392,6 +2394,8 @@ class FilterManager {
         const bottomFilterCountElement = document.getElementById('bottomFilterCount');
         const filterCountBadge = document.getElementById('filterCount');
         const activeCount = this.getActiveFilterCount();
+        // Debug log
+        console.log('[FilterManager] updateBottomFilterCount: activeCount =', activeCount, 'filters:', { ...this.filters });
         // Update footer text
         if (bottomFilterCountElement) {
             bottomFilterCountElement.textContent = activeCount === 0 ? 'Nessun filtro attivo' : 
@@ -7072,4 +7076,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     // Pills are handled by FilterManager.createFilterPill
-    // ... existing code ...
+// ... existing code ...

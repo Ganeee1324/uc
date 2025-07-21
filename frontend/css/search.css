@@ -4948,7 +4948,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .filter-tag.clear-all-tag {
-       order: -1;
+       /* Remove order property to respect DOM order */
        width: 100%;
        justify-content: center;
        margin-bottom: var(--space-2);

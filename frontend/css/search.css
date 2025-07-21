@@ -3377,80 +3377,67 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     text-align: left;
 }
 
-/* Price and Pages Input Fields */
-.price-inputs,
-.pages-inputs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.price-input-group,
-.pages-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-}
-
-.price-input-label,
-.pages-input-label {
-    font-size: 0.8em;
-    font-weight: 500;
-    color: var(--gray-600);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.price-input,
-.pages-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-sm);
-    font-size: 0.9em;
-    font-weight: 500;
-    color: var(--gray-900);
-    background: var(--white);
+/* Editable Values */
+.editable-value {
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
     transition: all 0.2s var(--ease-2);
-    text-align: center;
+    user-select: none;
+    position: relative;
 }
 
-.price-input:focus,
-.pages-input:focus {
-    outline: none;
-    border-color: var(--blue-500);
+.editable-value:hover {
+    background-color: var(--gray-100);
+    color: var(--blue-600);
+}
+
+.editable-value:active {
+    background-color: var(--gray-200);
+    transform: scale(0.95);
+}
+
+.editable-value.editing {
+    background-color: var(--white);
+    border: 1px solid var(--blue-500);
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    padding: 1px 5px;
+    min-width: 40px;
+    display: inline-block;
 }
 
-.price-input:hover,
-.pages-input:hover {
-    border-color: var(--gray-400);
+.editable-value input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    width: 100%;
+    text-align: center;
+    font-family: inherit;
 }
 
-.price-input::placeholder,
-.pages-input::placeholder {
-    color: var(--gray-400);
-    font-weight: 400;
+.editable-value input::-webkit-outer-spin-button,
+.editable-value input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.editable-value input[type=number] {
+    -moz-appearance: textfield;
 }
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-    .price-inputs,
-    .pages-inputs {
-        gap: 8px;
-        margin-bottom: 10px;
+    .editable-value {
+        padding: 3px 8px;
+        font-size: 0.9em;
     }
     
-    .price-input,
-    .pages-input {
-        padding: 6px 10px;
-        font-size: 0.85em;
-    }
-    
-    .price-input-label,
-    .pages-input-label {
-        font-size: 0.75em;
+    .editable-value.editing {
+        padding: 2px 6px;
+        min-width: 35px;
     }
 }
  

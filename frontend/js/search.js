@@ -1917,8 +1917,6 @@ function initializeToggleFilters() {
 function initializePriceRangeFilter() {
     const minPriceRange = document.getElementById('minPriceRange');
     const maxPriceRange = document.getElementById('maxPriceRange');
-    const minPriceInput = document.getElementById('minPriceInput');
-    const maxPriceInput = document.getElementById('maxPriceInput');
     const minPriceValue = document.getElementById('minPriceValue');
     const maxPriceValue = document.getElementById('maxPriceValue');
     const rangeFill = document.getElementById('rangeFill');
@@ -1935,13 +1933,8 @@ function initializePriceRangeFilter() {
         minPriceRange.addEventListener('change', handlePriceRangeChange);
         maxPriceRange.addEventListener('change', handlePriceRangeChange);
         
-        // Input field events
-        if (minPriceInput && maxPriceInput) {
-            minPriceInput.addEventListener('input', handlePriceInputChange);
-            maxPriceInput.addEventListener('input', handlePriceInputChange);
-            minPriceInput.addEventListener('blur', handlePriceInputBlur);
-            maxPriceInput.addEventListener('blur', handlePriceInputBlur);
-        }
+        // Initialize editable values
+        initializeEditableValues();
     }
 }
 
@@ -1964,8 +1957,6 @@ const debouncedApplyFilters = debounce(applyFiltersAndRender, 200);
 function handlePriceRangeChange() {
     const minPriceRange = document.getElementById('minPriceRange');
     const maxPriceRange = document.getElementById('maxPriceRange');
-    const minPriceInput = document.getElementById('minPriceInput');
-    const maxPriceInput = document.getElementById('maxPriceInput');
     const minPriceValue = document.getElementById('minPriceValue');
     const maxPriceValue = document.getElementById('maxPriceValue');
     
@@ -1980,10 +1971,6 @@ function handlePriceRangeChange() {
         maxVal = minVal;
         maxPriceRange.value = maxVal;
     }
-    
-    // Update input fields
-    if (minPriceInput) minPriceInput.value = minVal;
-    if (maxPriceInput) maxPriceInput.value = maxVal;
     
     // Update display values
     if (minPriceValue) minPriceValue.textContent = `€${minVal}`;
@@ -2014,59 +2001,151 @@ function updatePriceSliderFill() {
     }
 }
 
-function handlePriceInputChange() {
-    const minPriceInput = document.getElementById('minPriceInput');
-    const maxPriceInput = document.getElementById('maxPriceInput');
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
+function initializeEditableValues() {
+    const editableValues = document.querySelectorAll('.editable-value');
     
-    if (!minPriceInput || !maxPriceInput || !minPriceRange || !maxPriceRange) return;
-    
-    let minVal = parseFloat(minPriceInput.value) || 0;
-    let maxVal = parseFloat(maxPriceInput.value) || 100;
-    
-    // Constrain values to range limits
-    const minLimit = parseFloat(minPriceRange.min);
-    const maxLimit = parseFloat(minPriceRange.max);
-    
-    minVal = Math.max(minLimit, Math.min(maxLimit, minVal));
-    maxVal = Math.max(minLimit, Math.min(maxLimit, maxVal));
-    
-    // Ensure min doesn't exceed max
-    if (minVal > maxVal) {
-        minVal = maxVal;
-        minPriceInput.value = minVal;
-    }
-    
-    // Update range sliders
-    minPriceRange.value = minVal;
-    maxPriceRange.value = maxVal;
-    
-    // Update display values
-    const minPriceValue = document.getElementById('minPriceValue');
-    const maxPriceValue = document.getElementById('maxPriceValue');
-    if (minPriceValue) minPriceValue.textContent = `€${minVal}`;
-    if (maxPriceValue) maxPriceValue.textContent = `€${maxVal}`;
-    
-    // Update slider fill
-    updatePriceSliderFill();
-    
-    // Apply filters
-    applyPriceFilters(minVal, maxVal);
+    editableValues.forEach(element => {
+        element.addEventListener('click', handleEditableValueClick);
+        element.addEventListener('keydown', handleEditableValueKeydown);
+    });
 }
 
-function handlePriceInputBlur() {
-    const minPriceInput = document.getElementById('minPriceInput');
-    const maxPriceInput = document.getElementById('maxPriceInput');
+function handleEditableValueClick(event) {
+    const element = event.target;
+    if (element.classList.contains('editing')) return;
     
-    if (!minPriceInput || !maxPriceInput) return;
+    const type = element.getAttribute('data-type');
+    const position = element.getAttribute('data-position');
     
-    // Format values to ensure proper display
-    const minVal = parseFloat(minPriceInput.value) || 0;
-    const maxVal = parseFloat(maxPriceInput.value) || 100;
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'editable-input';
     
-    minPriceInput.value = minVal;
-    maxPriceInput.value = maxVal;
+    // Set input properties based on type
+    if (type === 'price') {
+        input.min = '0';
+        input.max = '100';
+        input.step = '0.5';
+        const currentValue = parseFloat(element.textContent.replace('€', '')) || 0;
+        input.value = currentValue;
+    } else if (type === 'pages') {
+        input.min = '1';
+        input.max = '1000';
+        input.step = '1';
+        const currentValue = parseInt(element.textContent) || 1;
+        input.value = currentValue;
+    }
+    
+    // Store original content
+    element.setAttribute('data-original-content', element.textContent);
+    
+    // Replace content with input
+    element.textContent = '';
+    element.appendChild(input);
+    element.classList.add('editing');
+    
+    // Focus and select input
+    input.focus();
+    input.select();
+    
+    // Add event listeners
+    input.addEventListener('blur', () => handleEditableValueBlur(element, type, position));
+    input.addEventListener('keydown', (e) => handleEditableValueInputKeydown(e, element, type, position));
+}
+
+function handleEditableValueKeydown(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleEditableValueClick(event);
+    }
+}
+
+function handleEditableValueInputKeydown(event, element, type, position) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        handleEditableValueBlur(element, type, position);
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        // Restore original content
+        const originalContent = element.getAttribute('data-original-content');
+        element.textContent = originalContent;
+        element.classList.remove('editing');
+    }
+}
+
+function handleEditableValueBlur(element, type, position) {
+    const input = element.querySelector('input');
+    if (!input) return;
+    
+    let newValue = parseFloat(input.value);
+    
+    // Validate and constrain value
+    if (type === 'price') {
+        newValue = Math.max(0, Math.min(100, newValue));
+        element.textContent = `€${newValue}`;
+    } else if (type === 'pages') {
+        newValue = Math.max(1, Math.min(1000, newValue));
+        element.textContent = newValue;
+    }
+    
+    element.classList.remove('editing');
+    
+    // Update corresponding range slider
+    updateRangeSliderFromEditableValue(type, position, newValue);
+}
+
+function updateRangeSliderFromEditableValue(type, position, value) {
+    if (type === 'price') {
+        const minPriceRange = document.getElementById('minPriceRange');
+        const maxPriceRange = document.getElementById('maxPriceRange');
+        
+        if (position === 'min') {
+            minPriceRange.value = value;
+            // Ensure min doesn't exceed max
+            if (value > parseFloat(maxPriceRange.value)) {
+                maxPriceRange.value = value;
+                const maxPriceValue = document.getElementById('maxPriceValue');
+                if (maxPriceValue) maxPriceValue.textContent = `€${value}`;
+            }
+        } else if (position === 'max') {
+            maxPriceRange.value = value;
+            // Ensure max doesn't go below min
+            if (value < parseFloat(minPriceRange.value)) {
+                minPriceRange.value = value;
+                const minPriceValue = document.getElementById('minPriceValue');
+                if (minPriceValue) minPriceValue.textContent = `€${value}`;
+            }
+        }
+        
+        updatePriceSliderFill();
+        applyPriceFilters(parseFloat(minPriceRange.value), parseFloat(maxPriceRange.value));
+        
+    } else if (type === 'pages') {
+        const minPagesRange = document.getElementById('minPagesRange');
+        const maxPagesRange = document.getElementById('maxPagesRange');
+        
+        if (position === 'min') {
+            minPagesRange.value = value;
+            // Ensure min doesn't exceed max
+            if (value > parseInt(maxPagesRange.value)) {
+                maxPagesRange.value = value;
+                const maxPagesValue = document.getElementById('maxPagesValue');
+                if (maxPagesValue) maxPagesValue.textContent = value;
+            }
+        } else if (position === 'max') {
+            maxPagesRange.value = value;
+            // Ensure max doesn't go below min
+            if (value < parseInt(minPagesRange.value)) {
+                minPagesRange.value = value;
+                const minPagesValue = document.getElementById('minPagesValue');
+                if (minPagesValue) minPagesValue.textContent = value;
+            }
+        }
+        
+        updatePagesSliderFill();
+        applyPagesFilters(parseInt(minPagesRange.value), parseInt(maxPagesRange.value));
+    }
 }
 
 function applyPriceFilters(minVal, maxVal) {
@@ -6955,8 +7034,6 @@ function resumeTypewriter() {
 function initializePagesRangeFilter() {
     const minPagesRange = document.getElementById('minPagesRange');
     const maxPagesRange = document.getElementById('maxPagesRange');
-    const minPagesInput = document.getElementById('minPagesInput');
-    const maxPagesInput = document.getElementById('maxPagesInput');
     const minPagesValue = document.getElementById('minPagesValue');
     const maxPagesValue = document.getElementById('maxPagesValue');
     const pagesRangeFill = document.getElementById('pagesRangeFill');
@@ -6971,22 +7048,12 @@ function initializePagesRangeFilter() {
         maxPagesRange.addEventListener('input', handlePagesRangeChange);
         minPagesRange.addEventListener('change', handlePagesRangeChange);
         maxPagesRange.addEventListener('change', handlePagesRangeChange);
-        
-        // Input field events
-        if (minPagesInput && maxPagesInput) {
-            minPagesInput.addEventListener('input', handlePagesInputChange);
-            maxPagesInput.addEventListener('input', handlePagesInputChange);
-            minPagesInput.addEventListener('blur', handlePagesInputBlur);
-            maxPagesInput.addEventListener('blur', handlePagesInputBlur);
-        }
     }
 }
 
 function handlePagesRangeChange() {
     const minPagesRange = document.getElementById('minPagesRange');
     const maxPagesRange = document.getElementById('maxPagesRange');
-    const minPagesInput = document.getElementById('minPagesInput');
-    const maxPagesInput = document.getElementById('maxPagesInput');
     const minPagesValue = document.getElementById('minPagesValue');
     const maxPagesValue = document.getElementById('maxPagesValue');
 
@@ -7001,10 +7068,6 @@ function handlePagesRangeChange() {
         maxVal = minVal;
         maxPagesRange.value = maxVal;
     }
-
-    // Update input fields
-    if (minPagesInput) minPagesInput.value = minVal;
-    if (maxPagesInput) maxPagesInput.value = maxVal;
 
     // Update display values
     if (minPagesValue) minPagesValue.textContent = minVal;
@@ -7035,60 +7098,7 @@ function updatePagesSliderFill() {
     }
 }
 
-function handlePagesInputChange() {
-    const minPagesInput = document.getElementById('minPagesInput');
-    const maxPagesInput = document.getElementById('maxPagesInput');
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
-    
-    if (!minPagesInput || !maxPagesInput || !minPagesRange || !maxPagesRange) return;
-    
-    let minVal = parseInt(minPagesInput.value) || 1;
-    let maxVal = parseInt(maxPagesInput.value) || 1000;
-    
-    // Constrain values to range limits
-    const minLimit = parseInt(minPagesRange.min);
-    const maxLimit = parseInt(minPagesRange.max);
-    
-    minVal = Math.max(minLimit, Math.min(maxLimit, minVal));
-    maxVal = Math.max(minLimit, Math.min(maxLimit, maxVal));
-    
-    // Ensure min doesn't exceed max
-    if (minVal > maxVal) {
-        minVal = maxVal;
-        minPagesInput.value = minVal;
-    }
-    
-    // Update range sliders
-    minPagesRange.value = minVal;
-    maxPagesRange.value = maxVal;
-    
-    // Update display values
-    const minPagesValue = document.getElementById('minPagesValue');
-    const maxPagesValue = document.getElementById('maxPagesValue');
-    if (minPagesValue) minPagesValue.textContent = minVal;
-    if (maxPagesValue) maxPagesValue.textContent = maxVal;
-    
-    // Update slider fill
-    updatePagesSliderFill();
-    
-    // Apply filters
-    applyPagesFilters(minVal, maxVal);
-}
 
-function handlePagesInputBlur() {
-    const minPagesInput = document.getElementById('minPagesInput');
-    const maxPagesInput = document.getElementById('maxPagesInput');
-    
-    if (!minPagesInput || !maxPagesInput) return;
-    
-    // Format values to ensure proper display
-    const minVal = parseInt(minPagesInput.value) || 1;
-    const maxVal = parseInt(maxPagesInput.value) || 1000;
-    
-    minPagesInput.value = minVal;
-    maxPagesInput.value = maxVal;
-}
 
 function applyPagesFilters(minVal, maxVal) {
     filterManager.filters.minPages = minVal;

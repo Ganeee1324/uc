@@ -2907,10 +2907,11 @@ function updateActiveFiltersDisplay() {
         activeFiltersContainer.classList.add('visible');
     }, 50);
 
-    // Add event delegation for priceRange and pagesRange pills
-    activeFiltersContainer.querySelectorAll('.filter-pill[data-filter-key="priceRange"], .filter-pill[data-filter-key="pagesRange"]').forEach(pill => {
-        pill.addEventListener('click', function(event) {
-            removeActiveFilter(pill.getAttribute('data-filter-key'), event);
+    // Add event delegation for priceRange and pagesRange pills (remove button only)
+    activeFiltersContainer.querySelectorAll('.filter-pill[data-filter-key="priceRange"] .filter-pill-remove, .filter-pill[data-filter-key="pagesRange"] .filter-pill-remove').forEach(btn => {
+        btn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            removeActiveFilter(btn.closest('.filter-pill').getAttribute('data-filter-key'), event);
         });
     });
 }

@@ -2364,8 +2364,15 @@ class FilterManager {
         const minPriceSet = filters.minPrice !== undefined && filters.minPrice !== 0;
         const maxPriceSet = filters.maxPrice !== undefined && filters.maxPrice !== 100;
         if (minPriceSet || maxPriceSet) count++;
-        // Count all other filters except min/max pages and min/max price
+        // Count all other filters except min/max pages and min/max price, and skip if already counted
         Object.keys(filters).forEach(key => {
+            if ((key === "minPages" && (minPagesSet || maxPagesSet)) ||
+                (key === "maxPages" && (minPagesSet || maxPagesSet)) ||
+                (key === "minPrice" && (minPriceSet || maxPriceSet)) ||
+                (key === "maxPrice" && (minPriceSet || maxPriceSet))) {
+                // Already counted above
+                return;
+            }
             if (["minPages","maxPages","minPrice","maxPrice"].includes(key)) return;
             count++;
         });

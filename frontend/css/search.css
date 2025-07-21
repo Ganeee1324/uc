@@ -1515,24 +1515,25 @@ body.filters-open .document-count-container {
 }
 
 .active-filters-display {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
+    display: flex;
     flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    gap: var(--space-2);
     opacity: 0;
     transform: translateX(-8px);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     flex: 0 0 auto;
     min-width: 0;
-    overflow-x: auto;
-    white-space: nowrap;
-    scrollbar-width: none; /* Firefox */
-    scroll-padding-left: 16px;
-    scroll-snap-type: x mandatory;
     width: 100%;
     box-sizing: border-box;
     margin-top: 8px;
     margin-bottom: 8px;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
+    scroll-padding-left: 16px;
+    scroll-snap-type: x mandatory;
 }
 
 .active-filters-display::-webkit-scrollbar {
@@ -1545,23 +1546,9 @@ body.filters-open .document-count-container {
 }
 
 .filter-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 6px 12px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    animation: filterPillSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 0 0 auto;
+    min-width: max-content;
+    white-space: nowrap;
     scroll-snap-align: start;
 }
 

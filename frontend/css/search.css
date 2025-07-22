@@ -7888,28 +7888,31 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     border-radius: 20px; /* Slightly larger radius */
     z-index: 0;
     pointer-events: none;
-    filter: brightness(1.5);
+    filter: brightness(1.3) contrast(1.05);
     /* Safari-specific fixes */
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    will-change: transform;
+    will-change: transform, filter;
     overflow: visible;
+    transition: filter 0.3s ease-out;
 }
 .search-bar-background::before {
     content: '';
     position: absolute;
     top: -2.5px;
     left: -2.5px;
-    width: calc(100% +  0px);
-    height: calc(100% + 0px);
-    filter: blur(20px);
-    opacity: 1;
-    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+    filter: blur(25px) brightness(1.1);
+    opacity: 0.9;
+    border-radius: 2px;
+    will-change: filter, opacity;
     z-index: 1002;
     overflow: visible;
     transform: translateZ(0);
+    transition: filter 0.3s ease-out, opacity 0.3s ease-out;
 }
 
 
@@ -7938,40 +7941,42 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
 
-/* Animation for toggle OFF (pink left, purple right - moves LEFT) - exact same positioning as ON for perfect symmetry */
+/* Animation for toggle OFF (pink left, purple right - moves LEFT) - smooth professional gradient */
 .search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background,
 .search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background::before {
     background-image: linear-gradient(120deg, 
         transparent 0%, 
-        transparent calc(var(--expand-progress) * 1% - 5%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
-        #d848b0 calc(var(--expand-progress) * 1% + 5%), 
-        #e060b6 calc(var(--expand-progress) * 1% + 25%), 
-        #e878bc calc(var(--expand-progress) * 1% + 35%), 
-        #d174c2 calc(var(--expand-progress) * 1% + 45%), 
-        #ba70c8 calc(var(--expand-progress) * 1% + 55%), 
-        #402fb5 calc(var(--expand-progress) * 1% + 65%), 
+        transparent calc(var(--expand-progress) * 1% - 8%), 
+        #cf30aa calc(var(--expand-progress) * 1% - 2%), 
+        #d848b0 calc(var(--expand-progress) * 1% + 8%), 
+        #e060b6 calc(var(--expand-progress) * 1% + 18%), 
+        #e878bc calc(var(--expand-progress) * 1% + 28%), 
+        #d174c2 calc(var(--expand-progress) * 1% + 38%), 
+        #ba70c8 calc(var(--expand-progress) * 1% + 48%), 
+        #8a5fd4 calc(var(--expand-progress) * 1% + 58%), 
+        #5a4ee0 calc(var(--expand-progress) * 1% + 68%), 
+        #402fb5 calc(var(--expand-progress) * 1% + 78%), 
         #402fb5 calc(var(--expand-progress) * 1% + 135%), 
         transparent calc(var(--expand-progress) * 1% + 130%)
     );
     animation: moveToRight 1s ease-out forwards;
 }
 
-/* Animation for toggle ON (pink left, purple right - moves RIGHT) - even more to the left */
+/* Animation for toggle ON (pink left, purple right - moves RIGHT) - smooth professional gradient */
 .search-bar-wrapper:has(.toggle-input:checked) .search-bar-background,
 .search-bar-wrapper:has(.toggle-input:checked) .search-bar-background::before {
     background-image: linear-gradient(120deg, 
         transparent 0%, 
-        transparent calc(var(--expand-progress) * 1% - 5%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
-        #d848b0 calc(var(--expand-progress) * 1% + 5%), 
-        #e060b6 calc(var(--expand-progress) * 1% + 25%), 
-        #e878bc calc(var(--expand-progress) * 1% + 35%), 
-        #d174c2 calc(var(--expand-progress) * 1% + 45%), 
-        #ba70c8 calc(var(--expand-progress) * 1% + 55%), 
-        #402fb5 calc(var(--expand-progress) * 1% + 65%), 
+        transparent calc(var(--expand-progress) * 1% - 8%), 
+        #cf30aa calc(var(--expand-progress) * 1% - 2%), 
+        #d848b0 calc(var(--expand-progress) * 1% + 8%), 
+        #e060b6 calc(var(--expand-progress) * 1% + 18%), 
+        #e878bc calc(var(--expand-progress) * 1% + 28%), 
+        #d174c2 calc(var(--expand-progress) * 1% + 38%), 
+        #ba70c8 calc(var(--expand-progress) * 1% + 48%), 
+        #8a5fd4 calc(var(--expand-progress) * 1% + 58%), 
+        #5a4ee0 calc(var(--expand-progress) * 1% + 68%), 
+        #402fb5 calc(var(--expand-progress) * 1% + 78%), 
         #402fb5 calc(var(--expand-progress) * 1% + 135%), 
         transparent calc(var(--expand-progress) * 1% + 130%)
     );

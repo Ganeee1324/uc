@@ -754,7 +754,7 @@ body {
     letter-spacing: -0.011em;
     line-height: 1.5;
     position: relative;
-    z-index: 30;
+    z-index: 1;
     padding-right: 50px;
 }
 
@@ -884,7 +884,7 @@ body {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    z-index: 1000;
+    z-index: 1;
     margin-top: 4px;
     overflow: hidden;
 }
@@ -1034,7 +1034,7 @@ body {
     margin-top: 0;
     opacity: 1;
     visibility: visible;
-    z-index: 1001;
+    z-index: 1;
     margin-left: 8px;
 }
 
@@ -1064,7 +1064,7 @@ body {
 
 .filters-btn .material-symbols-outlined {
     position: relative;
-    z-index: 2;
+    z-index: 1;
     font-size: 18px;
     color: #374151;
     flex-shrink: 0;
@@ -1332,7 +1332,7 @@ body {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    z-index: 1002;
+    z-index: 1;
     max-height: 200px;
     overflow-y: auto;
 }

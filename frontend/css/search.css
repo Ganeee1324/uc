@@ -7854,10 +7854,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   position: absolute;
   right: 12px;
   top: 50%;
-  transform: translateY(-50%); /* Perfect vertical centering */
+  margin-top: -12.5px; /* Half of toggle height (25px) for perfect centering */
   z-index: 35;
   cursor: pointer;
-  /* Using transform for perfect centering without margin calculations */
+  /* Using margin-top to avoid transform conflicts with hover animations */
 }
 
 /* Ensure the search input doesn't overlap with the toggle */
@@ -7997,7 +7997,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   /* Ensure toggle stays perfectly centered on mobile */
   .search-bar .toggle-label {
     right: 10px;
-    transform: translateY(-50%);
+    margin-top: -10px; /* Half of mobile toggle height (20px) */
   }
   
   .search-bar .search-input {
@@ -8018,7 +8018,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   /* Ensure toggle stays perfectly centered on small mobile */
   .search-bar .toggle-label {
     right: 8px;
-    transform: translateY(-50%);
+    margin-top: -8.75px; /* Half of small mobile toggle height (17.5px) */
   }
   
   .search-bar .search-input {

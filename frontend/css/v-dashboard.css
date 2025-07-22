@@ -1474,7 +1474,7 @@ body {
         max-width: 350px;
         gap: 0;
         flex-wrap: nowrap;
-        align-items: center;
+        align-items: baseline;
     }
     
     .search-bar-wrapper {

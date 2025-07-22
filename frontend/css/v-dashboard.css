@@ -946,18 +946,18 @@ body {
     
     .search-bar-wrapper {
         max-width: 250px;
-        min-height: 60px;
+        min-height: 44px;
     }
     
     .search-bar-background, .search-bar-background::before {
         max-width: 250px;
-        min-height: 60px;
+        min-height: 44px;
     }
     
     .search-bar {
         width: 240px;
         max-width: 250px;
-        height: 60px;
+        height: 44px;
         border-radius: 20px;
     }
     
@@ -968,7 +968,7 @@ body {
     .filters-btn {
         border-left: 1px solid #e5e7eb;
         border-radius: 20px;
-        height: 60px;
+        height: 44px;
         width: 55px;
         min-width: 55px;
         font-size: 9px;
@@ -1479,18 +1479,18 @@ body {
     
     .search-bar-wrapper {
         max-width: 250px;
-        min-height: 60px;
+        min-height: 44px;
     }
     
     .search-bar-background, .search-bar-background::before {
         max-width: 250px;
-        min-height: 60px;
+        min-height: 44px;
     }
     
     .search-bar {
         width: 240px;
         max-width: 250px;
-        height: 60px;
+        height: 44px;
         border-radius: 20px;
         padding: 0 16px;
         margin: 0;
@@ -1504,7 +1504,7 @@ body {
     .filters-btn {
         border-left: 1px solid #e5e7eb;
         border-radius: 20px;
-        height: 60px;
+        height: 44px;
         width: 55px;
         min-width: 55px;
         font-size: 9px;
@@ -1777,19 +1777,25 @@ body {
     
     .search-bar-wrapper {
         max-width: 180px;
+        min-height: 44px;
+    }
+    
+    .search-bar-background, .search-bar-background::before {
+        max-width: 180px;
+        min-height: 44px;
     }
     
     .search-bar {
         width: 160px;
         max-width: 160px;
-        height: 32px;
+        height: 44px;
         border-radius: 16px;
         padding: 0 12px;
         margin: 0;
     }
     
     .filters-btn {
-        height: 32px;
+        height: 44px;
         width: 45px;
         min-width: 45px;
         font-size: 8px;

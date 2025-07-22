@@ -13,7 +13,7 @@ from visual_bge.modeling import Visualized_BGE
 
 
 model_path = r"C:\Users\fdimo\Downloads\Visualized_m3.pth" if os.name == "nt" else r"/home/ubuntu/Visualized_m3.pth"
-
+model = None
 
 def load_model():
     global model
@@ -60,7 +60,7 @@ def unload_model():
     logging.info(f"BGE model unloaded")
 
 
-model = load_model()
+load_model()
 
 
 if __name__ == "__main__":

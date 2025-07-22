@@ -6,43 +6,53 @@ function toggleMobileMenu() {
     isMobileMenuOpen = !isMobileMenuOpen;
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const hamburgerInput = document.querySelector('#mobileMenuToggle input[type="checkbox"]');
     
     console.log('New state:', isMobileMenuOpen);
-    console.log('Elements found:', { sidebar, sidebarOverlay, mobileMenuToggle });
+    console.log('Elements found:', { sidebar, sidebarOverlay, hamburgerInput });
     
     if (isMobileMenuOpen) {
         console.log('Opening mobile menu...');
         sidebar.classList.add('open');
         sidebarOverlay.classList.add('active');
-        mobileMenuToggle.innerHTML = '<span class="material-symbols-outlined">close</span>';
+        hamburgerInput.checked = true;
         document.body.style.overflow = 'hidden';
     } else {
         console.log('Closing mobile menu...');
         sidebar.classList.remove('open');
         sidebarOverlay.classList.remove('active');
-        mobileMenuToggle.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+        hamburgerInput.checked = false;
         document.body.style.overflow = '';
     }
 }
 
 function initializeMobileMenu() {
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const hamburger = document.getElementById('mobileMenuToggle');
+    const hamburgerInput = document.querySelector('#mobileMenuToggle input[type="checkbox"]');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     
     console.log('Initializing mobile menu...');
-    console.log('Mobile menu toggle:', mobileMenuToggle);
+    console.log('Hamburger:', hamburger);
+    console.log('Hamburger input:', hamburgerInput);
     console.log('Sidebar:', sidebar);
     console.log('Sidebar overlay:', sidebarOverlay);
     
-    if (mobileMenuToggle && sidebar) {
-        console.log('Adding click event listener to mobile menu toggle');
-        mobileMenuToggle.addEventListener('click', function(e) {
-            console.log('Mobile menu toggle clicked!');
+    if (hamburger && sidebar) {
+        console.log('Adding click event listener to hamburger');
+        hamburger.addEventListener('click', function(e) {
+            console.log('Hamburger clicked!');
             e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
+        });
+        
+        // Also listen for checkbox changes
+        hamburgerInput.addEventListener('change', function(e) {
+            console.log('Hamburger input changed:', e.target.checked);
+            if (e.target.checked !== isMobileMenuOpen) {
+                toggleMobileMenu();
+            }
         });
         
         // Close menu when clicking on overlay
@@ -56,7 +66,7 @@ function initializeMobileMenu() {
         
         // Close menu when clicking outside
         document.addEventListener('click', function(e) {
-            if (isMobileMenuOpen && !sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+            if (isMobileMenuOpen && !sidebar.contains(e.target) && !hamburger.contains(e.target)) {
                 toggleMobileMenu();
             }
         });

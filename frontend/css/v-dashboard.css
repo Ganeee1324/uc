@@ -1660,43 +1660,73 @@ body {
     opacity: 1;
 }
 
-/* Professional Mobile Menu Toggle Button */
-.mobile-menu-toggle {
+/* Animated Hamburger Menu Button */
+.hamburger {
     display: none;
     position: fixed;
     top: 20px;
     left: 20px;
     z-index: 1001;
-    background: #f5f5f5;
-    color: #666;
-    border: 1px solid #e0e0e0;
-    padding: 10px;
-    border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 44px; /* Minimum touch target */
+    min-width: 44px;
     min-height: 44px;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.mobile-menu-toggle:hover {
+.hamburger:hover {
     background: #e8e8e8;
-    color: #333;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.mobile-menu-toggle:active {
+.hamburger:active {
     transform: translateY(0);
     transition: transform 0.1s;
 }
 
+.hamburger input {
+    display: none;
+}
+
+.hamburger svg {
+    height: 2.5em;
+    transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line {
+    fill: none;
+    stroke: #666;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+    transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
+                stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line-top-bottom {
+    stroke-dasharray: 12 63;
+}
+
+.hamburger input:checked + svg {
+    transform: rotate(-45deg);
+}
+
+.hamburger input:checked + svg .line-top-bottom {
+    stroke-dasharray: 20 300;
+    stroke-dashoffset: -32.42;
+}
+
 /* Mobile-specific enhancements */
 @media (max-width: 768px) {
-    .mobile-menu-toggle {
+    .hamburger {
         display: flex;
     }
     
@@ -1745,7 +1775,7 @@ body {
     }
     
     /* Improved focus states for mobile navigation */
-    .mobile-menu-toggle:focus,
+    .hamburger:focus,
     .filters-btn:focus,
     .order-btn:focus {
         outline: 2px solid #3b82f6;
@@ -1778,25 +1808,30 @@ body {
 
 /* Dark mode considerations for mobile */
 @media (max-width: 768px) and (prefers-color-scheme: dark) {
-    .mobile-menu-toggle {
+    .hamburger {
         background: #404040;
-        color: #e0e0e0;
         border-color: #555;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     
-    .mobile-menu-toggle:hover {
+    .hamburger:hover {
         background: #505050;
-        color: #f0f0f0;
+    }
+    
+    .hamburger .line {
+        stroke: #e0e0e0;
     }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .mobile-menu-toggle {
+    .hamburger {
         background: #f0f0f0;
-        color: #000;
         border: 2px solid #000;
+    }
+    
+    .hamburger .line {
+        stroke: #000;
     }
     
     .document-card {
@@ -1810,10 +1845,15 @@ body {
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-    .mobile-menu-toggle,
+    .hamburger,
     .document-card,
     .filters-btn,
     .sidebar {
+        transition: none;
+    }
+    
+    .hamburger svg,
+    .hamburger .line {
         transition: none;
     }
     

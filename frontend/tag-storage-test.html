@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tag Storage Test - Uniclarity</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .danger {
+            background-color: #dc3545;
+        }
+        .danger:hover {
+            background-color: #c82333;
+        }
+        .success {
+            background-color: #28a745;
+        }
+        .success:hover {
+            background-color: #218838;
+        }
+        .info {
+            background-color: #17a2b8;
+        }
+        .info:hover {
+            background-color: #138496;
+        }
+        .output {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .tag {
+            background-color: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .tag.selected {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔖 Tag Storage Test</h1>
+        <p>This page demonstrates the tag storage functionality implemented in the search page.</p>
+
+        <div class="test-section">
+            <h3>📝 Test Tag Selection</h3>
+            <p>Click on tags to simulate selecting them in the search filters:</p>
+            <div class="tag-list" id="tagList">
+                <span class="tag" data-tag="appunti">Appunti</span>
+                <span class="tag" data-tag="dispense">Dispense</span>
+                <span class="tag" data-tag="esercizi">Esercizi</span>
+                <span class="tag" data-tag="slide">Slide</span>
+                <span class="tag" data-tag="progetti">Progetti</span>
+                <span class="tag" data-tag="esami">Esami</span>
+            </div>
+            <button class="success" onclick="saveSelectedTags()">💾 Save Selected Tags</button>
+            <button class="info" onclick="loadSavedTags()">📂 Load Saved Tags</button>
+            <button class="danger" onclick="clearSavedTags()">🗑️ Clear Saved Tags</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Current State</h3>
+            <button onclick="showCurrentState()">Show Current State</button>
+            <div class="output" id="currentState">Click "Show Current State" to see the current localStorage data</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Test Scenarios</h3>
+            <button onclick="testScenario1()">Test 1: Select Multiple Tags</button>
+            <button onclick="testScenario2()">Test 2: Clear and Reload</button>
+            <button onclick="testScenario3()">Test 3: Simulate Page Refresh</button>
+            <div class="output" id="testOutput">Test results will appear here</div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>Click on tags to select them (they will turn blue)</li>
+                <li>Click "Save Selected Tags" to store them in localStorage</li>
+                <li>Click "Load Saved Tags" to restore them</li>
+                <li>Try refreshing the page and then loading saved tags</li>
+                <li>Use the test scenarios to verify functionality</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the tag storage functions from search.js
+        let selectedTags = [];
+
+        // Initialize tag selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const tagValue = this.getAttribute('data-tag');
+                    if (this.classList.contains('selected')) {
+                        this.classList.remove('selected');
+                        selectedTags = selectedTags.filter(t => t !== tagValue);
+                    } else {
+                        this.classList.add('selected');
+                        selectedTags.push(tagValue);
+                    }
+                });
+            });
+        });
+
+        // Simulate the storage functions
+        function saveTagsToStorage(tags) {
+            try {
+                if (tags && Array.isArray(tags) && tags.length > 0) {
+                    localStorage.setItem('searchTags', JSON.stringify(tags));
+                    return true;
+                } else {
+                    localStorage.removeItem('searchTags');
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Could not save tags to localStorage:', e);
+                return false;
+            }
+        }
+
+        function getSavedTags() {
+            try {
+                const savedTags = localStorage.getItem('searchTags');
+                if (savedTags) {
+                    return JSON.parse(savedTags);
+                }
+            } catch (e) {
+                console.warn('Could not get saved tags from localStorage:', e);
+            }
+            return null;
+        }
+
+        function clearSavedTags() {
+            try {
+                localStorage.removeItem('searchTags');
+                return true;
+            } catch (e) {
+                console.warn('Could not clear tags from localStorage:', e);
+                return false;
+            }
+        }
+
+        // UI Functions
+        function saveSelectedTags() {
+            const success = saveTagsToStorage(selectedTags);
+            const output = document.getElementById('testOutput');
+            if (success) {
+                output.textContent = `✅ Successfully saved ${selectedTags.length} tags to localStorage:\n${selectedTags.join(', ')}`;
+            } else {
+                output.textContent = '❌ Failed to save tags to localStorage';
+            }
+        }
+
+        function loadSavedTags() {
+            const savedTags = getSavedTags();
+            const output = document.getElementById('testOutput');
+            
+            if (savedTags && savedTags.length > 0) {
+                // Update UI to show selected tags
+                const tags = document.querySelectorAll('.tag');
+                tags.forEach(tag => {
+                    const tagValue = tag.getAttribute('data-tag');
+                    if (savedTags.includes(tagValue)) {
+                        tag.classList.add('selected');
+                    } else {
+                        tag.classList.remove('selected');
+                    }
+                });
+                selectedTags = savedTags;
+                output.textContent = `✅ Successfully loaded ${savedTags.length} tags from localStorage:\n${savedTags.join(', ')}`;
+            } else {
+                output.textContent = 'ℹ️ No saved tags found in localStorage';
+            }
+        }
+
+        function clearSavedTags() {
+            const success = clearSavedTags();
+            const output = document.getElementById('testOutput');
+            if (success) {
+                output.textContent = '✅ Successfully cleared tags from localStorage';
+                // Clear UI selection
+                const tags = document.querySelectorAll('.tag');
+                tags.forEach(tag => tag.classList.remove('selected'));
+                selectedTags = [];
+            } else {
+                output.textContent = '❌ Failed to clear tags from localStorage';
+            }
+        }
+
+        function showCurrentState() {
+            const savedTags = getSavedTags();
+            const output = document.getElementById('currentState');
+            const state = {
+                'Selected Tags (UI)': selectedTags,
+                'Saved Tags (localStorage)': savedTags,
+                'localStorage Keys': Object.keys(localStorage).filter(key => key.includes('search')),
+                'localStorage Size': `${(JSON.stringify(localStorage).length / 1024).toFixed(2)} KB`
+            };
+            output.textContent = JSON.stringify(state, null, 2);
+        }
+
+        // Test Scenarios
+        function testScenario1() {
+            const output = document.getElementById('testOutput');
+            output.textContent = '🧪 Test 1: Select Multiple Tags\n';
+            
+            // Select some tags
+            const tagsToSelect = ['appunti', 'dispense', 'esercizi'];
+            selectedTags = tagsToSelect;
+            
+            // Update UI
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => {
+                const tagValue = tag.getAttribute('data-tag');
+                if (tagsToSelect.includes(tagValue)) {
+                    tag.classList.add('selected');
+                } else {
+                    tag.classList.remove('selected');
+                }
+            });
+            
+            // Save to localStorage
+            const success = saveTagsToStorage(selectedTags);
+            output.textContent += success ? '✅ Tags saved successfully\n' : '❌ Failed to save tags\n';
+            output.textContent += `Selected: ${selectedTags.join(', ')}`;
+        }
+
+        function testScenario2() {
+            const output = document.getElementById('testOutput');
+            output.textContent = '🧪 Test 2: Clear and Reload\n';
+            
+            // Clear localStorage
+            clearSavedTags();
+            output.textContent += '✅ Cleared localStorage\n';
+            
+            // Try to load
+            const savedTags = getSavedTags();
+            output.textContent += savedTags ? '❌ Tags still found (should be null)\n' : '✅ Tags properly cleared\n';
+            
+            // Clear UI
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => tag.classList.remove('selected'));
+            selectedTags = [];
+            output.textContent += '✅ UI cleared';
+        }
+
+        function testScenario3() {
+            const output = document.getElementById('testOutput');
+            output.textContent = '🧪 Test 3: Simulate Page Refresh\n';
+            
+            // Save some tags first
+            const testTags = ['slide', 'progetti'];
+            saveTagsToStorage(testTags);
+            output.textContent += '✅ Saved test tags\n';
+            
+            // Simulate page refresh by clearing UI but keeping localStorage
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => tag.classList.remove('selected'));
+            selectedTags = [];
+            output.textContent += '✅ Cleared UI (simulating page refresh)\n';
+            
+            // Now load from localStorage
+            const savedTags = getSavedTags();
+            if (savedTags && savedTags.length > 0) {
+                // Restore UI
+                tags.forEach(tag => {
+                    const tagValue = tag.getAttribute('data-tag');
+                    if (savedTags.includes(tagValue)) {
+                        tag.classList.add('selected');
+                    }
+                });
+                selectedTags = savedTags;
+                output.textContent += `✅ Successfully restored ${savedTags.length} tags from localStorage\n`;
+                output.textContent += `Restored: ${savedTags.join(', ')}`;
+            } else {
+                output.textContent += '❌ Failed to restore tags from localStorage';
+            }
+        }
+    </script>
+</body>
+</html> 

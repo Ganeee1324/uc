@@ -1518,14 +1518,14 @@ body {
     top: 20px;
     left: 20px;
     z-index: 1001;
-    background: #1976d2;
-    color: white;
-    border: none;
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #e0e0e0;
     padding: 10px;
     border-radius: 12px;
     cursor: pointer;
     font-size: 18px;
-    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 44px; /* Minimum touch target */
     min-height: 44px;
@@ -1534,9 +1534,10 @@ body {
 }
 
 .mobile-menu-toggle:hover {
-    background: #1565c0;
+    background: #e8e8e8;
+    color: #333;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(25, 118, 210, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .mobile-menu-toggle:active {
@@ -1629,19 +1630,24 @@ body {
 /* Dark mode considerations for mobile */
 @media (max-width: 768px) and (prefers-color-scheme: dark) {
     .mobile-menu-toggle {
-        background: #2563eb;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        background: #404040;
+        color: #e0e0e0;
+        border-color: #555;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     
     .mobile-menu-toggle:hover {
-        background: #1d4ed8;
+        background: #505050;
+        color: #f0f0f0;
     }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .mobile-menu-toggle {
-        border: 2px solid currentColor;
+        background: #f0f0f0;
+        color: #000;
+        border: 2px solid #000;
     }
     
     .document-card {

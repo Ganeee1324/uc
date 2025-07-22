@@ -19,17 +19,68 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     
     <div class="sidebar" id="sidebar">
-        <div class="logo">
-            <img src="images/Logo.png" alt="Logo" style="height:44px;width:auto;margin-right:10px;"> 
+        <!-- Logo Section -->
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="images/Logo.png" alt="Logo" style="height:44px;width:auto;margin-right:10px;"> 
+            </div>
         </div>
         
-        <div class="menu-item active">Profilo</div>
-        <div class="menu-item">Vendite</div>
-        <div class="menu-item">I Miei Documenti</div>
-        <div class="menu-item">Preferiti</div>
-        <div class="menu-item">Carica</div>
-        <div class="menu-item">Impostazioni</div>
-        <div class="menu-item">Log Out</div>
+        <!-- Main Navigation -->
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">Dashboard</h3>
+                <div class="menu-item active">
+                    <span class="menu-icon material-symbols-outlined">person</span>
+                    <span class="menu-text">Profilo</span>
+                </div>
+                <div class="menu-item">
+                    <span class="menu-icon material-symbols-outlined">analytics</span>
+                    <span class="menu-text">Vendite</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">Contenuti</h3>
+                <div class="menu-item">
+                    <span class="menu-icon material-symbols-outlined">folder</span>
+                    <span class="menu-text">I Miei Documenti</span>
+                </div>
+                <div class="menu-item">
+                    <span class="menu-icon material-symbols-outlined">favorite</span>
+                    <span class="menu-text">Preferiti</span>
+                </div>
+                <div class="menu-item">
+                    <span class="menu-icon material-symbols-outlined">upload</span>
+                    <span class="menu-text">Carica</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">Account</h3>
+                <div class="menu-item">
+                    <span class="menu-icon material-symbols-outlined">settings</span>
+                    <span class="menu-text">Impostazioni</span>
+                </div>
+                <div class="menu-item logout-item">
+                    <span class="menu-icon material-symbols-outlined">logout</span>
+                    <span class="menu-text">Log Out</span>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- User Profile Summary -->
+        <div class="sidebar-footer">
+            <div class="user-profile-summary">
+                <div class="user-avatar-small">
+                    <div class="user-avatar-gradient-small">UN</div>
+                </div>
+                <div class="user-info-small">
+                    <div class="user-name-small">Username</div>
+                    <div class="user-role-small">Venditore</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="main-content">

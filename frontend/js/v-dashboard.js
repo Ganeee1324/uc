@@ -2,16 +2,25 @@
 let isMobileMenuOpen = false;
 
 function toggleMobileMenu() {
+    console.log('toggleMobileMenu called, current state:', isMobileMenuOpen);
     isMobileMenuOpen = !isMobileMenuOpen;
     const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
     const mobileMenuToggle = document.getElementById('mobileMenuToggle');
     
+    console.log('New state:', isMobileMenuOpen);
+    console.log('Elements found:', { sidebar, sidebarOverlay, mobileMenuToggle });
+    
     if (isMobileMenuOpen) {
+        console.log('Opening mobile menu...');
         sidebar.classList.add('open');
+        sidebarOverlay.classList.add('active');
         mobileMenuToggle.innerHTML = '<span class="material-symbols-outlined">close</span>';
         document.body.style.overflow = 'hidden';
     } else {
+        console.log('Closing mobile menu...');
         sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
         mobileMenuToggle.innerHTML = '<span class="material-symbols-outlined">menu</span>';
         document.body.style.overflow = '';
     }
@@ -20,9 +29,30 @@ function toggleMobileMenu() {
 function initializeMobileMenu() {
     const mobileMenuToggle = document.getElementById('mobileMenuToggle');
     const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    console.log('Initializing mobile menu...');
+    console.log('Mobile menu toggle:', mobileMenuToggle);
+    console.log('Sidebar:', sidebar);
+    console.log('Sidebar overlay:', sidebarOverlay);
     
     if (mobileMenuToggle && sidebar) {
-        mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+        console.log('Adding click event listener to mobile menu toggle');
+        mobileMenuToggle.addEventListener('click', function(e) {
+            console.log('Mobile menu toggle clicked!');
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+        
+        // Close menu when clicking on overlay
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', function() {
+                if (isMobileMenuOpen) {
+                    toggleMobileMenu();
+                }
+            });
+        }
         
         // Close menu when clicking outside
         document.addEventListener('click', function(e) {
@@ -34,6 +64,13 @@ function initializeMobileMenu() {
         // Close menu on window resize if switching to desktop
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768 && isMobileMenuOpen) {
+                toggleMobileMenu();
+            }
+        });
+        
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isMobileMenuOpen) {
                 toggleMobileMenu();
             }
         });
@@ -178,8 +215,81 @@ function initializeFilters() {
     });
 }
 
+// Order/Sort Dropdown Functionality
+function initializeOrderDropdown() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderDropdown = document.querySelector('.order-dropdown-content');
+    const orderText = orderBtn?.querySelector('.order-text');
+    let isOrderOpen = false;
+
+    if (!orderBtn || !orderDropdown) return;
+
+    // Toggle dropdown
+    orderBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isOrderOpen = !isOrderOpen;
+        
+        if (isOrderOpen) {
+            orderDropdown.style.display = 'block';
+            orderBtn.classList.add('active');
+        } else {
+            orderDropdown.style.display = 'none';
+            orderBtn.classList.remove('active');
+        }
+    });
+
+    // Handle option selection
+    document.querySelectorAll('.order-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const selectedOrder = this.dataset.order;
+            const selectedText = this.querySelector('.order-text').textContent;
+            
+            // Update button text
+            if (orderText) {
+                orderText.textContent = selectedText;
+            }
+            
+            // Remove active class from all options
+            document.querySelectorAll('.order-option').forEach(opt => opt.classList.remove('active'));
+            // Add active class to selected option
+            this.classList.add('active');
+            
+            // Close dropdown
+            orderDropdown.style.display = 'none';
+            orderBtn.classList.remove('active');
+            isOrderOpen = false;
+            
+            // Here you can add logic to actually sort the results
+            console.log('Selected order:', selectedOrder);
+        });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (isOrderOpen && !orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
+            orderDropdown.style.display = 'none';
+            orderBtn.classList.remove('active');
+            isOrderOpen = false;
+        }
+    });
+
+    // Close dropdown on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isOrderOpen) {
+            orderDropdown.style.display = 'none';
+            orderBtn.classList.remove('active');
+            isOrderOpen = false;
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeMobileMenu();
     initializeAISearchToggle();
     initializeFilters();
+    initializeOrderDropdown();
 }); 

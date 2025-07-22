@@ -1465,10 +1465,7 @@ body {
         padding: 20px 15px 24px 15px;
     }
     
-    .search-container-wrapper {
-        position: relative;
-        top: auto;
-    }
+
     
     .search-container {
         min-width: 430px;

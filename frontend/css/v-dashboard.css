@@ -207,7 +207,7 @@ body {
     display: flex;
     align-items: flex-start;
     gap: 30px;
-    padding-top: 30px;
+    padding-top: 0;
 }
 
 .profile-image-container {
@@ -1416,7 +1416,7 @@ body {
         align-items: center;
         text-align: center;
         gap: 20px;
-        padding-top: 20px;
+        padding-top: 0;
     }
     
     .profile-image {
@@ -1673,7 +1673,7 @@ body {
     }
     
     .profile-header {
-        padding-top: 15px;
+        padding-top: 0;
     }
     
     .dashboard-row {

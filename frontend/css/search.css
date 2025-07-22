@@ -1813,13 +1813,14 @@ body.filters-open .document-count-container {
 @media (max-width: 480px) {
     .document-count-and-filters {
         gap: var(--space-2);
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
     }
     
     .document-count {
         font-size: 0.8rem;
-        margin-bottom: var(--space-1);
+        margin-bottom: 0;
     }
     
     .order-label {
@@ -1828,8 +1829,8 @@ body.filters-open .document-count-container {
     }
     
     .order-dropdown-container {
-        margin-left: 0;
-        align-self: flex-start;
+        margin-left: auto;
+        align-self: flex-end;
     }
     
     .filter-pill {

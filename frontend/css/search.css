@@ -703,7 +703,7 @@ html {
     line-height: 1.8; /* Increased line height for better readability */
     font-family: 'Inter', sans-serif;
     font-weight: 400;
-    max-width: 800px; /* Significantly more horizontal space */
+    max-width: 800px; /* Reduced from 800px for more restricted space on normal screens */
     margin: 0 auto;
     position: relative;
     z-index: 2;
@@ -856,7 +856,6 @@ html {
     .search-section.no-results-state .search-container {
         margin-bottom: var(--space-4);
     }
-}
 
 @media (max-width: 480px) {
     .no-results {
@@ -1092,6 +1091,38 @@ html {
     transition: all 2s;
 }
 
+/* Glow layer */
+.search-bar-container .glow {
+    overflow: hidden;
+    will-change: filter;
+    filter: blur(20px);
+    opacity: 0.6;
+    min-height: 120px;
+    max-width: 464px;
+}
+
+.search-bar-container .glow:before {
+    content: "";
+    z-index: -2;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(60deg);
+    position: absolute;
+    width: 999px;
+    height: 999px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-image: conic-gradient(
+        transparent,
+        #402fb5 5%,
+        transparent 38%,
+        transparent 50%,
+        #cf30aa 60%,
+        transparent 87%
+    );
+    transition: all 2s;
+}
 
 /* Hover animations */
 .search-bar-container:hover > .darkBorderBg::before {
@@ -1183,7 +1214,7 @@ html {
     opacity: 0;
 }
 
-.search-bar:focus-within {
+.search-bar:has(.search-input:focus) {
     transform: translateY(-2px);
     outline: none;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
@@ -3355,7 +3386,29 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-size: 12px;
     font-weight: 600;
     color: var(--blue-600);
+    padding: 4px 0;
+    background: rgba(59, 130, 246, 0.02);
+    border-radius: var(--radius-xs);
+    position: relative;
  }
+
+ .price-values::before {
+    content: "Clicca sui prezzi per modificarli";
+    position: absolute;
+    top: -20px;
+    left: 0;
+    right: 0;
+    font-size: 11px;
+    color: var(--gray-500);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.price-values:hover::before {
+    opacity: 1;
+}
 
 /* Pages Range Filter */
 .pages-range-filter {
@@ -3452,30 +3505,55 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Editable Values */
 .editable-value {
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 4px 8px;
     border-radius: var(--radius-xs);
     transition: all 0.2s var(--ease-2);
     user-select: none;
     position: relative;
+    background-color: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    font-weight: 600;
+    color: var(--blue-700);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.editable-value::after {
+    content: '';
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
 }
 
 .editable-value:hover {
-    background-color: var(--gray-100);
-    color: var(--blue-600);
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: var(--blue-800);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+}
+
+.editable-value:hover::after {
+    opacity: 1;
 }
 
 .editable-value:active {
-    background-color: var(--gray-200);
-    transform: scale(0.95);
+    background-color: rgba(59, 130, 246, 0.15);
+    transform: translateY(0) scale(0.98);
 }
 
 .editable-value.editing {
     background-color: var(--white);
-    border: 1px solid var(--blue-500);
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-    padding: 1px 5px;
-    min-width: 40px;
+    border: 2px solid var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 3px 7px;
+    min-width: 50px;
     display: inline-block;
+    color: var(--blue-900);
+}
+
+.editable-value.editing::after {
+    display: none;
 }
 
 .editable-value input {
@@ -3503,13 +3581,18 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
     .editable-value {
-        padding: 3px 8px;
-        font-size: 0.9em;
+        padding: 4px 6px;
+        font-size: 0.85em;
+    }
+    
+    .editable-value::after {
+        font-size: 9px;
+        margin-left: 3px;
     }
     
     .editable-value.editing {
-        padding: 2px 6px;
-        min-width: 35px;
+        padding: 3px 5px;
+        min-width: 40px;
     }
 }
  
@@ -7957,6 +8040,22 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   /* Using transform for perfect centering that works across all screen sizes */
 }
 
+/* Prevent toggle from moving in any state - lock it in position */
+.toggle-label,
+.toggle-label:hover,
+.toggle-label:focus,
+.toggle-label:active,
+.search-bar .toggle-label,
+.search-bar .toggle-label:hover,
+.search-bar .toggle-label:focus,
+.search-bar .toggle-label:active {
+  transform: translateY(-50%) !important;
+  transition: none !important;
+}
+
+
+
+
 /* Ensure the search input doesn't overlap with the toggle */
 .search-bar .search-input {
   padding-right: 55px; /* Increased padding to accommodate toggle with proper spacing */
@@ -8016,7 +8115,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Move with search bar hover/focus animation */
 .search-bar-wrapper:hover .search-bar-background,
 .search-bar-wrapper:has(.search-bar:hover) .search-bar-background,
-.search-bar-wrapper:has(.search-bar:focus-within) .search-bar-background {
+.search-bar-wrapper:has(.search-input:focus) .search-bar-background {
     transform: translateY(-2px);
 }
 
@@ -8271,6 +8370,28 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-size: 12px;
     font-weight: 600;
     color: var(--blue-600);
+    padding: 4px 0;
+    background: rgba(59, 130, 246, 0.02);
+    border-radius: var(--radius-xs);
+    position: relative;
+}
+
+.pages-range-filter .range-values::before {
+    content: "Clicca sui numeri per modificarli";
+    position: absolute;
+    top: -20px;
+    left: 0;
+    right: 0;
+    font-size: 11px;
+    color: var(--gray-500);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.pages-range-filter .range-values:hover::before {
+    opacity: 1;
 }
 
 .sticky-left {

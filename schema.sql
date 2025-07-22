@@ -20,6 +20,11 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     last_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_faculty VARCHAR(255),
+    user_enrollment_year INTEGER,
+    user_canale VARCHAR(255),
+    bio TEXT,
+    profile_picture VARCHAR(255),
     password VARCHAR(255) NOT NULL
 );
 

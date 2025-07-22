@@ -638,7 +638,7 @@ body {
 
 .search-container {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
     flex-direction: row;
     gap: 12px;
@@ -788,6 +788,7 @@ body {
     position: relative;
     z-index: 1001;
     margin: 0;
+    margin-left: 8px;
 }
 
 .filters-btn:hover {
@@ -1456,7 +1457,7 @@ body {
         max-width: 350px;
         gap: 0;
         flex-wrap: nowrap;
-        align-items: baseline;
+        align-items: center;
     }
     
     .search-bar-wrapper {
@@ -1489,6 +1490,7 @@ body {
         justify-content: center;
         align-items: center;
         margin: 0;
+        margin-left: 8px;
     }
     
     .filters-btn .filters-text {
@@ -1745,7 +1747,7 @@ body {
     
     .search-container {
         max-width: 320px;
-        align-items: baseline;
+        align-items: center;
     }
     
     .search-bar-wrapper {
@@ -1767,6 +1769,7 @@ body {
         min-width: 45px;
         font-size: 8px;
         margin: 0;
+        margin-left: 6px;
     }
     
     .filters-btn .material-symbols-outlined {

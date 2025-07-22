@@ -97,22 +97,16 @@
                 </svg>
             </button>
             <div class="profile-header">
-                <div class="profile-image">
-                    <div class="user-avatar-gradient" style="
-                        width: 100%;
-                        height: 100%;
-                        border-radius: 50%;
-                        background: linear-gradient(135deg, #49c5eb 0%, #3b82f6 100%);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        font-weight: 700;
-                        font-size: 40px;
-                        text-transform: uppercase;
-                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                    ">UN</div>
-                    <button class="change-image-btn">Change image</button>
+                <div class="profile-image-container">
+                    <div class="profile-image">
+                        <div class="user-avatar-gradient">UN</div>
+                        <div class="profile-image-overlay">
+                            <button class="change-image-btn" type="button">
+                                <span class="material-symbols-outlined">photo_camera</span>
+                                <span class="change-image-text">Change</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="profile-info">
                     <h2>Personal Information</h2>

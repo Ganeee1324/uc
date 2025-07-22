@@ -698,7 +698,7 @@ body {
     align-items: center;
     width: 100%;
     max-width: 500px;
-    height: 44px;
+    min-height: 60px;
     background: #fff;
     border: none;
     border-radius: 20px;
@@ -939,24 +939,24 @@ body {
 
 @media (max-width: 600px) {
     .search-container {
-        max-width: 350px;
+        max-width: 390px;
         gap: 0;
         flex-wrap: nowrap;
     }
     
     .search-bar-wrapper {
-        max-width: 210px;
+        max-width: 250px;
         min-height: 60px;
     }
     
     .search-bar-background, .search-bar-background::before {
-        max-width: 210px;
+        max-width: 250px;
         min-height: 60px;
     }
     
     .search-bar {
-        width: 200px;
-        max-width: 200px;
+        width: 240px;
+        max-width: 250px;
         height: 60px;
         border-radius: 20px;
     }
@@ -1471,25 +1471,25 @@ body {
     }
     
     .search-container {
-        max-width: 350px;
+        max-width: 390px;
         gap: 0;
         flex-wrap: nowrap;
         align-items: center;
     }
     
     .search-bar-wrapper {
-        max-width: 210px;
+        max-width: 250px;
         min-height: 60px;
     }
     
     .search-bar-background, .search-bar-background::before {
-        max-width: 210px;
+        max-width: 250px;
         min-height: 60px;
     }
     
     .search-bar {
-        width: 200px;
-        max-width: 200px;
+        width: 240px;
+        max-width: 250px;
         height: 60px;
         border-radius: 20px;
         padding: 0 16px;

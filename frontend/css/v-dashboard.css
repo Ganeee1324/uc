@@ -1507,6 +1507,13 @@ body {
         height: 100%;
     }
     
+    /* Mobile alignment for search bar and filters button */
+    .search-container:hover .filters-btn,
+    .search-bar:focus-within ~ .filters-btn,
+    .search-container:has(.search-bar:focus-within) .filters-btn {
+        transform: translateY(-2px);
+    }
+    
     /* Document Count and Sort */
     .document-count-container {
         padding: 0 15px;
@@ -1752,11 +1759,17 @@ body {
         width: 45px;
         min-width: 45px;
         font-size: 8px;
-        margin-left: 6px;
     }
     
     .filters-btn .material-symbols-outlined {
         font-size: 14px;
+    }
+    
+    /* Small mobile alignment for search bar and filters button */
+    .search-container:hover .filters-btn,
+    .search-bar:focus-within ~ .filters-btn,
+    .search-container:has(.search-bar:focus-within) .filters-btn {
+        transform: translateY(-2px);
     }
     
     /* Toggle label mobile styles */
@@ -2022,6 +2035,12 @@ body {
     
     .filters-btn:hover {
         transform: none;
+    }
+    
+    /* Ensure alignment on mobile when search bar is focused */
+    .search-bar:focus-within ~ .filters-btn,
+    .search-container:has(.search-bar:focus-within) .filters-btn {
+        transform: translateY(-2px);
     }
     
     /* Improved focus states for mobile navigation */

@@ -7849,20 +7849,20 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     calc(10s / var(--duration)) infinite;
 }
 
-/* Position the toggle in the search bar */
+/* Position the toggle in the search bar - perfectly centered */
 .search-bar .toggle-label {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
-  margin-top: -16px; /* Half of toggle height (25px) for perfect centering */
+  transform: translateY(-50%); /* Perfect vertical centering */
   z-index: 35;
   cursor: pointer;
-  /* Using margin-top instead of transform to avoid bouncing */
+  /* Using transform for perfect centering without margin calculations */
 }
 
 /* Ensure the search input doesn't overlap with the toggle */
 .search-bar .search-input {
-  padding-right: 50px;
+  padding-right: 55px; /* Increased padding to accommodate toggle with proper spacing */
 }
 
 /* Search bar wrapper for proper layering */
@@ -7950,10 +7950,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         #cf30aa calc(var(--expand-progress) * 1% - 2%), 
         #d848b0 calc(var(--expand-progress) * 1% + 8%), 
         #e060b6 calc(var(--expand-progress) * 1% + 18%), 
-        #e878bc calc(var(--expand-progress) * 1% + 28%), 
-        #d174c2 calc(var(--expand-progress) * 1% + 38%), 
-        #ba70c8 calc(var(--expand-progress) * 1% + 48%), 
-        #8a5fd4 calc(var(--expand-progress) * 1% + 58%), 
+        #ba70c8 calc(var(--expand-progress) * 1% + 28%), 
+        #8a5fd4 calc(var(--expand-progress) * 1% + 38%), 
+        #7a56da calc(var(--expand-progress) * 1% + 48%), 
+        #6a3ce0 calc(var(--expand-progress) * 1% + 58%), 
         #5a4ee0 calc(var(--expand-progress) * 1% + 68%), 
         #402fb5 calc(var(--expand-progress) * 1% + 78%), 
         #402fb5 calc(var(--expand-progress) * 1% + 135%), 
@@ -7971,10 +7971,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         #cf30aa calc(var(--expand-progress) * 1% - 2%), 
         #d848b0 calc(var(--expand-progress) * 1% + 8%), 
         #e060b6 calc(var(--expand-progress) * 1% + 18%), 
-        #e878bc calc(var(--expand-progress) * 1% + 28%), 
-        #d174c2 calc(var(--expand-progress) * 1% + 38%), 
-        #ba70c8 calc(var(--expand-progress) * 1% + 48%), 
-        #8a5fd4 calc(var(--expand-progress) * 1% + 58%), 
+        #ba70c8 calc(var(--expand-progress) * 1% + 28%), 
+        #8a5fd4 calc(var(--expand-progress) * 1% + 38%), 
+        #7a56da calc(var(--expand-progress) * 1% + 48%), 
+        #6a3ce0 calc(var(--expand-progress) * 1% + 58%), 
         #5a4ee0 calc(var(--expand-progress) * 1% + 68%), 
         #402fb5 calc(var(--expand-progress) * 1% + 78%), 
         #402fb5 calc(var(--expand-progress) * 1% + 135%), 
@@ -7993,6 +7993,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   .toggle-label .cont-icon {
     height: 20px;
   }
+  
+  /* Ensure toggle stays perfectly centered on mobile */
+  .search-bar .toggle-label {
+    right: 10px;
+    transform: translateY(-50%);
+  }
+  
+  .search-bar .search-input {
+    padding-right: 50px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -8003,6 +8013,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   
   .toggle-label .cont-icon {
     height: 17.5px;
+  }
+  
+  /* Ensure toggle stays perfectly centered on small mobile */
+  .search-bar .toggle-label {
+    right: 8px;
+    transform: translateY(-50%);
+  }
+  
+  .search-bar .search-input {
+    padding-right: 45px;
   }
 }
 

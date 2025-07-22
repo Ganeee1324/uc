@@ -2463,6 +2463,9 @@ class FilterManager {
         }
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
+        
+        // Save to localStorage whenever a filter is set
+        saveFiltersToStorage();
     }
     
     // Remove a filter
@@ -2470,6 +2473,9 @@ class FilterManager {
         delete this.filters[key];
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
+        
+        // Save to localStorage whenever a filter is removed
+        saveFiltersToStorage();
     }
     
     // Get current filter count
@@ -2794,6 +2800,7 @@ function clearAllFiltersAction() {
     // Clear filters from localStorage
     try {
         localStorage.removeItem('searchFilters');
+        localStorage.removeItem('searchTags');
     } catch (e) {
         console.warn('Could not clear filters from localStorage:', e);
     }
@@ -5004,80 +5011,122 @@ function triggerFilterUpdate() {
 
 function saveFiltersToStorage() {
     try {
+        // Save all filters including tags
         localStorage.setItem('searchFilters', JSON.stringify(filterManager.filters));
+        
+        // Also save tags separately for easier access
+        if (filterManager.filters.tag) {
+            localStorage.setItem('searchTags', JSON.stringify(filterManager.filters.tag));
+        } else {
+            localStorage.removeItem('searchTags');
+        }
     } catch (e) {
         console.warn('Could not save filters to localStorage:', e);
     }
 }
 
 function restoreFiltersFromStorage() {
-    
-    // Clear all filters on page refresh - treat it like a fresh visit
-    filterManager.filters = {};
-    
-    // Clear filters from localStorage
     try {
-        localStorage.removeItem('searchFilters');
+        // Try to restore filters from localStorage
+        const savedFilters = localStorage.getItem('searchFilters');
+        const savedTags = localStorage.getItem('searchTags');
+        
+        if (savedFilters) {
+            const parsedFilters = JSON.parse(savedFilters);
+            
+            // Restore all filters
+            filterManager.filters = parsedFilters;
+            
+            // Ensure tags are properly restored
+            if (savedTags) {
+                const parsedTags = JSON.parse(savedTags);
+                filterManager.filters.tag = parsedTags;
+            }
+            
+            // Update UI to reflect restored filters
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateBottomFilterCount();
+            updateActiveFiltersDisplay();
+            
+            // Apply filters to current documents
+            if (originalFiles && originalFiles.length > 0) {
+                const filteredFiles = applyClientSideFilters(originalFiles);
+                renderDocuments(filteredFiles);
+                currentFiles = filteredFiles;
+                
+                const filterCount = filterManager.getActiveFilterCount().count;
+                if (filterCount > 0) {
+                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
+                } else {
+                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
+                }
+            }
+        } else {
+            // No saved filters, start fresh
+            filterManager.filters = {};
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateBottomFilterCount();
+            updateActiveFiltersDisplay();
+            
+            // Show all documents
+            if (originalFiles && originalFiles.length > 0) {
+                renderDocuments(originalFiles);
+                currentFiles = originalFiles;
+                showStatus(`${originalFiles.length} documenti disponibili 📚`);
+            }
+        }
     } catch (e) {
-        console.warn('Could not clear filters from localStorage:', e);
-    }
-    
-    // Reset UI to clean state
-    updateFilterInputs();
-    updateActiveFilterIndicators();
-    updateBottomFilterCount();
-    updateActiveFiltersDisplay();
-    
-    // Show all documents
-    setTimeout(() => {
-        if (originalFiles && originalFiles.length > 0) {
-            renderDocuments(originalFiles);
-            currentFiles = originalFiles;
-            showStatus(`${originalFiles.length} documenti disponibili 📚`);
-        }
-    }, 300);
-    
-    // Force a re-render of dropdown options to ensure clean visual states
-    setTimeout(() => {
-        
-        // First populate dropdown options
-        if (window.facultyCoursesData) {
-            populateDropdownOptions();
-        }
-        
-        // Then update all UI elements with clean filter states
+        console.warn('Could not restore filters from localStorage:', e);
+        // Fallback to fresh start
+        filterManager.filters = {};
         updateFilterInputs();
         updateActiveFilterIndicators();
         updateBottomFilterCount();
         updateActiveFiltersDisplay();
         
-        // Force update of all filter-related UI elements
-        const filterCount = document.getElementById('filterCount');
-        if (filterCount) {
-            filterCount.textContent = '0';
-            filterCount.classList.remove('active');
+        if (originalFiles && originalFiles.length > 0) {
+            renderDocuments(originalFiles);
+            currentFiles = originalFiles;
+            showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
-        
-        // Force update of filters button state
-        const filtersBtn = document.getElementById('filtersBtn');
-        if (filtersBtn) {
-            filtersBtn.classList.remove('has-filters');
+    }
+}
+
+// New function to save tags specifically
+function saveTagsToStorage(tags) {
+    try {
+        if (tags && Array.isArray(tags) && tags.length > 0) {
+            localStorage.setItem('searchTags', JSON.stringify(tags));
+        } else {
+            localStorage.removeItem('searchTags');
         }
-        
-        // Final check to ensure everything is properly updated
-        setTimeout(() => {
-            updateBottomFilterCount();
-            updateActiveFilterIndicators();
-            updateActiveFiltersDisplay();
-            
-            // Ensure filter pills are hidden
-            const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-            if (activeFiltersContainer) {
-                activeFiltersContainer.classList.remove('visible');
-            }
-            
-        }, 100);
-    }, 200);
+    } catch (e) {
+        console.warn('Could not save tags to localStorage:', e);
+    }
+}
+
+// New function to get saved tags
+function getSavedTags() {
+    try {
+        const savedTags = localStorage.getItem('searchTags');
+        if (savedTags) {
+            return JSON.parse(savedTags);
+        }
+    } catch (e) {
+        console.warn('Could not get saved tags from localStorage:', e);
+    }
+    return null;
+}
+
+// New function to clear saved tags
+function clearSavedTags() {
+    try {
+        localStorage.removeItem('searchTags');
+    } catch (e) {
+        console.warn('Could not clear tags from localStorage:', e);
+    }
 }
 
 function updateFilterInputs() {
@@ -5127,7 +5176,12 @@ function updateFilterInputs() {
             if (type === 'language' && languageDisplayMap[filterManager.filters[filterKey]]) {
                 displayValue = languageDisplayMap[filterManager.filters[filterKey]];
             } else if (type === 'tag') {
-                displayValue = getTagDisplayName(filterManager.filters[filterKey]);
+                // Handle multiple tags
+                if (Array.isArray(filterManager.filters[filterKey])) {
+                    displayValue = filterManager.filters[filterKey].map(tag => getTagDisplayName(tag)).join(', ');
+                } else {
+                    displayValue = getTagDisplayName(filterManager.filters[filterKey]);
+                }
             }
             
             input.value = displayValue;

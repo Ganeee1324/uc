@@ -920,23 +920,70 @@ body {
 }
 
 @media (max-width: 600px) {
+    .search-container {
+        max-width: 350px;
+        gap: 0;
+        flex-wrap: nowrap;
+    }
+    
+    .search-bar-wrapper {
+        max-width: 210px;
+        min-height: 60px;
+    }
+    
     .search-bar {
         width: 200px;
         max-width: 200px;
         height: 36px;
         border-radius: 20px;
     }
-    .search-container {
-        max-width: 350px;
-        gap: 0;
-        flex-wrap: nowrap;
+    
+    .search-input {
+        font-size: 16px; /* iOS optimization - prevents zoom */
     }
+    
+    .filters-btn {
+        border-left: 1px solid #e5e7eb;
+        border-radius: 20px;
+        height: 36px;
+        width: 55px;
+        min-width: 55px;
+        font-size: 9px;
+        margin-left: 8px;
+        padding: 0;
+        gap: 0;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .filters-btn .filters-text {
+        display: none !important;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .filters-btn .material-symbols-outlined {
+        font-size: 16px;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+    
     .search-section {
         padding: 24px 8px 32px 8px;
     }
+    
     .search-title {
         font-size: 32px;
     }
+    
     .search-subtitle {
         font-size: 16px;
         margin-bottom: 24px;
@@ -1399,22 +1446,21 @@ body {
     }
     
     .search-container {
-        flex-direction: column;
-        gap: 12px;
-        max-width: 100%;
-        padding: 0 5px;
+        max-width: 350px;
+        gap: 0;
+        flex-wrap: nowrap;
     }
     
     .search-bar-wrapper {
-        width: 100%;
-        max-width: 100%;
+        max-width: 210px;
+        min-height: 60px;
     }
     
     .search-bar {
-        width: 100%;
-        max-width: 100%;
-        height: 48px;
-        padding: 0 20px;
+        width: 200px;
+        max-width: 200px;
+        height: 36px;
+        border-radius: 20px;
     }
     
     .search-input {
@@ -1423,16 +1469,37 @@ body {
     }
     
     .filters-btn {
-        width: 100%;
-        height: 48px;
-        margin-left: 0;
+        border-left: 1px solid #e5e7eb;
+        border-radius: 20px;
+        height: 36px;
+        width: 55px;
+        min-width: 55px;
+        font-size: 9px;
+        margin-left: 8px;
+        padding: 0;
+        gap: 0;
         justify-content: center;
-        min-width: auto;
-        border-radius: 12px;
+        align-items: center;
     }
     
-    .filters-text {
-        display: inline;
+    .filters-btn .filters-text {
+        display: none !important;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .filters-btn .material-symbols-outlined {
+        font-size: 16px;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
     }
     
     /* Document Count and Sort */
@@ -1660,15 +1727,53 @@ body {
         padding: 15px 12px 20px 12px;
     }
     
+    .search-container {
+        max-width: 320px;
+    }
+    
+    .search-bar-wrapper {
+        max-width: 180px;
+    }
+    
     .search-bar {
-        height: 44px;
-        padding: 0 16px;
+        width: 160px;
+        max-width: 160px;
+        height: 32px;
+        border-radius: 16px;
     }
     
     .filters-btn {
-        height: 44px;
-        font-size: 12px;
-        padding: 0 16px;
+        height: 32px;
+        width: 45px;
+        min-width: 45px;
+        font-size: 8px;
+        margin-left: 6px;
+    }
+    
+    .filters-btn .material-symbols-outlined {
+        font-size: 14px;
+    }
+    
+    /* Toggle label mobile styles */
+    .toggle-label {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .toggle-label .cont-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .search-bar .toggle-label {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .search-bar .search-input {
+        padding-right: 40px;
     }
     
     /* Document count mobile */

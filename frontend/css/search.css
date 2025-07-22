@@ -1110,6 +1110,7 @@ html {
     z-index: 1;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Animation keyframes for border rotation */
@@ -1137,6 +1138,7 @@ html {
 
 .search-bar:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .search-bar:hover::before {
@@ -1146,6 +1148,7 @@ html {
 .search-bar:focus-within {
     transform: translateY(-2px);
     outline: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .search-input {
@@ -7866,7 +7869,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar-wrapper {
     position: relative;
     display: inline-block;
-    border-radius: 12px;
+    border-radius: 20px;
 }
 
 /* Invisible element that matches search bar position */
@@ -7881,43 +7884,34 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     left: -2px; /* Move left to create space */
     width: calc(100% + 4px); /* Increase width to account for padding */
     height: calc(100% + 4px); /* Increase height to account for padding */
-    background-image: linear-gradient(315deg, 
-        transparent 0%, 
-        transparent calc(var(--expand-progress) * 1% - 80%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 75%), 
-        #402fb5 calc(var(--expand-progress) * 1% - 25%), 
-        #5a189a calc(var(--expand-progress) * 1% - 20%), 
-        #7b2cbf calc(var(--expand-progress) * 1% - 15%), 
-        #9d4edd calc(var(--expand-progress) * 1% - 10%), 
-        #b75cff calc(var(--expand-progress) * 1% - 5%), 
-        #d166e6 calc(var(--expand-progress) * 1%), 
-        #e070d1 calc(var(--expand-progress) * 1% + 5%), 
-        #ed7abc calc(var(--expand-progress) * 1% + 10%), 
-        #f584a7 calc(var(--expand-progress) * 1% + 15%), 
-        #fb8e92 calc(var(--expand-progress) * 1% + 20%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 25%), 
-        #cf30aa calc(var(--expand-progress) * 1% + 30%), 
-        transparent calc(var(--expand-progress) * 1% + 35%)
-    );
     border: none;
     border-radius: 20px; /* Slightly larger radius */
     z-index: 0;
     pointer-events: none;
-    animation: expandFromBottomRight 1s ease-out forwards;
     filter: brightness(1.5);
+    /* Safari-specific fixes */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+    overflow: visible;
 }
 .search-bar-background::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -2.5px;
+    left: -2.5px;
+    width: calc(100% +  0px);
+    height: calc(100% + 0px);
     filter: blur(20px);
-    opacity: 0.7;
-    border-radius: 12px;
-    z-index: 0;
+    opacity: 1;
+    border-radius: 5px;
+    z-index: 1002;
+    overflow: visible;
+    transform: translateZ(0);
 }
+
 
 /* Move with search bar hover/focus animation */
 .search-bar-wrapper:hover .search-bar-background,
@@ -7925,62 +7919,63 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar-wrapper:has(.search-bar:focus-within) .search-bar-background {
     transform: translateY(-2px);
 }
-@keyframes expandFromBottomRight {
+
+@keyframes moveToLeft {
+    0% {
+        --expand-progress: 100;
+    }
+    100% {
+        --expand-progress: 0;
+    }
+}
+
+@keyframes moveToRight {
     0% {
         --expand-progress: 0;
     }
     100% {
-        --expand-progress: 100;  /* Animation goes to 100% */
+        --expand-progress: 135;
     }
 }
 
-@keyframes expandFromTopLeft {
-    0% {
-        --expand-progress: 0;
-    }
-    100% {
-        --expand-progress: 100;  /* Animation goes to 100% */
-    }
-}
-
-/* Animation for toggle OFF (pink right, purple left) */
-.search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background {
-    background-image: linear-gradient(270deg, 
-        #cf30aa 0%, /* pink left */
-        #cf30aa 5%,
-        #fb8e92 10%,
-        #f584a7 15%,
-        #ed7abc 20%,
-        #e070d1 25%,
-        #d166e6 30%,
-        #b75cff 35%,
-        #9d4edd 40%,
-        #7b2cbf 60%,
-        #5a189a 80%,
-        #402fb5 95%, /* purple right */
-        #402fb5 100%
+/* Animation for toggle OFF (pink left, purple right - moves LEFT) - exact same positioning as ON for perfect symmetry */
+.search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background,
+.search-bar-wrapper:not(:has(.toggle-input:checked)) .search-bar-background::before {
+    background-image: linear-gradient(120deg, 
+        transparent 0%, 
+        transparent calc(var(--expand-progress) * 1% - 5%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
+        #d848b0 calc(var(--expand-progress) * 1% + 5%), 
+        #e060b6 calc(var(--expand-progress) * 1% + 25%), 
+        #e878bc calc(var(--expand-progress) * 1% + 35%), 
+        #d174c2 calc(var(--expand-progress) * 1% + 45%), 
+        #ba70c8 calc(var(--expand-progress) * 1% + 55%), 
+        #402fb5 calc(var(--expand-progress) * 1% + 65%), 
+        #402fb5 calc(var(--expand-progress) * 1% + 135%), 
+        transparent calc(var(--expand-progress) * 1% + 130%)
     );
-    animation: expandFromBottomRight 2s ease-out forwards;
+    animation: moveToRight 1s ease-out forwards;
 }
 
-/* Animation for toggle ON (purple right, pink left) */
-.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background {
-    background-image: linear-gradient(90deg, 
-        #cf30aa 0%, /* pink left */
-        #cf30aa 5%,
-        #fb8e92 10%,
-        #f584a7 15%,
-        #ed7abc 20%,
-        #e070d1 25%,
-        #d166e6 30%,
-        #b75cff 35%,
-        #9d4edd 40%,
-        #7b2cbf 60%,
-        #5a189a 80%,
-        #402fb5 95%, /* purple right */
-        #402fb5 100%
+/* Animation for toggle ON (pink left, purple right - moves RIGHT) - even more to the left */
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background,
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background::before {
+    background-image: linear-gradient(120deg, 
+        transparent 0%, 
+        transparent calc(var(--expand-progress) * 1% - 5%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
+        #cf30aa calc(var(--expand-progress) * 1% + 0%), 
+        #d848b0 calc(var(--expand-progress) * 1% + 5%), 
+        #e060b6 calc(var(--expand-progress) * 1% + 25%), 
+        #e878bc calc(var(--expand-progress) * 1% + 35%), 
+        #d174c2 calc(var(--expand-progress) * 1% + 45%), 
+        #ba70c8 calc(var(--expand-progress) * 1% + 55%), 
+        #402fb5 calc(var(--expand-progress) * 1% + 65%), 
+        #402fb5 calc(var(--expand-progress) * 1% + 135%), 
+        transparent calc(var(--expand-progress) * 1% + 130%)
     );
-    animation: expandFromTopLeft 2s ease-out forwards;
+    animation: moveToLeft 1s ease-out forwards;
 }
 
 /* Responsive adjustments for the toggle */

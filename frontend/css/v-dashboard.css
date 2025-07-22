@@ -949,6 +949,11 @@ body {
         min-height: 60px;
     }
     
+    .search-bar-background, .search-bar-background::before {
+        max-width: 210px;
+        min-height: 60px;
+    }
+    
     .search-bar {
         width: 200px;
         max-width: 200px;
@@ -1477,6 +1482,11 @@ body {
         min-height: 60px;
     }
     
+    .search-bar-background, .search-bar-background::before {
+        max-width: 210px;
+        min-height: 60px;
+    }
+    
     .search-bar {
         width: 200px;
         max-width: 200px;
@@ -1492,6 +1502,7 @@ body {
     }
     
     .filters-btn {
+        border-left: 1px solid #e5e7eb;
         border-radius: 20px;
         height: 36px;
         width: 55px;

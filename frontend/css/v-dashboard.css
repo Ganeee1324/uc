@@ -195,8 +195,8 @@ body {
 
 .profile-section {
     background: white;
-    border-radius: 0;
-    padding: 0 30px 30px 30px;
+    border-radius: 12px;
+    padding: 30px;
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     position: relative;
@@ -1406,9 +1406,9 @@ body {
     
     /* Profile Section Mobile */
     .profile-section {
-        border-radius: 0;
+        border-radius: 12px;
         margin-bottom: 15px;
-        padding: 0 15px 20px 15px;
+        padding: 20px 15px;
     }
     
     .profile-header {
@@ -1669,7 +1669,7 @@ body {
     }
     
     .profile-section {
-        padding: 0 12px 15px 12px;
+        padding: 15px 12px;
     }
     
     .profile-header {

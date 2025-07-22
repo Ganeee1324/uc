@@ -543,11 +543,11 @@ html {
 .documents-grid .no-results {
     display: none; /* Hidden by default */
     position: absolute;
-    top: -300px; /* Move up by 100px */
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 10; /* Above loading cards */
+    z-index: 0; /* Above loading cards */
     
     /* Flexbox centering within the absolute positioned container */
     flex-direction: column;
@@ -588,9 +588,11 @@ html {
 
 .no-results p {
     color: var(--text-secondary);
-    max-width: 500px;
+    max-width: 100%;
     line-height: 1.6;
     margin: 0 auto;
+    padding: 0 var(--space-4);
+    box-sizing: border-box;
 }
 
 /* Search section adjustments - keep minimal */
@@ -653,9 +655,11 @@ html {
     z-index: 2;
     width: 100%;
     text-align: center;
-    max-width: 900px;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
+    padding: 0 var(--space-4);
+    box-sizing: border-box;
 }
 
 .no-results p {
@@ -664,12 +668,14 @@ html {
     line-height: 1.7;
     font-family: 'Inter', sans-serif;
     font-weight: 400;
-    max-width: 900px;
+    max-width: 100%;
     margin: 0 auto;
     position: relative;
     z-index: 2;
     width: 100%;
     text-align: center;
+    padding: 0 var(--space-4);
+    box-sizing: border-box;
 }
 
 
@@ -773,6 +779,8 @@ html {
         max-width: 100%;
         margin-left: auto;
         margin-right: auto;
+        padding: 0 var(--space-3);
+        box-sizing: border-box;
     }
     
     .no-results p {
@@ -781,6 +789,8 @@ html {
         width: 100%;
         text-align: center;
         line-height: 1.5;
+        padding: 0 var(--space-3);
+        box-sizing: border-box;
     }
     
 
@@ -834,6 +844,8 @@ html {
         max-width: 100%;
         margin-left: auto;
         margin-right: auto;
+        padding: 0 var(--space-2);
+        box-sizing: border-box;
     }
     
     .no-results p {
@@ -842,6 +854,8 @@ html {
         max-width: 100%;
         width: 100%;
         text-align: center;
+        padding: 0 var(--space-2);
+        box-sizing: border-box;
     }
     
 

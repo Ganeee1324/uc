@@ -642,6 +642,12 @@ body {
     transform: translateZ(0);
 }
 
+@media (max-width: 768px) {
+    .search-container-wrapper {
+        top: 60px; /* Account for hamburger menu + spacing */
+    }
+}
+
 .search-container {
     display: flex;
     align-items: center;

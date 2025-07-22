@@ -939,24 +939,24 @@ body {
 
 @media (max-width: 600px) {
     .search-container {
-        max-width: 430px;
+        min-width: 430px;
         gap: 0;
         flex-wrap: nowrap;
     }
     
     .search-bar-wrapper {
-        max-width: 280px;
+        min-width: 280px;
         min-height: 44px;
     }
     
     .search-bar-background, .search-bar-background::before {
-        max-width: 280px;
+        min-width: 280px;
         min-height: 44px;
     }
     
     .search-bar {
         width: 270px;
-        max-width: 280px;
+        min-width: 280px;
         height: 44px;
         border-radius: 20px;
     }
@@ -1471,25 +1471,25 @@ body {
     }
     
     .search-container {
-        max-width: 430px;
+        min-width: 430px;
         gap: 0;
         flex-wrap: nowrap;
         align-items: center;
     }
     
     .search-bar-wrapper {
-        max-width: 280px;
+        min-width: 280px;
         min-height: 44px;
     }
     
     .search-bar-background, .search-bar-background::before {
-        max-width: 280px;
+        min-width: 280px;
         min-height: 44px;
     }
     
     .search-bar {
         width: 270px;
-        max-width: 280px;
+        min-width: 280px;
         height: 44px;
         border-radius: 20px;
         padding: 0 16px;

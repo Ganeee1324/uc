@@ -1,3 +1,45 @@
+// Mobile Menu Toggle Logic
+let isMobileMenuOpen = false;
+
+function toggleMobileMenu() {
+    isMobileMenuOpen = !isMobileMenuOpen;
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    
+    if (isMobileMenuOpen) {
+        sidebar.classList.add('open');
+        mobileMenuToggle.innerHTML = '<span class="material-symbols-outlined">close</span>';
+        document.body.style.overflow = 'hidden';
+    } else {
+        sidebar.classList.remove('open');
+        mobileMenuToggle.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+        document.body.style.overflow = '';
+    }
+}
+
+function initializeMobileMenu() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (mobileMenuToggle && sidebar) {
+        mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (isMobileMenuOpen && !sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                toggleMobileMenu();
+            }
+        });
+        
+        // Close menu on window resize if switching to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && isMobileMenuOpen) {
+                toggleMobileMenu();
+            }
+        });
+    }
+}
+
 // AI Search Toggle Logic (copied from search.js)
 
 let aiSearchEnabled = false;
@@ -137,6 +179,7 @@ function initializeFilters() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    initializeMobileMenu();
     initializeAISearchToggle();
     initializeFilters();
 }); 

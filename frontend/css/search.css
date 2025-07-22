@@ -132,8 +132,7 @@
     --bg-reference-point: 50% 50%; /* Center the image, then use offset for precise positioning */
     
     /* Search Bar Toggle Switch :after Pseudo-element */
-    --search-bar-toggle-after: 
-    ; 
+    --search-bar-toggle-after: '';
 
 }
 
@@ -528,8 +527,9 @@ html {
     transition: opacity 0.3s ease;
 }
 
-/* When in no-results state, fade loading cards but keep them in position */
+/* When in no-results state, completely remove loading cards from layout */
 .documents-grid.no-results-state .document-card.loading-card {
+    display: none !important; /* Completely remove from layout */
     opacity: 0 !important; /* Force invisible */
     visibility: hidden !important; /* Hide but keep space */
     pointer-events: none;
@@ -539,28 +539,59 @@ html {
     transition: none !important;
 }
 
-/* No-results overlay - positioned absolutely to cover the entire grid area */
+/* No-results overlay - positioned to take full available space without constraints */
 .documents-grid .no-results {
     display: none; /* Hidden by default */
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 0; /* Above loading cards */
+    position: relative; /* Changed from absolute to avoid parent constraints */
+    width: 100%;
+    max-width: 100%;
+    z-index: 100; /* High z-index to ensure it appears above everything */
     
-    /* Flexbox centering within the absolute positioned container */
+    /* Flexbox centering for proper text display */
     flex-direction: column;
-    align-items: stretch; /* Changed from center to stretch to allow full width */
+    align-items: center;
     justify-content: center;
     text-align: center;
     
-    /* Content spacing */
-    padding: var(--space-8);
+    /* Reduced padding, especially top padding to bring icon closer */
+    padding: var(--space-6) var(--space-6) var(--space-10) var(--space-6);
     
-    /* Ensure it covers the full grid area */
-    min-height: 500px;
-    width: 100%; /* Ensure full width */
+    /* Allow content to expand freely */
+    min-height: 350px;
+    height: auto;
+    
+    /* Ensure proper spacing for text content */
+    box-sizing: border-box;
+}
+
+/* Ensure proper height and layout for no-results state */
+.documents-grid.no-results-state {
+    min-height: 400px; /* Reduced height for better proportions */
+    grid-template-columns: 1fr; /* Single column to prevent grid constraints */
+    display: flex; /* Change to flex for better centering */
+    justify-content: center;
+    align-items: center;
+}
+
+/* CRITICAL: Force hide ALL loading cards in no-results state with maximum specificity */
+.documents-grid.no-results-state .document-card.loading-card,
+.documents-grid.no-results-state .document-card.loading,
+.documents-grid.no-results-state .loading-card {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    height: 0 !important;
+    width: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
 }
 
 /* Show no-results overlay when in no-results state */
@@ -589,11 +620,14 @@ html {
 
 .no-results p {
     color: var(--text-secondary);
-    max-width: 100%;
+    max-width: 600px; /* Allow more space for text */
     line-height: 1.6;
     margin: 0 auto;
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-2); /* Reduce horizontal padding */
     box-sizing: border-box;
+    /* Allow text to wrap naturally without constraints */
+    word-wrap: break-word;
+    hyphens: auto;
 }
 
 /* Search section adjustments - keep minimal */
@@ -628,7 +662,7 @@ html {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-4); /* Reduced spacing from space-8 to space-4 */
     position: relative;
     z-index: 2;
     filter: drop-shadow(0 4px 8px rgba(14, 165, 233, 0.2));
@@ -649,7 +683,7 @@ html {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-4); /* Reduced from space-6 to space-4 */
     font-family: 'Inter', sans-serif;
     letter-spacing: -0.02em;
     position: relative;
@@ -659,24 +693,28 @@ html {
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding: 0 var(--space-4);
+    padding: 0;
     box-sizing: border-box;
 }
 
 .no-results p {
     font-size: 18px;
     color: var(--gray-600);
-    line-height: 1.7;
+    line-height: 1.8; /* Increased line height for better readability */
     font-family: 'Inter', sans-serif;
     font-weight: 400;
-    max-width: 100%;
+    max-width: 800px; /* Significantly more horizontal space */
     margin: 0 auto;
     position: relative;
     z-index: 2;
-    width: 100%;
+    width: auto; /* Let content determine width up to max-width */
     text-align: center;
-    padding: 0 var(--space-4);
+    padding: 0; /* Remove padding to maximize text space */
     box-sizing: border-box;
+    /* Improved text wrapping and spacing */
+    word-wrap: break-word;
+    hyphens: auto;
+    white-space: normal; /* Ensure text wraps normally */
 }
 
 
@@ -707,6 +745,7 @@ html {
 
 /* Keep loading cards visible in no-results-state to show loading animation */
 .documents-grid.no-results-state .document-card.loading {
+    display: none !important; /* Completely remove from layout */
     visibility: hidden;
     pointer-events: none;
     opacity: 0; /* Completely invisible */
@@ -749,17 +788,22 @@ html {
 /* Responsive adjustments for empty state */
 @media (max-width: 768px) {
     .no-results {
-        padding: var(--space-8) var(--space-6) var(--space-12) var(--space-6);
+        padding: var(--space-4) var(--space-3) var(--space-6) var(--space-3); /* Further reduced padding */
         margin: 0 auto;
         max-width: 100%;
         width: 100%;
-        min-height: auto;
+        min-height: 300px; /* Smaller min-height for mobile */
         height: auto;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: stretch; /* Changed from center to stretch to allow full width */
+        align-items: center; /* Center alignment for proper text display */
     }
+    
+    .documents-grid.no-results-state {
+        min-height: 350px; /* Adjust container height for mobile */
+    }
+}
     
     .documents-grid.no-results-state .no-results {
         display: flex;
@@ -767,7 +811,7 @@ html {
     
     .no-results .material-symbols-outlined {
         font-size: clamp(48px, 8vw, 64px);
-        margin-bottom: var(--space-4);
+        margin-bottom: var(--space-3); /* Reduced spacing */
         width: 100%;
         text-align: center;
     }
@@ -786,12 +830,15 @@ html {
     
     .no-results p {
         font-size: clamp(14px, 3.5vw, 16px);
-        max-width: 100%;
-        width: 100%;
+        max-width: 95%; /* Allow even more space on mobile */
+        width: auto; /* Let content determine width */
         text-align: center;
-        line-height: 1.5;
-        padding: 0 var(--space-3);
+        line-height: 1.7; /* Improved line height for mobile */
+        padding: 0; /* Remove all padding for maximum text space */
         box-sizing: border-box;
+        word-wrap: break-word;
+        hyphens: auto;
+        white-space: normal;
     }
     
 
@@ -813,17 +860,21 @@ html {
 
 @media (max-width: 480px) {
     .no-results {
-        padding: var(--space-6) var(--space-4) var(--space-8) var(--space-4);
+        padding: var(--space-3) var(--space-2) var(--space-5) var(--space-2); /* Minimal padding for small screens */
         margin: 0 auto;
         border-radius: 0;
         max-width: 100%;
         width: 100%;
-        min-height: auto;
+        min-height: 250px; /* Even smaller for small screens */
         height: auto;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: stretch; /* Changed from center to stretch to allow full width */
+        align-items: center; /* Center alignment for proper text display */
+    }
+    
+    .documents-grid.no-results-state {
+        min-height: 300px; /* Compact height for small screens */
     }
     
     .documents-grid.no-results-state .no-results {
@@ -832,7 +883,7 @@ html {
     
     .no-results .material-symbols-outlined {
         font-size: clamp(40px, 10vw, 56px);
-        margin-bottom: var(--space-3);
+        margin-bottom: var(--space-2); /* Even more reduced spacing for small screens */
         width: 100%;
         text-align: center;
     }
@@ -851,12 +902,15 @@ html {
     
     .no-results p {
         font-size: clamp(13px, 4vw, 15px);
-        line-height: 1.4;
-        max-width: 100%;
-        width: 100%;
+        line-height: 1.6; /* Better line height for small screens */
+        max-width: 98%; /* Maximum available space on small screens */
+        width: auto; /* Let content determine width */
         text-align: center;
-        padding: 0 var(--space-2);
+        padding: 0; /* Remove all padding for maximum text space */
         box-sizing: border-box;
+        word-wrap: break-word;
+        hyphens: auto;
+        white-space: normal;
     }
     
 
@@ -1038,37 +1092,6 @@ html {
     transition: all 2s;
 }
 
-/* Glow layer */
-.search-bar-container .glow {
-    overflow: hidden;
-    filter: blur(20px);
-    opacity: 0.6;
-    min-height: 120px;
-    max-width: 464px;
-}
-
-.search-bar-container .glow:before {
-    content: "";
-    z-index: -2;
-    text-align: center;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(60deg);
-    position: absolute;
-    width: 999px;
-    height: 999px;
-    background-repeat: no-repeat;
-    background-position: 0 0;
-    background-image: conic-gradient(
-        transparent,
-        #402fb5 5%,
-        transparent 38%,
-        transparent 50%,
-        #cf30aa 60%,
-        transparent 87%
-    );
-    transition: all 2s;
-}
 
 /* Hover animations */
 .search-bar-container:hover > .darkBorderBg::before {
@@ -6191,11 +6214,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     pointer-events: auto;
 }
 
-/* FIXED: Keep loading cards visible but transparent in no-results state */
+/* FIXED: Remove loading cards from layout in no-results state */
 .documents-grid.no-results-state .document-card.loading,
 .documents-grid.no-results-state .loading-card {
+    display: none !important; /* Completely remove from layout */
     opacity: 0; /* Completely invisible */
-    visibility: visible; /* Keep in layout flow */
+    visibility: hidden; /* Remove from layout flow */
     pointer-events: none;
 }
 
@@ -6213,6 +6237,15 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         max-height: 520px;
         max-width: 100%;
     }
+    
+    /* Ensure loading cards are hidden in no-results state at all screen sizes */
+    .documents-grid.no-results-state .document-card.loading,
+    .documents-grid.no-results-state .loading-card,
+    .documents-grid.no-results-state .document-card.loading-card {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
 }
 
 @media (max-width: 1400px) {
@@ -6228,6 +6261,15 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         max-height: 500px;
         max-width: 100%;
     }
+    
+    /* Ensure loading cards are hidden in no-results state */
+    .documents-grid.no-results-state .document-card.loading,
+    .documents-grid.no-results-state .loading-card,
+    .documents-grid.no-results-state .document-card.loading-card {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
 }
 
 @media (max-width: 1200px) {
@@ -6242,6 +6284,15 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         min-height: 480px;
         max-height: 480px;
         max-width: 100%;
+    }
+    
+    /* Ensure loading cards are hidden in no-results state */
+    .documents-grid.no-results-state .document-card.loading,
+    .documents-grid.no-results-state .loading-card,
+    .documents-grid.no-results-state .document-card.loading-card {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
     }
 }
 

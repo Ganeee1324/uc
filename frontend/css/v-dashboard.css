@@ -420,6 +420,9 @@ body {
     border-radius: 14px;
     font-size: inherit;
     font-weight: inherit;
+    min-width: 60px;
+    text-align: center;
+    box-sizing: border-box;
 }
 .space-label, .overview-label {
     font-size: 12px;

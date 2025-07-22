@@ -889,6 +889,10 @@ body {
     overflow: hidden;
 }
 
+.order-dropdown-content.show {
+    display: block;
+}
+
 .order-option {
     display: flex;
     align-items: center;

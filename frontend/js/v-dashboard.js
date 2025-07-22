@@ -229,72 +229,71 @@ function initializeFilters() {
 function initializeOrderDropdown() {
     const orderBtn = document.getElementById('orderBtn');
     const orderDropdown = document.querySelector('.order-dropdown-content');
-    const orderText = orderBtn?.querySelector('.order-text');
-    let isOrderOpen = false;
-
+    const orderOptions = document.querySelectorAll('.order-option');
+    
     if (!orderBtn || !orderDropdown) return;
-
-    // Toggle dropdown
-    orderBtn.addEventListener('click', function(e) {
-        e.preventDefault();
+    
+    // Toggle dropdown on button click
+    orderBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        isOrderOpen = !isOrderOpen;
-        
-        if (isOrderOpen) {
-            orderDropdown.style.display = 'block';
-            orderBtn.classList.add('active');
-        } else {
-            orderDropdown.style.display = 'none';
-            orderBtn.classList.remove('active');
-        }
+        orderDropdown.classList.toggle('show');
     });
-
-    // Handle option selection
-    document.querySelectorAll('.order-option').forEach(option => {
-        option.addEventListener('click', function(e) {
-            e.preventDefault();
+    
+    // Handle order option selection
+    orderOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
             e.stopPropagation();
-            
-            const selectedOrder = this.dataset.order;
-            const selectedText = this.querySelector('.order-text').textContent;
-            
-            // Update button text
-            if (orderText) {
-                orderText.textContent = selectedText;
-            }
-            
-            // Remove active class from all options
-            document.querySelectorAll('.order-option').forEach(opt => opt.classList.remove('active'));
-            // Add active class to selected option
-            this.classList.add('active');
-            
-            // Close dropdown
-            orderDropdown.style.display = 'none';
-            orderBtn.classList.remove('active');
-            isOrderOpen = false;
-            
-            // Here you can add logic to actually sort the results
-            console.log('Selected order:', selectedOrder);
+            const orderType = option.getAttribute('data-order');
+            selectOrderOption(orderType);
+            orderDropdown.classList.remove('show');
         });
     });
-
+    
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (isOrderOpen && !orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
-            orderDropdown.style.display = 'none';
-            orderBtn.classList.remove('active');
-            isOrderOpen = false;
+    document.addEventListener('click', (e) => {
+        if (!orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
+            orderDropdown.classList.remove('show');
         }
     });
-
+    
     // Close dropdown on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isOrderOpen) {
-            orderDropdown.style.display = 'none';
-            orderBtn.classList.remove('active');
-            isOrderOpen = false;
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            orderDropdown.classList.remove('show');
         }
     });
+}
+
+function selectOrderOption(orderType) {
+    // Update button text based on selection
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = orderBtn.querySelector('.order-text');
+    
+    const orderLabels = {
+        'relevance': 'Rilevanza',
+        'reviews': 'Recensioni',
+        'price-lowest': 'Prezzo crescente',
+        'price-highest': 'Prezzo decrescente',
+        'name-asc': 'Nome A-Z',
+        'name-desc': 'Nome Z-A',
+        'date-newest': 'Più recenti',
+        'date-oldest': 'Meno recenti'
+    };
+    
+    if (orderText) {
+        orderText.textContent = orderLabels[orderType] || 'Ordina';
+    }
+    
+    // Remove active class from all options
+    document.querySelectorAll('.order-option').forEach(opt => opt.classList.remove('active'));
+    // Add active class to selected option
+    const selectedOption = document.querySelector(`[data-order="${orderType}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('active');
+    }
+    
+    // Here you can add logic to actually sort the results
+    console.log('Selected order:', orderType);
 }
 
 document.addEventListener('DOMContentLoaded', function() {

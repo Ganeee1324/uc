@@ -1467,6 +1467,7 @@ body {
         max-width: 200px;
         height: 36px;
         border-radius: 20px;
+        padding: 0 16px;
     }
     
     .search-input {
@@ -1475,7 +1476,6 @@ body {
     }
     
     .filters-btn {
-        border-left: 1px solid #e5e7eb;
         border-radius: 20px;
         height: 36px;
         width: 55px;
@@ -1741,6 +1741,7 @@ body {
     
     .search-container {
         max-width: 320px;
+        align-items: center;
     }
     
     .search-bar-wrapper {
@@ -1752,6 +1753,7 @@ body {
         max-width: 160px;
         height: 32px;
         border-radius: 16px;
+        padding: 0 12px;
     }
     
     .filters-btn {

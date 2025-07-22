@@ -1455,6 +1455,7 @@ body {
         max-width: 350px;
         gap: 0;
         flex-wrap: nowrap;
+        align-items: center;
     }
     
     .search-bar-wrapper {

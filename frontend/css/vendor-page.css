@@ -480,6 +480,156 @@ html {
     letter-spacing: 0.025em;
 }
 
+/* Responsive Login Button Styles */
+@media (max-width: 1200px) {
+    .login-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        min-width: 75px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 900px) {
+    .login-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+        min-width: 70px;
+        height: 32px;
+        border-radius: 18px;
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.02em;
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-buttons {
+        gap: var(--space-3);
+    }
+    
+    .login-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-width: 65px;
+        height: 30px;
+        border-radius: 16px;
+        box-shadow: 0 1px 6px rgba(73, 197, 235, 0.25);
+    }
+    
+    .login-btn:hover {
+        transform: translateY(-0.5px);
+        box-shadow: 0 2px 8px rgba(73, 197, 235, 0.35);
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.015em;
+    }
+}
+
+@media (max-width: 600px) {
+    .auth-buttons {
+        gap: var(--space-2);
+    }
+    
+    .login-btn {
+        padding: 5px 8px;
+        font-size: 10px;
+        min-width: 60px;
+        height: 28px;
+        border-radius: 14px;
+        font-weight: 500;
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.01em;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-buttons {
+        gap: var(--space-1);
+    }
+    
+    .login-btn {
+        padding: 4px 6px;
+        font-size: 9px;
+        min-width: 55px;
+        height: 26px;
+        border-radius: 13px;
+        font-weight: 500;
+    }
+    
+    .login-btn:hover {
+        transform: none;
+        box-shadow: 0 1px 4px rgba(73, 197, 235, 0.3);
+    }
+    
+    .login-btn:active {
+        transform: scale(0.98);
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.005em;
+    }
+}
+
+@media (max-width: 360px) {
+    .login-btn {
+        padding: 3px 5px;
+        font-size: 8px;
+        min-width: 50px;
+        height: 24px;
+        border-radius: 12px;
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .login-btn:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(73, 197, 235, 0.3);
+    }
+    
+    .login-btn:active {
+        transform: scale(0.96);
+        box-shadow: 0 1px 4px rgba(73, 197, 235, 0.4);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .login-btn {
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    
+    .login-btn:hover {
+        border-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .login-btn {
+        transition: none;
+    }
+    
+    .login-btn:hover {
+        transform: none;
+    }
+    
+    .login-btn:active {
+        transform: none;
+    }
+}
+
 .user-name {
     font-weight: 500;
     color: var(--gray-800);

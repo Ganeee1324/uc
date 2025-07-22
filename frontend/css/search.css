@@ -7808,7 +7808,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .toggle-input:checked + .toggle-label {
-  background-color: #41434400;
+  background-color: var(--dark); /* Keep solid dark background when checked */
   border: 1px solid #3d6970;
   border-bottom: 0;
 }
@@ -7823,7 +7823,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     rgb(58, 155, 252) 0%,
     rgba(12, 12, 12, 1) 80%
   ); /* ADDED: Dark gradient only when checked */
-  background-color: transparent; /* Override the dark background when checked */
+  background-color: var(--dark); /* Keep solid background during transition */
 }
 
 .toggle-input:checked + .toggle-label .cont-icon {

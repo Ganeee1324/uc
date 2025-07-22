@@ -638,7 +638,7 @@ body {
 
 .search-container {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: center;
     flex-direction: row;
     gap: 12px;
@@ -698,7 +698,7 @@ body {
     border-radius: 20px;
     padding: 0 24px;
     transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-    margin-top: 0;
+    margin: 0;
     z-index: 1;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -787,6 +787,7 @@ body {
     transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
     position: relative;
     z-index: 1001;
+    margin: 0;
 }
 
 .filters-btn:hover {
@@ -1455,7 +1456,7 @@ body {
         max-width: 350px;
         gap: 0;
         flex-wrap: nowrap;
-        align-items: center;
+        align-items: baseline;
     }
     
     .search-bar-wrapper {
@@ -1469,6 +1470,7 @@ body {
         height: 36px;
         border-radius: 20px;
         padding: 0 16px;
+        margin: 0;
     }
     
     .search-input {
@@ -1486,6 +1488,7 @@ body {
         gap: 0;
         justify-content: center;
         align-items: center;
+        margin: 0;
     }
     
     .filters-btn .filters-text {
@@ -1742,7 +1745,7 @@ body {
     
     .search-container {
         max-width: 320px;
-        align-items: center;
+        align-items: baseline;
     }
     
     .search-bar-wrapper {
@@ -1755,6 +1758,7 @@ body {
         height: 32px;
         border-radius: 16px;
         padding: 0 12px;
+        margin: 0;
     }
     
     .filters-btn {
@@ -1762,6 +1766,7 @@ body {
         width: 45px;
         min-width: 45px;
         font-size: 8px;
+        margin: 0;
     }
     
     .filters-btn .material-symbols-outlined {

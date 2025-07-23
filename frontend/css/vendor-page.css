@@ -6059,11 +6059,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         height: 350px;
         padding: 0;
         margin-bottom: 0;
+        align-items: flex-end;
     }
     
     .banner-content {
         padding: 0 16px 30px 16px;
         height: 100%;
+        align-items: flex-end;
     }
     
     .vendor-info {
@@ -6094,11 +6096,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         height: 300px;
         padding: 0;
         margin-bottom: 0;
+        align-items: flex-end;
     }
     
     .banner-content {
         padding: 0 12px 25px 12px;
         height: 100%;
+        align-items: flex-end;
     }
     
     .vendor-info {

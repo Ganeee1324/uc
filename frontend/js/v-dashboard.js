@@ -357,7 +357,22 @@ function switchTab(tabName) {
         // Show profile/dashboard content, hide stats
         if (profileSection) profileSection.style.display = 'block';
         if (dashboardRow) dashboardRow.style.display = 'flex';
-        if (searchSection) searchSection.style.display = 'grid';
+        if (searchSection) {
+            // Reset search section to its original state
+            searchSection.style.display = '';
+            searchSection.style.gridTemplateAreas = '';
+            searchSection.style.gridTemplateRows = '';
+            searchSection.style.alignItems = '';
+            searchSection.style.justifyContent = '';
+            searchSection.style.marginTop = '';
+            searchSection.style.padding = '';
+            searchSection.style.textAlign = '';
+            searchSection.style.position = '';
+            searchSection.style.width = '';
+            searchSection.style.maxWidth = '';
+            searchSection.style.zIndex = '';
+            searchSection.style.isolation = '';
+        }
         if (statsDashboard) statsDashboard.style.display = 'none';
         
         // Add active class to Profilo menu item

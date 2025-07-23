@@ -522,6 +522,12 @@ body {
     margin-bottom: 15px;
 }
 
+/* Document count container base styles */
+.document-count-container {
+    position: relative;
+    z-index: 900; /* Lower z-index to stay below search section */
+}
+
 .documents-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -613,6 +619,7 @@ body {
     position: relative;
     width: 100%;
     max-width: 100%;
+    z-index: 10000; /* High z-index to ensure search section appears above document count */
 }
 
 .search-title {
@@ -1786,10 +1793,12 @@ body {
     }
     
     /* Document Count and Sort */
-    .document-count-container {
-        padding: 0 15px;
-        margin-bottom: 15px;
-    }
+.document-count-container {
+    padding: 0 15px;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 900; /* Lower z-index to stay below search section */
+}
     
     .document-count-and-filters {
         flex-direction: column;

@@ -1095,7 +1095,7 @@ html {
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
-    z-index: 999; /* Lower z-index to not block sort button */
+    z-index: 99999; /* Lower z-index to not block sort button */
 
     /* The background and padding are only applied when it's stuck. */
     transition: all 0.3s ease-in-out;
@@ -1125,6 +1125,7 @@ html {
     max-width: 600px;
     margin: 0 auto;
     flex-wrap: nowrap;
+    z-index: 9999; /* High z-index for search container */
 }
 
 /* Animated Border Search Bar Container */
@@ -1139,6 +1140,10 @@ html {
     width: 100%;
     overflow: hidden;
     border-radius: 12px;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
 }
 
 /* Border Animation Layers */
@@ -1253,12 +1258,56 @@ html {
 
 /* Glow layer */
 .search-bar-container .glow {
-    overflow: hidden;
+    overflow: visible;
     will-change: filter;
     filter: blur(20px);
     opacity: 0.6;
     min-height: 120px;
     max-width: 464px;
+    /* Safari-specific fixes for glow rendering */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Safari-specific CSS-only fix: Ensure glow renders immediately on page load */
+@supports (-webkit-appearance: none) {
+    .search-bar-container .glow {
+        /* Force Safari to render the glow effect immediately */
+        -webkit-transform: translate3d(0, 0, 0) !important;
+        transform: translate3d(0, 0, 0) !important;
+        -webkit-backface-visibility: hidden !important;
+        backface-visibility: hidden !important;
+        will-change: filter, transform !important;
+    }
+    
+    .search-bar-container .glow:before {
+        /* Ensure pseudo-element renders with proper properties in Safari */
+        -webkit-transform: translate(-50%, -50%) rotate(60deg) !important;
+        transform: translate(-50%, -50%) rotate(60deg) !important;
+        -webkit-backface-visibility: hidden !important;
+        backface-visibility: hidden !important;
+        will-change: transform !important;
+        opacity: 0.6 !important;
+        /* Force immediate rendering with a micro-animation */
+        -webkit-animation: safari-glow-force 0.01s ease-out;
+        animation: safari-glow-force 0.01s ease-out;
+    }
+}
+
+@-webkit-keyframes safari-glow-force {
+    0%, 100% { 
+        -webkit-transform: translate(-50%, -50%) rotate(60deg);
+        opacity: 0.6;
+    }
+}
+
+@keyframes safari-glow-force {
+    0%, 100% { 
+        transform: translate(-50%, -50%) rotate(60deg);
+        opacity: 0.6;
+    }
 }
 
 .search-bar-container .glow:before {
@@ -1282,22 +1331,35 @@ html {
         transparent 87%
     );
     transition: all 2s;
+    /* Safari-specific fixes for pseudo-element rendering */
+    -webkit-transform: translate(-50%, -50%) rotate(60deg);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
 }
 
 /* Hover animations */
-.search-bar-container:hover > .darkBorderBg::before {
+.search-bar-container:hover > .darkBorderBg::before,
+.search-bar-container.safari-temp-hover > .darkBorderBg::before {
+    -webkit-transform: translate(-50%, -50%) rotate(-98deg);
     transform: translate(-50%, -50%) rotate(-98deg);
 }
 
-.search-bar-container:hover > .glow::before {
+.search-bar-container:hover > .glow::before,
+.search-bar-container.safari-temp-hover > .glow::before {
+    -webkit-transform: translate(-50%, -50%) rotate(-120deg);
     transform: translate(-50%, -50%) rotate(-120deg);
 }
 
-.search-bar-container:hover > .white::before {
+.search-bar-container:hover > .white::before,
+.search-bar-container.safari-temp-hover > .white::before {
+    -webkit-transform: translate(-50%, -50%) rotate(-97deg);
     transform: translate(-50%, -50%) rotate(-97deg);
 }
 
-.search-bar-container:hover > .border::before {
+.search-bar-container:hover > .border::before,
+.search-bar-container.safari-temp-hover > .border::before {
+    -webkit-transform: translate(-50%, -50%) rotate(-110deg);
     transform: translate(-50%, -50%) rotate(-110deg);
 }
 
@@ -1336,10 +1398,14 @@ html {
     padding: 0 var(--space-4);
     transition: all 0.25s var(--ease-2);
     margin-top: 0;
-    z-index: 1;
+    z-index: 9999; /* High z-index for search bar */
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
 }
 
 /* Animation keyframes for border rotation */
@@ -1452,7 +1518,7 @@ html {
     margin-top: 0;
     opacity: 1;
     visibility: visible;
-    z-index: 9999; /* High z-index for filters button */
+    z-index: 1001;
     margin-left: 8px;
 }
 
@@ -1507,7 +1573,7 @@ html {
 .order-dropdown-container {
     position: relative;
     display: inline-block;
-    z-index: 9999; /* High z-index for order dropdown */
+    z-index: 100000;
 }
 
 .order-btn {
@@ -1719,7 +1785,7 @@ html {
     margin-left: 0;
     margin-bottom: var(--space-4);
     position: relative;
-    z-index: 9999; /* Higher than search wrapper to ensure clickability */
+    z-index: 999; /* Higher than search wrapper to ensure clickability */
     width: 100%;
     max-width: none;
     text-align: left !important;
@@ -1729,7 +1795,8 @@ html {
 /* When filters overlay is active, reduce z-index so it appears below the overlay */
 .filters-overlay.active ~ .main-content .document-count-container,
 body.filters-open .document-count-container {
-    z-index: 9999;
+    z-index: 999
+    ;
 }
 
 .document-count-and-filters {

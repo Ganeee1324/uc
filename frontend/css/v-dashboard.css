@@ -962,17 +962,13 @@ body {
     }
 }
 
-/* Safari glow fix class for JavaScript-triggered re-rendering */
-.safari-glow-fix .search-bar-background {
-    filter: brightness(1.6) !important;
-    -webkit-transform: translateZ(0) scale(1.001);
-    transform: translateZ(0) scale(1.001);
+/* Safari hover fix class - applies hover state temporarily on load */
+.safari-hover-fix {
+    transform: translateY(-2px) !important;
 }
 
-.safari-glow-fix .search-bar-background::before {
-    filter: blur(20px) !important;
-    -webkit-transform: translateZ(0) scale(1.001);
-    transform: translateZ(0) scale(1.001);
+.safari-hover-fix::before {
+    opacity: 0 !important;
 }
 
 .search-bar {

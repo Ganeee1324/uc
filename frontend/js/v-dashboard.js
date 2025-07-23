@@ -848,46 +848,24 @@ function animateStatsCards() {
     });
 }
 
-// Safari Glow Fix - Force proper rendering of glow effects
+// Safari Glow Fix - Temporarily apply hover state on initial load
 function initializeSafariGlowFix() {
     // Detect Safari browser
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     
     if (isSafari) {
-        const searchBarBackground = document.querySelector('.search-bar-background');
-        if (searchBarBackground) {
-            // Force Safari to properly render the glow effect
-            // by temporarily modifying and restoring the filter property
-            const originalFilter = searchBarBackground.style.filter;
+        const searchBar = document.querySelector('.search-bar');
+        if (searchBar) {
+            // Add hover class immediately to force Safari to render the glow effect
+            searchBar.classList.add('safari-hover-fix');
             
-            // Trigger a reflow to force rendering
-            searchBarBackground.offsetHeight;
+            // Force immediate style recalculation
+            searchBar.offsetHeight;
             
-            // Temporarily modify the filter to force re-rendering
-            searchBarBackground.style.filter = 'brightness(1.6)';
-            
-            // Use requestAnimationFrame to restore the original filter
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    searchBarBackground.style.filter = originalFilter;
-                });
-            });
-        }
-        
-        // Also fix the blur effect on the ::before pseudo-element
-        const searchBarWrapper = document.querySelector('.search-bar-wrapper');
-        if (searchBarWrapper) {
-            // Force reflow
-            searchBarWrapper.offsetHeight;
-            
-            // Add a temporary class to trigger re-rendering
-            searchBarWrapper.classList.add('safari-glow-fix');
-            
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    searchBarWrapper.classList.remove('safari-glow-fix');
-                });
-            });
+            // Remove the hover class after a short delay to return to normal state
+            setTimeout(() => {
+                searchBar.classList.remove('safari-hover-fix');
+            }, 150); // 150ms should be enough to trigger proper rendering
         }
     }
 }

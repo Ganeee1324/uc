@@ -1173,7 +1173,7 @@ body {
         min-width: 430px;
         gap: 0;
         flex-wrap: nowrap;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to appear above document count container */
     }
     
     /* Search wrapper should be above document count but sorting button should remain clickable */

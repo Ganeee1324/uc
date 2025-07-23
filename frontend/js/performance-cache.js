@@ -179,7 +179,8 @@ class PerformanceCacheManager {
             ...options,
             headers: {
                 ...options.headers
-            }
+            },
+            cache: 'no-store'
         })
         .then(response => {
             if (!response.ok) {
@@ -246,7 +247,8 @@ class PerformanceCacheManager {
                     method: 'POST',
                     body: JSON.stringify(data),
                     ...options,
-                    headers
+                    headers,
+                    cache: 'no-store'
                 });
                 
                 if (!response.ok) {
@@ -273,7 +275,8 @@ class PerformanceCacheManager {
                 const response = await fetch(url, {
                     method: 'DELETE',
                     ...options,
-                    headers
+                    headers,
+                    cache: 'no-store'
                 });
                 
                 if (!response.ok) {

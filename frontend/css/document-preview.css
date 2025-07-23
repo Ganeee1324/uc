@@ -4141,11 +4141,11 @@ button:focus-visible,
     background: var(--neutral-0);
     border-radius: var(--radius-2xl);
     border: 1px solid var(--neutral-150);
-    margin-bottom: var(--space-5);
-    padding: var(--space-6);
+    margin-bottom: var(--space-3);
+    padding: var(--space-4);
     display: flex;
-    align-items: flex-start;
-    gap: var(--space-5);
+    align-items: center;
+    gap: var(--space-4);
     cursor: pointer;
     transition: all 0.3s var(--ease-out);
     position: relative;
@@ -4192,9 +4192,17 @@ button:focus-visible,
 /* Document List Thumbnail - Professional Preview */
 .document-list-preview {
     flex-shrink: 0;
-    width: 90px;
-    height: 120px;
+    width: 60px;
+    height: 75px;
     position: relative;
+}
+
+/* Move document type badge to be positioned relative to the entire list item */
+.document-list-item .document-type-badge {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 10;
 }
 
 .document-list-thumbnail {
@@ -4234,7 +4242,7 @@ button:focus-visible,
 
 
 .document-thumbnail-icon .document-icon {
-    font-size: 42px;
+    font-size: 28px;
     opacity: 0.85;
     color: var(--primary-600);
     filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.15));
@@ -4243,8 +4251,8 @@ button:focus-visible,
 
 .document-type-badge {
     position: absolute;
-    bottom: -4px;
-    right: -4px;
+    top: var(--space-4);
+    right: var(--space-4);
     background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
     color: var(--neutral-0);
     font-size: 10px;
@@ -4256,16 +4264,17 @@ button:focus-visible,
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
     border: 2px solid var(--neutral-0);
     font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+    z-index: 10;
 }
 
 /* Document List Content - Professional Layout */
 .document-list-content {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
+    align-items: center;
+    gap: var(--space-3);
     min-width: 0;
-    padding-top: var(--space-1);
+    overflow: hidden;
 }
 
 .document-content-header {
@@ -4283,32 +4292,33 @@ button:focus-visible,
 }
 
 .document-list-title {
-    font-size: var(--text-xl);
-    font-weight: 700;
+    font-size: var(--text-lg);
+    font-weight: 600;
     color: var(--neutral-900);
-    margin: 0 0 var(--space-2) 0;
-    line-height: 1.25;
+    margin: 0;
+    line-height: 1.3;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
     letter-spacing: -0.01em;
+    flex: 1;
+    min-width: 0;
 }
 
 .document-type-tag {
     background: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-125) 100%);
     color: var(--neutral-700);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    padding: 6px 12px;
+    padding: 4px 8px;
     border-radius: var(--radius-full);
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     white-space: nowrap;
     border: 1px solid var(--neutral-150);
     font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+    flex-shrink: 0;
 }
 
 /* New document type badge with light blue gradient (search page style) */
@@ -4335,15 +4345,9 @@ button:focus-visible,
     z-index: 10;
 }
 
-/* Document list description styling */
+/* Document list description styling - hidden for compact layout */
 .document-list-description {
-    font-size: var(--text-sm);
-    color: var(--neutral-600);
-    margin-top: var(--space-1);
-    line-height: 1.4;
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
+    display: none;
 }
 
 .document-list-description::before {
@@ -4461,6 +4465,14 @@ button:focus-visible,
     .document-thumbnail-icon .document-icon {
         font-size: 36px;
     }
+    
+    /* Adjust document type badge position for mobile */
+    .document-list-item .document-type-badge {
+        top: var(--space-3);
+        right: var(--space-3);
+        font-size: 9px;
+        padding: 3px 6px;
+    }
 }
 
 @media (max-width: 640px) {
@@ -4479,6 +4491,14 @@ button:focus-visible,
     
     .document-title-section {
         text-align: center;
+    }
+    
+    /* Adjust document type badge for very small screens */
+    .document-list-item .document-type-badge {
+        top: var(--space-2);
+        right: var(--space-2);
+        font-size: 8px;
+        padding: 2px 4px;
     }
 }
 

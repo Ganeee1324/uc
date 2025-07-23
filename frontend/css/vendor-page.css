@@ -2717,6 +2717,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     color: white;
     min-width: 120px;
 }
+
+/* Vendor-specific rating text override */
+.vendor-rating-btn .rating-text {
+    color: white !important;
+}
  
  /* Dual Range Slider */
  .dual-range-container {

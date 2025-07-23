@@ -621,7 +621,7 @@ html {
     margin-top: 0;
     padding: var(--space-12);
     text-align: center;
-    position: relative; /* Restored to relative for proper stacking context */
+    position: relative;
     width: 100%;
     max-width: 100%;
 }
@@ -1091,7 +1091,7 @@ html {
 .search-container-wrapper {
     /* The wrapper is now back inside search-section. */
     width: fit-content;
-    margin: 0 auto; /* Fixed invalid CSS - center the container */
+    margin-top: 0px auto; /* Restore the original spacing between subtitle and search bar. */
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
@@ -1101,9 +1101,8 @@ html {
     transition: all 0.3s ease-in-out;
     pointer-events: none; /* Make wrapper non-clickable */
     
-    /* Force sticky positioning to work */
-    will-change: transform;
-    transform: translateZ(0);
+    /* Ensure sticky positioning works properly */
+    /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
 }
 
 /* Re-enable pointer events for interactive elements within search wrapper */
@@ -1453,7 +1452,7 @@ html {
     margin-top: 0;
     opacity: 1;
     visibility: visible;
-    z-index: 1001;
+    z-index: 9999; /* High z-index for filters button */
     margin-left: 8px;
 }
 
@@ -1508,7 +1507,7 @@ html {
 .order-dropdown-container {
     position: relative;
     display: inline-block;
-    z-index: 100000;
+    z-index: 9999; /* High z-index for order dropdown */
 }
 
 .order-btn {
@@ -1720,7 +1719,7 @@ html {
     margin-left: 0;
     margin-bottom: var(--space-4);
     position: relative;
-    z-index: 1; /* Higher than search wrapper to ensure clickability */
+    z-index: 9999; /* Higher than search wrapper to ensure clickability */
     width: 100%;
     max-width: none;
     text-align: left !important;
@@ -1730,7 +1729,7 @@ html {
 /* When filters overlay is active, reduce z-index so it appears below the overlay */
 .filters-overlay.active ~ .main-content .document-count-container,
 body.filters-open .document-count-container {
-    z-index: 9997;
+    z-index: 9999;
 }
 
 .document-count-and-filters {
@@ -4561,7 +4560,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-container {
-       width: fit-content;
+       max-width: 550px;
        gap: var(--space-3);
    }
    
@@ -4751,9 +4750,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-container {
-       width: fit-content;
+       max-width: 500px;
        flex-direction: row;
        gap: var(--space-2);
+       width: 100%;
        flex-wrap: nowrap;
    }
    
@@ -4923,7 +4923,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Search bar responsive sizing - Only when screen is smaller than search bar */
 @media (max-width: 520px) {
    .search-container {
-       width: fit-content;
+       max-width: 400px;
        gap: 0;
        flex-wrap: nowrap;
    }
@@ -5014,7 +5014,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-container {
-       width: fit-content;
+       max-width: 350px;
        gap: 0;
        flex-wrap: nowrap;
    }

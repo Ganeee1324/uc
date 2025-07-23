@@ -5074,7 +5074,7 @@ button:focus-visible,
     border-radius: var(--radius-xl);
     padding: 0;
     margin: 0;
-    border: 1px solid var(--neutral-150);
+    border: none;
     transition: all 0.3s var(--ease-out);
     cursor: pointer;
     position: relative;
@@ -5092,7 +5092,6 @@ button:focus-visible,
 }
 
 .author-profile-compact:hover {
-    border-color: var(--neutral-300);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
 }
@@ -5180,13 +5179,22 @@ button:focus-visible,
 }
 
 .author-profile-compact:active {
-    border-color: var(--neutral-400);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     transform: translateY(0);
 }
 
 .author-profile-compact:active .author-profile-arrow {
     color: var(--neutral-800);
+}
+
+.author-profile-compact:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.author-profile-compact:focus-visible {
+    outline: none;
+    box-shadow: none;
 }
 
 .author-profile-arrow .material-symbols-outlined {

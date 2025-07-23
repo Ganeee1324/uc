@@ -4378,10 +4378,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        display: none !important;
    }
    
-   .main-content {
-       margin: 0 !important;
-       transform: none !important;
-   }
+
    
    .document-card {
        break-inside: avoid;

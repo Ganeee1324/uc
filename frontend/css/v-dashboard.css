@@ -1019,7 +1019,8 @@ body {
 }
 
 .search-bar:hover {
-    transform: translateY(-2px);
+    -webkit-transform: translate3d(0, -2px, 0);
+    transform: translate3d(0, -2px, 0);
 }
 
 .search-bar:hover::before {
@@ -1027,14 +1028,16 @@ body {
 }
 
 .search-bar:focus-within {
-    transform: translateY(-2px);
+    -webkit-transform: translate3d(0, -2px, 0);
+    transform: translate3d(0, -2px, 0);
     outline: none;
 }
 
 .search-container:hover .filters-btn,
 .search-bar:focus-within ~ .filters-btn,
 .search-container:has(.search-bar:focus-within) .filters-btn {
-    transform: translateY(-2px);
+    -webkit-transform: translate3d(0, -2px, 0);
+    transform: translate3d(0, -2px, 0);
 }
 
 .search-input {

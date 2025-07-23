@@ -1813,6 +1813,12 @@ body {
     .search-bar-background, .search-bar-background::before {
         min-width: 280px;
         min-height: 44px;
+        /* Hardware acceleration and Safari fixes */
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
     
     .search-bar {

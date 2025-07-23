@@ -1275,21 +1275,23 @@ html {
 @supports (-webkit-appearance: none) {
     .search-bar-container .glow {
         /* Force Safari to render the glow effect immediately */
-        -webkit-transform: translate3d(0, 0, 0) !important;
-        transform: translate3d(0, 0, 0) !important;
-        -webkit-backface-visibility: hidden !important;
-        backface-visibility: hidden !important;
-        will-change: filter, transform !important;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
+        backface-visibility: hidden;
+        will-change: filter, transform;
     }
     
     .search-bar-container .glow:before {
         /* Ensure pseudo-element renders with proper properties in Safari */
-        -webkit-transform: translate(-50%, -50%) rotate(60deg) !important;
-        transform: translate(-50%, -50%) rotate(60deg) !important;
-        -webkit-backface-visibility: hidden !important;
-        backface-visibility: hidden !important;
-        will-change: transform !important;
-        opacity: 0.6 !important;
+        -webkit-transform: translate(-50%, -50%) rotate(60deg);
+        transform: translate(-50%, -50%) rotate(60deg);
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
+        backface-visibility: hidden;
+        will-change: transform;
+        opacity: 0.6;
         /* Force immediate rendering with a micro-animation */
         -webkit-animation: safari-glow-force 0.01s ease-out;
         animation: safari-glow-force 0.01s ease-out;

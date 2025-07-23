@@ -4197,12 +4197,13 @@ button:focus-visible,
     position: relative;
 }
 
-/* Move document type badge to be positioned relative to the entire list item */
+/* Move document type badge to be positioned as a flex item on the right */
 .document-list-item .document-type-badge {
-    position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    z-index: 10;
+    position: static;
+    margin-left: auto;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: var(--space-4);
 }
 
 .document-list-thumbnail {
@@ -4271,8 +4272,9 @@ button:focus-visible,
 .document-list-content {
     flex: 1;
     display: flex;
-    align-items: center;
-    gap: var(--space-3);
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
     min-width: 0;
     overflow: hidden;
 }
@@ -4280,10 +4282,12 @@ button:focus-visible,
 .document-content-header {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--space-4);
     margin-bottom: var(--space-2);
     position: relative;
+    flex: 1;
+    min-width: 0;
 }
 
 .document-title-section {
@@ -4468,8 +4472,7 @@ button:focus-visible,
     
     /* Adjust document type badge position for mobile */
     .document-list-item .document-type-badge {
-        top: var(--space-3);
-        right: var(--space-3);
+        margin-top: var(--space-3);
         font-size: 9px;
         padding: 3px 6px;
     }
@@ -4487,6 +4490,18 @@ button:focus-visible,
         align-items: center;
         text-align: center;
         gap: var(--space-3);
+        flex: 1;
+    }
+    
+    .document-list-content {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-3);
+    }
+    
+    .document-list-item .document-type-badge {
+        margin-left: 0;
+        margin-top: var(--space-2);
     }
     
     .document-title-section {
@@ -4495,8 +4510,7 @@ button:focus-visible,
     
     /* Adjust document type badge for very small screens */
     .document-list-item .document-type-badge {
-        top: var(--space-2);
-        right: var(--space-2);
+        margin-top: var(--space-2);
         font-size: 8px;
         padding: 2px 4px;
     }

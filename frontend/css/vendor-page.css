@@ -348,6 +348,7 @@ html {
     align-items: center !important;
     gap: 8px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+    width: fit-content !important;
 }
 
 .vendor-rating-btn .rating-text {

@@ -1090,18 +1090,28 @@ html {
 
 .search-container-wrapper {
     /* The wrapper is now back inside search-section. */
-    width: 100%;
-    margin-top: 0px; /* Restore the original spacing between subtitle and search bar. */
+    width: fit-content;
+    margin: 0 auto; /* Fixed invalid CSS - center the container */
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
-    z-index: 1001; /* High z-index to stay on top */
+    z-index: 999; /* Lower z-index to not block sort button */
 
     /* The background and padding are only applied when it's stuck. */
     transition: all 0.3s ease-in-out;
+    pointer-events: none; /* Make wrapper non-clickable */
     
     /* Ensure sticky positioning works properly */
-    transform: translateZ(0);
+    /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
+}
+
+/* Re-enable pointer events for interactive elements within search wrapper */
+.search-container-wrapper .search-container,
+.search-container-wrapper .search-bar,
+.search-container-wrapper .search-input,
+.search-container-wrapper .filters-btn,
+.search-container-wrapper .toggle-label {
+    pointer-events: auto;
 }
 
 /* Search Container - Compact for Header */
@@ -1709,7 +1719,7 @@ html {
     margin-left: 0;
     margin-bottom: var(--space-4);
     position: relative;
-    z-index: 999;
+    z-index: 1; /* Higher than search wrapper to ensure clickability */
     width: 100%;
     max-width: none;
     text-align: left !important;

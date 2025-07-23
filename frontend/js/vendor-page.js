@@ -310,13 +310,13 @@ function updateVendorBanner(vendorData) {
     const vendorRatingBtn = document.getElementById('vendorRatingBtn');
     
     if (vendorAvatar && vendorName && vendorFaculty && vendorChannel && vendorRatingBtn) {
-        // Set vendor name (use full name if available, otherwise username)
-        const fullName = vendorData.fullName || vendorData.username;
-        vendorName.textContent = fullName;
+        // Set vendor name - only use username to avoid duplication
+        vendorName.textContent = vendorData.username;
         
         // Create avatar with consistent gradient
         const gradient = getConsistentGradient(vendorData.username);
-        const initials = getInitials(fullName);
+        // Use username for initials to avoid duplication
+        const initials = getInitials(vendorData.username);
         
         // Determine font size based on screen width
         let fontSize = '50px'; // Default for desktop
@@ -3036,6 +3036,7 @@ function getInitials(fullName) {
     if (names.length >= 2) {
         return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
     } else if (names.length === 1) {
+        // For single word usernames, show first letter
         return names[0].charAt(0).toUpperCase();
     }
     return 'U';
@@ -3212,7 +3213,6 @@ async function loadAllFiles() {
         // Extract vendor information from vetrine data
         let vendorData = {
             username: vendorUsername,
-            fullName: '',
             faculty: '',
             canale: '',
             averageRating: 0,
@@ -3237,7 +3237,6 @@ async function loadAllFiles() {
                 
                 vendorData = {
                     username: vendorUsername,
-                    fullName: author ? `${author.first_name || ''} ${author.last_name || ''}`.trim() : vendorUsername,
                     faculty: firstVetrina.course_instance?.faculty_name || '',
                     canale: firstVetrina.course_instance?.canale || '',
                     averageRating: firstVetrina.average_rating || 0,

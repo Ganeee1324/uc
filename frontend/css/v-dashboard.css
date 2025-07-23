@@ -624,7 +624,7 @@ body {
     position: relative;
     width: 100%;
     max-width: 100%;
-    z-index: 999; /* Lower z-index to not block sort button - matching search.css */
+    z-index: 99999; /* Very high z-index to ensure search section appears above document count */
     isolation: isolate; /* Create a new stacking context */
 }
 
@@ -651,7 +651,7 @@ body {
     margin-bottom: 0px; /* Ensure no margin affecting alignment */
     position: sticky;
     top: 16px; /* Match search.css exactly */
-    z-index: 999; /* Lower z-index to not block sort button - matching search.css */
+    z-index: 99999; /* Very high z-index to ensure search wrapper appears above document count */
     transition: all 0.3s ease-in-out;
     pointer-events: none; /* Make wrapper non-clickable */
     grid-area: search; /* Assign to search grid area */
@@ -726,7 +726,7 @@ body {
     .search-container-wrapper {
         top: 16px; /* Keep consistent with desktop - sticky at 16px from top */
         position: sticky; /* Ensure sticky is maintained on mobile */
-        z-index: 10000; /* Consistent with base z-index - high enough to stay above document count */
+        z-index: 99999; /* Very high z-index to ensure search wrapper appears above document count */
     }
     
     /* Document count section should be below search but sorting button should be clickable */
@@ -1178,7 +1178,7 @@ body {
     
     /* Search wrapper should be above document count but sorting button should remain clickable */
     .search-container-wrapper {
-        z-index: 999; /* Keep z-index for proper sticky behavior */
+        z-index: 99999; /* Keep very high z-index for proper sticky behavior */
     }
     
     .document-count-container {
@@ -2210,7 +2210,7 @@ body {
 /* Sidebar open state - keep z-index high to maintain sticky positioning */
 .sidebar-overlay.active ~ .main-content .search-container-wrapper,
 body.sidebar-open .search-container-wrapper {
-    z-index: 999; /* Keep z-index for proper sticky behavior - matching search.css */
+    z-index: 99999; /* Keep very high z-index for proper sticky behavior */
 }
 
 .sidebar-overlay.active ~ .main-content .filters-btn,

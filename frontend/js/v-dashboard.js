@@ -848,6 +848,58 @@ function animateStatsCards() {
     });
 }
 
+// Safari Glow Fix - Force proper rendering of glow effects
+function initializeSafariGlowFix() {
+    // Detect Safari browser
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isSafari) {
+        const searchBarBackground = document.querySelector('.search-bar-background');
+        if (searchBarBackground) {
+            // Force Safari to properly render the glow effect
+            // by temporarily modifying and restoring the filter property
+            const originalFilter = searchBarBackground.style.filter;
+            
+            // Trigger a reflow to force rendering
+            searchBarBackground.offsetHeight;
+            
+            // Temporarily modify the filter to force re-rendering
+            searchBarBackground.style.filter = 'brightness(1.6)';
+            
+            // Use requestAnimationFrame to restore the original filter
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    searchBarBackground.style.filter = originalFilter;
+                });
+            });
+        }
+        
+        // Also fix the blur effect on the ::before pseudo-element
+        const searchBarWrapper = document.querySelector('.search-bar-wrapper');
+        if (searchBarWrapper) {
+            // Force reflow
+            searchBarWrapper.offsetHeight;
+            
+            // Add a temporary class to trigger re-rendering
+            searchBarWrapper.classList.add('safari-glow-fix');
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    searchBarWrapper.classList.remove('safari-glow-fix');
+                });
+            });
+        }
+    }
+}
+
+// Execute Safari fix as early as possible, even before DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSafariGlowFix);
+} else {
+    // DOM is already loaded, execute immediately
+    initializeSafariGlowFix();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeMobileMenu();
     initializeAISearchToggle();

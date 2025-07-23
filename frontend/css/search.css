@@ -4560,7 +4560,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-container {
-       max-width: 550px;
+       width: fit-content;
        gap: var(--space-3);
    }
    
@@ -4750,10 +4750,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-container {
-       max-width: 500px;
+       width: fit-content;
        flex-direction: row;
        gap: var(--space-2);
-       width: 100%;
        flex-wrap: nowrap;
    }
    
@@ -4923,7 +4922,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Search bar responsive sizing - Only when screen is smaller than search bar */
 @media (max-width: 520px) {
    .search-container {
-       max-width: 400px;
+       width: fit-content;
        gap: 0;
        flex-wrap: nowrap;
    }
@@ -5014,7 +5013,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .search-container {
-       max-width: 350px;
+       width: fit-content;
        gap: 0;
        flex-wrap: nowrap;
    }

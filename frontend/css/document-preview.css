@@ -1301,7 +1301,7 @@ body {
     transition: all 0.3s var(--ease-spring);
     position: relative;
     overflow: hidden;
-    margin-bottom: var(--space-3);
+    margin-bottom: 0;
 }
 
 .action-btn.cart::before {
@@ -1422,6 +1422,7 @@ body {
     background: var(--neutral-25);
     border-radius: var(--radius-xl);
     padding: var(--space-6);
+    padding-top: var(--space-4);
     border: 1px solid var(--neutral-100);
     min-height: 240px; /* Increased minimum height */
 }
@@ -1457,6 +1458,7 @@ body {
     background: var(--neutral-25);
     border-radius: var(--radius-xl);
     padding: var(--space-6);
+    padding-top: var(--space-4);
     border: 1px solid var(--neutral-100);
     min-height: 240px; /* Increased minimum height */
 }
@@ -5071,7 +5073,7 @@ button:focus-visible,
     background: var(--neutral-0);
     border-radius: var(--radius-xl);
     padding: var(--space-4) var(--space-5);
-    margin: var(--space-3) 0;
+    margin: 0;
     border: 1px solid var(--neutral-150);
     transition: all 0.3s var(--ease-out);
     cursor: pointer;
@@ -5185,7 +5187,7 @@ button:focus-visible,
 @media (max-width: 768px) {
     .author-profile-compact {
         padding: var(--space-3) var(--space-4);
-        margin: var(--space-3) 0;
+        margin: 0;
     }
     
     .author-avatar-compact {

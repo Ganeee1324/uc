@@ -1555,11 +1555,11 @@ function renderDocumentListView(docData) {
                 </div>
                 <div class="document-list-content">
                     <div class="document-content-header">
+                        <div class="document-type-badge-search-style">${fileType}</div>
                         <div class="document-title-section">
                             <h3 class="document-list-title">${displayFilename}</h3>
-                            <div class="document-list-description">${fileType} • ${fileSize || 'N/A'} • ${uploadDate || 'N/A'}</div>
+                            <div class="document-list-description">${file.description || 'Nessuna descrizione disponibile'}</div>
                         </div>
-                        <div class="document-type-badge-search-style">${fileType}</div>
                     </div>
                 </div>
             </div>

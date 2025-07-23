@@ -4174,6 +4174,21 @@ button:focus-visible,
     z-index: 1;
 }
 
+.document-list-item:hover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+        rgba(59, 130, 246, 0.01) 0%, 
+        rgba(59, 130, 246, 0.03) 100%);
+    z-index: 0;
+}
+
+.document-list-item > * {
+    position: relative;
+    z-index: 1;
+}
+
 /* Document List Thumbnail - Professional Preview */
 .document-list-preview {
     flex-shrink: 0;

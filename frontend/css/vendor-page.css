@@ -213,15 +213,16 @@ html {
     position: relative;
     z-index: 2;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .vendor-info {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 50px;
     text-align: center;
     background: rgba(255, 255, 255, 0.2);
-    padding: 60px 70px;
+    padding: 40px 50px;
     border-radius: 30px;
     backdrop-filter: blur(25px);
     border: 2px solid rgba(255, 255, 255, 0.4);
@@ -229,7 +230,9 @@ html {
     max-width: 800px;
     margin: 0 auto;
     flex-direction: column;
-    gap: 40px;
+    gap: 30px;
+    width: fit-content;
+    min-width: 300px;
 }
 
 .vendor-avatar {
@@ -6064,10 +6067,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 24px;
-        padding: 28px 32px;
+        gap: 20px;
+        padding: 30px 35px;
         max-width: 90%;
         flex-direction: column;
+        min-width: 280px;
     }
     
     .vendor-avatar {
@@ -6098,10 +6102,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 20px;
-        padding: 24px 28px;
+        gap: 16px;
+        padding: 25px 30px;
         max-width: 95%;
         flex-direction: column;
+        min-width: 260px;
     }
     
     .vendor-avatar {

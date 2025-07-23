@@ -27,6 +27,7 @@ def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector:
         f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
         autocommit=autocommit,
         row_factory=psycopg.rows.dict_row if not no_dict_row_factory else None,
+        connect_timeout=5,
     )
     # Register vector extension for this connection
     if vector:

@@ -621,7 +621,7 @@ html {
     margin-top: 0;
     padding: var(--space-12);
     text-align: center;
-    position: static; /* Changed from relative to static to allow sticky positioning */
+    position: relative; /* Restored to relative for proper stacking context */
     width: 100%;
     max-width: 100%;
 }

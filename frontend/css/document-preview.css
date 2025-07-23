@@ -4203,7 +4203,14 @@ button:focus-visible,
     margin-left: auto;
     flex-shrink: 0;
     align-self: flex-start;
-    margin-top: var(--space-4);
+    margin-top: 0;
+}
+
+/* Position document type badge in the header to align with title */
+.document-content-header .document-type-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    align-self: flex-start;
 }
 
 .document-list-thumbnail {
@@ -4273,7 +4280,7 @@ button:focus-visible,
     flex: 1;
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--space-4);
     min-width: 0;
     overflow: hidden;
@@ -4282,7 +4289,7 @@ button:focus-visible,
 .document-content-header {
     display: flex;
     align-items: flex-start;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: var(--space-4);
     margin-bottom: var(--space-2);
     position: relative;
@@ -4472,9 +4479,13 @@ button:focus-visible,
     
     /* Adjust document type badge position for mobile */
     .document-list-item .document-type-badge {
-        margin-top: var(--space-3);
+        margin-top: 0;
         font-size: 9px;
         padding: 3px 6px;
+    }
+    
+    .document-content-header .document-type-badge {
+        margin-left: auto;
     }
 }
 
@@ -4501,7 +4512,7 @@ button:focus-visible,
     
     .document-list-item .document-type-badge {
         margin-left: 0;
-        margin-top: var(--space-2);
+        margin-top: 0;
     }
     
     .document-title-section {
@@ -4510,7 +4521,7 @@ button:focus-visible,
     
     /* Adjust document type badge for very small screens */
     .document-list-item .document-type-badge {
-        margin-top: var(--space-2);
+        margin-top: 0;
         font-size: 8px;
         padding: 2px 4px;
     }

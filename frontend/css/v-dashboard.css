@@ -526,7 +526,8 @@ body {
 /* Document count container base styles */
 .document-count-container {
     position: relative;
-    z-index: -1; /* Negative z-index to force below search wrapper */
+    z-index: 1; /* Reset to positive z-index */
+    grid-area: documents; /* Assign to documents grid area */
 }
 
 .documents-grid {
@@ -610,9 +611,12 @@ body {
 /* === Sticky Search Bar Styles (copied/adapted from search.css) === */
 
 .search-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: grid;
+    grid-template-areas: 
+        "search"
+        "documents";
+    grid-template-rows: auto 1fr;
+    align-items: start;
     justify-content: center;
     margin-top: 32px; /* Move top spacing from padding to margin */
     padding: 0 0 24px 0; /* Remove top padding to fix sticky positioning */
@@ -650,6 +654,7 @@ body {
     z-index: 999; /* Lower z-index to not block sort button - matching search.css */
     transition: all 0.3s ease-in-out;
     pointer-events: none; /* Make wrapper non-clickable */
+    grid-area: search; /* Assign to search grid area */
     /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
 }
 
@@ -727,22 +732,22 @@ body {
     /* Document count section should be below search but sorting button should be clickable */
     .document-count-container {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
     }
     
     .document-count-and-filters {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
     }
     
     .order-dropdown-container {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
     }
     
     .order-btn {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
         pointer-events: auto; /* Ensure button remains clickable */
     }
 
@@ -1048,7 +1053,7 @@ body {
     gap: 16px;
     flex-wrap: wrap;
     position: relative;
-    z-index: -1; /* Negative z-index to force below search wrapper */
+    z-index: 1; /* Reset to positive z-index */
 }
 
 .order-dropdown-container {
@@ -1056,7 +1061,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    z-index: -1; /* Negative z-index to force below search wrapper */
+    z-index: 1; /* Reset to positive z-index */
 }
 
 .order-label {
@@ -1178,22 +1183,22 @@ body {
     
     .document-count-container {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
     }
     
     .document-count-and-filters {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
     }
     
     .order-dropdown-container {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
     }
     
     .order-btn {
         position: relative;
-        z-index: -1; /* Negative z-index to force below search wrapper */
+        z-index: 1; /* Reset to positive z-index */
         pointer-events: auto; /* Ensure button remains clickable */
     }
     
@@ -1799,7 +1804,7 @@ body {
     padding: 0 15px;
     margin-bottom: 15px;
     position: relative;
-    z-index: -1; /* Negative z-index to force below search wrapper */
+    z-index: 1; /* Reset to positive z-index */
 }
     
     .document-count-and-filters {

@@ -1168,6 +1168,20 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
+function formatRelativeDate(dateString) {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Ieri';
+    if (diffDays < 7) return `${diffDays} giorni fa`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} settimane fa`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} mesi fa`;
+    return `${Math.floor(diffDays / 365)} anni fa`;
+}
+
 function formatDate(dateString) {
     if (!dateString) return 'Data non disponibile';
     return new Date(dateString).toLocaleDateString('it-IT', {
@@ -1523,35 +1537,29 @@ function renderDocumentListView(docData) {
         const fileType = file.tag ? getDocumentTypeFromTag(file.tag) : getDocumentTypeFromFilename(displayFilename);
         const fileExtension = getFileExtension(displayFilename);
         const documentIcon = getDocumentPreviewIcon(displayFilename);
+        const fileSize = file.size ? formatFileSize(file.size) : null;
+        const uploadDate = file.created_at ? formatRelativeDate(file.created_at) : null;
         
         return `
-            <div class="document-list-item" data-file-id="${file.file_id}" data-action="open-viewer">
-                <div class="document-list-preview">
-                    <div class="document-list-icon">
-                        <span class="document-icon">${documentIcon}</span>
-                        <div class="file-extension-badge">${fileExtension}</div>
+            <div class="document-list-item" data-file-id="${file.file_id}">
+                <div class="document-list-preview" data-action="preview-document" data-file-id="${file.file_id}">
+                    <div class="document-list-thumbnail">
+                        <div class="document-thumbnail-icon">
+                            <span class="document-icon">${documentIcon}</span>
+                        </div>
+                        <div class="document-type-badge">${fileExtension.toUpperCase()}</div>
+                        <div class="preview-overlay-hint">
+                            <span class="material-symbols-outlined">visibility</span>
+                            <span class="preview-text">Anteprima</span>
+                        </div>
                     </div>
                 </div>
-                <div class="document-list-content">
-                    <div class="document-list-header">
-                        <h3 class="document-list-title">${displayFilename}</h3>
-                        <div class="document-list-type">${fileType}</div>
-                    </div>
-                    <div class="document-list-meta">
-                        ${file.num_pages && file.num_pages > 0 && file.extension === 'pdf' ? `
-                            <span class="document-list-pages">${file.num_pages} pagine</span>
-                        ` : ''}
-                        ${file.price && file.price > 0 ? `
-                            <span class="document-list-separator">•</span>
-                            <span class="document-list-price">€${file.price.toFixed(2)}</span>
-                        ` : ''}
-                    </div>
-                    <div class="document-list-actions">
-                        <button class="document-list-btn primary" data-action="open-viewer" data-file-id="${file.file_id}">
-                            <span class="material-symbols-outlined">visibility</span>
-                            Visualizza
-                        </button>
-                        <!-- Download functionality removed -->
+                <div class="document-list-content" data-action="open-viewer" data-file-id="${file.file_id}">
+                    <div class="document-content-header">
+                        <div class="document-title-section">
+                            <h3 class="document-list-title">${displayFilename}</h3>
+                            <div class="document-type-tag">${fileType}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1664,6 +1672,9 @@ function renderDocumentListView(docData) {
                     </div>
                 </div>
 
+                <!-- Author Profile Section -->
+                ${generateAuthorProfile(currentVetrina)}
+
                 <!-- Related Documents Section -->
                 <div class="related-docs-section">
                     <div class="related-docs">
@@ -1736,6 +1747,9 @@ function renderDocumentListView(docData) {
     
     // Setup action buttons for the vetrina
     setupActionButtons(currentDocument, currentVetrina);
+    
+    // Setup document preview functionality
+    setupDocumentPreview();
 }
 
 // New function to handle normal single-file viewer mode
@@ -1850,6 +1864,9 @@ function renderDocumentViewerMode(docData) {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Author Profile Section -->
+                    ${generateAuthorProfile(currentVetrina)}
 
                     <!-- Related Documents Section -->
                     <div class="related-docs-section">
@@ -3104,6 +3121,374 @@ async function addRelatedToCart(docId, event) {
         }, 2000);
     }
 }
+
+// ============================================
+// DOCUMENT PREVIEW OVERLAY FUNCTIONALITY
+// ============================================
+
+// Setup document preview functionality
+function setupDocumentPreview() {
+    // Add event listeners for preview actions
+    document.addEventListener('click', handlePreviewActions);
+}
+
+// Handle all preview-related actions
+function handlePreviewActions(e) {
+    const action = e.target.closest('[data-action]')?.getAttribute('data-action');
+    
+    switch (action) {
+        case 'preview-document':
+            e.preventDefault();
+            e.stopPropagation();
+            const fileId = e.target.closest('[data-file-id]')?.getAttribute('data-file-id');
+            if (fileId) {
+                openDocumentPreview(fileId);
+            }
+            break;
+        case 'close-preview':
+            closeDocumentPreview();
+            break;
+        case 'open-full-viewer':
+            const fullViewerFileId = document.getElementById('openFullViewerBtn')?.getAttribute('data-file-id');
+            if (fullViewerFileId) {
+                // Close preview and open full viewer
+                closeDocumentPreview();
+                // Trigger the existing viewer functionality
+                setTimeout(() => {
+                    const viewerAction = document.querySelector(`[data-action="open-viewer"][data-file-id="${fullViewerFileId}"]`);
+                    if (viewerAction) {
+                        viewerAction.click();
+                    }
+                }, 300);
+            }
+            break;
+    }
+}
+
+// Open document preview overlay
+async function openDocumentPreview(fileId) {
+    const overlay = document.getElementById('documentPreviewOverlay');
+    const loader = document.getElementById('previewLoader');
+    const content = document.getElementById('previewContent');
+    const title = document.getElementById('previewDocumentTitle');
+    const openFullBtn = document.getElementById('openFullViewerBtn');
+    
+    if (!overlay || !loader || !content || !title) return;
+    
+    // Find the file data
+    const file = currentVetrinaFiles.find(f => f.file_id == fileId);
+    if (!file) return;
+    
+    // Set title and file reference
+    const displayFilename = extractOriginalFilename(file.filename);
+    title.textContent = displayFilename;
+    openFullBtn.setAttribute('data-file-id', fileId);
+    
+    // Show overlay
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Show loader
+    loader.style.display = 'flex';
+    content.classList.remove('loaded');
+    
+    try {
+        // Create redacted preview
+        await loadRedactedPreview(file, content);
+        
+        // Hide loader and show content
+        loader.style.display = 'none';
+        content.classList.add('loaded');
+        
+    } catch (error) {
+        console.error('Failed to load document preview:', error);
+        
+        // Show error state
+        loader.style.display = 'none';
+        content.innerHTML = `
+            <div class="preview-error">
+                <div class="error-icon">
+                    <span class="material-symbols-outlined">error</span>
+                </div>
+                <h4>Anteprima non disponibile</h4>
+                <p>Non è possibile caricare l'anteprima di questo documento.</p>
+                <button class="preview-action-btn primary" onclick="closeDocumentPreview()">
+                    Chiudi
+                </button>
+            </div>
+        `;
+        content.classList.add('loaded');
+    }
+}
+
+// Close document preview overlay
+function closeDocumentPreview() {
+    const overlay = document.getElementById('documentPreviewOverlay');
+    const content = document.getElementById('previewContent');
+    
+    if (!overlay) return;
+    
+    // Hide overlay
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Clear content after animation
+    setTimeout(() => {
+        if (content) {
+            content.innerHTML = '';
+            content.classList.remove('loaded');
+        }
+    }, 300);
+}
+
+// Load redacted preview for document
+async function loadRedactedPreview(file, contentContainer) {
+    const fileExtension = getFileExtension(file.filename).toLowerCase();
+    
+    // Create redacted preview based on file type
+    if (fileExtension === 'pdf') {
+        await loadRedactedPdfPreview(file, contentContainer);
+    } else {
+        // For non-PDF files, show a redacted placeholder
+        loadRedactedPlaceholder(file, contentContainer);
+    }
+}
+
+// Load redacted PDF preview
+async function loadRedactedPdfPreview(file, contentContainer) {
+    // Create iframe for PDF preview
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '100%';
+    iframe.style.height = '500px';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = 'var(--radius-lg)';
+    iframe.style.background = 'var(--neutral-25)';
+    
+    // In a real implementation, this would load a redacted version of the PDF
+    // For now, we'll show a placeholder that indicates it's redacted
+    const placeholderContent = `
+        <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 500px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-family: system-ui, -apple-system, sans-serif;
+        ">
+            <div style="
+                width: 80px;
+                height: 100px;
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                border-radius: 8px;
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 2rem;
+            ">📄</div>
+            <h3 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.25rem;">Anteprima Redatta</h3>
+            <p style="margin: 0 0 1rem 0; font-size: 0.875rem; max-width: 300px;">
+                Questa è una versione redatta del documento per proteggere il contenuto originale.
+            </p>
+            <div style="
+                background: #fee2e2;
+                color: #dc2626;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            ">Contenuto Protetto</div>
+        </div>
+    `;
+    
+    iframe.srcdoc = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Redacted Preview</title>
+        </head>
+        <body style="margin: 0; padding: 0;">
+            ${placeholderContent}
+        </body>
+        </html>
+    `;
+    
+    contentContainer.appendChild(iframe);
+}
+
+// Load redacted placeholder for non-PDF files
+function loadRedactedPlaceholder(file, contentContainer) {
+    const fileExtension = getFileExtension(file.filename).toLowerCase();
+    const documentIcon = getDocumentPreviewIcon(file.filename);
+    
+    const placeholder = document.createElement('div');
+    placeholder.className = 'redacted-placeholder';
+    placeholder.innerHTML = `
+        <div class="redacted-preview-container">
+            <div class="redacted-document-icon">
+                <span class="document-icon">${documentIcon}</span>
+                <div class="file-type-badge">${fileExtension.toUpperCase()}</div>
+            </div>
+            <h3>Anteprima Non Disponibile</h3>
+            <p>L'anteprima redatta non è disponibile per questo tipo di file (${fileExtension.toUpperCase()}).</p>
+            <div class="redacted-badge">Contenuto Protetto</div>
+        </div>
+    `;
+    
+    // Add styles for the placeholder
+    const style = document.createElement('style');
+    style.textContent = `
+        .redacted-placeholder {
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .redacted-preview-container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        .redacted-document-icon {
+            position: relative;
+            width: 100px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+            border-radius: var(--radius-lg);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary-200);
+        }
+        .redacted-document-icon .document-icon {
+            font-size: 3rem;
+            color: var(--primary-600);
+        }
+        .file-type-badge {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: var(--primary-600);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 2px solid white;
+        }
+        .redacted-preview-container h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--neutral-900);
+            font-size: 1.25rem;
+        }
+        .redacted-preview-container p {
+            margin: 0 0 1.5rem 0;
+            color: var(--neutral-600);
+            font-size: 0.875rem;
+        }
+        .redacted-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+    `;
+    
+    contentContainer.appendChild(style);
+    contentContainer.appendChild(placeholder);
+}
+
+// ============================================
+// AUTHOR PROFILE FUNCTIONALITY
+// ============================================
+
+// Helper functions matching search page implementation
+// Note: getInitials and getConsistentGradient functions are already defined above
+// Using existing implementations to avoid duplicate declarations
+
+// Generate author profile HTML - compact version matching search page integration
+function generateAuthorProfile(vetrinaData) {
+    if (!vetrinaData) return '';
+    
+    // Extract author information from vetrina data
+    const authorName = vetrinaData.user_name || vetrinaData.author_name || vetrinaData.author?.username || 'Autore Sconosciuto';
+    const authorId = vetrinaData.user_id || vetrinaData.author_id || vetrinaData.author?.user_id;
+    const authorUsername = vetrinaData.author?.username || authorName;
+    
+    // Generate author initials for avatar using the same function as search page
+    const initials = getInitials(authorName);
+    
+    // Get consistent gradient using the same function as search page
+    const gradientStyle = getConsistentGradient(authorUsername);
+    
+    // Mock statistics (in real app, these would come from API)
+    const authorStats = {
+        documents: vetrinaData.document_count || Math.floor(Math.random() * 50) + 5,
+        rating: vetrinaData.author_rating || (4.0 + Math.random() * 1.0),
+        reviews: vetrinaData.review_count || Math.floor(Math.random() * 100) + 10
+    };
+    
+    return `
+        <div class="author-profile-compact" data-action="navigate-to-vendor" data-vendor-username="${authorUsername || ''}" tabindex="0" role="button" aria-label="Visualizza profilo di ${authorName}">
+            <div class="author-profile-compact-header">
+                <div class="author-avatar-compact" style="background: ${gradientStyle}; color: white; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); border: 2px solid var(--neutral-0);">
+                    ${initials}
+                </div>
+                <div class="author-info-compact">
+                    <div class="author-name-compact">${authorName}</div>
+                    <div class="author-stats-compact">
+                        <span class="author-doc-count">${authorStats.documents} documenti</span>
+                        <span class="author-separator">•</span>
+                        <span class="author-rating-compact">${authorStats.rating.toFixed(1)} ★ (${authorStats.reviews})</span>
+                    </div>
+                </div>
+                <div class="author-profile-arrow">
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Handle author profile click
+function handleAuthorProfileClick(e) {
+    const element = e.target.closest('[data-action="navigate-to-vendor"]');
+    if (!element) return;
+    
+    e.preventDefault();
+    const vendorUsername = element.getAttribute('data-vendor-username');
+    
+    if (vendorUsername) {
+        // Navigate to vendor page using username parameter (matching search page pattern)
+        window.location.href = `vendor-page.html?user=${encodeURIComponent(vendorUsername)}`;
+    } else {
+        console.warn('No vendor username found for author profile');
+        showNotification('Profilo autore temporaneamente non disponibile', 'info');
+    }
+}
+
+// Add author profile click handlers
+document.addEventListener('click', handleAuthorProfileClick);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        handleAuthorProfileClick(e);
+    }
+});
 
 // Reading Position Management
 // Reading Position Management

@@ -7,6 +7,28 @@ const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
+// DOM element cache for performance optimization
+const DOM_CACHE = {
+    documentsGrid: null,
+    searchSection: null,
+    documentCountContainer: null,
+    documentCount: null,
+    searchInput: null,
+    init() {
+        this.documentsGrid = document.getElementById('documentsGrid');
+        this.searchSection = document.querySelector('.search-section');
+        this.documentCountContainer = document.getElementById('documentCountContainer');
+        this.documentCount = document.getElementById('documentCount');
+        this.searchInput = document.getElementById('searchInput');
+    },
+    get(elementName) {
+        if (!this[elementName]) {
+            this.init();
+        }
+        return this[elementName];
+    }
+};
+
 // Debug function to track "Pensato per chi vuole di più" text position
 function debugPensatoTextPosition() {
     // Make this function globally accessible for manual debugging
@@ -3976,7 +3998,7 @@ function formatCanaleDisplay(canale) {
 }
 
 function renderDocuments(files) {
-    const grid = document.getElementById('documentsGrid');
+    const grid = DOM_CACHE.get('documentsGrid');
     if (!grid) {
         console.error('Documents grid not found');
         return;
@@ -3992,7 +4014,7 @@ function renderDocuments(files) {
     }
     
     // Update search section layout based on results
-    const searchSection = document.querySelector('.search-section');
+    const searchSection = DOM_CACHE.get('searchSection');
     if (searchSection) {
         if (!files || files.length === 0) {
             searchSection.classList.remove('has-results');
@@ -4002,8 +4024,8 @@ function renderDocuments(files) {
     }
     
     // Update document count display
-    const documentCountContainer = document.getElementById('documentCountContainer');
-    const documentCount = document.getElementById('documentCount');
+    const documentCountContainer = DOM_CACHE.get('documentCountContainer');
+    const documentCount = DOM_CACHE.get('documentCount');
     
     if (documentCountContainer && documentCount) {
         const count = files ? files.length : 0;
@@ -4020,9 +4042,15 @@ function renderDocuments(files) {
         
         // Ensure only one row of loading cards is shown in no-results state
         const existingLoadingCards = grid.querySelectorAll('.loading-card');
-        const computedStyle = window.getComputedStyle(grid);
-        const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
-        const columnCount = gridTemplateColumns.split(' ').length;
+        
+        // Cache computed style to avoid repeated calculations
+        if (!grid._cachedColumnCount || grid._lastWindowWidth !== window.innerWidth) {
+            const computedStyle = window.getComputedStyle(grid);
+            const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+            grid._cachedColumnCount = gridTemplateColumns.split(' ').length;
+            grid._lastWindowWidth = window.innerWidth;
+        }
+        const columnCount = grid._cachedColumnCount;
         
         console.log(`📱 No results: Ensuring only ${columnCount} loading cards (one row)`);
         
@@ -4059,6 +4087,9 @@ function renderDocuments(files) {
     
     // Clear the grid only when we have results to show
     grid.innerHTML = '';
+
+    // Use DocumentFragment for efficient DOM manipulation
+    const fragment = document.createDocumentFragment();
 
     files.forEach((item, index) => {
         const card = document.createElement('div');
@@ -4364,8 +4395,11 @@ function renderDocuments(files) {
             });
         }
 
-        grid.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Append all cards to grid at once for better performance
+    grid.appendChild(fragment);
 
     // Animate document cards into view
     setTimeout(() => {
@@ -5339,11 +5373,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Real-time search with debounce
+        // Real-time search with debounce and request cancellation
         let searchTimeout;
+        let currentSearchController = null;
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
+            // Cancel previous request if still pending
+            if (currentSearchController) {
+                currentSearchController.abort();
+                currentSearchController = null;
+            }
+            
             searchTimeout = setTimeout(async () => {
+                currentSearchController = new AbortController();
+                
                 if (!this.value.trim()) {
                     // If search is cleared, apply current filters or show all
                     if (Object.keys(filterManager.filters).length > 0) {
@@ -5353,9 +5396,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else if (this.value.length >= 2) {
                     // Only search when at least 2 characters
-                    await performSearch(this.value);
+                    await performSearch(this.value, currentSearchController.signal);
                 }
-            }, 300);
+                currentSearchController = null;
+            }, 500); // Increased debounce delay for better performance
         });
     }
 

@@ -1140,10 +1140,6 @@ html {
     width: 100%;
     overflow: hidden;
     border-radius: 12px;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    -moz-transform: translate3d(0, 0, 0);
 }
 
 /* Border Animation Layers */
@@ -1271,9 +1267,44 @@ html {
     backface-visibility: hidden;
 }
 
+/* Safari-specific CSS-only fix: Ensure glow renders immediately on page load */
+@supports (-webkit-appearance: none) {
+    .search-bar-container .glow {
+        /* Force Safari to render the glow effect immediately */
+        -webkit-transform: translate3d(0, 0, 0) !important;
+        transform: translate3d(0, 0, 0) !important;
+        -webkit-backface-visibility: hidden !important;
+        backface-visibility: hidden !important;
+        will-change: filter, transform !important;
+    }
+    
+    .search-bar-container .glow:before {
+        /* Ensure pseudo-element renders with proper properties in Safari */
+        -webkit-transform: translate(-50%, -50%) rotate(60deg) !important;
+        transform: translate(-50%, -50%) rotate(60deg) !important;
+        -webkit-backface-visibility: hidden !important;
+        backface-visibility: hidden !important;
+        will-change: transform !important;
+        opacity: 0.6 !important;
+        /* Force immediate rendering with a micro-animation */
+        -webkit-animation: safari-glow-force 0.01s ease-out;
+        animation: safari-glow-force 0.01s ease-out;
+    }
+}
 
+@-webkit-keyframes safari-glow-force {
+    0%, 100% { 
+        -webkit-transform: translate(-50%, -50%) rotate(60deg);
+        opacity: 0.6;
+    }
+}
 
-
+@keyframes safari-glow-force {
+    0%, 100% { 
+        transform: translate(-50%, -50%) rotate(60deg);
+        opacity: 0.6;
+    }
+}
 
 .search-bar-container .glow:before {
     content: "";
@@ -1367,10 +1398,6 @@ html {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    -moz-transform: translate3d(0, 0, 0);
 }
 
 /* Animation keyframes for border rotation */
@@ -8241,8 +8268,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar .toggle-label:hover,
 .search-bar .toggle-label:focus,
 .search-bar .toggle-label:active {
-  transform: translateY(-50%);
-  transition: none;
+  transform: translateY(-50%) !important;
+  transition: none !important;
 }
 
 
@@ -8277,12 +8304,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     z-index: 0;
     pointer-events: none;
     filter: brightness(1.3) contrast(1.05);
-    /* Hardware acceleration and Safari fixes */
+    /* Safari-specific fixes */
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden !important;
-    -moz-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     will-change: transform, filter;
     overflow: visible;
     transition: filter 0.3s ease-out;
@@ -8300,12 +8326,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     will-change: filter, opacity;
     z-index: 1002;
     overflow: visible;
-    /* Hardware acceleration for blur effect */
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
+    transform: translateZ(0);
     transition: filter 0.3s ease-out, opacity 0.3s ease-out;
 }
 
@@ -8314,12 +8335,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar-wrapper:hover .search-bar-background,
 .search-bar-wrapper:has(.search-bar:hover) .search-bar-background,
 .search-bar-wrapper:has(.search-input:focus) .search-bar-background {
-    -webkit-transform: translate3d(0, -2px, 0);
-    transform: translate3d(0, -2px, 0);
-    /* Hardware acceleration and Safari fixes */
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
+    transform: translateY(-2px);
 }
 
 @keyframes moveToLeft {
@@ -8359,12 +8375,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         transparent calc(var(--expand-progress) * 1% + 130%)
     );
     animation: moveToRight 1s ease-out forwards;
-    /* Hardware acceleration and Safari fixes */
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
 
 /* Animation for toggle ON (pink left, purple right - moves RIGHT) - smooth professional gradient */
@@ -8386,12 +8396,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         transparent calc(var(--expand-progress) * 1% + 130%)
     );
     animation: moveToLeft 1s ease-out forwards;
-    /* Hardware acceleration and Safari fixes */
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
 }
 
 /* Responsive adjustments for the toggle */
@@ -8408,8 +8412,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   /* Ensure toggle stays perfectly centered on mobile */
   .search-bar .toggle-label {
     right: 10px;
-    -webkit-transform: translate3d(0, -50%, 0);
-    transform: translate3d(0, -50%, 0);
+    transform: translateY(-50%); /* Perfect vertical centering for mobile */
   }
   
   .search-bar .search-input {
@@ -8430,8 +8433,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
   /* Ensure toggle stays perfectly centered on small mobile */
   .search-bar .toggle-label {
     right: 8px;
-    -webkit-transform: translate3d(0, -50%, 0);
-    transform: translate3d(0, -50%, 0);
+    transform: translateY(-50%); /* Perfect vertical centering for small mobile */
   }
   
   .search-bar .search-input {

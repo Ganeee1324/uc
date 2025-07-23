@@ -12,7 +12,7 @@
     <link rel="icon" href="images/favicon.png" type="image/png">
     <!-- Favicon removed for CSP compliance -->
 </head>
-<body>
+<body data-page="document-preview">
     <!-- Header matching the image -->
     <header class="header">
         <a href="search.html" class="logo">
@@ -161,7 +161,48 @@
         </div>
     </div>
 
+    <!-- Document Preview Overlay -->
+    <div class="document-preview-overlay" id="documentPreviewOverlay">
+        <div class="preview-overlay-backdrop" data-action="close-preview"></div>
+        <div class="preview-overlay-content">
+            <div class="preview-overlay-header">
+                <div class="preview-overlay-title">
+                    <h3 id="previewDocumentTitle">Anteprima Documento</h3>
+                    <span class="preview-overlay-subtitle" id="previewDocumentSubtitle">Versione redatta</span>
+                </div>
+                <button class="preview-overlay-close" data-action="close-preview">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="preview-overlay-body">
+                <div class="preview-loader" id="previewLoader">
+                    <div class="preview-loader-spinner"></div>
+                    <span>Caricamento anteprima...</span>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <!-- Document preview will be loaded here -->
+                </div>
+            </div>
+            <div class="preview-overlay-footer">
+                <div class="preview-overlay-info">
+                    <span class="material-symbols-outlined">info</span>
+                    <span>Questa è una versione redatta del documento originale</span>
+                </div>
+                <div class="preview-overlay-actions">
+                    <button class="preview-action-btn secondary" data-action="close-preview">
+                        Chiudi
+                    </button>
+                    <button class="preview-action-btn primary" data-action="open-full-viewer" id="openFullViewerBtn">
+                        <span class="material-symbols-outlined">open_in_full</span>
+                        Visualizza Completo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/config.js"></script>
+    <script src="js/performance-cache.js"></script>
 <script type="module" src="js/document-preview.js"></script>
 </body>
 </html> 

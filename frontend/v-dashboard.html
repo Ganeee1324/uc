@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
 </head>
-<body>
+<body data-page="dashboard">
     <!-- Mobile Menu Toggle Button -->
     <label class="hamburger" id="mobileMenuToggle">
         <input type="checkbox">
@@ -227,6 +227,322 @@
                         </div>
                         <div class="overview-number"><span class="overview-number-container green">37</span></div>
                         <div class="overview-label green">Downloads</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Sales Statistics Dashboard -->
+        <div class="stats-dashboard" id="statsDashboard" style="display: none;">
+            <!-- Stats Header with Overview Cards -->
+            <div class="stats-header">
+                <div class="stats-title-section">
+                    <h1 class="stats-main-title">Analytics Dashboard</h1>
+                    <p class="stats-subtitle">Comprehensive insights into your document marketplace performance</p>
+                </div>
+                
+                <!-- Quick Stats Overview Cards -->
+                <div class="stats-overview-grid">
+                    <div class="stats-card revenue-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">€2,847</div>
+                                <div class="stats-label">Revenue</div>
+                                <div class="stats-change positive">+12.5%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card sales-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">shopping_cart</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">156</div>
+                                <div class="stats-label">Total Sales</div>
+                                <div class="stats-change positive">+8.2%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card downloads-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">download</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">2,341</div>
+                                <div class="stats-label">Downloads</div>
+                                <div class="stats-change positive">+15.7%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card views-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">12,459</div>
+                                <div class="stats-label">Profile Views</div>
+                                <div class="stats-change negative">-3.1%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Charts Section -->
+            <div class="stats-main-content">
+                <!-- Primary Chart with Dropdown -->
+                <div class="chart-section primary-chart">
+                    <div class="chart-header">
+                        <div class="chart-title-group">
+                            <h3 class="chart-title">Performance Analytics</h3>
+                            <p class="chart-description">Track your key metrics over time</p>
+                        </div>
+                        <div class="chart-controls">
+                            <div class="chart-dropdown-container">
+                                <button class="chart-dropdown-btn" id="chartDropdownBtn">
+                                    <span class="dropdown-text">Revenue</span>
+                                    <span class="material-symbols-outlined">expand_more</span>
+                                </button>
+                                <div class="chart-dropdown-menu" id="chartDropdownMenu">
+                                    <div class="chart-dropdown-option active" data-chart="revenue">
+                                        <span class="material-symbols-outlined">payments</span>
+                                        <span>Revenue</span>
+                                    </div>
+                                    <div class="chart-dropdown-option" data-chart="sales">
+                                        <span class="material-symbols-outlined">shopping_cart</span>
+                                        <span>Sales</span>
+                                    </div>
+                                    <div class="chart-dropdown-option" data-chart="downloads">
+                                        <span class="material-symbols-outlined">download</span>
+                                        <span>Downloads</span>
+                                    </div>
+                                    <div class="chart-dropdown-option" data-chart="views">
+                                        <span class="material-symbols-outlined">visibility</span>
+                                        <span>Views</span>
+                                    </div>
+                                    <div class="chart-dropdown-option" data-chart="conversion">
+                                        <span class="material-symbols-outlined">trending_up</span>
+                                        <span>Conversion Rate</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-time-filters">
+                                <button class="time-filter-btn active" data-period="7d">7D</button>
+                                <button class="time-filter-btn" data-period="30d">30D</button>
+                                <button class="time-filter-btn" data-period="90d">90D</button>
+                                <button class="time-filter-btn" data-period="1y">1Y</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-placeholder" id="mainChart">
+                            <!-- Chart will be rendered here -->
+                            <div class="chart-mock">
+                                <svg viewBox="0 0 800 300" class="chart-svg">
+                                    <defs>
+                                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+                                            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M50,250 L150,200 L250,180 L350,160 L450,140 L550,120 L650,100 L750,80" 
+                                          stroke="#3b82f6" stroke-width="3" fill="none" class="chart-line"/>
+                                    <path d="M50,250 L150,200 L250,180 L350,160 L450,140 L550,120 L650,100 L750,80 L750,250 L50,250 Z" 
+                                          fill="url(#chartGradient)" class="chart-area"/>
+                                    <!-- Data points -->
+                                    <circle cx="150" cy="200" r="4" fill="#3b82f6" class="chart-point"/>
+                                    <circle cx="250" cy="180" r="4" fill="#3b82f6" class="chart-point"/>
+                                    <circle cx="350" cy="160" r="4" fill="#3b82f6" class="chart-point"/>
+                                    <circle cx="450" cy="140" r="4" fill="#3b82f6" class="chart-point"/>
+                                    <circle cx="550" cy="120" r="4" fill="#3b82f6" class="chart-point"/>
+                                    <circle cx="650" cy="100" r="4" fill="#3b82f6" class="chart-point"/>
+                                    <circle cx="750" cy="80" r="4" fill="#3b82f6" class="chart-point"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Analytics Grid -->
+                <div class="secondary-charts-grid">
+                    <!-- Top Documents Performance -->
+                    <div class="chart-section secondary-chart">
+                        <div class="chart-header">
+                            <h4 class="chart-title">Top Performing Documents</h4>
+                            <div class="documents-time-filter">
+                                <button class="documents-period-btn" id="documentsPeriodBtn">
+                                    <span class="period-text">Last 30 days</span>
+                                    <span class="material-symbols-outlined period-arrow">expand_more</span>
+                                </button>
+                                <div class="documents-period-dropdown" id="documentsPeriodDropdown">
+                                    <div class="period-option" data-period="7d">Last 7 days</div>
+                                    <div class="period-option active" data-period="30d">Last 30 days</div>
+                                    <div class="period-option" data-period="90d">Last 90 days</div>
+                                    <div class="period-option" data-period="1y">Last year</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="documents-performance-table">
+                                <div class="performance-table-header">
+                                    <div class="table-col-rank">#</div>
+                                    <div class="table-col-document">Document</div>
+                                    <div class="table-col-revenue">Revenue</div>
+                                    <div class="table-col-downloads">Downloads</div>
+                                </div>
+                                
+                                <div class="performance-table-body">
+                                    <div class="performance-row" data-rank="1">
+                                        <div class="rank-badge rank-1">1</div>
+                                        <div class="document-cell">
+                                            <div class="document-title">Analisi Matematica I</div>
+                                            <div class="document-category">Mathematics • Premium</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€892</div>
+                                            <div class="revenue-trend positive">+12%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">245</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 85%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="2">
+                                        <div class="rank-badge rank-2">2</div>
+                                        <div class="document-cell">
+                                            <div class="document-title">Fisica Generale</div>
+                                            <div class="document-category">Physics • Standard</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€673</div>
+                                            <div class="revenue-trend positive">+8%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">198</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 70%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="3">
+                                        <div class="rank-badge rank-3">3</div>
+                                        <div class="document-cell">
+                                            <div class="document-title">Programmazione C++</div>
+                                            <div class="document-category">Computer Science • Premium</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€524</div>
+                                            <div class="revenue-trend positive">+15%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">156</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 58%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="4">
+                                        <div class="rank-badge">4</div>
+                                        <div class="document-cell">
+                                            <div class="document-title">Database Design</div>
+                                            <div class="document-category">Computer Science • Standard</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€445</div>
+                                            <div class="revenue-trend negative">-3%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">134</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 48%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="5">
+                                        <div class="rank-badge">5</div>
+                                        <div class="document-cell">
+                                            <div class="document-title">Linear Algebra</div>
+                                            <div class="document-category">Mathematics • Standard</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€312</div>
+                                            <div class="revenue-trend positive">+5%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">98</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 32%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Recent Activity -->
+                    <div class="chart-section secondary-chart">
+                        <div class="chart-header">
+                            <h4 class="chart-title">Recent Activity</h4>
+                        </div>
+                        <div class="chart-container">
+                            <div class="activity-timeline">
+                                <div class="activity-item">
+                                    <div class="activity-icon purchase">
+                                        <span class="material-symbols-outlined">shopping_cart</span>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-text">New purchase: Analisi Matematica I</div>
+                                        <div class="activity-time">2 hours ago</div>
+                                    </div>
+                                    <div class="activity-amount">+€15</div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon download">
+                                        <span class="material-symbols-outlined">download</span>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-text">Document downloaded: Fisica Generale</div>
+                                        <div class="activity-time">4 hours ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon review">
+                                        <span class="material-symbols-outlined">star</span>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-text">New 5-star review received</div>
+                                        <div class="activity-time">6 hours ago</div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon purchase">
+                                        <span class="material-symbols-outlined">shopping_cart</span>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-text">New purchase: Database Design</div>
+                                        <div class="activity-time">8 hours ago</div>
+                                    </div>
+                                    <div class="activity-amount">+€12</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -971,7 +1287,9 @@
         </div>
     </div>
 </body>
+<!-- Professional Performance & Caching System -->
 <script src="js/config.js" defer></script>
+<script src="js/performance-cache.js" defer></script>
 <script src="js/search.js" defer></script>
 <script src="js/v-dashboard.js"></script>
 </html>

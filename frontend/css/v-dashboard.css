@@ -906,10 +906,6 @@ body {
     position: relative;
     display: inline-block;
     border-radius: 20px;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    -moz-transform: translate3d(0, 0, 0);
 }
 
 .search-bar-background, .search-bar-background::before {
@@ -930,17 +926,13 @@ body {
     z-index: 0;
     pointer-events: none;
     filter: brightness(1.5);
-    /* Hardware acceleration and Safari fixes */
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
+    /* Safari-specific fix for initial rendering */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
     backface-visibility: hidden;
     -webkit-perspective: 1000px;
     perspective: 1000px;
-    will-change: transform, filter;
-    overflow: visible;
-    transition: filter 0.3s ease-out;
 }
 .search-bar-background::before {
     content: '';
@@ -953,14 +945,11 @@ body {
     opacity: 0.7;
     border-radius: 12px;
     z-index: 0;
-    /* Hardware acceleration for blur effect */
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
+    /* Safari-specific fix for blur filter */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
     backface-visibility: hidden;
-    will-change: filter, transform;
-    transition: filter 0.3s ease-out, opacity 0.3s ease-out;
 }
 
 /* Safari-specific fix for initial glow rendering */
@@ -975,7 +964,7 @@ body {
 
 /* Safari hover fix class - applies hover state temporarily on load */
 .safari-hover-fix {
-    transform: translate3d(0, -2px, 0) !important;
+    transform: translateY(-2px) !important;
 }
 
 .safari-hover-fix::before {
@@ -998,10 +987,6 @@ body {
     z-index: 1;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    -moz-transform: translate3d(0, 0, 0);
 }
 
 .search-bar::before {
@@ -1019,8 +1004,7 @@ body {
 }
 
 .search-bar:hover {
-    -webkit-transform: translate3d(0, -2px, 0);
-    transform: translate3d(0, -2px, 0);
+    transform: translateY(-2px);
 }
 
 .search-bar:hover::before {
@@ -1028,16 +1012,14 @@ body {
 }
 
 .search-bar:focus-within {
-    -webkit-transform: translate3d(0, -2px, 0);
-    transform: translate3d(0, -2px, 0);
+    transform: translateY(-2px);
     outline: none;
 }
 
 .search-container:hover .filters-btn,
 .search-bar:focus-within ~ .filters-btn,
 .search-container:has(.search-bar:focus-within) .filters-btn {
-    -webkit-transform: translate3d(0, -2px, 0);
-    transform: translate3d(0, -2px, 0);
+    transform: translateY(-2px);
 }
 
 .search-input {
@@ -1279,12 +1261,6 @@ body {
     .search-bar-background, .search-bar-background::before {
         min-width: 280px;
         min-height: 44px;
-        /* Hardware acceleration and Safari fixes */
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-        backface-visibility: hidden;
     }
     
     .search-bar {
@@ -1816,12 +1792,6 @@ body {
     .search-bar-background, .search-bar-background::before {
         min-width: 280px;
         min-height: 44px;
-        /* Hardware acceleration and Safari fixes */
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-        backface-visibility: hidden;
     }
     
     .search-bar {
@@ -2123,12 +2093,6 @@ body {
     .search-bar-background, .search-bar-background::before {
         max-width: 180px;
         min-height: 44px;
-        /* Hardware acceleration and Safari fixes */
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-        backface-visibility: hidden;
     }
     
     .search-bar {
@@ -2435,12 +2399,7 @@ body.sidebar-open .order-dropdown-content {
 @media (max-width: 768px) {
     /* Reduce animations on mobile for better performance */
     .search-bar:hover {
-        -webkit-transform: translate3d(0, -2px, 0);
-        transform: translate3d(0, -2px, 0);
-        /* Hardware acceleration and Safari fixes */
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-        backface-visibility: hidden;
+        transform: none;
     }
     
     .filters-btn:hover {

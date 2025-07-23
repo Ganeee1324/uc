@@ -525,7 +525,7 @@ body {
 /* Document count container base styles */
 .document-count-container {
     position: relative;
-    z-index: 900; /* Lower z-index to stay below search section */
+    z-index: 1; /* Very low z-index to stay below search section */
 }
 
 .documents-grid {
@@ -619,7 +619,8 @@ body {
     position: relative;
     width: 100%;
     max-width: 100%;
-    z-index: 10000; /* High z-index to ensure search section appears above document count */
+    z-index: 99999; /* Very high z-index to ensure search section appears above document count */
+    isolation: isolate; /* Create a new stacking context */
 }
 
 .search-title {
@@ -645,7 +646,7 @@ body {
     margin-bottom: 0px; /* Ensure no margin affecting alignment */
     position: sticky;
     top: 16px; /* Match search.css exactly */
-    z-index: 10000; /* Higher z-index to stay above document count and all other elements */
+    z-index: 99999; /* Very high z-index to stay above document count and all other elements */
     transition: all 0.3s ease-in-out;
     pointer-events: none; /* Make wrapper non-clickable */
     /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
@@ -665,7 +666,7 @@ body {
     .search-container {
         max-width: 550px;
         gap: var(--space-3);
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
 
     .search-bar {
@@ -698,7 +699,7 @@ body {
 @media (max-width: 768px) and (min-width: 601px) {
     .search-container {
         max-width: 600px;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
 
     .search-bar {
@@ -725,7 +726,7 @@ body {
     /* Document count section should be below search but sorting button should be clickable */
     .document-count-container {
         position: relative;
-        z-index: 900; /* Well below search wrapper */
+        z-index: 1; /* Very low z-index to stay below search wrapper */
     }
     
     .document-count-and-filters {
@@ -750,7 +751,7 @@ body {
         gap: var(--space-2);
         width: 100%;
         flex-wrap: nowrap;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
 
     .search-bar {
@@ -787,7 +788,7 @@ body {
         max-width: 350px;
         gap: 0;
         flex-wrap: nowrap;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
 
     .search-bar {
@@ -824,7 +825,7 @@ body {
         max-width: 400px;
         gap: 0;
         flex-wrap: nowrap;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
 
     .search-bar {
@@ -872,7 +873,7 @@ body {
     margin: 0 auto;
     flex-wrap: nowrap;
     position: relative;
-    z-index: 9999; /* Above everything */
+    z-index: 99999; /* Very high z-index to stay above everything */
 }
 
 .search-bar-wrapper {
@@ -1171,12 +1172,12 @@ body {
     
     /* Search wrapper should be above document count but sorting button should remain clickable */
     .search-container-wrapper {
-        z-index: 10000; /* Consistent with base z-index - high enough to stay above document count */
+        z-index: 99999; /* Very high z-index to stay above document count */
     }
     
     .document-count-container {
         position: relative;
-        z-index: 900; /* Well below search wrapper */
+        z-index: 1; /* Very low z-index to stay below search wrapper */
     }
     
     .document-count-and-filters {
@@ -1723,7 +1724,7 @@ body {
         gap: 0;
         flex-wrap: nowrap;
         align-items: center;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
     
     .search-bar-wrapper {
@@ -2024,7 +2025,7 @@ body {
     .search-container {
         max-width: 320px;
         align-items: center;
-        z-index: 9999; /* Above everything */
+        z-index: 99999; /* Very high z-index to stay above everything */
     }
     
     .search-bar-wrapper {
@@ -2203,7 +2204,7 @@ body {
 /* Sidebar open state - keep z-index high to maintain sticky positioning */
 .sidebar-overlay.active ~ .main-content .search-container-wrapper,
 body.sidebar-open .search-container-wrapper {
-    z-index: 10000; /* Keep high z-index for proper sticky behavior */
+    z-index: 99999; /* Keep very high z-index for proper sticky behavior */
 }
 
 .sidebar-overlay.active ~ .main-content .filters-btn,

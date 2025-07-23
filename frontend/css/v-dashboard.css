@@ -10,7 +10,7 @@ body {
     background: white !important;
     display: flex;
     min-height: 100vh;
-    overflow-x: hidden;
+    /* overflow-x: hidden; - Removed to fix sticky positioning */
 }
 
 .sidebar {
@@ -22,7 +22,7 @@ body {
     left: 0;
     height: 100vh;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 10002; /* Above sidebar overlay to avoid shadow */
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
@@ -607,8 +607,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-top: 0;
-    padding: 32px 0 24px 0;
+    margin-top: 32px; /* Move top spacing from padding to margin */
+    padding: 0 0 24px 0; /* Remove top padding to fix sticky positioning */
     text-align: center;
     position: relative;
     width: 100%;
@@ -635,29 +635,237 @@ body {
 .search-container-wrapper {
     width: 100%;
     margin-top: 0px;
+    margin-bottom: 0px; /* Ensure no margin affecting alignment */
     position: sticky;
-    top: 16px;
-    z-index: 1;
+    top: 16px; /* Match search.css exactly */
+    z-index: 10000; /* Higher z-index to stay above document count and all other elements */
     transition: all 0.3s ease-in-out;
-    transform: translateZ(0);
+    pointer-events: none; /* Make wrapper non-clickable */
+    /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
+}
+
+/* Re-enable pointer events for interactive elements within search wrapper */
+.search-container-wrapper .search-container,
+.search-container-wrapper .search-bar,
+.search-container-wrapper .search-input,
+.search-container-wrapper .filters-btn,
+.search-container-wrapper .toggle-label {
+    pointer-events: auto;
+}
+
+/* Search bar responsive media queries - matching search.css exactly */
+@media (max-width: 1200px) {
+    .search-container {
+        max-width: 550px;
+        gap: var(--space-3);
+        z-index: 9999; /* Above everything */
+    }
+
+    .search-bar {
+        width: 350px;
+        max-width: 350px;
+        height: 42px;
+        border-radius: var(--radius-2xl);
+    }
+}
+
+@media (max-width: 900px) and (min-width: 601px) {
+    .search-container {
+        max-width: 600px;
+    }
+
+    .search-bar {
+        height: 44px;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .filters-btn {
+        border-left: 1px solid var(--gray-200);
+        border-radius: var(--radius-2xl);
+        height: 44px;
+        width: 44px;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 601px) {
+    .search-container {
+        max-width: 600px;
+        z-index: 9999; /* Above everything */
+    }
+
+    .search-bar {
+        height: 44px;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .filters-btn {
+        border-left: 1px solid var(--gray-200);
+        border-radius: var(--radius-2xl);
+        height: 44px;
+        width: 44px;
+    }
 }
 
 @media (max-width: 768px) {
     .search-container-wrapper {
-        top: 60px; /* Account for hamburger menu + spacing */
+        top: 16px; /* Keep consistent with desktop - sticky at 16px from top */
+        position: sticky; /* Ensure sticky is maintained on mobile */
+        z-index: 10000; /* Consistent with base z-index - high enough to stay above document count */
+    }
+    
+    /* Document count section should be below search but sorting button should be clickable */
+    .document-count-container {
+        position: relative;
+        z-index: 900; /* Well below search wrapper */
+    }
+    
+    .document-count-and-filters {
+        position: relative;
+        z-index: 900; /* Well below search wrapper */
+    }
+    
+    .order-dropdown-container {
+        position: relative;
+        z-index: 10001; /* Higher than search wrapper to ensure sort button remains clickable */
+    }
+    
+    .order-btn {
+        position: relative;
+        z-index: 10001; /* Higher than search wrapper to ensure sort button remains clickable */
+        pointer-events: auto; /* Ensure button remains clickable */
+    }
+
+    .search-container {
+        max-width: 500px;
+        flex-direction: row;
+        gap: var(--space-2);
+        width: 100%;
+        flex-wrap: nowrap;
+        z-index: 9999; /* Above everything */
+    }
+
+    .search-bar {
+        width: 300px;
+        max-width: 300px;
+        height: 40px;
+        border-radius: 20px;
+    }
+
+    .search-bar-container {
+        max-width: 310px;
+        min-height: 60px;
+    }
+
+    .search-bar-container .glow,
+    .search-bar-container .darkBorderBg,
+    .search-bar-container .white,
+    .search-bar-container .border {
+        max-width: 310px;
+        min-height: 60px;
+    }
+
+    .filters-btn {
+        border-left: 1px solid var(--gray-200);
+        border-radius: var(--radius-2xl);
+        height: 40px;
+        width: 40px;
+        padding: 0;
     }
 }
+
+@media (max-width: 600px) {
+    .search-container {
+        max-width: 350px;
+        gap: 0;
+        flex-wrap: nowrap;
+        z-index: 9999; /* Above everything */
+    }
+
+    .search-bar {
+        width: 200px;
+        max-width: 200px;
+        height: 36px;
+        border-radius: 20px;
+    }
+
+    .search-bar-container {
+        max-width: 210px;
+        min-height: 60px;
+    }
+
+    .search-bar-container .glow,
+    .search-bar-container .darkBorderBg,
+    .search-bar-container .white,
+    .search-bar-container .border {
+        max-width: 210px;
+        min-height: 60px;
+    }
+
+    .filters-btn {
+        border-left: 1px solid var(--gray-200);
+        border-radius: var(--radius-2xl);
+        height: 36px;
+        width: 36px;
+        padding: 0;
+    }
+}
+
+@media (max-width: 520px) {
+    .search-container {
+        max-width: 400px;
+        gap: 0;
+        flex-wrap: nowrap;
+        z-index: 9999; /* Above everything */
+    }
+
+    .search-bar {
+        width: 250px;
+        max-width: 250px;
+        height: 38px;
+        border-radius: 20px;
+        padding: 0 var(--space-3);
+    }
+
+    .search-bar-container {
+        max-width: 260px;
+        min-height: 60px;
+    }
+
+    .search-bar-container .glow,
+    .search-bar-container .white,
+    .search-bar-container .border {
+        max-width: 260px;
+        min-height: 60px;
+    }
+
+    .search-input {
+        font-size: 14px; /* Prevents zoom on iOS */
+    }
+
+    .filters-btn {
+        border-left: 1px solid var(--gray-200);
+        border-radius: var(--radius-2xl);
+        height: 38px;
+        width: 38px;
+        padding: 0;
+    }
+}
+
 
 .search-container {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: row;
-    gap: 12px;
+    gap: var(--space-3);
     width: 100%;
-    max-width: 700px;
+    max-width: 600px;
     margin: 0 auto;
     flex-wrap: nowrap;
+    position: relative;
+    z-index: 9999; /* Above everything */
 }
 
 .search-bar-wrapper {
@@ -830,6 +1038,8 @@ body {
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 900; /* Well below search wrapper */
 }
 
 .order-dropdown-container {
@@ -837,6 +1047,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    z-index: 1002; /* Ensure sort button is above search wrapper */
 }
 
 .order-label {
@@ -890,7 +1101,7 @@ body {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    z-index: 1;
+    z-index: 10002; /* Higher than search wrapper to ensure clickability */
     margin-top: 4px;
     overflow: hidden;
 }
@@ -948,6 +1159,33 @@ body {
         min-width: 430px;
         gap: 0;
         flex-wrap: nowrap;
+        z-index: 9999; /* Above everything */
+    }
+    
+    /* Search wrapper should be above document count but sorting button should remain clickable */
+    .search-container-wrapper {
+        z-index: 10000; /* Consistent with base z-index - high enough to stay above document count */
+    }
+    
+    .document-count-container {
+        position: relative;
+        z-index: 900; /* Well below search wrapper */
+    }
+    
+    .document-count-and-filters {
+        position: relative;
+        z-index: 900; /* Well below search wrapper */
+    }
+    
+    .order-dropdown-container {
+        position: relative;
+        z-index: 10001; /* Higher than search wrapper to ensure sort button remains clickable */
+    }
+    
+    .order-btn {
+        position: relative;
+        z-index: 10001; /* Higher than search wrapper to ensure sort button remains clickable */
+        pointer-events: auto; /* Ensure button remains clickable */
     }
     
     .search-bar-wrapper {
@@ -1478,6 +1716,7 @@ body {
         gap: 0;
         flex-wrap: nowrap;
         align-items: center;
+        z-index: 9999; /* Above everything */
     }
     
     .search-bar-wrapper {
@@ -1776,6 +2015,7 @@ body {
     .search-container {
         max-width: 320px;
         align-items: center;
+        z-index: 9999; /* Above everything */
     }
     
     .search-bar-wrapper {
@@ -1933,21 +2173,38 @@ body {
 
 /* Sidebar Overlay */
 .sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.5) !important;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 10001 !important;
+    display: block !important;
 }
 
 .sidebar-overlay.active {
-    display: block;
-    opacity: 1;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Sidebar open state - keep z-index high to maintain sticky positioning */
+.sidebar-overlay.active ~ .main-content .search-container-wrapper,
+body.sidebar-open .search-container-wrapper {
+    z-index: 10000; /* Keep high z-index for proper sticky behavior */
+}
+
+.sidebar-overlay.active ~ .main-content .filters-btn,
+body.sidebar-open .filters-btn {
+    z-index: 500;
+}
+
+.sidebar-overlay.active ~ .main-content .order-dropdown-content,
+body.sidebar-open .order-dropdown-content {
+    z-index: 500;
 }
 
 /* Animated Hamburger Menu Button */
@@ -1956,7 +2213,7 @@ body {
     position: fixed;
     top: 20px;
     left: 20px;
-    z-index: 1;
+    z-index: 10003; /* Above sidebar to remain accessible */
     cursor: pointer;
     background: #f5f5f5;
     border: 1px solid #e0e0e0;
@@ -2061,14 +2318,14 @@ body {
         transition: transform 0.1s;
     }
     
-    /* Prevent horizontal scroll on mobile */
-    body {
+    /* Prevent horizontal scroll on mobile - Commented out to fix sticky positioning */
+    /* body {
         overflow-x: hidden;
     }
     
     .main-content {
         overflow-x: hidden;
-    }
+    } */
 }
 
 /* Enhanced accessibility and performance */

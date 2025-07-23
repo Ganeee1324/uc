@@ -987,6 +987,10 @@ body {
     z-index: 1;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
 }
 
 .search-bar::before {

@@ -4207,7 +4207,7 @@ button:focus-visible,
     margin-bottom: 0;
 }
 
-/* Position document type badge in the header to align with title */
+/* Ensure document type badge is included in the content header */
 .document-content-header .document-type-badge {
     margin-left: auto;
     flex-shrink: 0;
@@ -4217,7 +4217,10 @@ button:focus-visible,
     display: flex;
     align-items: center;
     height: fit-content;
+    order: 2;
 }
+
+
 
 .document-list-thumbnail {
     width: 100%;
@@ -4310,6 +4313,7 @@ button:focus-visible,
 .document-title-section {
     flex: 1;
     min-width: 0;
+    order: 1;
 }
 
 .document-list-title {
@@ -4499,6 +4503,11 @@ button:focus-visible,
     .document-content-header .document-type-badge {
         margin-left: auto;
         align-self: center;
+        order: 2;
+    }
+    
+    .document-title-section {
+        order: 1;
     }
 }
 
@@ -4526,6 +4535,11 @@ button:focus-visible,
     .document-list-item .document-type-badge {
         margin-left: 0;
         margin-top: 0;
+        order: 2;
+    }
+    
+    .document-title-section {
+        order: 1;
     }
     
     .document-title-section {

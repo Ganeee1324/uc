@@ -8241,8 +8241,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar .toggle-label:hover,
 .search-bar .toggle-label:focus,
 .search-bar .toggle-label:active {
-  transform: translateY(-50%) !important;
-  transition: none !important;
+  transform: translateY(-50%);
+  transition: none;
 }
 
 
@@ -8280,9 +8280,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     /* Hardware acceleration and Safari fixes */
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden !important;
+    -moz-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
     will-change: transform, filter;
     overflow: visible;
     transition: filter 0.3s ease-out;

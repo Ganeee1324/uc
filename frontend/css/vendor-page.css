@@ -138,19 +138,7 @@
     --bg-reference-point: 50% 50%; /* Center the image, then use offset for precise positioning */
 }
 
-/* Preload background image for immediate display */
-body::before {
-    content: '';
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-    width: 1px;
-    height: 1px;
-    background-image: url('../images/bg.png');
-    opacity: 0;
-    pointer-events: none;
-    z-index: -9999;
-}
+/* Removed background image for clean white background */
 
 /* Base Styles */
 html {
@@ -192,37 +180,21 @@ html {
     scrollbar-width: none;
 }
 
-/* Background Image as Element */
-.background-image {
-    position: absolute;
-    left: -1px; /* Offset left by 1px to center the extra 2px width */
-    width: calc(100vw + 2px); /* Span the full viewport width plus 2px */
-    /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
-    background-image: url('../images/bg.png');
-    background-size: 100% 100%; /* Stretch to fill the element */
-    background-repeat: no-repeat;
-    z-index: -1;
-    pointer-events: none;
-    /* Ensure immediate visibility */
-    opacity: 1;
-    visibility: visible;
-    /* Optimize image loading */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    /* No transitions - we want instant positioning */
-}
+/* Removed background image element for clean white background */
 
-/* Vendor Banner */
+/* Vendor Banner - Full Width Colored Banner */
 .vendor-banner {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-top: -100px;
-    padding: 120px 0 40px 0;
-    margin-bottom: 32px;
+    padding: 140px 0 80px 0;
+    margin-bottom: 50px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border-bottom: 4px solid rgba(255, 255, 255, 0.2);
 }
 
 .banner-content {
@@ -232,27 +204,36 @@ html {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    min-height: 160px;
+    min-height: 180px;
+    position: relative;
+    z-index: 2;
 }
 
 .vendor-info {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 28px;
     text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 24px 32px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .vendor-avatar {
-    width: 60px;
-    height: 60px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: 700;
-    font-size: 24px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 28px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     /* Background will be set dynamically via JavaScript */
 }
 
@@ -261,20 +242,22 @@ html {
 }
 
 .vendor-name {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 36px;
+    font-weight: 800;
     color: white;
-    margin: 0 0 4px 0;
-    line-height: 1.2;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin: 0 0 8px 0;
+    line-height: 1.1;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    letter-spacing: -0.02em;
 }
 
 .vendor-stats {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.95);
     margin: 0;
-    font-weight: 500;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.01em;
 }
 
 /* Header - New Layout to Match Image */

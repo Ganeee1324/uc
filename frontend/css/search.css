@@ -8314,7 +8314,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .search-bar-wrapper:hover .search-bar-background,
 .search-bar-wrapper:has(.search-bar:hover) .search-bar-background,
 .search-bar-wrapper:has(.search-input:focus) .search-bar-background {
-    transform: translateY(-2px);
+    -webkit-transform: translate3d(0, -2px, 0);
+    transform: translate3d(0, -2px, 0);
 }
 
 @keyframes moveToLeft {

@@ -655,20 +655,9 @@ html {
     transition: transform 0.2s var(--ease-2);
 }
 
-.main-content {
-    /* --sticky-top-offset is set by JavaScript */
-    --sticky-top-offset: 10px; /* Default fallback value */
-    padding-top: 0;
-}
+/* Removed main content section - search section goes directly after vendor banner */
 
-/* Main Content - Dual Layout System */
-.main-content {
-    min-height: calc(100vh - 260px);
-    position: relative;
-    padding-bottom: 100px;
-}
-
-/* Initial Search Section - Centered Layout */
+/* Search Section - Directly after vendor banner */
 .search-section {
     display: flex;
     flex-direction: column;
@@ -676,9 +665,10 @@ html {
     justify-content: flex-start;
     min-height: auto;
     margin-top: 0;
-    padding: var(--space-8) var(--space-12) var(--space-12) var(--space-12);
+    padding: var(--space-6) var(--space-12) var(--space-12) var(--space-12);
     text-align: center;
     position: relative;
+    background: #ffffff;
 }
 
 /* When there are results, keep title and subtitle centered but adjust layout */

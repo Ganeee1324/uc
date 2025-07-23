@@ -88,14 +88,18 @@ body {
 }
 
 .menu-item.active {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    border-left: 4px solid #ffffff;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+    border-left: 4px solid #ffffff !important;
 }
 
 .menu-item.active .menu-icon {
-    color: #ffffff;
+    color: #ffffff !important;
+}
+
+.menu-item.active .menu-text {
+    color: #ffffff !important;
 }
 
 .menu-icon {

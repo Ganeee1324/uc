@@ -975,7 +975,7 @@ body {
 
 /* Safari hover fix class - applies hover state temporarily on load */
 .safari-hover-fix {
-    transform: translateY(-2px) !important;
+    transform: translate3d(0, -2px, 0) !important;
 }
 
 .safari-hover-fix::before {

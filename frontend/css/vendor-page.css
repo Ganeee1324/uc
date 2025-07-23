@@ -2711,16 +2711,27 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     transform: scale(1.1);
  }
  
- .rating-text {
+ /* Vendor-specific rating styles */
+.vendor-rating-text {
     font-size: 13px;
     font-weight: 600;
     color: white;
     min-width: 120px;
 }
 
-/* Vendor-specific rating text override */
-.vendor-rating-btn .rating-text {
-    color: white !important;
+.vendor-rating-stars {
+    display: flex;
+    gap: 0.1rem;
+}
+
+.vendor-rating-star {
+    color: #fbbf24;
+    font-size: 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.vendor-rating-star.empty {
+    color: rgba(255, 255, 255, 0.3);
 }
  
  /* Dual Range Slider */

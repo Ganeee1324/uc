@@ -352,8 +352,8 @@ function updateVendorBanner(vendorData) {
         
         // Update rating information
         if (vendorData.averageRating !== undefined && vendorData.reviewsCount !== undefined) {
-            const ratingStars = vendorRatingBtn.querySelector('.rating-stars');
-            const ratingText = vendorRatingBtn.querySelector('.rating-text');
+            const ratingStars = vendorRatingBtn.querySelector('.vendor-rating-stars');
+            const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
             
             if (ratingStars && ratingText) {
                 // Generate stars based on rating

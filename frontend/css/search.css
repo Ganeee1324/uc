@@ -621,7 +621,7 @@ html {
     margin-top: 0;
     padding: var(--space-12);
     text-align: center;
-    position: relative;
+    position: static; /* Changed from relative to static to allow sticky positioning */
     width: 100%;
     max-width: 100%;
 }
@@ -1101,8 +1101,9 @@ html {
     transition: all 0.3s ease-in-out;
     pointer-events: none; /* Make wrapper non-clickable */
     
-    /* Ensure sticky positioning works properly */
-    /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
+    /* Force sticky positioning to work */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 /* Re-enable pointer events for interactive elements within search wrapper */

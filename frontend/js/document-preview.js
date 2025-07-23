@@ -1606,74 +1606,74 @@ function renderDocumentListView(docData) {
                     <div class="doc-title-container">
                         <h1 class="doc-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
                     </div>
-                    <div class="doc-meta-header">
-                        <div class="doc-rating-display" data-action="open-reviews" data-vetrina-id="${currentVetrina?.id || currentVetrina?.vetrina_id}" title="Mostra recensioni">
-                            <div class="rating-stars"></div>
-                            <div class="rating-details">
-                                <span class="rating-score">0.0</span>
-                                <span class="rating-count">(0)</span>
+                                            <div class="doc-meta-header">
+                            <div class="doc-rating-display" data-action="open-reviews" data-vetrina-id="${currentVetrina?.id || currentVetrina?.vetrina_id}" title="Mostra recensioni">
+                                <div class="rating-stars"></div>
+                                <div class="rating-details">
+                                    <span class="rating-score">0.0</span>
+                                    <span class="rating-count">(0)</span>
+                                </div>
+                            </div>
+                            <div class="doc-price">
+                                <span class="price-value">€0.00</span>
                             </div>
                         </div>
-                        <div class="doc-price">
-                            <span class="price-value">€0.00</span>
+                    </div>
+
+                    <!-- Author Profile Section -->
+                    ${generateAuthorProfile(currentVetrina)}
+
+                    <!-- Premium Action Buttons -->
+                    <div class="doc-actions">
+                        <button class="action-btn cart" id="addToCartBtn">
+                            Aggiungi al Carrello
+                        </button>
+                        <button class="action-btn primary" id="purchaseBtn">
+                            Acquista Bundle
+                        </button>
+                        <!-- Download functionality removed -->
+                    </div>
+
+                    <!-- Document Description Section -->
+                    <div class="doc-description-section">
+                        <h3>
+                            <span class="material-symbols-outlined">description</span>
+                            Descrizione
+                        </h3>
+                        <div class="doc-description">
+                            <p>${currentVetrina?.description || 'Raccolta di documenti di studio.'}</p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Premium Action Buttons -->
-                <div class="doc-actions">
-                    <button class="action-btn cart" id="addToCartBtn">
-                        Aggiungi al Carrello
-                    </button>
-                    <button class="action-btn primary" id="purchaseBtn">
-                        Acquista Bundle
-                    </button>
-                    <!-- Download functionality removed -->
-                </div>
-
-                <!-- Document Description Section -->
-                <div class="doc-description-section">
-                    <h3>
-                        <span class="material-symbols-outlined">description</span>
-                        Descrizione
-                    </h3>
-                    <div class="doc-description">
-                        <p>${currentVetrina?.description || 'Raccolta di documenti di studio.'}</p>
-                    </div>
-                </div>
-
-                <!-- Document Details Section -->
-                <div class="doc-details-section">
-                    <h3>
-                        <span class="material-symbols-outlined">info</span>
-                        Dettagli Bundle
-                    </h3>
-                    <div class="doc-details">
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Facoltà</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.faculty_name || 'Non specificata'}</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Corso</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.course_name || 'Non specificato'}</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Lingua</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.language || 'Non specificata'}</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Canale</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.canale === "0" ? "Unico" : (currentVetrina?.course_instance?.canale || 'Non specificato')}</span>
-                        </div>
-                        <div class="detail-item-vertical">
-                            <span class="detail-label">Anno Accademico</span>
-                            <span class="detail-value">${currentVetrina?.course_instance?.date_year ? `${currentVetrina.course_instance.date_year}/${currentVetrina.course_instance.date_year + 1}` : 'Non specificato'}</span>
+                    <!-- Document Details Section -->
+                    <div class="doc-details-section">
+                        <h3>
+                            <span class="material-symbols-outlined">info</span>
+                            Dettagli Bundle
+                        </h3>
+                        <div class="doc-details">
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Facoltà</span>
+                                <span class="detail-value">${currentVetrina?.course_instance?.faculty_name || 'Non specificata'}</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Corso</span>
+                                <span class="detail-value">${currentVetrina?.course_instance?.course_name || 'Non specificato'}</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Lingua</span>
+                                <span class="detail-value">${currentVetrina?.course_instance?.language || 'Non specificata'}</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Canale</span>
+                                <span class="detail-value">${currentVetrina?.course_instance?.canale === "0" ? "Unico" : (currentVetrina?.course_instance?.canale || 'Non specificato')}</span>
+                            </div>
+                            <div class="detail-item-vertical">
+                                <span class="detail-label">Anno Accademico</span>
+                                <span class="detail-value">${currentVetrina?.course_instance?.date_year ? `${currentVetrina.course_instance.date_year}/${currentVetrina.course_instance.date_year + 1}` : 'Non specificato'}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Author Profile Section -->
-                ${generateAuthorProfile(currentVetrina)}
 
                 <!-- Related Documents Section -->
                 <div class="related-docs-section">
@@ -1809,6 +1809,9 @@ function renderDocumentViewerMode(docData) {
                         </div>
                     </div>
 
+                    <!-- Author Profile Section -->
+                    ${generateAuthorProfile(currentVetrina)}
+
                     <!-- Premium Action Buttons -->
                     <div class="doc-actions">
                         <button class="action-btn cart" id="addToCartBtn">
@@ -1864,9 +1867,6 @@ function renderDocumentViewerMode(docData) {
                             </div>
                         </div>
                     </div>
-
-                    <!-- Author Profile Section -->
-                    ${generateAuthorProfile(currentVetrina)}
 
                     <!-- Related Documents Section -->
                     <div class="related-docs-section">

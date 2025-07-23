@@ -937,6 +937,10 @@ body {
     backface-visibility: hidden;
     -webkit-perspective: 1000px;
     perspective: 1000px;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
 }
 .search-bar-background::before {
     content: '';

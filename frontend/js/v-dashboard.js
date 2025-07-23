@@ -337,26 +337,12 @@ function switchTab(tabName) {
     const searchSection = document.getElementById('searchSection');
     const statsDashboard = document.getElementById('statsDashboard');
     
-    // Remove active class from all menu items
-    const menuItems = document.querySelectorAll('.menu-item');
-    menuItems.forEach(item => {
-        item.classList.remove('active');
-        console.log('Removed active class from:', item.querySelector('.menu-text')?.textContent.trim());
-    });
-    
     if (tabName === 'stats') {
         // Show stats dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (searchSection) searchSection.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'block';
-        
-        // Add active class to Vendite menu item
-        const venditeMenuItem = document.querySelector('.menu-item:nth-child(2)'); // Vendite is the 2nd menu item
-        if (venditeMenuItem) {
-            venditeMenuItem.classList.add('active');
-            console.log('Added active class to Vendite menu item');
-        }
         
         currentTab = 'stats';
     } else {
@@ -381,13 +367,6 @@ function switchTab(tabName) {
         }
         if (statsDashboard) statsDashboard.style.display = 'none';
         
-        // Add active class to Profilo menu item
-        const profiloMenuItem = document.querySelector('.menu-item:first-child'); // Profilo is the 1st menu item
-        if (profiloMenuItem) {
-            profiloMenuItem.classList.add('active');
-            console.log('Added active class to Profilo menu item');
-        }
-        
         currentTab = 'profile';
     }
 }
@@ -406,11 +385,26 @@ function initializeTabSwitching() {
                 const text = menuText.textContent.trim();
                 console.log('Menu item clicked:', text);
                 
+                // Remove active class from all menu items first
+                menuItems.forEach(menuItem => {
+                    menuItem.classList.remove('active');
+                    console.log('Removed active class from:', menuItem.querySelector('.menu-text')?.textContent.trim());
+                });
+                
+                // Add active class to clicked item
+                item.classList.add('active');
+                console.log('Added active class to:', text);
+                
+                // Handle specific tab switching
                 if (text === 'Vendite') {
                     console.log('Switching to Vendite tab');
                     switchTab('stats');
                 } else if (text === 'Profilo') {
                     console.log('Switching to Profilo tab');
+                    switchTab('profile');
+                } else {
+                    // For other menu items, just switch back to profile view
+                    console.log('Switching to profile view for:', text);
                     switchTab('profile');
                 }
             }

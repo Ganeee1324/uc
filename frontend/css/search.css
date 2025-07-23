@@ -8359,6 +8359,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         transparent calc(var(--expand-progress) * 1% + 130%)
     );
     animation: moveToRight 1s ease-out forwards;
+    /* Hardware acceleration and Safari fixes */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 /* Animation for toggle ON (pink left, purple right - moves RIGHT) - smooth professional gradient */
@@ -8380,6 +8386,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         transparent calc(var(--expand-progress) * 1% + 130%)
     );
     animation: moveToLeft 1s ease-out forwards;
+    /* Hardware acceleration and Safari fixes */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 /* Responsive adjustments for the toggle */

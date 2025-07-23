@@ -646,8 +646,8 @@ body {
 }
 
 .search-container-wrapper {
-    width: fit-content; /* Fit content exactly */
-    margin: 0 auto; /* Center the container */
+    width: fit-content !important; /* Fit content exactly - override search.css */
+    margin: 0 auto !important; /* Center the container - override search.css */
     position: sticky;
     top: 16px; /* Match search.css exactly */
     z-index: 99999; /* Very high z-index to ensure search wrapper appears above document count */
@@ -669,7 +669,7 @@ body {
 /* Search bar responsive media queries - matching search.css exactly */
 @media (max-width: 1200px) {
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         gap: var(--space-3);
         z-index: 99999; /* Very high z-index to appear above document count container */
     }
@@ -684,7 +684,7 @@ body {
 
 @media (max-width: 900px) and (min-width: 601px) {
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
     }
 
     .search-bar {
@@ -703,7 +703,7 @@ body {
 
 @media (max-width: 768px) and (min-width: 601px) {
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         z-index: 99999; /* Very high z-index to appear above document count container */
     }
 
@@ -751,7 +751,7 @@ body {
     }
 
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         flex-direction: row;
         gap: var(--space-2);
         flex-wrap: nowrap;
@@ -789,7 +789,7 @@ body {
 
 @media (max-width: 600px) {
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         gap: 0;
         flex-wrap: nowrap;
         z-index: 99999; /* Very high z-index to appear above document count container */
@@ -826,7 +826,7 @@ body {
 
 @media (max-width: 520px) {
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         gap: 0;
         flex-wrap: nowrap;
         z-index: 99999; /* Very high z-index to appear above document count container */
@@ -872,8 +872,8 @@ body {
     justify-content: center;
     flex-direction: row;
     gap: var(--space-3);
-    width: fit-content; /* Fit content exactly */
-    margin: 0; /* Remove auto margin since wrapper handles centering */
+    width: fit-content !important; /* Fit content exactly - override search.css */
+    margin: 0 !important; /* Remove auto margin since wrapper handles centering - override search.css */
     flex-wrap: nowrap;
     position: relative;
     z-index: 99999; /* Very high z-index to appear above document count container */
@@ -1723,7 +1723,7 @@ body {
 
     
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         gap: 0;
         flex-wrap: nowrap;
         align-items: center;
@@ -2026,7 +2026,7 @@ body {
     }
     
     .search-container {
-        width: fit-content; /* Fit content exactly */
+        width: fit-content !important; /* Fit content exactly - override search.css */
         align-items: center;
         z-index: 99999; /* Very high z-index to appear above document count container */
     }

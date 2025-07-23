@@ -8,25 +8,24 @@ import pymupdf
 from PIL import Image
 import numpy as np
 import logging
+import torch
+from visual_bge.modeling import Visualized_BGE
 
-model = None
+
 model_path = r"C:\Users\fdimo\Downloads\Visualized_m3.pth" if os.name == "nt" else r"/home/ubuntu/Visualized_m3.pth"
-
+model = None
 
 def load_model():
     global model
-    from visual_bge.modeling import Visualized_BGE
 
     if model is None:
         logging.debug(f"Loading BGE model...")
         model = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path)
         model.eval()
+    return model
 
 
 def get_document_embedding(document_path: str) -> list[np.ndarray]:
-    load_model()
-    import torch
-
     images_text = []
     with pymupdf.open(document_path) as doc:
         for i, page in enumerate(doc):
@@ -43,29 +42,25 @@ def get_document_embedding(document_path: str) -> list[np.ndarray]:
 
 
 def get_sentence_embedding(sentence: str) -> np.ndarray:
-    load_model()
-    import torch
-
     with torch.no_grad():
         return model.encode(text=sentence).detach().cpu().numpy()
 
 
 def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> np.ndarray:
-    load_model()
-    import torch
-
     with torch.no_grad():
         return model.encode(image=image, text=f"{description} {context}").detach().cpu().numpy()
 
 
 def unload_model():
     global model
-    import torch
 
     del model
     torch.cuda.empty_cache()
     model = None
     logging.info(f"BGE model unloaded")
+
+
+load_model()
 
 
 if __name__ == "__main__":

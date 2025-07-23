@@ -302,25 +302,28 @@ async function fetchCurrentUserData() {
     return null;
 }
 
-function updateVendorBanner(username) {
+function updateVendorBanner(vendorData) {
     const vendorAvatar = document.getElementById('vendorAvatar');
     const vendorName = document.getElementById('vendorName');
-    const vendorStats = document.getElementById('vendorStats');
+    const vendorFaculty = document.getElementById('vendorFaculty');
+    const vendorChannel = document.getElementById('vendorChannel');
+    const vendorRatingBtn = document.getElementById('vendorRatingBtn');
     
-    if (vendorAvatar && vendorName && vendorStats) {
-        // Set vendor name
-        vendorName.textContent = username;
+    if (vendorAvatar && vendorName && vendorFaculty && vendorChannel && vendorRatingBtn) {
+        // Set vendor name (use full name if available, otherwise username)
+        const fullName = vendorData.fullName || vendorData.username;
+        vendorName.textContent = fullName;
         
         // Create avatar with consistent gradient
-        const gradient = getConsistentGradient(username);
-        const initials = getInitials(username); // Use username as full name for vendor banner
+        const gradient = getConsistentGradient(vendorData.username);
+        const initials = getInitials(fullName);
         
         // Determine font size based on screen width
-        let fontSize = '24px'; // Default for desktop
+        let fontSize = '50px'; // Default for desktop
         if (window.innerWidth <= 480) {
-            fontSize = '18px'; // Mobile
+            fontSize = '32px'; // Mobile
         } else if (window.innerWidth <= 768) {
-            fontSize = '20px'; // Tablet
+            fontSize = '40px'; // Tablet
         }
         
         vendorAvatar.style.background = gradient;
@@ -331,10 +334,36 @@ function updateVendorBanner(username) {
         vendorAvatar.style.display = 'flex';
         vendorAvatar.style.alignItems = 'center';
         vendorAvatar.style.justifyContent = 'center';
-        vendorAvatar.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+        vendorAvatar.style.boxShadow = '0 25px 60px rgba(0, 0, 0, 0.4)';
+        vendorAvatar.style.border = '6px solid rgba(255, 255, 255, 0.6)';
         
-        // Update stats (will be updated when files are loaded)
-        vendorStats.textContent = 'Caricamento...';
+        // Update faculty and channel information
+        if (vendorData.faculty) {
+            vendorFaculty.textContent = vendorData.faculty;
+        } else {
+            vendorFaculty.textContent = 'Non specificato';
+        }
+        
+        if (vendorData.canale) {
+            vendorChannel.textContent = vendorData.canale;
+        } else {
+            vendorChannel.textContent = 'Non specificato';
+        }
+        
+        // Update rating information
+        if (vendorData.averageRating !== undefined && vendorData.reviewsCount !== undefined) {
+            const ratingStars = vendorRatingBtn.querySelector('.rating-stars');
+            const ratingText = vendorRatingBtn.querySelector('.rating-text');
+            
+            if (ratingStars && ratingText) {
+                // Generate stars based on rating
+                const stars = generateStars(vendorData.averageRating);
+                ratingStars.innerHTML = stars;
+                
+                // Update rating text
+                ratingText.textContent = `${vendorData.averageRating.toFixed(1)} (${vendorData.reviewsCount} recensioni)`;
+            }
+        }
     }
 }
 
@@ -3180,22 +3209,65 @@ async function loadAllFiles() {
             throw new Error('No vendor username provided in URL');
         }
         
-        // Update vendor banner with username
-        updateVendorBanner(vendorUsername);
+        // Extract vendor information from vetrine data
+        let vendorData = {
+            username: vendorUsername,
+            fullName: '',
+            faculty: '',
+            canale: '',
+            averageRating: 0,
+            reviewsCount: 0
+        };
         
-        // Get vetrine metadata only - NO file fetching here!
+        // Get vetrine metadata to extract vendor information
         const vetrineResponse = await makeSimpleRequest('/vetrine');
-        if (!vetrineResponse) {
-            throw new Error('Failed to fetch vetrine');
+        if (vetrineResponse && vetrineResponse.vetrine) {
+            const allVetrine = vetrineResponse.vetrine || [];
+            
+            // Filter vetrine by the specific vendor
+            const vendorVetrine = allVetrine.filter(vetrina => {
+                const username = vetrina.author?.username || vetrina.owner?.username;
+                return username === vendorUsername;
+            });
+            
+            if (vendorVetrine.length > 0) {
+                // Extract vendor information from the first vetrina
+                const firstVetrina = vendorVetrine[0];
+                const author = firstVetrina.author || firstVetrina.owner;
+                
+                vendorData = {
+                    username: vendorUsername,
+                    fullName: author ? `${author.first_name || ''} ${author.last_name || ''}`.trim() : vendorUsername,
+                    faculty: firstVetrina.course_instance?.faculty_name || '',
+                    canale: firstVetrina.course_instance?.canale || '',
+                    averageRating: firstVetrina.average_rating || 0,
+                    reviewsCount: firstVetrina.reviews_count || 0
+                };
+                
+                // Store vendor vetrine for later use
+                currentVetrine = vendorVetrine;
+            }
         }
         
-        // Filter vetrine by the specific vendor
-        const allVetrine = vetrineResponse.vetrine || [];
+        // Update vendor banner with extracted data
+        updateVendorBanner(vendorData);
         
-        currentVetrine = allVetrine.filter(vetrina => {
-            const username = vetrina.author?.username || vetrina.owner?.username;
-            return username === vendorUsername;
-        });
+        // Add click handler for vendor rating button
+        const vendorRatingBtn = document.getElementById('vendorRatingBtn');
+        if (vendorRatingBtn) {
+            vendorRatingBtn.addEventListener('click', () => {
+                // Show reviews for the vendor's vetrine
+                if (currentVetrine && currentVetrine.length > 0) {
+                    const firstVetrinaId = currentVetrine[0].id || currentVetrine[0].vetrina_id;
+                    openReviewsOverlay(firstVetrinaId);
+                }
+            });
+        }
+        
+        // Use the vetrine data we already fetched above
+        if (!currentVetrine || currentVetrine.length === 0) {
+            throw new Error('No vetrine found for this vendor');
+        }
         
         
         // 🚀 OPTIMIZED: Use only vetrina-level data - no file metadata needed!

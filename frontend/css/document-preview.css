@@ -4139,13 +4139,13 @@ button:focus-visible,
 /* Individual Document List Items - Professional Design */
 .document-list-item {
     background: var(--neutral-0);
-    border-radius: var(--radius-2xl);
+    border-radius: var(--radius-lg);
     border: 1px solid var(--neutral-150);
-    margin-bottom: var(--space-3);
-    padding: var(--space-4);
+    margin-bottom: var(--space-2);
+    padding: var(--space-3);
     display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-3);
     cursor: pointer;
     transition: all 0.3s var(--ease-out);
     position: relative;
@@ -4192,8 +4192,8 @@ button:focus-visible,
 /* Document List Thumbnail - Professional Preview */
 .document-list-preview {
     flex-shrink: 0;
-    width: 60px;
-    height: 75px;
+    width: 48px;
+    height: 60px;
     position: relative;
 }
 
@@ -4264,7 +4264,7 @@ button:focus-visible,
 
 
 .document-thumbnail-icon .document-icon {
-    font-size: 28px;
+    font-size: 24px;
     opacity: 0.85;
     color: var(--primary-600);
     filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.15));
@@ -4326,11 +4326,11 @@ button:focus-visible,
 }
 
 .document-list-title {
-    font-size: var(--text-lg);
+    font-size: var(--text-base);
     font-weight: 600;
     color: var(--neutral-900);
     margin: 0;
-    line-height: 1.3;
+    line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -4346,9 +4346,9 @@ button:focus-visible,
 .document-type-tag {
     background: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-125) 100%);
     color: var(--neutral-700);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: var(--radius-full);
     text-transform: uppercase;
     letter-spacing: 0.5px;

@@ -37,12 +37,12 @@
         .vendor-banner {
             background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
             position: relative;
-            padding: 2rem 0 1rem 0;
+            padding: 3rem 0;
             overflow: hidden;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            height: 200px;
+            min-height: 320px;
             display: flex;
-            align-items: flex-end;
+            align-items: center;
         }
         
         .vendor-banner::before {
@@ -59,23 +59,6 @@
             pointer-events: none;
         }
         
-        .vendor-banner::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><defs><pattern id="dots" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="1.5" fill="white" opacity="0.03"/></pattern></defs><rect width="60" height="60" fill="url(%23dots)"/></svg>');
-            animation: float 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(-10px, -10px) rotate(120deg); }
-            66% { transform: translate(10px, -5px) rotate(240deg); }
-        }
         
         .banner-content {
             max-width: 1200px;
@@ -87,69 +70,63 @@
             justify-content: center;
             align-items: center;
             width: 100%;
+            height: 100%;
         }
         
         .vendor-info {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
-            gap: 1.5rem;
+            justify-content: center;
+            gap: 2.5rem;
+            width: 100%;
+            max-width: 900px;
         }
         
         .vendor-avatar {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.12);
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 3rem;
+            font-weight: 700;
             color: white;
-            backdrop-filter: blur(20px);
-            border: 3px solid rgba(255, 255, 255, 0.2);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 0 4px rgba(255, 255, 255, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-        }
-        
-        .vendor-avatar::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), transparent, rgba(255, 255, 255, 0.1));
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.4s ease;
+            flex-shrink: 0;
         }
         
         .vendor-avatar:hover {
             transform: translateY(-4px) scale(1.05);
             box-shadow: 
-                0 32px 64px rgba(0, 0, 0, 0.3),
-                0 0 0 1px rgba(255, 255, 255, 0.2),
+                0 32px 64px rgba(0, 0, 0, 0.4),
+                0 0 0 4px rgba(255, 255, 255, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
         
-        .vendor-avatar:hover::before {
-            opacity: 1;
-        }
-        
         .vendor-details {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
+        }
+        
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
         }
         
         .vendor-name {
             margin: 0;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
             color: white;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -161,26 +138,98 @@
             background-clip: text;
         }
         
-        .vendor-stats {
-            margin: 0;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 1rem;
-            font-weight: 500;
+        .save-vendor-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.5rem 1.5rem;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            gap: 0.5rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
-        .vendor-stats::before {
-            content: '•';
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: bold;
+        .save-vendor-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .save-vendor-btn .material-symbols-outlined {
+            font-size: 1.2rem;
+        }
+        
+        .vendor-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .vendor-field {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .vendor-field-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            font-weight: 400;
+        }
+        
+        .vendor-rating-container {
+            margin-top: 0.5rem;
+        }
+        
+        .vendor-rating-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .vendor-rating-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 0.1rem;
+        }
+        
+        .rating-star {
+            color: #fbbf24;
+            font-size: 1rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .rating-star.empty {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .rating-text {
+            font-weight: 600;
         }
         
         /* Search section spacing adjustment */
@@ -191,71 +240,85 @@
         /* Responsive Design */
         @media (max-width: 1024px) {
             .vendor-banner {
-                height: 180px;
+                min-height: 280px;
+                padding: 2.5rem 0;
+            }
+            
+            .vendor-info {
+                gap: 2rem;
             }
             
             .vendor-name {
-                font-size: 1.75rem;
+                font-size: 2.25rem;
             }
             
             .vendor-avatar {
-                width: 70px;
-                height: 70px;
-                font-size: 1.75rem;
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
             }
         }
         
         @media (max-width: 768px) {
             .vendor-banner {
-                height: 160px;
+                min-height: 240px;
+                padding: 2rem 0;
             }
             
             .banner-content {
                 padding: 0 1.5rem;
             }
             
+            .vendor-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .vendor-header {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
             .vendor-name {
-                font-size: 1.5rem;
+                font-size: 2rem;
             }
             
             .vendor-avatar {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
+                width: 90px;
+                height: 90px;
+                font-size: 2.25rem;
             }
             
-            .vendor-stats {
-                font-size: 0.9rem;
-                padding: 0.4rem 1.25rem;
-                gap: 0.75rem;
+            .vendor-meta {
+                align-items: center;
             }
         }
         
         @media (max-width: 480px) {
             .vendor-banner {
-                height: 140px;
+                min-height: 200px;
+                padding: 1.5rem 0;
             }
             
             .vendor-name {
-                font-size: 1.25rem;
+                font-size: 1.75rem;
             }
             
             .vendor-avatar {
-                width: 50px;
-                height: 50px;
-                font-size: 1.25rem;
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
             }
             
-            .vendor-stats {
-                font-size: 0.8rem;
-                padding: 0.3rem 1rem;
-                gap: 0.5rem;
-                flex-direction: column;
-                text-align: center;
+            .save-vendor-btn {
+                padding: 0.6rem 1.25rem;
+                font-size: 0.9rem;
             }
             
-            .vendor-stats::before {
-                display: none;
+            .vendor-field {
+                font-size: 1rem;
             }
         }
     </style>
@@ -316,12 +379,41 @@
         <div class="vendor-banner">
             <div class="banner-content">
                 <div class="vendor-info">
-                    <div class="vendor-avatar" id="vendorAvatar">
-                        <span class="material-symbols-outlined">person</span>
+                    <div class="vendor-avatar" id="vendorAvatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <span class="loading-text">Caricamento...</span>
                     </div>
                     <div class="vendor-details">
-                        <h1 class="vendor-name" id="vendorName">Vendor Name</h1>
-                        <p class="vendor-stats" id="vendorStats">0 documenti • 0 recensioni</p>
+                        <div class="vendor-header">
+                            <div>
+                                <h1 class="vendor-name" id="vendorName">Caricamento...</h1>
+                                <div class="vendor-meta">
+                                    <div class="vendor-field">
+                                        <span class="vendor-field-label">Facoltà:</span>
+                                        <span id="vendorFaculty">Caricamento...</span>
+                                    </div>
+                                    <div class="vendor-field">
+                                        <span class="vendor-field-label">Canale:</span>
+                                        <span id="vendorChannel">Caricamento...</span>
+                                    </div>
+                                    <div class="vendor-rating-container">
+                                        <button class="vendor-rating-btn" id="vendorRatingBtn">
+                                            <div class="rating-stars">
+                                                <span class="rating-star">★</span>
+                                                <span class="rating-star">★</span>
+                                                <span class="rating-star">★</span>
+                                                <span class="rating-star">★</span>
+                                                <span class="rating-star">★</span>
+                                            </div>
+                                            <span class="rating-text">Caricamento...</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="save-vendor-btn" id="saveVendorBtn">
+                                <span class="material-symbols-outlined">bookmark_add</span>
+                                <span>Salva venditore</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

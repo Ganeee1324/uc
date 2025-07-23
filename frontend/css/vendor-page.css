@@ -246,6 +246,14 @@ html {
     /* Background will be set dynamically via JavaScript */
 }
 
+.vendor-avatar .loading-text {
+    font-size: 16px;
+    font-weight: 500;
+    opacity: 0.8;
+    text-align: center;
+    line-height: 1.2;
+}
+
 .vendor-details {
     flex: 1;
     text-align: center;

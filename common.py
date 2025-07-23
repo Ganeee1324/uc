@@ -80,7 +80,7 @@ class File:
 
 
 class User:
-    def __init__(self, user_id: int, username: str, first_name: str, last_name: str, email: str, last_login: datetime, registration_date: datetime):
+    def __init__(self, user_id: int, username: str, first_name: str, last_name: str, email: str, last_login: datetime, registration_date: datetime, user_faculty: str | None = None, user_enrollment_year: int | None = None, user_canale: str | None = None, bio: str | None = None, profile_picture: str | None = None):
         self.user_id = user_id
         self.username = username
         self.first_name = first_name
@@ -88,6 +88,11 @@ class User:
         self.email = email
         self.last_login = last_login
         self.registration_date = registration_date
+        self.user_faculty = user_faculty
+        self.user_enrollment_year = user_enrollment_year
+        self.user_canale = user_canale
+        self.bio = bio
+        self.profile_picture = profile_picture
 
     def to_dict(self) -> dict:
         return {
@@ -95,6 +100,13 @@ class User:
             "username": self.username,
             "first_name": self.first_name,
             "last_name": self.last_name,
+            "last_login": self.last_login,
+            "registration_date": self.registration_date,
+            "user_faculty": self.user_faculty,
+            "user_enrollment_year": self.user_enrollment_year,
+            "user_canale": self.user_canale,
+            "bio": self.bio,
+            "profile_picture": self.profile_picture,
         }
 
     @classmethod
@@ -107,7 +119,7 @@ class User:
         return cls(**{key: data[key] for key in user_fields if key in data})
 
     def __str__(self) -> str:
-        return f"User(user_id={self.user_id}, username={self.username}, first_name={self.first_name}, last_name={self.last_name}, email={self.email}, last_login={self.last_login}, registration_date={self.registration_date})"
+        return f"User(user_id={self.user_id}, username={self.username}, first_name={self.first_name}, last_name={self.last_name}, email={self.email}, last_login={self.last_login}, registration_date={self.registration_date}, user_faculty={self.user_faculty}, user_enrollment_year={self.user_enrollment_year}, user_canale={self.user_canale}, bio={self.bio}, profile_picture={self.profile_picture})"
 
     def __repr__(self) -> str:
         return self.__str__()

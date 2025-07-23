@@ -1363,6 +1363,34 @@ components:
         last_name:
           type: string
           description: User's last name
+        last_login:
+          type: string
+          format: date-time
+          description: Timestamp of user's last login
+        registration_date:
+          type: string
+          format: date-time
+          description: Timestamp when the user registered
+        user_faculty:
+          type: string
+          nullable: true
+          description: User's faculty/department
+        user_enrollment_year:
+          type: integer
+          nullable: true
+          description: Year when the user enrolled
+        user_canale:
+          type: string
+          nullable: true
+          description: User's course channel/section
+        bio:
+          type: string
+          nullable: true
+          description: User's biography or description
+        profile_picture:
+          type: string
+          nullable: true
+          description: URL or path to user's profile picture
 
     File:
       type: object

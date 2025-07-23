@@ -361,7 +361,7 @@ function updateVendorBanner(vendorData) {
                 ratingStars.innerHTML = stars;
                 
                 // Update rating text
-                ratingText.textContent = `${vendorData.averageRating.toFixed(1)} (${vendorData.reviewsCount} recensioni)`;
+                ratingText.textContent = `${vendorData.averageRating.toFixed(1)} (${vendorData.reviewsCount})`;
             }
         }
     }

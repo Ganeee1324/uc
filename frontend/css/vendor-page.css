@@ -2714,9 +2714,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  .rating-text {
     font-size: 13px;
     font-weight: 600;
-    color: var(--gray-600);
+    color: white;
     min-width: 120px;
- }
+}
  
  /* Dual Range Slider */
  .dual-range-container {

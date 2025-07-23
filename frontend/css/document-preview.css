@@ -5072,7 +5072,7 @@ button:focus-visible,
 .author-profile-compact {
     background: var(--neutral-0);
     border-radius: var(--radius-xl);
-    padding: var(--space-4) var(--space-5);
+    padding: 0;
     margin: 0;
     border: 1px solid var(--neutral-150);
     transition: all 0.3s var(--ease-out);
@@ -5092,8 +5092,8 @@ button:focus-visible,
 }
 
 .author-profile-compact:hover {
-    border-color: var(--primary-200);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+    border-color: var(--neutral-300);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
 }
 
@@ -5176,7 +5176,17 @@ button:focus-visible,
 .author-profile-compact:hover .author-profile-arrow {
     opacity: 1;
     transform: translateX(2px);
-    color: var(--primary-600);
+    color: var(--neutral-700);
+}
+
+.author-profile-compact:active {
+    border-color: var(--neutral-400);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(0);
+}
+
+.author-profile-compact:active .author-profile-arrow {
+    color: var(--neutral-800);
 }
 
 .author-profile-arrow .material-symbols-outlined {
@@ -5186,7 +5196,7 @@ button:focus-visible,
 /* Responsive design for compact profile */
 @media (max-width: 768px) {
     .author-profile-compact {
-        padding: var(--space-3) var(--space-4);
+        padding: 0;
         margin: 0;
     }
     

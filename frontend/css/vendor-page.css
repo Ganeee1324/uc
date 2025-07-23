@@ -183,6 +183,11 @@ html {
 /* Removed background image element for clean white background */
 
 /* Vendor Banner - Full Top Section */
+.vendor-banner-section {
+    width: 100%;
+    position: relative;
+}
+
 .vendor-banner {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     width: 100vw;

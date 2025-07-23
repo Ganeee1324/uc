@@ -4306,7 +4306,7 @@ button:focus-visible,
 
 .document-content-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
     margin-bottom: var(--space-2);
@@ -4322,7 +4322,7 @@ button:focus-visible,
     flex: 1;
     min-width: 0;
     order: 1;
-    max-width: calc(100% - 120px);
+    max-width: calc(100% - 100px);
 }
 
 .document-list-title {
@@ -4376,10 +4376,8 @@ button:focus-visible,
     transition: all 0.3s var(--ease-bounce);
     height: 24px;
     white-space: nowrap;
-    position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    z-index: 10;
+    flex-shrink: 0;
+    order: 2;
 }
 
 /* Document list description styling - hidden for compact layout */
@@ -4521,6 +4519,12 @@ button:focus-visible,
     .document-title-section {
         order: 1;
         max-width: calc(100% - 80px);
+    }
+    
+    .document-type-badge-search-style {
+        height: 20px;
+        font-size: 9px;
+        padding: 2px 6px;
     }
 }
 

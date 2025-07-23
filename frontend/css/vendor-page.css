@@ -189,13 +189,13 @@ html {
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-top: 0;
-    padding: 120px 0 80px 0;
+    padding: 140px 0 100px 0;
     margin-bottom: 0;
     position: relative;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     border-bottom: 4px solid rgba(255, 255, 255, 0.2);
-    min-height: 70vh;
+    min-height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -674,9 +674,9 @@ html {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: calc(100vh - 120px);
-    margin-top: -0px;
-    padding: var(--space-12);
+    min-height: auto;
+    margin-top: 0;
+    padding: var(--space-8) var(--space-12) var(--space-12) var(--space-12);
     text-align: center;
     position: relative;
 }
@@ -940,7 +940,7 @@ html {
     font-size: 36px;
     font-weight: 700;
     color: var(--gray-900);
-    margin-bottom: -10px;
+    margin-bottom: 8px;
     letter-spacing: -0.02em;
     font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -949,7 +949,7 @@ html {
     font-size: 36px;
     color: #4d4d4d;
     font-weight: 500;
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-8);
     letter-spacing: -0.01em;
     font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -6057,8 +6057,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Vendor Banner Responsive Styles */
 @media (max-width: 768px) {
     .vendor-banner {
-        padding: 100px 0 60px 0;
-        min-height: 60vh;
+        padding: 120px 0 80px 0;
+        min-height: 70vh;
         margin-bottom: 0;
     }
     
@@ -6090,8 +6090,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 480px) {
     .vendor-banner {
-        padding: 80px 0 40px 0;
-        min-height: 50vh;
+        padding: 100px 0 60px 0;
+        min-height: 60vh;
         margin-bottom: 0;
     }
     

@@ -526,7 +526,7 @@ body {
 /* Document count container base styles */
 .document-count-container {
     position: relative;
-    z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+    z-index: -1; /* Negative z-index to force below search wrapper */
 }
 
 .documents-grid {
@@ -727,22 +727,22 @@ body {
     /* Document count section should be below search but sorting button should be clickable */
     .document-count-container {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
     }
     
     .document-count-and-filters {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
     }
     
     .order-dropdown-container {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
     }
     
     .order-btn {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
         pointer-events: auto; /* Ensure button remains clickable */
     }
 
@@ -1048,7 +1048,7 @@ body {
     gap: 16px;
     flex-wrap: wrap;
     position: relative;
-    z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+    z-index: -1; /* Negative z-index to force below search wrapper */
 }
 
 .order-dropdown-container {
@@ -1056,7 +1056,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+    z-index: -1; /* Negative z-index to force below search wrapper */
 }
 
 .order-label {
@@ -1173,27 +1173,27 @@ body {
     
     /* Search wrapper should be above document count but sorting button should remain clickable */
     .search-container-wrapper {
-        z-index: 999; /* Lower z-index to not block sort button - matching search.css */
+        z-index: 999; /* Keep z-index for proper sticky behavior */
     }
     
     .document-count-container {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
     }
     
     .document-count-and-filters {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
     }
     
     .order-dropdown-container {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
     }
     
     .order-btn {
         position: relative;
-        z-index: 1000; /* Higher than search wrapper to ensure clickability - matching search.css */
+        z-index: -1; /* Negative z-index to force below search wrapper */
         pointer-events: auto; /* Ensure button remains clickable */
     }
     
@@ -1799,7 +1799,7 @@ body {
     padding: 0 15px;
     margin-bottom: 15px;
     position: relative;
-    z-index: 900; /* Lower z-index to stay below search section */
+    z-index: -1; /* Negative z-index to force below search wrapper */
 }
     
     .document-count-and-filters {

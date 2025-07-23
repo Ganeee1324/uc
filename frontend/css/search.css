@@ -1271,46 +1271,9 @@ html {
     backface-visibility: hidden;
 }
 
-/* Safari-specific CSS-only fix: Ensure glow renders immediately on page load */
-@supports (-webkit-appearance: none) {
-    .search-bar-container .glow {
-        /* Force Safari to render the glow effect immediately */
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-        backface-visibility: hidden;
-        will-change: filter, transform;
-    }
-    
-    .search-bar-container .glow:before {
-        /* Ensure pseudo-element renders with proper properties in Safari */
-        -webkit-transform: translate(-50%, -50%) rotate(60deg);
-        transform: translate(-50%, -50%) rotate(60deg);
-        -webkit-backface-visibility: hidden;
-        -moz-backface-visibility: hidden;
-        backface-visibility: hidden;
-        will-change: transform;
-        opacity: 0.6;
-        /* Force immediate rendering with a micro-animation */
-        -webkit-animation: safari-glow-force 0.01s ease-out;
-        animation: safari-glow-force 0.01s ease-out;
-    }
-}
 
-@-webkit-keyframes safari-glow-force {
-    0%, 100% { 
-        -webkit-transform: translate(-50%, -50%) rotate(60deg);
-        opacity: 0.6;
-    }
-}
 
-@keyframes safari-glow-force {
-    0%, 100% { 
-        transform: translate(-50%, -50%) rotate(60deg);
-        opacity: 0.6;
-    }
-}
+
 
 .search-bar-container .glow:before {
     content: "";

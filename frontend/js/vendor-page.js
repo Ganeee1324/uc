@@ -331,12 +331,11 @@ function updateVendorBanner(vendorData) {
         vendorAvatar.style.color = 'white';
         vendorAvatar.style.fontWeight = '700';
         vendorAvatar.style.fontSize = fontSize;
+        vendorAvatar.style.display = 'flex';
+        vendorAvatar.style.alignItems = 'center';
+        vendorAvatar.style.justifyContent = 'center';
         vendorAvatar.style.boxShadow = '0 25px 60px rgba(0, 0, 0, 0.4)';
         vendorAvatar.style.border = '6px solid rgba(255, 255, 255, 0.6)';
-        
-        // Remove loading class and hide loading text when avatar is loaded
-        vendorAvatar.classList.remove('loading');
-        vendorAvatar.classList.add('loaded');
         
         // Update faculty and channel information
         if (vendorData.faculty) {
@@ -346,7 +345,7 @@ function updateVendorBanner(vendorData) {
         }
         
         if (vendorData.canale) {
-            vendorChannel.textContent = formatCanaleDisplay(vendorData.canale);
+            vendorChannel.textContent = vendorData.canale;
         } else {
             vendorChannel.textContent = 'Non specificato';
         }
@@ -362,7 +361,7 @@ function updateVendorBanner(vendorData) {
                 ratingStars.innerHTML = stars;
                 
                 // Update rating text
-                ratingText.textContent = `${vendorData.averageRating.toFixed(1)} (${vendorData.reviewsCount})`;
+                ratingText.textContent = `${vendorData.averageRating.toFixed(1)} (${vendorData.reviewsCount} recensioni)`;
             }
         }
     }

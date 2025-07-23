@@ -5071,12 +5071,12 @@ button:focus-visible,
     background: var(--neutral-0);
     border-radius: var(--radius-xl);
     padding: var(--space-4) var(--space-5);
-    margin: var(--space-5) 0;
+    margin: var(--space-3) 0;
     border: 1px solid var(--neutral-150);
     transition: all 0.3s var(--ease-out);
     cursor: pointer;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .author-profile-compact::before {
@@ -5112,11 +5112,18 @@ button:focus-visible,
 }
 
 .author-avatar-compact {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-full);
     flex-shrink: 0;
     transition: all 0.2s var(--ease-out);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 2px solid var(--neutral-0);
 }
 
 .author-profile-compact:hover .author-avatar-compact {
@@ -5178,13 +5185,13 @@ button:focus-visible,
 @media (max-width: 768px) {
     .author-profile-compact {
         padding: var(--space-3) var(--space-4);
-        margin: var(--space-4) 0;
+        margin: var(--space-3) 0;
     }
     
     .author-avatar-compact {
-        width: 36px;
-        height: 36px;
-        font-size: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
     }
     
     .author-name-compact {

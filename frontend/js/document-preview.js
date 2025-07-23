@@ -3446,7 +3446,7 @@ function generateAuthorProfile(vetrinaData) {
     return `
         <div class="author-profile-compact" data-action="navigate-to-vendor" data-vendor-username="${authorUsername || ''}" tabindex="0" role="button" aria-label="Visualizza profilo di ${authorName}">
             <div class="author-profile-compact-header">
-                <div class="author-avatar-compact" style="background: ${gradientStyle}; color: white; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); border: 2px solid var(--neutral-0);">
+                <div class="author-avatar-compact" style="background: ${gradientStyle}; color: white;">
                     ${initials}
                 </div>
                 <div class="author-info-compact">

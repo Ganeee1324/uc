@@ -6259,6 +6259,24 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .vendor-field-label {
         font-size: 13px !important;
     }
+    
+    .vendor-rating-btn {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        gap: 6px !important;
+    }
+    
+    .vendor-rating-btn .rating-text {
+        font-size: 12px !important;
+    }
+    
+    .rating-stars {
+        gap: 0.05rem !important;
+    }
+    
+    .rating-star {
+        font-size: 0.8rem !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -6322,6 +6340,24 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .vendor-header {
         gap: 8px !important;
+    }
+    
+    .vendor-rating-btn {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        gap: 4px !important;
+    }
+    
+    .vendor-rating-btn .rating-text {
+        font-size: 11px !important;
+    }
+    
+    .rating-stars {
+        gap: 0.02rem !important;
+    }
+    
+    .rating-star {
+        font-size: 0.7rem !important;
     }
 }
 

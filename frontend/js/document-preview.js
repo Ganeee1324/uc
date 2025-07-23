@@ -1530,7 +1530,7 @@ function renderDocumentListView(docData) {
     const mainContainer = document.querySelector('.preview-main');
     const { vetrinaFiles } = docData;
     
-    // Generate documents list HTML with search page UI structure
+    // Generate documents list HTML
     const documentsListHTML = vetrinaFiles.map((file, index) => {
         // Extract the original filename from the UUID-based filename
         const displayFilename = extractOriginalFilename(file.filename);
@@ -1540,55 +1540,26 @@ function renderDocumentListView(docData) {
         const fileSize = file.size ? formatFileSize(file.size) : null;
         const uploadDate = file.created_at ? formatRelativeDate(file.created_at) : null;
         
-        // Generate document description based on type and filename
-        const documentDescription = generateDocumentDescription(fileType, displayFilename);
-        
         return `
-            <div class="document-card" data-file-id="${file.file_id}" style="cursor: pointer;" onclick="openDocumentPreview('${file.file_id}')">
-                <div class="document-preview">
-                    <div class="preview-icon">
-                        <span class="document-icon">${documentIcon}</span>
-                        <div class="file-extension">${fileType}</div>
-                    </div>
-                    <div class="document-type-badges">
-                        <div class="document-type-badge">${fileType}</div>
+            <div class="document-list-item" data-file-id="${file.file_id}" data-action="preview-document" data-action-file-id="${file.file_id}">
+                <div class="document-list-preview">
+                    <div class="document-list-thumbnail">
+                        <div class="document-thumbnail-icon">
+                            <span class="document-icon">${documentIcon}</span>
+                        </div>
+                        <div class="preview-overlay-hint">
+                            <span class="material-symbols-outlined">visibility</span>
+                            <span class="preview-text">Anteprima</span>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="document-content">
-                    <div class="document-header">
+                <div class="document-list-content">
+                    <div class="document-content-header">
                         <div class="document-title-section">
-                            <h3 class="document-title" title="${displayFilename}">${displayFilename}</h3>
-                            <div class="document-description" title="${documentDescription}">${documentDescription}</div>
+                            <h3 class="document-list-title">${displayFilename}</h3>
+                            <div class="document-list-description">${fileType} • ${fileSize || 'N/A'} • ${uploadDate || 'N/A'}</div>
                         </div>
-                    </div>
-                    <div class="document-info">
-                        <div class="document-info-item" title="Tipo: ${fileType}">
-                            <span class="info-icon">description</span>
-                            <span class="info-text">${fileType}</span>
-                        </div>
-                        <div class="document-info-item" title="Dimensione: ${fileSize}">
-                            <span class="info-icon">storage</span>
-                            <span class="info-text">${fileSize}</span>
-                        </div>
-                        <div class="document-info-item" title="Caricato: ${uploadDate}">
-                            <span class="info-icon">schedule</span>
-                            <span class="info-text">${uploadDate}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="document-footer">
-                        <div class="document-footer-left">
-                            <div class="document-meta">
-                                <span class="material-symbols-outlined">visibility</span>
-                                <span>Anteprima</span>
-                            </div>
-                        </div>
-                        <div class="document-footer-right">
-                            <div class="preview-action-btn">
-                                <span class="material-symbols-outlined">open_in_new</span>
-                            </div>
-                        </div>
+                        <div class="document-type-badge-search-style">${fileType}</div>
                     </div>
                 </div>
             </div>
@@ -1597,7 +1568,7 @@ function renderDocumentListView(docData) {
     
     // Replace the entire main container content with the document list structure
     mainContainer.innerHTML = `
-        <div class="documents-grid">
+        <div class="document-list-section">
             <div class="document-list-header-section">
                 <div class="document-list-title-container">
                     <h1 class="document-list-main-title">${currentVetrina?.name || 'Vetrina Documenti'}</h1>
@@ -1607,9 +1578,14 @@ function renderDocumentListView(docData) {
                         <span class="document-list-total-size">${formatFileSize(vetrinaFiles.reduce((sum, f) => sum + (f.size || 0), 0))}</span>
                     </div>
                 </div>
+                <div class="document-list-header-actions">
+                    <!-- Download functionality removed -->
+                </div>
             </div>
             
-            ${documentsListHTML}
+            <div class="document-list-container">
+                ${documentsListHTML}
+            </div>
         </div>
         
         <div class="document-info-sidebar">
@@ -3074,23 +3050,19 @@ function generatePlaceholderDocuments() {
 }
 
 // Generate Document Description
-function generateDocumentDescription(docType, courseOrFilename) {
+function generateDocumentDescription(docType, course) {
     const descriptions = {
-        'Appunti': `Appunti completi e dettagliati. Include tutti gli argomenti principali trattati durante il corso.`,
-        'Esame': `Raccolta di esami precedenti. Include soluzioni dettagliate e spiegazioni.`,
-        'Progetto': `Progetto completo. Include documentazione, codice e presentazione finale.`,
-        'Tesi': `Tesi di laurea. Ricerca approfondita con analisi dettagliate.`,
-        'Slide': `Presentazioni complete. Materiale didattico ben strutturato.`,
-        'Esercizi': `Esercizi pratici. Include soluzioni e metodi di risoluzione.`,
-        'Riassunto': `Riassunto completo. Concetti chiave e formule principali.`,
-        'Laboratorio': `Guide di laboratorio. Procedure sperimentali dettagliate.`,
-        'Dispense': `Materiale didattico completo e ben organizzato.`,
-        'PDF': `Documento PDF completo e ben formattato.`,
-        'DOC': `Documento Word completo e ben strutturato.`,
-        'PPT': `Presentazione PowerPoint completa.`
+        'Appunti': `Appunti completi e dettagliati per ${course}. Include tutti gli argomenti principali trattati durante il corso.`,
+        'Esame': `Raccolta di esami precedenti per ${course}. Include soluzioni dettagliate e spiegazioni.`,
+        'Progetto': `Progetto completo per ${course}. Include documentazione, codice e presentazione finale.`,
+        'Tesi': `Tesi di laurea su ${course}. Ricerca approfondita con analisi dettagliate.`,
+        'Slide': `Presentazioni complete per ${course}. Materiale didattico ben strutturato.`,
+        'Esercizi': `Esercizi pratici per ${course}. Include soluzioni e metodi di risoluzione.`,
+        'Riassunto': `Riassunto completo di ${course}. Concetti chiave e formule principali.`,
+        'Laboratorio': `Guide di laboratorio per ${course}. Procedure sperimentali dettagliate.`
     };
     
-    return descriptions[docType] || `Documento ${docType} completo.`;
+    return descriptions[docType] || `Materiale didattico per ${course}.`;
 }
 
 // Add Related Document to Cart

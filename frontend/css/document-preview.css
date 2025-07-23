@@ -4214,6 +4214,9 @@ button:focus-visible,
     align-self: center;
     margin-top: 0;
     margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    height: fit-content;
 }
 
 .document-list-thumbnail {
@@ -4276,6 +4279,9 @@ button:focus-visible,
     border: 2px solid var(--neutral-0);
     font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    line-height: 1;
 }
 
 /* Document List Content - Professional Layout */
@@ -4291,7 +4297,7 @@ button:focus-visible,
 
 .document-content-header {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: var(--space-4);
     margin-bottom: var(--space-2);
@@ -4319,6 +4325,8 @@ button:focus-visible,
     letter-spacing: -0.01em;
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
 }
 
 .document-type-tag {

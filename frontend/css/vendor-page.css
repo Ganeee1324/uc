@@ -6265,6 +6265,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         padding: 6px 12px !important;
         font-size: 12px !important;
         gap: 6px !important;
+        width: fit-content !important;
     }
     
     .vendor-rating-btn .rating-text {
@@ -6347,6 +6348,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         padding: 4px 8px !important;
         font-size: 11px !important;
         gap: 4px !important;
+        width: fit-content !important;
     }
     
     .vendor-rating-btn .rating-text {

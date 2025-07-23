@@ -2432,7 +2432,12 @@ body.sidebar-open .order-dropdown-content {
 @media (max-width: 768px) {
     /* Reduce animations on mobile for better performance */
     .search-bar:hover {
-        transform: none;
+        -webkit-transform: translate3d(0, -2px, 0);
+        transform: translate3d(0, -2px, 0);
+        /* Hardware acceleration and Safari fixes */
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
     
     .filters-btn:hover {

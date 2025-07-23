@@ -1912,7 +1912,7 @@ html {
 }
 
 .rating-count {
-    color: var(--gray-700);
+    color: white;
     font-size: 10px;
     margin-left: var(--space-1);
     font-weight: 600;

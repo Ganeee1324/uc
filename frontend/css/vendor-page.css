@@ -188,16 +188,17 @@ html {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
-    margin-top: -100px;
-    padding: 160px 0 120px 0;
+    margin-top: 0;
+    padding: 120px 0 80px 0;
     margin-bottom: 0;
     position: relative;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     border-bottom: 4px solid rgba(255, 255, 255, 0.2);
-    min-height: 60vh;
+    min-height: 70vh;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .banner-content {
@@ -210,6 +211,7 @@ html {
     width: 100%;
     position: relative;
     z-index: 2;
+    text-align: center;
 }
 
 .vendor-info {
@@ -225,6 +227,8 @@ html {
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     max-width: 600px;
     margin: 0 auto;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .vendor-avatar {
@@ -244,6 +248,8 @@ html {
 
 .vendor-details {
     flex: 1;
+    text-align: center;
+    width: 100%;
 }
 
 .vendor-name {
@@ -652,7 +658,7 @@ html {
 .main-content {
     /* --sticky-top-offset is set by JavaScript */
     --sticky-top-offset: 10px; /* Default fallback value */
-    padding-top: 100px;
+    padding-top: 0;
 }
 
 /* Main Content - Dual Layout System */
@@ -6051,8 +6057,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Vendor Banner Responsive Styles */
 @media (max-width: 768px) {
     .vendor-banner {
-        padding: 120px 0 80px 0;
-        min-height: 50vh;
+        padding: 100px 0 60px 0;
+        min-height: 60vh;
         margin-bottom: 0;
     }
     
@@ -6061,9 +6067,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 24px;
+        gap: 20px;
         padding: 24px 28px;
         max-width: 90%;
+        flex-direction: column;
     }
     
     .vendor-avatar {
@@ -6083,8 +6090,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 480px) {
     .vendor-banner {
-        padding: 100px 0 60px 0;
-        min-height: 40vh;
+        padding: 80px 0 40px 0;
+        min-height: 50vh;
         margin-bottom: 0;
     }
     
@@ -6093,9 +6100,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 20px;
+        gap: 16px;
         padding: 20px 24px;
         max-width: 95%;
+        flex-direction: column;
     }
     
     .vendor-avatar {

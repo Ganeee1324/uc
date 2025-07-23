@@ -189,13 +189,13 @@ html {
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
     margin-top: 0;
-    padding: 250px 0 200px 0;
+    padding: 120px 0 120px 0;
     margin-bottom: 0;
     position: relative;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     border-bottom: 8px solid rgba(255, 255, 255, 0.4);
-    min-height: 100vh;
+    min-height: 400px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -6052,8 +6052,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Vendor Banner Responsive Styles */
 @media (max-width: 768px) {
     .vendor-banner {
-        padding: 140px 0 100px 0;
-        min-height: 80vh;
+        padding: 80px 0 80px 0;
+        min-height: 350px;
         margin-bottom: 0;
     }
     
@@ -6085,8 +6085,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 @media (max-width: 480px) {
     .vendor-banner {
-        padding: 120px 0 80px 0;
-        min-height: 70vh;
+        padding: 60px 0 60px 0;
+        min-height: 300px;
         margin-bottom: 0;
     }
     

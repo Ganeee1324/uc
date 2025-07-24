@@ -341,7 +341,7 @@ html {
     gap: 0.5rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     position: absolute;
-    top: 2rem;
+    top: calc(72px + 1rem);
     right: 2rem;
     z-index: 10;
     white-space: nowrap;
@@ -3701,6 +3701,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
    }
    
+   /* Adjust save vendor button for mobile header height */
+   .save-vendor-btn {
+       top: calc(70px + 0.5rem);
+   }
+   
    .logo {
        order: 1;
        flex-shrink: 0;
@@ -6214,7 +6219,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .save-vendor-btn {
-        top: 1.75rem;
+        top: calc(72px + 0.75rem);
         right: 1.75rem;
         padding: 0.7rem 1.4rem;
         font-size: 0.9rem;
@@ -6266,7 +6271,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .save-vendor-btn {
         position: absolute;
-        top: 1.5rem;
+        top: calc(72px + 0.5rem);
         right: 1.5rem;
         margin-top: 0;
         padding: 0.6rem 1.2rem;
@@ -6315,7 +6320,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .save-vendor-btn {
         position: absolute;
-        top: 1rem;
+        top: calc(72px + 0.25rem);
         right: 1rem;
         margin-top: 0;
         padding: 0.5rem 1rem;
@@ -6360,7 +6365,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .save-vendor-btn {
         position: absolute;
-        top: 0.75rem;
+        top: calc(72px + 0.25rem);
         right: 0.75rem;
         margin-top: 0;
         padding: 0.4rem 0.8rem;
@@ -6398,7 +6403,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .save-vendor-btn {
         position: absolute;
-        top: 0.5rem;
+        top: calc(72px + 0.25rem);
         right: 0.5rem;
         padding: 0.35rem 0.7rem;
         font-size: 0.75rem;
@@ -6448,7 +6453,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .save-vendor-btn {
         position: absolute;
-        top: 1rem;
+        top: calc(72px + 0.5rem);
         right: 1rem;
         margin-top: 0;
         padding: 0.5rem 1rem;

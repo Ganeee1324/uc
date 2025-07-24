@@ -336,6 +336,8 @@ function switchTab(tabName) {
     const dashboardRow = document.querySelector('.dashboard-row');
     const searchSection = document.getElementById('searchSection');
     const statsDashboard = document.getElementById('statsDashboard');
+    const documentsDashboard = document.getElementById('documentsDashboard');
+    const mainContent = document.querySelector('.main-content');
     
     if (tabName === 'stats') {
         // Show stats dashboard, hide others
@@ -343,12 +345,54 @@ function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (searchSection) searchSection.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'block';
+        if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'none';
         
         currentTab = 'stats';
+    } else if (tabName === 'documents') {
+        // Show documents dashboard, hide others
+        if (profileSection) profileSection.style.display = 'none';
+        if (dashboardRow) dashboardRow.style.display = 'none';
+        if (searchSection) searchSection.style.display = 'none';
+        if (statsDashboard) statsDashboard.style.display = 'none';
+        if (documentsDashboard) documentsDashboard.style.display = 'block';
+        if (mainContent) mainContent.style.display = 'none';
+        
+        currentTab = 'documents';
+        
+        // Initialize search.js functions for documents dashboard after a brief delay
+        // to ensure DOM elements are visible and properly attached
+        setTimeout(() => {
+            if (typeof initializeOrderDropdown === 'function') {
+                try {
+                    initializeOrderDropdown();
+                } catch (e) {
+                    console.log('Order dropdown already initialized or error:', e);
+                }
+            }
+            if (typeof initializeFilters === 'function') {
+                try {
+                    initializeFilters();
+                } catch (e) {
+                    console.log('Filters already initialized or error:', e);
+                }
+            }
+            if (typeof initializeAISearchToggle === 'function') {
+                try {
+                    initializeAISearchToggle();
+                } catch (e) {
+                    console.log('AI Search toggle already initialized or error:', e);
+                }
+            }
+        }, 100);
+        
+        // Load purchased documents when switching to documents tab
+        loadPurchasedDocuments();
     } else {
-        // Show profile/dashboard content, hide stats
+        // Show profile/dashboard content, hide stats and documents
         if (profileSection) profileSection.style.display = 'block';
         if (dashboardRow) dashboardRow.style.display = 'flex';
+        if (mainContent) mainContent.style.display = 'block';
         if (searchSection) {
             // Reset search section to its original state
             searchSection.style.display = '';
@@ -366,6 +410,7 @@ function switchTab(tabName) {
             searchSection.style.isolation = '';
         }
         if (statsDashboard) statsDashboard.style.display = 'none';
+        if (documentsDashboard) documentsDashboard.style.display = 'none';
         
         currentTab = 'profile';
     }
@@ -402,6 +447,9 @@ function initializeTabSwitching() {
                 } else if (text === 'Profilo') {
                     console.log('Switching to Profilo tab');
                     switchTab('profile');
+                } else if (text === 'I Miei Documenti') {
+                    console.log('Switching to I Miei Documenti tab');
+                    switchTab('documents');
                 } else {
                     // For other menu items, just switch back to profile view
                     console.log('Switching to profile view for:', text);
@@ -411,6 +459,102 @@ function initializeTabSwitching() {
         });
     });
 }
+
+// ===========================
+// DOCUMENTS DASHBOARD FUNCTIONALITY
+// ===========================
+
+async function loadPurchasedDocuments() {
+    console.log('Loading purchased documents...');
+    
+    const loadingState = document.getElementById('myDocumentsLoading');
+    const emptyState = document.getElementById('myDocumentsEmpty');
+    
+    // Show loading state
+    if (loadingState) loadingState.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+    
+    try {
+        // Make API call to fetch user's purchased/downloaded documents
+        const response = await fetch('/api/documents/purchased', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Purchased documents loaded:', data);
+        
+        // Hide loading state
+        if (loadingState) loadingState.style.display = 'none';
+        
+        if (data.documents && data.documents.length > 0) {
+            // Hide empty state and use search.js renderDocuments function
+            if (emptyState) emptyState.style.display = 'none';
+            
+            // Use search.js renderDocuments function if available
+            if (typeof window.renderDocuments === 'function') {
+                window.renderDocuments(data.documents);
+            } else {
+                // Fallback: call the search.js function directly
+                renderDocuments(data.documents);
+            }
+        } else {
+            // Show empty state
+            if (emptyState) emptyState.style.display = 'block';
+            
+            // Clear any existing documents using search.js function
+            if (typeof window.renderDocuments === 'function') {
+                window.renderDocuments([]);
+            } else {
+                renderDocuments([]);
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error loading purchased documents:', error);
+        
+        // Hide loading state and show error
+        if (loadingState) loadingState.style.display = 'none';
+        
+        // Show empty state with error message
+        if (emptyState) {
+            emptyState.style.display = 'block';
+            const emptyTitle = emptyState.querySelector('h3');
+            const emptyText = emptyState.querySelector('p');
+            if (emptyTitle) emptyTitle.textContent = 'Errore nel caricamento';
+            if (emptyText) emptyText.textContent = 'Si è verificato un errore durante il caricamento dei documenti acquistati. Riprova più tardi.';
+        }
+    }
+}
+
+// Document action functions for purchased documents
+function downloadDocument(documentId) {
+    console.log('Download document:', documentId);
+    // TODO: Implement document download functionality
+    alert('Funzione download documento in sviluppo');
+}
+
+function viewDocumentDetails(documentId) {
+    console.log('View document details:', documentId);
+    // TODO: Implement document details modal/page
+    alert('Funzione dettagli documento in sviluppo');
+}
+
+function removeFromLibrary(documentId) {
+    console.log('Remove document from library:', documentId);
+    if (confirm('Sei sicuro di voler rimuovere questo documento dalla tua libreria?')) {
+        // TODO: Implement document removal from library
+        alert('Funzione rimozione documento in sviluppo');
+    }
+}
+
 
 // ===========================
 // STATS DASHBOARD FUNCTIONALITY

@@ -3090,12 +3090,27 @@ async function makeSimpleRequest(url) {
         const response = await fetch(API_BASE + url);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            // Enhanced error handling for different status codes
+            if (response.status === 500) {
+                throw new Error(`HTTP 500: INTERNAL SERVER ERROR - Server is experiencing issues`);
+            } else if (response.status === 404) {
+                throw new Error(`HTTP 404: NOT FOUND - Resource not available`);
+            } else if (response.status === 503) {
+                throw new Error(`HTTP 503: SERVICE UNAVAILABLE - Server is temporarily down`);
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
         }
         
         return await response.json();
     } catch (error) {
         console.error('Simple request failed:', error);
+        
+        // Add additional context for network errors
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server. Please check your internet connection.');
+        }
+        
         throw error;
     }
 }
@@ -3219,8 +3234,27 @@ async function loadAllFiles() {
             reviewsCount: 0
         };
         
-        // Get vetrine metadata to extract vendor information
-        const vetrineResponse = await makeSimpleRequest('/vetrine');
+        // Get vetrine metadata to extract vendor information with enhanced error handling
+        let vetrineResponse;
+        try {
+            vetrineResponse = await makeSimpleRequest('/vetrine');
+        } catch (error) {
+            console.warn('⚠️ Primary vetrine request failed, trying performance cache...', error);
+            
+            // Try to get data from performance cache as fallback
+            if (window.cacheManager) {
+                try {
+                    vetrineResponse = await window.cacheManager.loadVetrine(true);
+                    console.log('✅ Retrieved vetrine data from cache fallback');
+                } catch (cacheError) {
+                    console.error('❌ Cache fallback also failed:', cacheError);
+                    throw new Error('Unable to load vendor data. Please try again later.');
+                }
+            } else {
+                throw new Error('Unable to load vendor data. Please try again later.');
+            }
+        }
+        
         if (vetrineResponse && vetrineResponse.vetrine) {
             const allVetrine = vetrineResponse.vetrine || [];
             
@@ -3248,6 +3282,12 @@ async function loadAllFiles() {
             }
         }
         
+        // Check if we have fallback data
+        if (vetrineResponse && vetrineResponse.fallback) {
+            console.warn('⚠️ Using fallback data due to server issues');
+            showStatus('⚠️ Dati temporanei - server in manutenzione', 'warning');
+        }
+        
         // Update vendor banner with extracted data
         updateVendorBanner(vendorData);
         
@@ -3255,7 +3295,7 @@ async function loadAllFiles() {
         const vendorRatingBtn = document.getElementById('vendorRatingBtn');
         if (vendorRatingBtn) {
             vendorRatingBtn.addEventListener('click', () => {
-                // Show reviews for the vendor's vetrine
+                // Show reviews for the vendor's vetrina
                 if (currentVetrine && currentVetrine.length > 0) {
                     const firstVetrinaId = currentVetrine[0].id || currentVetrine[0].vetrina_id;
                     openReviewsOverlay(firstVetrinaId);
@@ -3265,7 +3305,11 @@ async function loadAllFiles() {
         
         // Use the vetrine data we already fetched above
         if (!currentVetrine || currentVetrine.length === 0) {
-            throw new Error('No vetrine found for this vendor');
+            // Show a more user-friendly message for empty vendor
+            showStatus('Nessuna vetrina trovata per questo venditore', 'info');
+            renderDocuments([]);
+            updateVendorStats(0);
+            return;
         }
         
         
@@ -3338,13 +3382,37 @@ async function loadAllFiles() {
         // Update vendor stats
         updateVendorStats(allFiles.length);
         
-        showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);
+        // Show appropriate success message based on data source
+        if (vetrineResponse && vetrineResponse.fallback) {
+            showStatus(`${allFiles.length} vetrine caricate (dati temporanei) ⚠️`, 'warning');
+        } else {
+            showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);
+        }
         
     } catch (error) {
         console.error('Error loading vetrine:', error);
-        showError('Errore nel caricamento dei documenti. Riprova più tardi.');
-        // Show empty state
+        
+        // Enhanced error messages based on error type
+        let errorMessage = 'Errore nel caricamento dei documenti. Riprova più tardi.';
+        
+        if (error.message.includes('500') || error.message.includes('INTERNAL SERVER ERROR')) {
+            errorMessage = 'Server temporaneamente non disponibile. Riprova tra qualche minuto. 🔧';
+        } else if (error.message.includes('No vendor username')) {
+            errorMessage = 'URL non valido. Torna alla pagina principale. 🔗';
+        } else if (error.message.includes('Unable to load vendor data')) {
+            errorMessage = 'Impossibile caricare i dati del venditore. Verifica la connessione. 🌐';
+        }
+        
+        showError(errorMessage);
+        
+        // Show empty state with helpful message
         renderDocuments([]);
+        updateVendorStats(0);
+        
+        // Add retry button for server errors
+        if (error.message.includes('500') || error.message.includes('INTERNAL SERVER ERROR')) {
+            addRetryButton();
+        }
     }
 }
 
@@ -4027,6 +4095,9 @@ function showStatus(message, type = 'success') {
     
     setTimeout(() => notification.classList.add('show'), 100);
     
+    // Different durations based on message type
+    const duration = type === 'warning' ? 8000 : type === 'error' ? 10000 : 3000;
+    
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -4034,11 +4105,61 @@ function showStatus(message, type = 'success') {
                 notification.parentNode.removeChild(notification);
             }
         }, 500);
-    }, type === 'success' ? 3000 : 5000);
+    }, duration);
 }
 
 function showError(message) {
     showStatus(message, 'error');
+}
+
+// Function to add retry button for server errors
+function addRetryButton() {
+    const searchSection = document.querySelector('.search-section');
+    if (!searchSection) return;
+    
+    // Remove existing retry button if any
+    const existingRetry = searchSection.querySelector('.retry-button');
+    if (existingRetry) {
+        existingRetry.remove();
+    }
+    
+    const retryButton = document.createElement('button');
+    retryButton.className = 'retry-button';
+    retryButton.innerHTML = `
+        <span class="material-symbols-outlined">refresh</span>
+        Riprova
+    `;
+    retryButton.addEventListener('click', async () => {
+        retryButton.disabled = true;
+        retryButton.innerHTML = `
+            <span class="material-symbols-outlined rotating">refresh</span>
+            Ricaricamento...
+        `;
+        
+        try {
+            // Clear any existing cache
+            if (window.cacheManager) {
+                window.cacheManager.delete('vetrine_list', 'vetrine_list');
+            }
+            
+            // Reload the page data
+            await loadAllFiles();
+            
+            // Remove retry button on success
+            retryButton.remove();
+        } catch (error) {
+            console.error('Retry failed:', error);
+            retryButton.disabled = false;
+            retryButton.innerHTML = `
+                <span class="material-symbols-outlined">refresh</span>
+                Riprova
+            `;
+            showError('Riprova fallita. Riprova più tardi.');
+        }
+    });
+    
+    // Insert retry button at the top of search section
+    searchSection.insertBefore(retryButton, searchSection.firstChild);
 }
 
 // Function to refresh favorite status when page becomes visible

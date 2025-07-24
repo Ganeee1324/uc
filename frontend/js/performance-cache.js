@@ -46,7 +46,7 @@ class PerformanceCacheManager {
         return `${endpoint}_${JSON.stringify(sortedParams)}`;
     }
 
-    get(cacheKey, cacheType = null) {
+    get(cacheKey, cacheType = null, forceExpired = false) {
         const config = cacheType ? this.cacheConfig[cacheType] : null;
         
         try {
@@ -68,6 +68,11 @@ class PerformanceCacheManager {
             if (!cachedData) return null;
             
             // Check expiration
+            if (forceExpired) {
+                // If forceExpired is true, we assume the cache is expired and return it
+                return cachedData;
+            }
+
             if (Date.now() - cachedData.timestamp > (config?.ttl || 300000)) {
                 this.delete(cacheKey, config?.storage);
                 return null;
@@ -333,7 +338,41 @@ class PerformanceCacheManager {
             return data;
         } catch (error) {
             console.error('❌ Error loading vetrine:', error);
-            throw error;
+            
+            // Enhanced error handling with fallback mechanisms
+            if (error.message.includes('500') || error.message.includes('INTERNAL SERVER ERROR')) {
+                console.warn('⚠️ Server error detected, attempting fallback strategies...');
+                
+                // Try to get cached data even if expired
+                const expiredCache = this.get('vetrine_list', 'vetrine_list', true); // Force get expired cache
+                if (expiredCache) {
+                    console.log('🔄 Using expired cache as fallback');
+                    return expiredCache;
+                }
+                
+                // Return empty structure to prevent complete failure
+                console.log('🔄 Returning empty vetrine structure as fallback');
+                return {
+                    vetrine: [],
+                    error: 'Server temporarily unavailable',
+                    fallback: true
+                };
+            }
+            
+            // For other errors, try to get any available cache
+            const anyCache = this.get('vetrine_list', 'vetrine_list', true);
+            if (anyCache) {
+                console.log('🔄 Using any available cache as fallback');
+                return anyCache;
+            }
+            
+            // Final fallback
+            console.log('🔄 Returning empty structure as final fallback');
+            return {
+                vetrine: [],
+                error: 'Unable to load data',
+                fallback: true
+            };
         }
     }
 

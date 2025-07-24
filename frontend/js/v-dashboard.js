@@ -935,10 +935,10 @@ function personalizeDashboard(user) {
     
     // Construct full name
     let fullName = '';
-    if (user.name && user.surname) {
-        fullName = `${user.name} ${user.surname}`;
-    } else if (user.name) {
-        fullName = user.name;
+    if (user.first_name && user.last_name) {
+        fullName = `${user.first_name} ${user.last_name}`;
+    } else if (user.first_name) {
+        fullName = user.first_name;
     } else if (user.username) {
         fullName = user.username;
     } else {
@@ -967,22 +967,92 @@ function personalizeDashboard(user) {
     if (userNameSmall) {
         userNameSmall.textContent = user.username || 'Username';
     }
+    
+    // Update user details (faculty, canale, bio)
+    updateUserDetails(user);
+    
+    // Update user statistics
+    updateUserStatistics(user);
+}
+
+// Update user details in the profile section
+function updateUserDetails(user) {
+    const detailsElements = document.querySelectorAll('.details');
+    
+    detailsElements.forEach((element, index) => {
+        switch(index) {
+            case 0: // Faculty
+                element.textContent = user.user_faculty || 'Facoltà non specificata';
+                break;
+            case 1: // Canale
+                element.textContent = user.user_canale || 'Canale non specificato';
+                break;
+            case 2: // Bio
+                const bio = user.bio || 'Bio non specificata';
+                element.textContent = bio.length > 40 ? bio.substring(0, 37) + '...' : bio;
+                break;
+        }
+    });
+}
+
+// Update user statistics in the dashboard cards
+function updateUserStatistics(user) {
+    // Update uploaded content count
+    const uploadedContentElement = document.querySelector('.space-number-container.blue');
+    if (uploadedContentElement) {
+        uploadedContentElement.textContent = user.uploaded_documents_count || 0;
+    }
+    
+    // Update ClaryCoin credits (placeholder for now)
+    const claryCoinElement = document.querySelector('.space-number-container.yellow');
+    if (claryCoinElement) {
+        // This could be fetched from a separate endpoint in the future
+        claryCoinElement.textContent = '300'; // Placeholder
+    }
 }
 
 // Initialize user personalization
-function initializeUserPersonalization() {
+async function initializeUserPersonalization() {
     const user = getCurrentUser();
     if (user) {
-        personalizeDashboard(user);
+        // Fetch complete user profile data
+        const completeUserData = await fetchCompleteUserProfile(user.user_id);
+        if (completeUserData) {
+            personalizeDashboard(completeUserData);
+        } else {
+            // Fallback to cached user data
+            personalizeDashboard(user);
+        }
     } else {
         // If no user is logged in, redirect to login page
         window.location.href = 'index.html';
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+// Fetch complete user profile from backend
+async function fetchCompleteUserProfile(userId) {
+    try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return null;
+        
+        // Since there's no specific current user endpoint, we'll use the user data from localStorage
+        // In a real implementation, you would call an endpoint like /api/user/profile or /api/user/me
+        const user = getCurrentUser();
+        if (user) {
+            // Return the cached user data which should include all the fields
+            return user;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user personalization first
-    initializeUserPersonalization();
+    await initializeUserPersonalization();
     
     initializeMobileMenu();
     initializeAISearchToggle();

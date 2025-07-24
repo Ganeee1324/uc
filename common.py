@@ -245,8 +245,10 @@ class Review:
     rating: int
     review_text: str
     review_date: datetime
-    vetrina_id: int | None
+    vetrina_id: int
     file_id: int | None
+    vetrina_name: str | None
+    file_name: str | None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Review):
@@ -254,8 +256,8 @@ class Review:
         return self.user == other.user and self.vetrina_id == other.vetrina_id and self.file_id == other.file_id
 
     def __hash__(self) -> int:
-        target_id = self.vetrina_id if self.vetrina_id is not None else self.file_id
-        target_type = "vetrina" if self.vetrina_id is not None else "file"
+        target_id = self.file_id if self.file_id is not None else self.vetrina_id
+        target_type = "file" if self.file_id is not None else "vetrina"
         return hash("review" + str(self.user.user_id) + target_type + str(target_id))
 
     def to_dict(self) -> dict:
@@ -266,6 +268,8 @@ class Review:
             "rating": self.rating,
             "review_text": self.review_text,
             "review_date": self.review_date,
+            "vetrina_name": self.vetrina_name,
+            "file_name": self.file_name,
         }
 
     @classmethod

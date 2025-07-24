@@ -481,7 +481,7 @@ def add_vetrina_review(vetrina_id):
 
     review_text = str(data.get("review_text"))
 
-    review = database.add_review(user_id, rating, review_text, vetrina_id=vetrina_id)
+    review = database.add_vetrina_review(user_id, rating, review_text, vetrina_id)
     return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
 
 
@@ -496,8 +496,7 @@ def add_file_review(file_id):
         return jsonify({"error": "invalid_rating", "msg": "Rating must be between 1 and 5"}), 400
 
     review_text = str(data.get("review_text"))
-
-    review = database.add_review(user_id, rating, review_text, file_id=file_id)
+    review = database.add_file_review(user_id, rating, review_text, file_id)
     return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
 
 
@@ -527,6 +526,30 @@ def delete_file_review(file_id):
     user_id = get_jwt_identity()
     database.delete_review(user_id, file_id=file_id)
     return jsonify({"msg": "Review deleted"}), 200
+
+
+@app.route("/users/<int:user_id>/author-reviews", methods=["GET"])
+def get_user_author_reviews(user_id):
+    """
+    Get all reviews for vetrine and files that belong to vetrine authored by a specific user.
+    
+    Args:
+        user_id: ID of the user whose vetrine and file reviews to retrieve
+    """
+    reviews = database.get_reviews_for_user_vetrine(user_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
+
+
+@app.route("/users/<int:user_id>/reviews", methods=["GET"])
+def get_user_reviews(user_id):
+    """
+    Get all reviews authored by a specific user (reviews written by that user).
+    
+    Args:
+        user_id: ID of the user whose reviews to retrieve
+    """
+    reviews = database.get_reviews_authored_by_user(user_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
 
 
 # ---------------------------------------------

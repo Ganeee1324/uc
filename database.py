@@ -1048,46 +1048,133 @@ def get_favorites(user_id: int) -> List[Vetrina]:
 # ---------------------------------------------
 
 
-def add_review(user_id: int, rating: int, review_text: str, vetrina_id: int | None = None, file_id: int | None = None) -> Review:
+def get_reviews_for_user_vetrine(user_id: int) -> List[Review]:
     """
-    Add a review to a vetrina or file.
+    Get all reviews for vetrine and files that belong to vetrine authored by a specific user.
+    
+    Args:
+        user_id: ID of the user whose vetrine reviews to retrieve
+        
+    Returns:
+        List[Review]: List of Review objects for vetrine and files authored by the user
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.*, u.*, v.name as vetrina_name, f.display_name as file_name
+                FROM review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
+                LEFT JOIN files f ON r.file_id = f.file_id
+                WHERE v.author_id = %s
+                ORDER BY r.review_date DESC
+                """,
+                (user_id,),
+            )
+            reviews_data = cursor.fetchall()
+            logging.info(f"Retrieved {len(reviews_data)} reviews for vetrine and files authored by user {user_id}")
+            return [Review.from_dict(row) for row in reviews_data]
+
+
+def get_reviews_authored_by_user(user_id: int) -> List[Review]:
+    """
+    Get all reviews authored by a specific user (reviews written by that user).
+    
+    Args:
+        user_id: ID of the user whose reviews to retrieve
+        
+    Returns:
+        List[Review]: List of Review objects authored by the user
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.*, u.*, v.name as vetrina_name, f.display_name as file_name
+                FROM review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
+                LEFT JOIN files f ON r.file_id = f.file_id
+                WHERE r.user_id = %s
+                ORDER BY r.review_date DESC
+                """,
+                (user_id,),
+            )
+            reviews_data = cursor.fetchall()
+            logging.info(f"Retrieved {len(reviews_data)} reviews authored by user {user_id}")
+            return [Review.from_dict(row) for row in reviews_data]
+
+
+def add_vetrina_review(user_id: int, rating: int, review_text: str, vetrina_id: int) -> Review:
+    """
+    Add a review to a vetrina.
 
     Args:
         user_id: ID of the user adding the review
         rating: Rating (1-5)
         review_text: Text of the review
-        vetrina_id: ID of the vetrina to review (optional if file_id provided)
-        file_id: ID of the file to review (optional if vetrina_id provided)
+        vetrina_id: ID of the vetrina to review
 
     Returns:
         Review: The created review object
-
-    Raises:
-        ValueError: If neither vetrina_id nor file_id is provided, or if both are provided
     """
-    if vetrina_id is None and file_id is None:
-        raise ValueError("Either vetrina_id or file_id must be provided")
-    if vetrina_id is not None and file_id is not None:
-        raise ValueError("Only one of vetrina_id or file_id can be provided")
-
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
                 WITH new_review AS (
                     INSERT INTO review (user_id, vetrina_id, file_id, rating, review_text) 
-                    VALUES (%s, %s, %s, %s, %s) 
+                    VALUES (%s, %s, NULL, %s, %s) 
                     RETURNING *
                 )
-                SELECT r.*, u.*
+                SELECT r.*, u.*, v.name as vetrina_name, NULL as file_name
                 FROM new_review r
                 JOIN users u ON r.user_id = u.user_id
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
                 """,
-                (user_id, vetrina_id, file_id, rating, review_text),
+                (user_id, vetrina_id, rating, review_text),
             )
             review_data = cursor.fetchone()
             review = Review.from_dict(review_data)
-            logging.info(f"Review added by user {user_id} for {'vetrina' if vetrina_id else 'file'} {vetrina_id or file_id}")
+            logging.info(f"Review added by user {user_id} for vetrina {vetrina_id}")
+            return review
+
+
+def add_file_review(user_id: int, rating: int, review_text: str, file_id: int) -> Review:
+    """
+    Add a review to a file.
+
+    Args:
+        user_id: ID of the user adding the review
+        rating: Rating (1-5)
+        review_text: Text of the review
+        file_id: ID of the file to review
+
+    Returns:
+        Review: The created review object
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH new_review AS (
+                    INSERT INTO review (user_id, vetrina_id, file_id, rating, review_text) 
+                    SELECT %s, f.vetrina_id, %s, %s, %s
+                    FROM files f
+                    WHERE f.file_id = %s
+                    RETURNING *
+                )
+                SELECT r.*, u.*, NULL as vetrina_name, f.display_name as file_name
+                FROM new_review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN files f ON r.file_id = f.file_id
+                """,
+                (user_id, file_id, rating, review_text, file_id),
+            )
+            review_data = cursor.fetchone()
+            review = Review.from_dict(review_data)
+            logging.info(f"Review added by user {user_id} for file {file_id}")
             return review
 
 
@@ -1099,10 +1186,11 @@ def get_vetrina_reviews(vetrina_id: int) -> List[Review]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT r.*, u.*
+                SELECT r.*, u.*, v.name as vetrina_name, NULL as file_name
                 FROM review r
                 JOIN users u ON r.user_id = u.user_id
-                WHERE r.vetrina_id = %s
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
+                WHERE r.vetrina_id = %s AND r.file_id IS NULL
                 ORDER BY r.review_date DESC
                 """,
                 (vetrina_id,),
@@ -1120,9 +1208,10 @@ def get_file_reviews(file_id: int) -> List[Review]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT r.*, u.*
+                SELECT r.*, u.*, NULL as vetrina_name, f.display_name as file_name
                 FROM review r
                 JOIN users u ON r.user_id = u.user_id
+                JOIN files f ON r.file_id = f.file_id
                 WHERE r.file_id = %s
                 ORDER BY r.review_date DESC
                 """,
@@ -1133,32 +1222,36 @@ def get_file_reviews(file_id: int) -> List[Review]:
             return [Review.from_dict(row) for row in reviews_data]
 
 
-def delete_review(user_id: int, vetrina_id: int | None = None, file_id: int | None = None) -> None:
+def delete_review(user_id: int, file_id: int | None = None, vetrina_id: int | None = None) -> None:
     """
     Delete a review from a vetrina or file.
 
     Args:
         user_id: ID of the user deleting the review
-        vetrina_id: ID of the vetrina to delete the review from (optional if file_id provided)
-        file_id: ID of the file to delete the review from (optional if vetrina_id provided)
+        file_id: ID of the file to delete the review from (optional, for file-specific reviews)
+        vetrina_id: ID of the vetrina to delete the review from (optional, for vetrina-specific reviews)
 
     Raises:
-        ValueError: If neither vetrina_id nor file_id is provided, or if both are provided
+        ValueError: If neither file_id nor vetrina_id is provided
         NotFoundException: If the review doesn't exist
         ForbiddenError: If the user is not the author of the review
     """
-    if vetrina_id is None and file_id is None:
-        raise ValueError("Either vetrina_id or file_id must be provided")
-    if vetrina_id is not None and file_id is not None:
-        raise ValueError("Only one of vetrina_id or file_id can be provided")
+    if file_id is None and vetrina_id is None:
+        raise ValueError("Either file_id or vetrina_id must be provided")
 
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s AND file_id = %s", (user_id, vetrina_id, file_id))
+            if file_id is not None:
+                # Delete file review
+                cursor.execute("DELETE FROM review WHERE user_id = %s AND file_id = %s", (user_id, file_id))
+            else:
+                # Delete vetrina review
+                cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s AND file_id IS NULL", (user_id, vetrina_id))
+            
             if cursor.rowcount == 0:
                 raise NotFoundException("Review not found")
             conn.commit()
-            logging.info(f"Review deleted by user {user_id} for {'vetrina' if vetrina_id else 'file'} {vetrina_id or file_id}")
+            logging.info(f"Review deleted by user {user_id} for {'file' if file_id else 'vetrina'} {file_id or vetrina_id}")
 
 
 # ---------------------------------------------

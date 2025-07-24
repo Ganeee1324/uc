@@ -246,7 +246,7 @@ html {
 .vendor-info {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 2.5rem;
     width: 100%;
     max-width: 900px;
@@ -6438,7 +6438,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         gap: 1.5rem;
         flex-direction: row;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: center;
     }
     
     .vendor-details {

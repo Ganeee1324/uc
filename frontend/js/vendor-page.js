@@ -6034,17 +6034,7 @@ async function submitReview() {
                 const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
                 
                 // Update vendor banner with new rating
-                const vendorRatingBtn = document.getElementById('vendorRatingBtn');
-                if (vendorRatingBtn) {
-                    const ratingStars = vendorRatingBtn.querySelector('.vendor-banner-rating-stars');
-                    const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
-                    
-                    if (ratingStars && ratingText) {
-                        const stars = generateVendorBannerStars(averageRating);
-                        ratingStars.innerHTML = stars;
-                        ratingText.textContent = `${averageRating.toFixed(1)} (${currentReviews.length})`;
-                    }
-                }
+                updateVendorBannerRating(averageRating, currentReviews.length);
             }
         } else if (response.status === 401) {
             console.error('Authentication failed');
@@ -6131,17 +6121,7 @@ async function deleteUserReview() {
                 const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
                 
                 // Update vendor banner with new rating
-                const vendorRatingBtn = document.getElementById('vendorRatingBtn');
-                if (vendorRatingBtn) {
-                    const ratingStars = vendorRatingBtn.querySelector('.vendor-banner-rating-stars');
-                    const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
-                    
-                    if (ratingStars && ratingText) {
-                        const stars = generateVendorBannerStars(averageRating);
-                        ratingStars.innerHTML = stars;
-                        ratingText.textContent = `${averageRating.toFixed(1)} (${currentReviews.length})`;
-                    }
-                }
+                updateVendorBannerRating(averageRating, currentReviews.length);
             }
         } else if (response.status === 401) {
             console.error('Authentication failed');

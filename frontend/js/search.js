@@ -4103,7 +4103,7 @@ function renderDocuments(files) {
         card.style.cursor = 'pointer';
         card.onclick = async (e) => {
             // Don't trigger if clicking on interactive elements
-            if (e.target.closest('.favorite-button') || e.target.closest('.view-files-button') || e.target.closest('.owner-avatar') || e.target.closest('.rating-badge') || e.target.closest('.add-to-cart-btn') || e.target.closest('.price-cart-container')) {
+            if (e.target.closest('.favorite-button') || e.target.closest('.chunks-button') || e.target.closest('.owner-avatar') || e.target.closest('.rating-badge') || e.target.closest('.add-to-cart-btn') || e.target.closest('.price-cart-container')) {
                 return;
             }
             
@@ -4226,15 +4226,18 @@ function renderDocuments(files) {
             `;
         }
         
-        // Add a view files button for vetrine
-        const viewFilesButton = item.isVetrina ? `<button class="view-files-button"><span class="material-symbols-outlined">fullscreen</span>Visualizza</button>` : '';
 
         // Update the favorite button to include the initial state from the API
         const isFavorited = item.favorite === true;
         card.innerHTML = `
             <div class="document-preview">
                 ${previewContent}
-                ${viewFilesButton}
+                ${item.hasSemanticResults ? `
+                    <button class="chunks-button" title="Visualizza ${item.semanticChunks.length} risultati semantici trovati">
+                        <span class="material-symbols-outlined">psychology</span>
+                        <span class="chunks-count">${item.semanticChunks.length}</span>
+                    </button>
+                ` : ''}
                 <div class="document-type-badges">
                     ${(() => {
                         // Use actual file tags (already fetched in loadAllFiles)
@@ -4353,45 +4356,11 @@ function renderDocuments(files) {
             </div>
         `;
         
-        if (item.isVetrina) {
-            card.querySelector('.view-files-button').addEventListener('click', async (e) => {
+        // Add event handler for chunks button
+        if (item.hasSemanticResults) {
+            card.querySelector('.chunks-button').addEventListener('click', (e) => {
                 e.stopPropagation();
-                
-                try {
-                    // Show loading state
-                    const button = e.target.closest('.view-files-button');
-                    const originalContent = button.innerHTML;
-                    button.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span>Caricamento...';
-                    button.disabled = true;
-                    
-                    // Fetch files for this vetrina
-                    const filesResponse = await makeSimpleRequest(`/vetrine/${item.id}/files`);
-                    
-                    if (!filesResponse || !filesResponse.files || filesResponse.files.length === 0) {
-                        showError('Nessun file trovato in questa vetrina');
-                        return;
-                    }
-                    
-                    // Create vetrina object with files for quick look
-                    const vetrinaWithFiles = {
-                        ...item,
-                        files: filesResponse.files
-                    };
-                    
-                    // Open quick look overlay
-                    openQuickLook(vetrinaWithFiles);
-                    
-                } catch (error) {
-                    console.error('Error loading vetrina files:', error);
-                    showError('Errore nel caricamento dei file. Riprova più tardi.');
-                } finally {
-                    // Restore button state
-                    const button = e.target.closest('.view-files-button');
-                    if (button) {
-                        button.innerHTML = originalContent;
-                        button.disabled = false;
-                    }
-                }
+                openChunksOverlay(item);
             });
         }
 
@@ -5642,6 +5611,104 @@ function closeQuickLook() {
         overlay.addEventListener('transitionend', () => {
             overlay.remove();
         }, { once: true });
+    }
+}
+
+function openChunksOverlay(item) {
+    // Prevent multiple modals
+    if (document.getElementById('chunks-overlay')) return;
+
+    const modalHTML = `
+        <div id="chunks-overlay" class="chunks-overlay">
+            <div class="chunks-modal">
+                <button class="chunks-close-button">&times;</button>
+                <div class="chunks-header">
+                    <div class="chunks-header-content">
+                        <h2 class="chunks-title">Risultati Semantici</h2>
+                        <p class="chunks-description">${item.semanticChunks.length} contenuti trovati per "${item.title || item.name}"</p>
+                        <div class="chunks-meta">
+                            <span class="material-symbols-outlined">psychology</span>
+                            <span>Ricerca semantica ha identificato questi argomenti specifici nella vetrina</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chunks-body">
+                    <div class="chunks-list">
+                        ${item.semanticChunks.map((chunk, index) => `
+                            <div class="chunk-item" data-index="${index}">
+                                <div class="chunk-header">
+                                    <div class="chunk-page-info">
+                                        <span class="material-symbols-outlined">description</span>
+                                        <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
+                                    </div>
+                                    <div class="chunk-relevance">
+                                        <span class="material-symbols-outlined">trending_up</span>
+                                        <span class="chunk-score">Rilevanza: ${((chunk.semantic_score || 0) * 100).toFixed(1)}%</span>
+                                    </div>
+                                </div>
+                                <div class="chunk-content">
+                                    <div class="chunk-description">${chunk.chunk_description || chunk.description || 'Nessuna descrizione disponibile'}</div>
+                                    ${chunk.context ? `<div class="chunk-context"><strong>Contesto:</strong> ${chunk.context}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="chunks-footer">
+                    <button class="chunks-view-full-btn" data-action="view-full-document" data-doc-id="${item.id}">
+                        <span class="material-symbols-outlined">open_in_new</span>
+                        Visualizza Vetrina Completa
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    const overlay = document.getElementById('chunks-overlay');
+    const closeButton = overlay.querySelector('.chunks-close-button');
+    const viewFullBtn = overlay.querySelector('.chunks-view-full-btn');
+
+    // Event listeners
+    closeButton.addEventListener('click', closeChunksOverlay);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeChunksOverlay();
+        }
+    });
+
+    // Handle view full document button
+    viewFullBtn.addEventListener('click', (e) => {
+        const docId = e.target.closest('[data-doc-id]').dataset.docId;
+        closeChunksOverlay();
+        // Navigate to document page
+        window.location.href = `document-preview.html?id=${docId}`;
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', handleChunksKeyboard);
+
+    // Animate in
+    setTimeout(() => overlay.classList.add('visible'), 10);
+}
+
+function closeChunksOverlay() {
+    const overlay = document.getElementById('chunks-overlay');
+    if (overlay) {
+        // Remove keyboard event listener
+        document.removeEventListener('keydown', handleChunksKeyboard);
+        
+        overlay.classList.remove('visible');
+        overlay.addEventListener('transitionend', () => {
+            overlay.remove();
+        }, { once: true });
+    }
+}
+
+function handleChunksKeyboard(e) {
+    if (e.key === 'Escape') {
+        closeChunksOverlay();
     }
 }
 

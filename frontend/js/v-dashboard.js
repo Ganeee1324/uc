@@ -878,7 +878,112 @@ if (document.readyState === 'loading') {
     initializeSafariGlowFix();
 }
 
+// ===========================
+// USER PERSONALIZATION FUNCTIONALITY
+// ===========================
+
+// Get current user data from localStorage
+function getCurrentUser() {
+    const cachedUser = localStorage.getItem('currentUser');
+    if (cachedUser) {
+        return JSON.parse(cachedUser);
+    }
+    return null;
+}
+
+// Create gradient avatar function (copied from search.js)
+function getConsistentGradient(username) {
+    if (!username) return 'linear-gradient(135deg, #49c5eb 0%, #3b82f6 100%)';
+    
+    // Simple hash function for consistent colors
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        const char = username.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Use hash to generate consistent colors
+    const hue1 = Math.abs(hash) % 360;
+    const hue2 = (hue1 + 60) % 360;
+    
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 50%) 100%)`;
+}
+
+// Get user initials
+function getInitials(fullName) {
+    if (!fullName) return 'U';
+    
+    const names = fullName.trim().split(' ');
+    if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+    } else if (names.length === 1) {
+        return names[0][0].toUpperCase();
+    }
+    return 'U';
+}
+
+// Personalize the dashboard with user information
+function personalizeDashboard(user) {
+    if (!user) return;
+    
+    // Update profile section
+    const profileImage = document.querySelector('.user-avatar-gradient');
+    const username = document.querySelector('.username');
+    const userAvatarSmall = document.querySelector('.user-avatar-gradient-small');
+    const userNameSmall = document.querySelector('.user-name-small');
+    
+    // Construct full name
+    let fullName = '';
+    if (user.name && user.surname) {
+        fullName = `${user.name} ${user.surname}`;
+    } else if (user.name) {
+        fullName = user.name;
+    } else if (user.username) {
+        fullName = user.username;
+    } else {
+        fullName = 'User';
+    }
+    
+    // Update main profile avatar
+    if (profileImage) {
+        const gradient = getConsistentGradient(user.username);
+        profileImage.style.background = gradient;
+        profileImage.textContent = getInitials(fullName);
+    }
+    
+    // Update username display
+    if (username) {
+        username.textContent = `@${user.username || 'username'}`;
+    }
+    
+    // Update sidebar user info
+    if (userAvatarSmall) {
+        const gradient = getConsistentGradient(user.username);
+        userAvatarSmall.style.background = gradient;
+        userAvatarSmall.textContent = getInitials(fullName);
+    }
+    
+    if (userNameSmall) {
+        userNameSmall.textContent = user.username || 'Username';
+    }
+}
+
+// Initialize user personalization
+function initializeUserPersonalization() {
+    const user = getCurrentUser();
+    if (user) {
+        personalizeDashboard(user);
+    } else {
+        // If no user is logged in, redirect to login page
+        window.location.href = 'index.html';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize user personalization first
+    initializeUserPersonalization();
+    
     initializeMobileMenu();
     initializeAISearchToggle();
     initializeFilters();

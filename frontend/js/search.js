@@ -459,11 +459,12 @@ function updateHeaderUserInfo(user) {
             dropdownUserEmail.textContent = user.email;
         }
         
-        // Toggle dropdown
+        // Toggle dropdown and redirect to v-dashboard when user clicks their avatar
         const userInfo = document.querySelector('.user-info');
         userAvatar.addEventListener('click', (event) => {
             event.stopPropagation();
-            userInfo.classList.toggle('open');
+            // Redirect to v-dashboard with user info
+            window.location.href = 'v-dashboard.html';
         });
 
         // Logout button

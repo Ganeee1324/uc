@@ -459,8 +459,22 @@ function updateHeaderUserInfo(user) {
             dropdownUserEmail.textContent = user.email;
         }
         
-        // Toggle dropdown and redirect to v-dashboard when user clicks their avatar
+        // Handle hover and click for user avatar
         const userInfo = document.querySelector('.user-info');
+        
+        // Show dropdown on hover
+        userAvatar.addEventListener('mouseenter', (event) => {
+            event.stopPropagation();
+            userInfo.classList.add('open');
+        });
+        
+        // Hide dropdown when mouse leaves the user info area
+        userInfo.addEventListener('mouseleave', (event) => {
+            event.stopPropagation();
+            userInfo.classList.remove('open');
+        });
+        
+        // Redirect to v-dashboard when user clicks their avatar
         userAvatar.addEventListener('click', (event) => {
             event.stopPropagation();
             // Redirect to v-dashboard with user info

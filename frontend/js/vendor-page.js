@@ -5990,12 +5990,62 @@ async function submitReview() {
             showStatus(message, 'success');
             hideAddReviewForm();
             
-            // Reload reviews to show the new one
-            await loadReviewsForVetrina(currentVetrinaForReviews);
+            // Get current user info
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            // Create a proper review object using backend response data
+            const newReview = {
+                rating: parseInt(selectedRating),
+                review_text: comment,
+                review_date: new Date().toISOString(),
+                user: currentUser,
+                // Add any additional fields that might be expected by the UI
+                review_id: data.review?.review_id || Date.now(), // Use backend ID or fallback
+                review_subject: data.review?.review_subject || null
+            };
+            
+            // Update currentReviews immediately with the new review
+            if (data.msg === 'Review updated') {
+                // Update existing review
+                const existingIndex = currentReviews.findIndex(review => 
+                    review.user?.user_id === currentUser.user_id
+                );
+                if (existingIndex !== -1) {
+                    currentReviews[existingIndex] = newReview;
+                }
+            } else {
+                // Add new review
+                currentReviews.push(newReview);
+            }
+            
+            // Update currentUserReview
+            currentUserReview = newReview;
+            
+            // Update the UI immediately
             updateReviewsOverlay();
             
-            // Update the rating display in the search results
+            // Update the rating display immediately
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            
+            // Update vendor banner rating if we're on vendor page
+            if (window.location.pathname.includes('vendor-page.html')) {
+                // Recalculate average rating for vendor banner
+                const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
+                const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
+                
+                // Update vendor banner with new rating
+                const vendorRatingBtn = document.getElementById('vendorRatingBtn');
+                if (vendorRatingBtn) {
+                    const ratingStars = vendorRatingBtn.querySelector('.vendor-banner-rating-stars');
+                    const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
+                    
+                    if (ratingStars && ratingText) {
+                        const stars = generateVendorBannerStars(averageRating);
+                        ratingStars.innerHTML = stars;
+                        ratingText.textContent = `${averageRating.toFixed(1)} (${currentReviews.length})`;
+                    }
+                }
+            }
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
@@ -6053,12 +6103,46 @@ async function deleteUserReview() {
         if (response.ok) {
             showStatus('Recensione eliminata con successo!', 'success');
             
-            // Reload reviews
-            await loadReviewsForVetrina(currentVetrinaForReviews);
+            // Get current user info
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            // Remove the user's review from currentReviews immediately
+            const reviewIndex = currentReviews.findIndex(review => 
+                review.user?.user_id === currentUser.user_id
+            );
+            
+            if (reviewIndex !== -1) {
+                currentReviews.splice(reviewIndex, 1);
+            }
+            
+            // Clear currentUserReview
+            currentUserReview = null;
+            
+            // Update the UI immediately
             updateReviewsOverlay();
             
-            // Update the rating display in the search results
+            // Update the rating display immediately
             updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            
+            // Update vendor banner rating if we're on vendor page
+            if (window.location.pathname.includes('vendor-page.html')) {
+                // Recalculate average rating for vendor banner
+                const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
+                const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
+                
+                // Update vendor banner with new rating
+                const vendorRatingBtn = document.getElementById('vendorRatingBtn');
+                if (vendorRatingBtn) {
+                    const ratingStars = vendorRatingBtn.querySelector('.vendor-banner-rating-stars');
+                    const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
+                    
+                    if (ratingStars && ratingText) {
+                        const stars = generateVendorBannerStars(averageRating);
+                        ratingStars.innerHTML = stars;
+                        ratingText.textContent = `${averageRating.toFixed(1)} (${currentReviews.length})`;
+                    }
+                }
+            }
         } else if (response.status === 401) {
             console.error('Authentication failed');
             localStorage.removeItem('authToken');
@@ -6079,18 +6163,19 @@ async function deleteUserReview() {
 function updateVetrinaRatingInSearch(vetrinaId) {
     const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
     
+    // Calculate average rating from current reviews
+    const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
+    const reviewCount = currentReviews.length;
+    
     ratingElements.forEach(element => {
-        // Reload the rating data for this vetrina
-        const vetrina = currentVetrine.find(v => v.id === vetrinaId);
-        if (vetrina) {
-            const ratingScore = element.querySelector('.rating-score');
-            const ratingStars = element.querySelector('.rating-stars');
-            const ratingCount = element.querySelector('.rating-count');
-            
-            if (ratingScore) ratingScore.textContent = vetrina.rating.toFixed(1);
-            if (ratingStars) ratingStars.innerHTML = generateFractionalStars(vetrina.rating);
-            if (ratingCount) ratingCount.textContent = `(${vetrina.review_count})`;
-        }
+        const ratingScore = element.querySelector('.rating-score');
+        const ratingStars = element.querySelector('.rating-stars');
+        const ratingCount = element.querySelector('.rating-count');
+        
+        if (ratingScore) ratingScore.textContent = averageRating.toFixed(1);
+        if (ratingStars) ratingStars.innerHTML = generateFractionalStars(averageRating);
+        if (ratingCount) ratingCount.textContent = `(${reviewCount})`;
     });
 }
 

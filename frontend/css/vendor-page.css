@@ -247,6 +247,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 2rem;
     width: 100%;
     max-width: 900px;
     position: relative;
@@ -268,10 +269,6 @@ html {
         0 0 0 4px rgba(255, 255, 255, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: absolute;
-    left: -140px;
-    top: 50%;
-    transform: translateY(-50%);
     flex-shrink: 0;
 }
 
@@ -298,7 +295,6 @@ html {
     flex: 1;
     min-width: 0;
     text-align: center;
-    position: relative;
 }
 
 .vendor-header {

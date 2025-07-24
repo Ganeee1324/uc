@@ -910,17 +910,12 @@ function getConsistentGradient(username) {
     return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 50%) 100%)`;
 }
 
-// Get user initials
-function getInitials(fullName) {
-    if (!fullName) return 'U';
+// Get user initials from username
+function getInitials(username) {
+    if (!username) return 'U';
     
-    const names = fullName.trim().split(' ');
-    if (names.length >= 2) {
-        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
-    } else if (names.length === 1) {
-        return names[0][0].toUpperCase();
-    }
-    return 'U';
+    // For usernames, take the first character
+    return username[0].toUpperCase();
 }
 
 // Personalize the dashboard with user information
@@ -933,17 +928,8 @@ function personalizeDashboard(user) {
     const userAvatarSmall = document.querySelector('.user-avatar-gradient-small');
     const userNameSmall = document.querySelector('.user-name-small');
     
-    // Construct full name
-    let fullName = '';
-    if (user.first_name && user.last_name) {
-        fullName = `${user.first_name} ${user.last_name}`;
-    } else if (user.first_name) {
-        fullName = user.first_name;
-    } else if (user.username) {
-        fullName = user.username;
-    } else {
-        fullName = 'User';
-    }
+    // Use username for avatar
+    let fullName = user.username || 'User';
     
     // Update main profile avatar
     if (profileImage) {

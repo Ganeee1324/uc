@@ -236,7 +236,7 @@ html {
     position: relative;
     z-index: 2;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-end;
     width: 100%;
     height: 100%;
@@ -6237,6 +6237,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .banner-content {
         padding: 0 1.5rem 1.5rem 1.5rem;
         align-items: flex-end;
+        justify-content: center;
     }
     
     .vendor-info {
@@ -6293,6 +6294,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .banner-content {
         padding: 0 1rem 1rem 1rem;
         align-items: flex-end;
+        justify-content: center;
     }
     
     .vendor-info {
@@ -6348,6 +6350,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .banner-content {
         padding: 0 0.75rem 0.75rem 0.75rem;
         align-items: flex-end;
+        justify-content: center;
     }
     
     .vendor-info {
@@ -6387,6 +6390,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .banner-content {
         padding: 0 0.5rem 0.5rem 0.5rem;
         align-items: flex-end;
+        justify-content: center;
     }
     
     .vendor-info {

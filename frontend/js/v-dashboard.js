@@ -337,7 +337,6 @@ function switchTab(tabName) {
     const searchSection = document.getElementById('searchSection');
     const statsDashboard = document.getElementById('statsDashboard');
     const documentsDashboard = document.getElementById('documentsDashboard');
-    const mainContent = document.querySelector('.main-content');
     
     if (tabName === 'stats') {
         // Show stats dashboard, hide others
@@ -346,7 +345,6 @@ function switchTab(tabName) {
         if (searchSection) searchSection.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'block';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
-        if (mainContent) mainContent.style.display = 'none';
         
         currentTab = 'stats';
     } else if (tabName === 'documents') {
@@ -356,7 +354,6 @@ function switchTab(tabName) {
         if (searchSection) searchSection.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'block';
-        if (mainContent) mainContent.style.display = 'none';
         
         currentTab = 'documents';
         
@@ -392,7 +389,6 @@ function switchTab(tabName) {
         // Show profile/dashboard content, hide stats and documents
         if (profileSection) profileSection.style.display = 'block';
         if (dashboardRow) dashboardRow.style.display = 'flex';
-        if (mainContent) mainContent.style.display = 'block';
         if (searchSection) {
             // Reset search section to its original state
             searchSection.style.display = '';

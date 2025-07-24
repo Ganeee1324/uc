@@ -6228,9 +6228,17 @@ function updateVetrinaRatingInSearch(vetrinaId) {
     const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
     
     // Calculate average rating from current reviews
-    const totalRating = currentReviews.reduce((sum, review) => sum + review.rating, 0);
+    console.log('updateVetrinaRatingInSearch - currentReviews:', currentReviews);
+    
+    const totalRating = currentReviews.reduce((sum, review) => {
+        console.log('updateVetrinaRatingInSearch - review:', review, 'rating:', review.rating);
+        return sum + (review.rating || 0);
+    }, 0);
+    
     const averageRating = currentReviews.length > 0 ? (totalRating / currentReviews.length) : 0;
     const reviewCount = currentReviews.length;
+    
+    console.log('updateVetrinaRatingInSearch - totalRating:', totalRating, 'averageRating:', averageRating, 'reviewCount:', reviewCount);
     
     ratingElements.forEach(element => {
         const ratingScore = element.querySelector('.rating-score');

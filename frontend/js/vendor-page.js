@@ -3938,7 +3938,18 @@ function generateFractionalStars(rating) {
 
 function generateVendorBannerStars(rating) {
     let stars = '';
-    console.log('Generating stars for rating:', rating);
+    console.log('Generating stars for rating:', rating, 'Type:', typeof rating, 'IsNaN:', isNaN(rating));
+    
+    // Ensure rating is a valid number
+    const numericRating = parseFloat(rating);
+    if (isNaN(numericRating)) {
+        console.error('Invalid rating value:', rating);
+        rating = 0;
+    } else {
+        rating = numericRating;
+    }
+    
+    console.log('Processed rating:', rating);
     
     for (let i = 1; i <= 5; i++) {
         if (i <= rating) {
@@ -6148,6 +6159,13 @@ async function deleteUserReview() {
 
 // Update vendor banner rating
 function updateVendorBannerRating(averageRating, reviewCount) {
+    console.log('updateVendorBannerRating called with:', {
+        averageRating: averageRating,
+        averageRatingType: typeof averageRating,
+        reviewCount: reviewCount,
+        reviewCountType: typeof reviewCount
+    });
+    
     const vendorRatingBtn = document.getElementById('vendorRatingBtn');
     if (vendorRatingBtn) {
         const ratingStars = vendorRatingBtn.querySelector('.vendor-banner-rating-stars');

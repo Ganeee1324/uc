@@ -6,7 +6,7 @@ from pgvector.psycopg import register_vector
 
 # from bge import get_document_embedding
 from bge import get_sentence_embedding
-from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina, VetrinaSubscription
+from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
@@ -72,90 +72,6 @@ def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
             conn.commit()
-
-
-# ---------------------------------------------
-# Subscription management
-# ---------------------------------------------
-
-
-def unsubscribe_from_vetrina(user_id: int, vetrina_id: int) -> None:
-    """
-    Unsubscribe a user from a vetrina and remove all files associated with this subscription.
-
-    Args:
-        user_id: ID of the user unsubscribing
-        vetrina_id: ID of the vetrina to unsubscribe from
-
-    Raises:
-        NotFoundException: If the subscription doesn't exist
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM vetrina_subscriptions WHERE subscriber_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
-            if cursor.rowcount == 0:
-                raise NotFoundException("Subscription or vetrina not found")
-
-
-def get_user_subscriptions(user_id: int) -> List[VetrinaSubscription]:
-    """
-    Get all vetrina subscriptions for a specific user.
-
-    Args:
-        user_id: ID of the user whose subscriptions to retrieve
-
-    Returns:
-        List[VetrinaSubscription]: List of VetrinaSubscription objects containing subscription information
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT v.*, vs.*, u.*, ci.*
-                FROM vetrina_subscriptions vs
-                JOIN vetrina v ON vs.vetrina_id = v.vetrina_id
-                JOIN users u ON v.author_id = u.user_id
-                JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-                WHERE vs.subscriber_id = %s
-                """,
-                (user_id,),
-            )
-            subscriptions_data = cursor.fetchall()
-
-            result = []
-            for sub_row in subscriptions_data:
-                subscription = VetrinaSubscription.from_dict(sub_row)
-                result.append(subscription)
-            logging.info(f"Found {len(result)} subscriptions for user {user_id}")
-            return result
-
-
-def get_vetrina_subscribers(vetrina_id: int) -> List[User]:
-    """
-    Get all subscribers for a specific vetrina.
-
-    Args:
-        vetrina_id: ID of the vetrina whose subscribers to retrieve
-
-    Returns:
-        List[User]: List of User objects containing subscriber information
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT u.*
-                FROM vetrina_subscriptions vs
-                JOIN users u ON vs.subscriber_id = u.user_id
-                WHERE vs.vetrina_id = %s
-                """,
-                (vetrina_id,),
-            )
-            subscribers_data = cursor.fetchall()
-            logging.info(f"Found {len(subscribers_data)} subscribers for vetrina {vetrina_id}")
-
-            return [User.from_dict(user_row) for user_row in subscribers_data]
-
 
 # ---------------------------------------------
 # User management
@@ -376,7 +292,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 if lang not in ["it", "en"]:
                     lang = "en"
             except:
-                lang = "en" # Default to English if detection fails
+                lang = "en"  # Default to English if detection fails
 
             tsquery_config = "english" if lang == "en" else "italian"
 
@@ -386,7 +302,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             JOIN vetrina v ON ce.vetrina_id = v.vetrina_id
             JOIN course_instances ci ON v.course_instance_id = ci.instance_id
             """
-                    
+
             filter_conditions = ["1=1"]
             filter_params = []
 
@@ -399,7 +315,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 ("date_year", "ci.date_year", int),
                 ("course_year", "ci.course_year", int),
             ]
-                    
+
             file_filter_defs = [
                 ("tag", "f.tag", str),
                 ("extension", "f.extension", str),
@@ -415,7 +331,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             # **FIXED SECTION**: Process File filters
             # First, determine if we need to join the files table
             has_file_filters = any(params.get(name) is not None for name, _, _ in file_filter_defs)
-                    
+
             if has_file_filters:
                 base_from_clause += " JOIN files f ON ce.file_id = f.file_id "
                 for name, field, type_ in file_filter_defs:
@@ -423,7 +339,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                     if value is not None:
                         filter_conditions.append(f"{field} = %s")
                         filter_params.append(type_(value))
-                    
+
             where_clause = " AND ".join(filter_conditions)
 
             # --- 2. Prepare Embeddings and Parameters ---
@@ -517,7 +433,9 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 if vetrina not in vetrine:
                     vetrine.append(vetrina)
                 chunks.setdefault(vetrina.vetrina_id, []).append(chunk)
-                logging.info(f"{chunk.chunk_description[:min(len(chunk.chunk_description), 120)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})")
+                logging.info(
+                    f"{chunk.chunk_description[:min(len(chunk.chunk_description), 120)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})"
+                )
             print(f"----------------------------------")
             return vetrine, chunks
 
@@ -769,18 +687,17 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
     with connect() as conn:
         with conn.cursor() as cursor:
             if user_id is not None:
-                # Query that checks if the user owns the file either directly or through subscription
+                # Query that checks if the user owns the file
                 # and if the file is favorited by the user
                 cursor.execute(
                     """
                     SELECT f.*,
-                           (EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.file_id AND owner_id = %s) OR
-                            EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = %s AND subscriber_id = %s)) AS owned,
+                           EXISTS(SELECT 1 FROM owned_files WHERE file_id = f.file_id AND owner_id = %s) AS owned,
                            EXISTS(SELECT 1 FROM favourite_file WHERE file_id = f.file_id AND user_id = %s) AS favorite
                     FROM files f
                     WHERE f.vetrina_id = %s
                     """,
-                    (user_id, vetrina_id, user_id, user_id, vetrina_id),
+                    (user_id, user_id, vetrina_id),
                 )
             else:
                 cursor.execute(
@@ -872,13 +789,9 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
                 """
                 SELECT f.* FROM files f
                 WHERE f.file_id = %s 
-                AND (
-                    EXISTS(SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s)
-                    OR 
-                    EXISTS(SELECT 1 FROM vetrina_subscriptions vs WHERE vs.subscriber_id = %s AND vs.vetrina_id = f.vetrina_id)
-                )
+                AND EXISTS(SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s)
                 """,
-                (file_id, user_id, file_id, user_id),
+                (file_id, user_id, file_id),
             )
 
             file_data = cursor.fetchone()
@@ -944,12 +857,8 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 cursor.execute(
                     """
                     SELECT 1 FROM owned_files WHERE owner_id = %s AND file_id = %s
-                    UNION
-                    SELECT 1 FROM vetrina_subscriptions vs
-                    JOIN files f ON f.vetrina_id = vs.vetrina_id
-                    WHERE vs.subscriber_id = %s AND f.file_id = %s
                     """,
-                    (user_id, file_id, user_id, file_id),
+                    (user_id, file_id),
                 )
 
                 if cursor.fetchone():
@@ -984,65 +893,6 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE file_id = %s", (file_id,))
                 logging.info(f"File {file_id} bought by user {user_id} with transaction {transaction.transaction_id}")
             return transaction, file
-
-
-def buy_subscription_transaction(user_id: int, vetrina_id: int) -> Tuple[Transaction, VetrinaSubscription]:
-    """
-    Create a new transaction for purchasing a subscription to a vetrina.
-    The price is automatically retrieved from the vetrina.
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            with conn.transaction():
-                # Check if the user is already subscribed to this vetrina
-                cursor.execute(
-                    "SELECT 1 FROM vetrina_subscriptions WHERE subscriber_id = %s AND vetrina_id = %s",
-                    (user_id, vetrina_id),
-                )
-                if cursor.fetchone():
-                    raise AlreadyOwnedError("You are already subscribed to this vetrina")
-
-                # Get the vetrina's price
-                cursor.execute(
-                    "SELECT price FROM vetrina WHERE vetrina_id = %s",
-                    (vetrina_id,),
-                )
-                vetrina_data = cursor.fetchone()
-                if not vetrina_data:
-                    raise NotFoundException("Vetrina not found")
-
-                price = vetrina_data["price"]
-                logging.info(f"User {user_id} is not subscribed to vetrina {vetrina_id}, price: {price}")
-
-                cursor.execute(
-                    "INSERT INTO transactions (user_id, amount) VALUES (%s, %s) RETURNING *",
-                    (user_id, price),
-                )
-                transaction_data = cursor.fetchone()
-                transaction = Transaction.from_dict(transaction_data)
-                logging.info(f"Transaction {transaction.transaction_id} created for subscription {vetrina_id} bought by user {user_id}")
-
-                cursor.execute(
-                    "INSERT INTO vetrina_subscriptions (subscriber_id, vetrina_id, transaction_id, price) VALUES (%s, %s, %s, %s)",
-                    (user_id, vetrina_id, transaction.transaction_id, price),
-                )
-                logging.info(f"Subscription {vetrina_id} bought by user {user_id} with transaction {transaction.transaction_id}")
-
-                # Fetch the complete subscription data with all required fields for VetrinaSubscription.from_dict
-                cursor.execute(
-                    """
-                    SELECT *
-                    FROM vetrina_subscriptions vs
-                    JOIN vetrina v ON vs.vetrina_id = v.vetrina_id
-                    JOIN users u ON v.author_id = u.user_id
-                    JOIN course_instances ci ON v.course_instance_id = ci.instance_id
-                    WHERE vs.subscriber_id = %s AND vs.vetrina_id = %s
-                    """,
-                    (user_id, vetrina_id),
-                )
-                subscription_data = cursor.fetchone()
-                subscription = VetrinaSubscription.from_dict(subscription_data)
-                return transaction, subscription
 
 
 # ---------------------------------------------
@@ -1129,7 +979,7 @@ def remove_favorite_file(user_id: int, file_id: int) -> None:
 def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
     """
     Get all vetrine where the user has ownership access.
-    A vetrina is included if the user either has a subscription to it or owns at least one file in it.
+    A vetrina is included if the user owns at least one file in it.
 
     Args:
         user_id: ID of the user whose accessible vetrine to retrieve
@@ -1148,12 +998,11 @@ def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
                 JOIN users u ON v.author_id = u.user_id
                 JOIN course_instances ci ON v.course_instance_id = ci.instance_id
                 WHERE (
-                    EXISTS(SELECT 1 FROM vetrina_subscriptions WHERE vetrina_id = v.vetrina_id AND subscriber_id = %s) OR
                     EXISTS(SELECT 1 FROM owned_files of JOIN files f ON of.file_id = f.file_id WHERE f.vetrina_id = v.vetrina_id AND of.owner_id = %s)
                 )
                 ORDER BY v.vetrina_id
                 """,
-                (user_id, user_id, user_id),
+                (user_id, user_id),
             )
             results = cursor.fetchall()
             logging.info(f"Retrieved {len(results)} vetrine with owned files for user {user_id}")
@@ -1198,39 +1047,137 @@ def get_favorites(user_id: int) -> List[Vetrina]:
 # ---------------------------------------------
 
 
-def add_review(user_id: int, vetrina_id: int, rating: int, review_text: str, review_subject: str | None = None) -> Review:
+def get_reviews_for_user_vetrine(user_id: int) -> List[Review]:
     """
-    Add or update a review to a vetrina.
-    If the user already has a review for this vetrina, it will be updated.
+    Get all reviews for vetrine and files that belong to vetrine authored by a specific user.
+    
+    Args:
+        user_id: ID of the user whose vetrine reviews to retrieve
+        
+    Returns:
+        List[Review]: List of Review objects for vetrine and files authored by the user
     """
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                WITH upserted_review AS (
-                    INSERT INTO review (user_id, vetrina_id, rating, review_text, review_subject, review_date) 
-                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                    ON CONFLICT (user_id, vetrina_id) 
-                    DO UPDATE SET 
-                        rating = EXCLUDED.rating,
-                        review_text = EXCLUDED.review_text,
-                        review_subject = EXCLUDED.review_subject,
-                        review_date = CURRENT_TIMESTAMP
+                SELECT r.*, u.*, v.name as vetrina_name, f.display_name as file_name
+                FROM review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
+                LEFT JOIN files f ON r.file_id = f.file_id
+                WHERE v.author_id = %s
+                ORDER BY r.review_date DESC
+                """,
+                (user_id,),
+            )
+            reviews_data = cursor.fetchall()
+            logging.info(f"Retrieved {len(reviews_data)} reviews for vetrine and files authored by user {user_id}")
+            return [Review.from_dict(row) for row in reviews_data]
+
+
+def get_reviews_authored_by_user(user_id: int) -> List[Review]:
+    """
+    Get all reviews authored by a specific user (reviews written by that user).
+    
+    Args:
+        user_id: ID of the user whose reviews to retrieve
+        
+    Returns:
+        List[Review]: List of Review objects authored by the user
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT r.*, u.*, v.name as vetrina_name, f.display_name as file_name
+                FROM review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
+                LEFT JOIN files f ON r.file_id = f.file_id
+                WHERE r.user_id = %s
+                ORDER BY r.review_date DESC
+                """,
+                (user_id,),
+            )
+            reviews_data = cursor.fetchall()
+            logging.info(f"Retrieved {len(reviews_data)} reviews authored by user {user_id}")
+            return [Review.from_dict(row) for row in reviews_data]
+
+
+def add_vetrina_review(user_id: int, rating: int, review_text: str, vetrina_id: int) -> Review:
+    """
+    Add a review to a vetrina.
+
+    Args:
+        user_id: ID of the user adding the review
+        rating: Rating (1-5)
+        review_text: Text of the review
+        vetrina_id: ID of the vetrina to review
+
+    Returns:
+        Review: The created review object
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH new_review AS (
+                    INSERT INTO review (user_id, vetrina_id, file_id, rating, review_text) 
+                    VALUES (%s, %s, NULL, %s, %s) 
                     RETURNING *
                 )
-                SELECT r.*, u.*
-                FROM upserted_review r
+                SELECT r.*, u.*, v.name as vetrina_name, NULL as file_name
+                FROM new_review r
                 JOIN users u ON r.user_id = u.user_id
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
                 """,
-                (user_id, vetrina_id, rating, review_text, review_subject),
+                (user_id, vetrina_id, rating, review_text),
             )
             review_data = cursor.fetchone()
             review = Review.from_dict(review_data)
-            logging.info(f"Review added to vetrina {vetrina_id} by user {user_id}")
+            logging.info(f"Review added by user {user_id} for vetrina {vetrina_id}")
             return review
 
 
-def get_reviews(vetrina_id: int) -> List[Review]:
+def add_file_review(user_id: int, rating: int, review_text: str, file_id: int) -> Review:
+    """
+    Add a review to a file.
+
+    Args:
+        user_id: ID of the user adding the review
+        rating: Rating (1-5)
+        review_text: Text of the review
+        file_id: ID of the file to review
+
+    Returns:
+        Review: The created review object
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH new_review AS (
+                    INSERT INTO review (user_id, vetrina_id, file_id, rating, review_text) 
+                    SELECT %s, f.vetrina_id, %s, %s, %s
+                    FROM files f
+                    WHERE f.file_id = %s
+                    RETURNING *
+                )
+                SELECT r.*, u.*, NULL as vetrina_name, f.display_name as file_name
+                FROM new_review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN files f ON r.file_id = f.file_id
+                """,
+                (user_id, file_id, rating, review_text, file_id),
+            )
+            review_data = cursor.fetchone()
+            review = Review.from_dict(review_data)
+            logging.info(f"Review added by user {user_id} for file {file_id}")
+            return review
+
+
+def get_vetrina_reviews(vetrina_id: int) -> List[Review]:
     """
     Get all reviews for a vetrina.
     """
@@ -1238,10 +1185,11 @@ def get_reviews(vetrina_id: int) -> List[Review]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT r.*, u.*
+                SELECT r.*, u.*, v.name as vetrina_name, NULL as file_name
                 FROM review r
                 JOIN users u ON r.user_id = u.user_id
-                WHERE r.vetrina_id = %s
+                JOIN vetrina v ON r.vetrina_id = v.vetrina_id
+                WHERE r.vetrina_id = %s AND r.file_id IS NULL
                 ORDER BY r.review_date DESC
                 """,
                 (vetrina_id,),
@@ -1251,19 +1199,159 @@ def get_reviews(vetrina_id: int) -> List[Review]:
             return [Review.from_dict(row) for row in reviews_data]
 
 
-def delete_review(user_id: int, vetrina_id: int) -> None:
+def get_file_reviews(file_id: int) -> List[Review]:
     """
-    Delete a review from a vetrina.
-
-    Args:
-        user_id: ID of the user deleting the review
-        vetrina_id: ID of the vetrina to delete the review from
-
-    Raises:
-        NotFoundException: If the review doesn't exist
-        ForbiddenError: If the user is not the author of the review
+    Get all reviews for a file.
     """
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s", (user_id, vetrina_id))
-            logging.info(f"Review deleted by user {user_id}")
+            cursor.execute(
+                """
+                SELECT r.*, u.*, NULL as vetrina_name, f.display_name as file_name
+                FROM review r
+                JOIN users u ON r.user_id = u.user_id
+                JOIN files f ON r.file_id = f.file_id
+                WHERE r.file_id = %s
+                ORDER BY r.review_date DESC
+                """,
+                (file_id,),
+            )
+            reviews_data = cursor.fetchall()
+            logging.info(f"Retrieved {len(reviews_data)} reviews for file {file_id}")
+            return [Review.from_dict(row) for row in reviews_data]
+
+
+def delete_review(user_id: int, file_id: int | None = None, vetrina_id: int | None = None) -> None:
+    """
+    Delete a review from a vetrina or file.
+
+    Args:
+        user_id: ID of the user deleting the review
+        file_id: ID of the file to delete the review from (optional, for file-specific reviews)
+        vetrina_id: ID of the vetrina to delete the review from (optional, for vetrina-specific reviews)
+
+    Raises:
+        ValueError: If neither file_id nor vetrina_id is provided
+        NotFoundException: If the review doesn't exist
+        ForbiddenError: If the user is not the author of the review
+    """
+    if file_id is None and vetrina_id is None:
+        raise ValueError("Either file_id or vetrina_id must be provided")
+
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            if file_id is not None:
+                # Delete file review
+                cursor.execute("DELETE FROM review WHERE user_id = %s AND file_id = %s", (user_id, file_id))
+            else:
+                # Delete vetrina review
+                cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s AND file_id IS NULL", (user_id, vetrina_id))
+            
+            if cursor.rowcount == 0:
+                raise NotFoundException("Review not found")
+            conn.commit()
+            logging.info(f"Review deleted by user {user_id} for {'file' if file_id else 'vetrina'} {file_id or vetrina_id}")
+
+
+# ---------------------------------------------
+# Follow management
+# ---------------------------------------------
+
+
+def follow_user(user_id: int, followed_user_id: int) -> None:
+    """
+    Follow a user.
+
+    Args:
+        user_id: ID of the user doing the following
+        followed_user_id: ID of the user to follow
+
+    Raises:
+        NotFoundException: If the user to follow doesn't exist
+        ValueError: If user tries to follow themselves
+    """
+    if user_id == followed_user_id:
+        raise ValueError("Users cannot follow themselves")
+
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO follow (user_id, followed_user_id) VALUES (%s, %s) RETURNING *",
+                (user_id, followed_user_id),
+            )
+            conn.commit()
+            logging.info(f"User {user_id} started following user {followed_user_id}")
+
+
+def unfollow_user(user_id: int, followed_user_id: int) -> None:
+    """
+    Unfollow a user.
+
+    Args:
+        user_id: ID of the user doing the unfollowing
+        followed_user_id: ID of the user to unfollow
+
+    Raises:
+        NotFoundException: If the follow relationship doesn't exist
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM follow WHERE user_id = %s AND followed_user_id = %s", (user_id, followed_user_id))
+            conn.commit()
+            logging.info(f"User {user_id} unfollowed user {followed_user_id}")
+
+
+def get_user_followers(user_id: int) -> List[User]:
+    """
+    Get all followers of a user.
+
+    Args:
+        user_id: ID of the user whose followers to retrieve
+
+    Returns:
+        List[User]: List of User objects containing follower information
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT u.*
+                FROM follow f
+                JOIN users u ON f.user_id = u.user_id
+                WHERE f.followed_user_id = %s
+                ORDER BY u.username
+                """,
+                (user_id,),
+            )
+            followers_data = cursor.fetchall()
+            logging.info(f"Found {len(followers_data)} followers for user {user_id}")
+
+            return [User.from_dict(follower_row) for follower_row in followers_data]
+
+
+def get_user_following(user_id: int) -> List[User]:
+    """
+    Get all users that a user is following.
+
+    Args:
+        user_id: ID of the user whose following list to retrieve
+
+    Returns:
+        List[User]: List of User objects containing followed user information
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT u.*
+                FROM follow f
+                JOIN users u ON f.followed_user_id = u.user_id
+                WHERE f.user_id = %s
+                ORDER BY u.username
+                """,
+                (user_id,),
+            )
+            following_data = cursor.fetchall()
+            logging.info(f"Found {len(following_data)} users that user {user_id} is following")
+
+            return [User.from_dict(following_row) for following_row in following_data]

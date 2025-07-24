@@ -11,7 +11,7 @@ from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -104,8 +104,7 @@ def unique_violation_error(e):
         return jsonify({"error": "email_already_exists", "msg": "Email already exists"}), 409
     elif diag.constraint_name == "users_username_key":
         return jsonify({"error": "username_already_exists", "msg": "Username already exists"}), 409
-    elif diag.constraint_name == "vetrina_subscriptions_pkey":
-        return jsonify({"error": "already_subscribed", "msg": "User already subscribed to this vetrina"}), 409
+
     elif diag.constraint_name == "owned_files_pkey":
         return jsonify({"error": "already_owned", "msg": "User already owns this file"}), 409
     else:
@@ -181,22 +180,6 @@ def delete_vetrina(vetrina_id):
     user_id = get_jwt_identity()
     database.delete_vetrina(user_id, vetrina_id)
     return jsonify({"msg": "Vetrina deleted"}), 200
-
-
-@app.route("/vetrine/<int:vetrina_id>/subscriptions", methods=["POST"])
-@jwt_required()
-def subscribe_to_vetrina(vetrina_id):
-    user_id = get_jwt_identity()
-    transaction, subscription = database.buy_subscription_transaction(user_id, vetrina_id)
-    return jsonify({"msg": "Subscribed to vetrina", "transaction": transaction.to_dict(), "subscription": subscription.to_dict()}), 200
-
-
-@app.route("/vetrine/<int:vetrina_id>/subscriptions", methods=["DELETE"])
-@jwt_required()
-def unsubscribe_from_vetrina(vetrina_id):
-    user_id = get_jwt_identity()
-    database.unsubscribe_from_vetrina(user_id, vetrina_id)
-    return jsonify({"msg": "Unsubscribed from vetrina"}), 200
 
 
 @app.route("/vetrine", methods=["GET"])
@@ -485,7 +468,7 @@ def get_owned_vetrine():
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["POST"])
 @jwt_required()
-def add_review(vetrina_id):
+def add_vetrina_review(vetrina_id):
     user_id = get_jwt_identity()
     data = request.json
 
@@ -494,53 +477,164 @@ def add_review(vetrina_id):
         return jsonify({"error": "invalid_rating", "msg": "Rating must be between 1 and 5"}), 400
 
     review_text = str(data.get("review_text"))
-    review_subject = data.get("review_subject")
-    if review_subject:
-        review_subject = str(review_subject)
 
-    # Check if user already has a review for this vetrina
-    existing_review = None
-    reviews = database.get_reviews(vetrina_id)
-    for review in reviews:
-        if review.user.user_id == user_id:
-            existing_review = review
-            break
+    review = database.add_vetrina_review(user_id, rating, review_text, vetrina_id)
+    return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
 
-    review = database.add_review(user_id, vetrina_id, rating, review_text, review_subject)
-    
-    if existing_review:
-        return jsonify({"msg": "Review updated", "review": review.to_dict()}), 200
-    else:
-        return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
+
+@app.route("/files/<int:file_id>/reviews", methods=["POST"])
+@jwt_required()
+def add_file_review(file_id):
+    user_id = get_jwt_identity()
+    data = request.json
+
+    rating = int(data.get("rating"))
+    if not 1 <= rating <= 5:
+        return jsonify({"error": "invalid_rating", "msg": "Rating must be between 1 and 5"}), 400
+
+    review_text = str(data.get("review_text"))
+    review = database.add_file_review(user_id, rating, review_text, file_id)
+    return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
 
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["GET"])
-@jwt_required(optional=True)
-def get_reviews(vetrina_id):
-    reviews = database.get_reviews(vetrina_id)
-    user_id = get_jwt_identity()
-    
-    # Find current user's review if authenticated
-    current_user_review = None
-    if user_id:
-        for review in reviews:
-            if review.user.user_id == user_id:
-                current_user_review = review.to_dict()
-                break
-    
-    return jsonify({
-        "reviews": [review.to_dict() for review in reviews], 
-        "count": len(reviews),
-        "user_review": current_user_review
-    }), 200
+def get_vetrina_reviews(vetrina_id):
+    reviews = database.get_vetrina_reviews(vetrina_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
+
+
+@app.route("/files/<int:file_id>/reviews", methods=["GET"])
+def get_file_reviews(file_id):
+    reviews = database.get_file_reviews(file_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
 
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["DELETE"])
 @jwt_required()
-def delete_review(vetrina_id):
+def delete_vetrina_review(vetrina_id):
     user_id = get_jwt_identity()
-    database.delete_review(user_id, vetrina_id)
+    database.delete_review(user_id, vetrina_id=vetrina_id)
     return jsonify({"msg": "Review deleted"}), 200
+
+
+@app.route("/files/<int:file_id>/reviews", methods=["DELETE"])
+@jwt_required()
+def delete_file_review(file_id):
+    user_id = get_jwt_identity()
+    database.delete_review(user_id, file_id=file_id)
+    return jsonify({"msg": "Review deleted"}), 200
+
+
+@app.route("/users/<int:user_id>/author-reviews", methods=["GET"])
+def get_user_author_reviews(user_id):
+    """
+    Get all reviews for vetrine and files that belong to vetrine authored by a specific user.
+
+    Args:
+        user_id: ID of the user whose vetrine and file reviews to retrieve
+    """
+    reviews = database.get_reviews_for_user_vetrine(user_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
+
+
+@app.route("/users/<int:user_id>/reviews", methods=["GET"])
+def get_user_reviews(user_id):
+    """
+    Get all reviews authored by a specific user (reviews written by that user).
+
+    Args:
+        user_id: ID of the user whose reviews to retrieve
+    """
+    reviews = database.get_reviews_authored_by_user(user_id)
+    return jsonify({"reviews": [review.to_dict() for review in reviews], "count": len(reviews)}), 200
+
+
+# ---------------------------------------------
+# Follow routes
+# ---------------------------------------------
+
+
+@app.route("/users/<int:user_id>/follow", methods=["POST"])
+@jwt_required()
+def follow(user_id):
+    """
+    Follow a user.
+
+    Args:
+        user_id: ID of the user to follow
+    """
+    current_user_id = get_jwt_identity()
+    follow = database.follow_user(current_user_id, user_id)
+    return jsonify({"msg": "User followed successfully", "follow": follow.to_dict()}), 200
+
+
+@app.route("/users/<int:user_id>/follow", methods=["DELETE"])
+@jwt_required()
+def unfollow(user_id):
+    """
+    Unfollow a user.
+
+    Args:
+        user_id: ID of the user to unfollow
+    """
+    current_user_id = get_jwt_identity()
+    database.unfollow_user(current_user_id, user_id)
+    return jsonify({"msg": "User unfollowed successfully"}), 200
+
+
+@app.route("/users/<int:user_id>/followers", methods=["GET"])
+def get_followers(user_id):
+    """
+    Get all followers of a user.
+
+    Args:
+        user_id: ID of the user whose followers to retrieve
+    """
+    followers = database.get_user_followers(user_id)
+    return jsonify({"followers": [follower.to_dict() for follower in followers], "count": len(followers)}), 200
+
+
+@app.route("/users/<int:user_id>/following", methods=["GET"])
+def get_following(user_id):
+    """
+    Get all users that a user is following.
+
+    Args:
+        user_id: ID of the user whose following list to retrieve
+    """
+    following = database.get_user_following(user_id)
+    return jsonify({"following": [user.to_dict() for user in following], "count": len(following)}), 200
+
+
+# ---------------------------------------------
+# Images routes
+# ---------------------------------------------
+
+
+@app.route("/images/<path:filename>", methods=["GET"])
+def serve_image(filename):
+    """
+    Serve images from the images folder in the script directory.
+
+    Args:
+        filename: The name of the image file to serve
+    """
+
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    images_folder = os.path.join(script_dir, "images")
+
+    # Check if the requested file exists
+    file_path = os.path.join(images_folder, filename)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "image_not_found", "msg": f"Image '{filename}' not found"}), 404
+
+    # Check if it's actually a file (not a directory)
+    if not os.path.isfile(file_path):
+        return jsonify({"error": "not_a_file", "msg": f"'{filename}' is not a file"}), 400
+
+    # Serve the image file
+    return send_from_directory(images_folder, filename)
 
 
 # ---------------------------------------------

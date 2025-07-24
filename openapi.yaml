@@ -138,84 +138,6 @@ paths:
                 error: unauthorized
                 msg: Invalid email or password
 
-  /vetrine/{vetrina_id}/subscriptions:
-    post:
-      tags:
-        - Vetrine
-      summary: Subscribe to a vetrina
-      description: Subscribe the authenticated user to a specific vetrina
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: vetrina_id
-          schema:
-            type: integer
-          required: true
-          description: ID of the vetrina to subscribe to
-      responses:
-        "200":
-          description: Successfully subscribed to vetrina
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msg:
-                    type: string
-                    example: Subscribed to vetrina
-                  transaction:
-                    $ref: "#/components/schemas/Transaction"
-                  subscription:
-                    $ref: "#/components/schemas/VetrinaSubscription"
-        "404":
-          description: Vetrina not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: User already subscribed to this vetrina
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                error: already_subscribed
-                msg: User already subscribed to this vetrina
-
-    delete:
-      tags:
-        - Vetrine
-      summary: Unsubscribe from a vetrina
-      description: Unsubscribe the authenticated user from a specific vetrina
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: vetrina_id
-          schema:
-            type: integer
-          required: true
-          description: ID of the vetrina to unsubscribe from
-      responses:
-        "200":
-          description: Successfully unsubscribed from vetrina
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msg:
-                    type: string
-                    example: Unsubscribed from vetrina
-        "404":
-          description: Subscription or vetrina not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
   /vetrine:
     post:
       tags:
@@ -267,15 +189,15 @@ paths:
       summary: Search vetrine
       description: |
         Search for vetrine using a two-stage filtering approach:
-        
+
         **Stage 1 - Vetrina Filters:**
         - `text`: Partial text search across multiple fields
         - `course_name`, `faculty`, `canale`, `language`: Exact matches on course instance properties
         - `date_year`, `course_year`: Exact matches on numeric fields
-        
+
         **Stage 2 - File Filters:**
         - `tag`, `extension`: Only vetrine containing files with these exact properties will be returned
-        
+
         If no JWT is provided, the response will not include the favorite field.
       security:
         - BearerAuth: []
@@ -362,13 +284,13 @@ paths:
       summary: New semantic search
       description: |
         Search for vetrine using a semantic search approach that combines vector embeddings and full-text search.
-        
+
         This endpoint performs a two-stage search:
         1. **Semantic Search**: Uses vector embeddings to find semantically similar content
         2. **Keyword Search**: Uses full-text search to find exact keyword matches
-        
+
         Results are ranked by combining both semantic and keyword scores.
-        
+
         **Query Parameters:**
         - `q`: The search query string (required)
         - Additional filter parameters: `course_name`, `faculty`, `canale`, `language`, `date_year`, `course_year`, `tag`, `extension`
@@ -485,7 +407,6 @@ paths:
               example:
                 error: missing_query
                 msg: Query parameter 'q' is required
-      
 
   /vetrine/{vetrina_id}:
     delete:
@@ -547,7 +468,7 @@ paths:
       summary: Get valid file tags
       description: |
         Retrieve the list of valid tags that can be assigned to files.
-        
+
         **Available tags:**
         - **dispense**: Course handouts or lecture materials
         - **appunti**: Student notes
@@ -1088,7 +1009,7 @@ paths:
       tags:
         - User
       summary: Get vetrine with owned files
-      description: Retrieve all vetrine where the user has ownership access (either through subscription or individual file ownership)
+      description: Retrieve all vetrine where the user has ownership access (through individual file ownership)
       security:
         - BearerAuth: []
       responses:
@@ -1142,11 +1063,6 @@ paths:
                   type: string
                   description: Text content of the review
                   example: "Great vetrina with helpful materials!"
-                review_subject:
-                  type: string
-                  nullable: true
-                  description: Optional subject/title for the review
-                  example: "Excellent content quality"
       responses:
         "200":
           description: Review added successfully
@@ -1243,14 +1159,196 @@ paths:
                     type: string
                     example: Review deleted
         "404":
-          description: Review not found or user doesn't have permission
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /files/{file_id}/reviews:
+    post:
+      tags:
+        - Reviews
+      summary: Add a review to a file
+      description: Submit a review with rating and text for a specific file
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+                - review_text
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Rating from 1 to 5 stars
+                  example: 4
+                review_text:
+                  type: string
+                  description: Text content of the review
+                  example: "Great file with helpful content!"
+      responses:
+        "200":
+          description: Review added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Review added
+                  review:
+                    $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid rating or request data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
-                error: not_found
-                msg: Review not found or you don't have permission to delete it
+                error: invalid_rating
+                msg: Rating must be between 1 and 5
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already reviewed this file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags:
+        - Reviews
+      summary: Get reviews for a file
+      description: Retrieve all reviews for a specific file, ordered by most recent first
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to get reviews for
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                  count:
+                    type: integer
+                    description: Number of reviews
+                    example: 3
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Reviews
+      summary: Delete user's review for a file
+      description: Delete the authenticated user's review for a specific file
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: file_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the file to delete review from
+      responses:
+        "200":
+          description: Review deleted successfully
+
+  /users/{user_id}/author-reviews:
+    get:
+      tags:
+        - Reviews
+      summary: Get reviews for vetrine authored by a user
+      description: Retrieve all reviews for vetrine and files that belong to vetrine authored by a specific user
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the user whose vetrine reviews to retrieve
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                    description: List of reviews for vetrine and files authored by the user
+                  count:
+                    type: integer
+                    description: Number of reviews
+                    example: 5
+
+  /users/{user_id}/reviews:
+    get:
+      tags:
+        - Reviews
+      summary: Get reviews authored by a user
+      description: Retrieve all reviews authored by a specific user (reviews written by that user)
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the user whose reviews to retrieve
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                    description: List of reviews authored by the user
+                  count:
+                    type: integer
+                    description: Number of reviews
+                    example: 3
 
 components:
   schemas:
@@ -1311,6 +1409,10 @@ components:
           type: number
           description: Price of the vetrina
           example: 1000
+        copertina:
+          type: string
+          nullable: true
+          description: URL or path to the vetrina's cover image
 
     CourseInstance:
       type: object
@@ -1391,6 +1493,9 @@ components:
           type: string
           nullable: true
           description: URL or path to user's profile picture
+        uploaded_documents_count:
+          type: integer
+          description: Number of documents uploaded by the user
 
     File:
       type: object
@@ -1432,6 +1537,10 @@ components:
         price:
           type: number
           description: Price of the file
+        thumbnail:
+          type: string
+          nullable: true
+          description: URL or path to the file's thumbnail image
         owned:
           type: boolean
           description: Whether the current user owns this file
@@ -1468,22 +1577,6 @@ components:
           format: date-time
           description: Timestamp when the transaction was created
 
-    VetrinaSubscription:
-      type: object
-      properties:
-        subscriber_id:
-          type: integer
-          description: ID of the user who subscribed
-        vetrina:
-          $ref: "#/components/schemas/Vetrina"
-        price:
-          type: integer
-          description: Price of the subscription
-        subscription_date:
-          type: string
-          format: date-time
-          description: Timestamp when the subscription was created
-
     Review:
       type: object
       properties:
@@ -1492,7 +1585,11 @@ components:
           description: User who wrote the review
         vetrina_id:
           type: integer
-          description: ID of the vetrina being reviewed
+          description: ID of the vetrina being reviewed (always present)
+        file_id:
+          type: integer
+          nullable: true
+          description: ID of the file being reviewed (optional, for file-specific reviews)
         rating:
           type: integer
           minimum: 1
@@ -1501,14 +1598,24 @@ components:
         review_text:
           type: string
           description: Text content of the review
-        review_subject:
-          type: string
-          nullable: true
-          description: Optional subject/title for the review
         review_date:
           type: string
           format: date-time
           description: Timestamp when the review was created
+        vetrina_name:
+          type: string
+          nullable: true
+          description: Name of the vetrina being reviewed (null if reviewing a file)
+        file_name:
+          type: string
+          nullable: true
+          description: Display name of the file being reviewed (null if reviewing only the vetrina)
+      required:
+        - user
+        - vetrina_id
+        - rating
+        - review_text
+        - review_date
 
     Chunk:
       type: object

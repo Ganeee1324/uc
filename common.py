@@ -1,52 +1,29 @@
 from datetime import datetime
 import inspect
 from typing import Any, List
+from dataclasses import dataclass
 
 
+@dataclass
 class File:
-    def __init__(
-        self,
-        file_id: int,
-        filename: str,
-        display_name: str,
-        upload_date: datetime,
-        size: int,
-        vetrina_id: int,
-        sha256: str,
-        extension: str,
-        download_count: int = 0,
-        fact_mark: int | None = None,
-        fact_mark_updated_at: datetime | None = None,
-        price: float = 0.0,
-        owned: bool = False,
-        favorite: bool = False,
-        tag: str | None = None,
-        language: str = "it",
-        num_pages: int = 0,
-    ):
-        self.file_id = file_id
-        self.filename = filename
-        self.display_name = display_name
-        self.upload_date = upload_date
-        self.fact_mark = fact_mark
-        self.fact_mark_updated_at = fact_mark_updated_at
-        self.size = size
-        self.download_count = download_count
-        self.vetrina_id = vetrina_id
-        self.sha256 = sha256
-        self.owned = owned
-        self.favorite = favorite
-        self.price = price
-        self.tag = tag
-        self.extension = extension
-        self.language = language
-        self.num_pages = num_pages
-
-    def __str__(self) -> str:
-        return f"File(file_id={self.file_id}, filename={self.filename}, display_name={self.display_name}, upload_date={self.upload_date}, fact_mark={self.fact_mark}, fact_mark_updated_at={self.fact_mark_updated_at}, size={self.size}, download_count={self.download_count}, tag={self.tag}, extension={self.extension}, language={self.language}, num_pages={self.num_pages})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
+    file_id: int
+    filename: str
+    display_name: str
+    upload_date: datetime
+    size: int
+    vetrina_id: int
+    sha256: str
+    extension: str
+    tag: str | None
+    download_count: int
+    price: float
+    language: str
+    num_pages: int
+    fact_mark: int | None
+    fact_mark_updated_at: datetime | None
+    thumbnail: str | None
+    owned: bool = False
+    favorite: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -67,6 +44,7 @@ class File:
             "extension": self.extension,
             "language": self.language,
             "num_pages": self.num_pages,
+            "thumbnail": self.thumbnail,
         }
 
     @classmethod
@@ -79,20 +57,21 @@ class File:
         return cls(**{key: data[key] for key in file_fields if key in data})
 
 
+@dataclass
 class User:
-    def __init__(self, user_id: int, username: str, first_name: str, last_name: str, email: str, last_login: datetime, registration_date: datetime, user_faculty: str | None = None, user_enrollment_year: int | None = None, user_canale: str | None = None, bio: str | None = None, profile_picture: str | None = None):
-        self.user_id = user_id
-        self.username = username
-        self.first_name = first_name
-        self.last_name = last_name
-        self.email = email
-        self.last_login = last_login
-        self.registration_date = registration_date
-        self.user_faculty = user_faculty
-        self.user_enrollment_year = user_enrollment_year
-        self.user_canale = user_canale
-        self.bio = bio
-        self.profile_picture = profile_picture
+    user_id: int
+    username: str
+    first_name: str
+    last_name: str
+    email: str
+    last_login: datetime
+    registration_date: datetime
+    user_faculty: str | None
+    user_enrollment_year: int | None
+    user_canale: str | None
+    bio: str | None
+    profile_picture: str | None
+    uploaded_documents_count: int
 
     def to_dict(self) -> dict:
         return {
@@ -107,6 +86,7 @@ class User:
             "user_canale": self.user_canale,
             "bio": self.bio,
             "profile_picture": self.profile_picture,
+            "uploaded_documents_count": self.uploaded_documents_count,
         }
 
     @classmethod
@@ -114,15 +94,9 @@ class User:
         """
         Create a User object from a dictionary.
         Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
+            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
         """
         return cls(**{key: data[key] for key in user_fields if key in data})
-
-    def __str__(self) -> str:
-        return f"User(user_id={self.user_id}, username={self.username}, first_name={self.first_name}, last_name={self.last_name}, email={self.email}, last_login={self.last_login}, registration_date={self.registration_date}, user_faculty={self.user_faculty}, user_enrollment_year={self.user_enrollment_year}, user_canale={self.user_canale}, bio={self.bio}, profile_picture={self.profile_picture})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, User):
@@ -133,36 +107,18 @@ class User:
         return hash(self.user_id)
 
 
+@dataclass
 class CourseInstance:
-    def __init__(
-        self,
-        instance_id: int,
-        course_code: str,
-        course_name: str,
-        faculty_name: str,
-        course_year: int,
-        date_year: int,
-        language: str,
-        course_semester: str,
-        canale: str,
-        professors: List[str],
-    ):
-        self.instance_id = instance_id
-        self.course_code = course_code
-        self.course_name = course_name
-        self.faculty_name = faculty_name
-        self.course_year = course_year
-        self.date_year = date_year
-        self.language = language
-        self.course_semester = course_semester
-        self.canale = canale
-        self.professors = professors
-
-    def __str__(self) -> str:
-        return f"CourseInstance(instance_id={self.instance_id}, course_code={self.course_code}, course_name={self.course_name}, faculty_name={self.faculty_name}, year={self.course_year}, date_year={self.date_year}, language={self.language}, course_semester={self.course_semester}, canale={self.canale}, professors={self.professors})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
+    instance_id: int
+    course_code: str
+    course_name: str
+    faculty_name: str
+    course_year: int
+    date_year: int
+    language: str
+    course_semester: str
+    canale: str
+    professors: List[str]
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, CourseInstance):
@@ -196,38 +152,24 @@ class CourseInstance:
         }
 
 
+@dataclass
 class Vetrina:
-    def __init__(
-        self,
-        vetrina_id: int,
-        name: str,
-        author: User,
-        description: str,
-        course_instance: CourseInstance,
-        favorite: bool = False,
-        average_rating: float | None = None,
-        reviews_count: int = 0,
-        tags: List[str] = None,
-        file_count: int = 0,
-        price: float = 0.0,
-    ):
-        self.vetrina_id = vetrina_id
-        self.name = name
-        self.author = author
-        self.description = description
-        self.course_instance = course_instance
-        self.favorite = favorite
-        self.average_rating = average_rating
-        self.reviews_count = reviews_count
-        self.tags = tags or []
-        self.file_count = file_count
-        self.price = price
+    vetrina_id: int
+    name: str
+    author: User
+    description: str
+    course_instance: CourseInstance
+    average_rating: float | None
+    reviews_count: int
+    tags: List[str]
+    file_count: int
+    price: float
+    copertina: str | None
+    favorite: bool = False
 
-    def __str__(self) -> str:
-        return f"Vetrina(vetrina_id={self.vetrina_id}, name={self.name}, author={self.author}, description={self.description}, course_instance={self.course_instance}, average_rating={self.average_rating}, reviews_count={self.reviews_count}, tags={self.tags}, file_count={self.file_count}, price={self.price})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
+    def __post_init__(self):
+        if self.tags is None:
+            self.tags = []
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Vetrina):
@@ -250,6 +192,7 @@ class Vetrina:
             "tags": self.tags,
             "file_count": self.file_count,
             "price": self.price,
+            "copertina": self.copertina,
         }
         return res
 
@@ -258,7 +201,7 @@ class Vetrina:
         """
         Create a Vetrina object from a dictionary.
         Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
+            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
             - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
             - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional), tags (optional), file_count (optional), price (optional)
         """
@@ -268,57 +211,12 @@ class Vetrina:
         return cls(**args)
 
 
-class VetrinaSubscription:
-    def __init__(self, subscriber_id: int, vetrina: Vetrina, price: float, subscription_date: datetime):
-        self.subscriber_id = subscriber_id
-        self.vetrina = vetrina
-        self.price = price
-        self.subscription_date = subscription_date
-
-    def __str__(self) -> str:
-        return f"VetrinaSubscription(subscriber_id={self.subscriber_id}, vetrina={self.vetrina}, price={self.price}, subscription_date={self.subscription_date})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def __hash__(self) -> int:
-        return hash("vetrina_subscription" + str(self.subscriber_id) + str(self.vetrina.vetrina_id))
-
-    def to_dict(self) -> dict:
-        return {
-            "subscriber_id": self.subscriber_id,
-            "vetrina": self.vetrina.to_dict(),
-            "price": self.price,
-            "subscription_date": self.subscription_date,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "VetrinaSubscription":
-        """
-        Create a VetrinaSubscription object from a dictionary.
-        Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
-            - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
-            - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional)
-            - VetrinaSubscription object fields: subscriber_id, vetrina, price, subscription_date
-        """
-        args = {key: data[key] for key in vetrina_subscription_fields if key in data and key not in ["vetrina"]}
-        args["vetrina"] = Vetrina.from_dict(data)
-        return cls(**args)
-
-
+@dataclass
 class Transaction:
-    def __init__(self, transaction_id: int, user_id: int, amount: int, transaction_date: datetime):
-        self.transaction_id = transaction_id
-        self.user_id = user_id
-        self.amount = amount
-        self.transaction_date = transaction_date
-
-    def __str__(self) -> str:
-        return f"Transaction(transaction_id={self.transaction_id}, user_id={self.user_id}, amount={self.amount}, transaction_date={self.transaction_date})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
+    transaction_id: int
+    user_id: int
+    amount: int
+    transaction_date: datetime
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Transaction):
@@ -347,37 +245,37 @@ class Transaction:
         return cls(**args)
 
 
+@dataclass
 class Review:
-    def __init__(self, user: User, vetrina_id: int, rating: int, review_text: str, review_date: datetime, review_subject: str | None = None):
-        self.user = user
-        self.vetrina_id = vetrina_id
-        self.rating = rating
-        self.review_text = review_text
-        self.review_date = review_date
-        self.review_subject = review_subject
-
-    def __str__(self) -> str:
-        return f"Review(user={self.user}, vetrina_id={self.vetrina_id}, rating={self.rating}, review_text={self.review_text}, review_subject={self.review_subject}, review_date={self.review_date})"
-
-    def __repr__(self) -> str:
-        return self.__str__()
+    user: User
+    rating: int
+    review_text: str
+    review_date: datetime
+    vetrina_id: int
+    file_id: int | None
+    vetrina_name: str | None
+    file_name: str | None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Review):
             return False
-        return self.user == other.user and self.vetrina_id == other.vetrina_id
+        return self.user == other.user and self.vetrina_id == other.vetrina_id and self.file_id == other.file_id
 
     def __hash__(self) -> int:
-        return hash("review" + str(self.user.user_id) + str(self.vetrina_id))
+        target_id = self.file_id if self.file_id is not None else self.vetrina_id
+        target_type = "file" if self.file_id is not None else "vetrina"
+        return hash("review" + str(self.user.user_id) + target_type + str(target_id))
 
     def to_dict(self) -> dict:
         return {
             "user": self.user.to_dict(),
             "vetrina_id": self.vetrina_id,
+            "file_id": self.file_id,
             "rating": self.rating,
             "review_text": self.review_text,
-            "review_subject": self.review_subject,
             "review_date": self.review_date,
+            "vetrina_name": self.vetrina_name,
+            "file_name": self.file_name,
         }
 
     @classmethod
@@ -385,27 +283,19 @@ class Review:
         """
         Create a Review object from a dictionary.
         Requires:
-            - Review object fields: user, vetrina_id, rating, review_text, review_subject, review_date
+            - Review object fields: user, rating, review_text, review_date, and either vetrina_id or file_id
         """
         args = {key: data[key] for key in review_fields if key in data and key not in ["user"]}
         args["user"] = User.from_dict(data)
         return cls(**args)
 
 
+@dataclass
 class Chunk:
-    def __init__(self, vetrina_id: int, file_id: int, page_number: int, chunk_description: str):
-        self.vetrina_id = vetrina_id
-        self.file_id = file_id
-        self.page_number = page_number
-        self.chunk_description = chunk_description
-
-    def __str__(self) -> str:
-        return (
-            f"Chunk(vetrina_id={self.vetrina_id}, file_id={self.file_id}, page_number={self.page_number}, chunk_description={self.chunk_description})"
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
+    vetrina_id: int
+    file_id: int
+    page_number: int
+    chunk_description: str
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Chunk):
@@ -443,7 +333,7 @@ file_fields = [key for key in inspect.signature(File.__init__).parameters.keys()
 user_fields = [key for key in inspect.signature(User.__init__).parameters.keys() if key != "self"]
 course_instance_fields = [key for key in inspect.signature(CourseInstance.__init__).parameters.keys() if key != "self"]
 vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.keys() if key != "self"]
-vetrina_subscription_fields = [key for key in inspect.signature(VetrinaSubscription.__init__).parameters.keys() if key != "self"]
+
 transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != "self"]
 review_fields = [key for key in inspect.signature(Review.__init__).parameters.keys() if key != "self"]
 chunk_fields = [key for key in inspect.signature(Chunk.__init__).parameters.keys() if key != "self"]

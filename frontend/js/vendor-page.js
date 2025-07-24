@@ -3938,19 +3938,26 @@ function generateFractionalStars(rating) {
 
 function generateVendorBannerStars(rating) {
     let stars = '';
+    console.log('Generating stars for rating:', rating);
+    
     for (let i = 1; i <= 5; i++) {
         if (i <= rating) {
             // Fully filled star
             stars += '<span class="vendor-banner-rating-star filled">★</span>';
+            console.log(`Star ${i}: filled`);
         } else if (i - 1 < rating && rating < i) {
             // Partially filled star - calculate the fill percentage
             const fillPercentage = (rating - (i - 1)) * 100;
             stars += `<span class="vendor-banner-rating-star partial" style="--fill-percentage: ${fillPercentage}%">★</span>`;
+            console.log(`Star ${i}: partial (${fillPercentage}%)`);
         } else {
             // Empty star
             stars += '<span class="vendor-banner-rating-star empty">★</span>';
+            console.log(`Star ${i}: empty`);
         }
     }
+    
+    console.log('Generated stars HTML:', stars);
     return stars;
 }
 
@@ -6149,34 +6156,51 @@ function updateVendorBannerRating(averageRating, reviewCount) {
         if (ratingStars && ratingText) {
             console.log('Updating vendor banner rating:', averageRating, reviewCount);
             
+            // Clear existing content
+            ratingStars.innerHTML = '';
+            
+            // Generate new stars
             const stars = generateVendorBannerStars(averageRating);
             console.log('Generated stars HTML:', stars);
             
-            // Clear and update the stars
-            ratingStars.innerHTML = '';
+            // Update the stars container
             ratingStars.innerHTML = stars;
+            
+            // Update the rating text
             ratingText.textContent = `${averageRating.toFixed(1)} (${reviewCount})`;
             
-            // Force multiple reflows to ensure CSS is applied
+            // Force immediate reflow
             ratingStars.offsetHeight;
             
-            // Add a small delay and force another update
+            // Ensure all stars are visible and properly styled
             setTimeout(() => {
                 const starElements = ratingStars.querySelectorAll('.vendor-banner-rating-star');
                 console.log('Found star elements:', starElements.length);
                 
                 starElements.forEach((star, index) => {
+                    // Ensure proper display
                     star.style.display = 'inline-block';
                     star.style.visibility = 'visible';
                     star.style.opacity = '1';
+                    
+                    // For partial stars, ensure the CSS custom property is set
+                    if (star.classList.contains('partial')) {
+                        const fillPercentage = star.style.getPropertyValue('--fill-percentage');
+                        console.log(`Star ${index + 1} partial fill: ${fillPercentage}`);
+                    }
                 });
                 
-                // Force another reflow
+                // Force another reflow to ensure all styles are applied
                 ratingStars.offsetHeight;
                 
                 // Log the final state
                 console.log('Final stars HTML:', ratingStars.innerHTML);
-            }, 50);
+                console.log('Final stars computed styles:', Array.from(starElements).map(star => ({
+                    classes: star.className,
+                    color: getComputedStyle(star).color,
+                    fillPercentage: star.style.getPropertyValue('--fill-percentage')
+                })));
+            }, 10);
         }
     }
 }

@@ -406,7 +406,10 @@ html {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-
+/* Search section spacing adjustment */
+.search-section {
+    margin-top: 1rem;
+}
 
 
 
@@ -819,7 +822,29 @@ html {
     transition: transform 0.2s var(--ease-2);
 }
 
+/* Removed main content section - search section goes directly after vendor banner */
 
+/* Search Section - Directly after vendor banner */
+.search-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: auto;
+    margin-top: 0;
+    padding: var(--space-6) var(--space-12) var(--space-12) var(--space-12);
+    text-align: center;
+    position: relative;
+    background: #ffffff;
+}
+
+/* When there are results, keep title and subtitle centered but adjust layout */
+.search-section.has-results {
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    min-height: auto; /* Allow the section to shrink-to-fit content, fixing the large gap */
+}
 
 /* Empty state styling - Professional and Stunning */
 .no-results {
@@ -2378,6 +2403,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     border: 1.5px solid var(--white);
+    margin: 0 auto;
+    align-self: center;
  }
  
  .owner-avatar:hover, .author-avatar:hover {
@@ -4148,6 +4175,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        border-radius: 50%;
        padding: 0;
        line-height: 1;
+       margin: 0 auto;
+       align-self: center;
    }
    
 
@@ -6170,6 +6199,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     border-radius: 50%;
     flex-shrink: 0;
     color: white !important;
+    margin: 0 auto;
+    align-self: center;
 }
 
 /* Responsive Design */

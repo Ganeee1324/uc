@@ -9,302 +9,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     <link rel="stylesheet" href="css/search.css?v=1.2">
+    <link rel="stylesheet" href="css/vendor-page.css?v=1.2">
     <link rel="icon" href="images/favicon.png" type="image/png">
     <!-- Favicon removed for CSP compliance -->
     
-    <style>
-        /* Override background to white instead of light blue */
-        body {
-            background: white !important;
-        }
-        
-        .background-image {
-            display: none !important;
-        }
-        
-        /* Professional Full-Width Vendor Banner */
-        .vendor-banner-section {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            position: relative;
-            left: 50%;
-            right: 50%;
-            margin-left: -50vw;
-            margin-right: -50vw;
-        }
-        
-        .vendor-banner {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
-            position: relative;
-            padding: 3rem 0;
-            overflow: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 320px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .vendor-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-                linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
-            pointer-events: none;
-        }
-        
-        
-        .banner-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .vendor-info {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2.5rem;
-            width: 100%;
-            max-width: 900px;
-        }
-        
-        .vendor-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.3),
-                0 0 0 4px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            flex-shrink: 0;
-        }
-        
-        .vendor-avatar:hover {
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 
-                0 32px 64px rgba(0, 0, 0, 0.4),
-                0 0 0 4px rgba(255, 255, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        
-        .vendor-details {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .vendor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.5rem;
-        }
-        
-        .vendor-name {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            letter-spacing: -1px;
-            line-height: 1.1;
-            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .save-vendor-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        .save-vendor-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        .save-vendor-btn .material-symbols-outlined {
-            font-size: 1.2rem;
-        }
-        
-        .vendor-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .vendor-field {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-        
-        .vendor-field-label {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            margin-right: 0.5rem;
-            font-weight: 400;
-        }
-        
-        .vendor-rating-container {
-            margin-top: 0.5rem;
-        }
-        
-        .vendor-rating-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        }
-        
-        .vendor-rating-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-        
-
-        
-        /* Search section spacing adjustment */
-        .search-section {
-            margin-top: 1rem;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .vendor-banner {
-                min-height: 280px;
-                padding: 2.5rem 0;
-            }
-            
-            .vendor-info {
-                gap: 2rem;
-            }
-            
-            .vendor-name {
-                font-size: 2.25rem;
-            }
-            
-            .vendor-avatar {
-                width: 100px;
-                height: 100px;
-                font-size: 2.5rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .vendor-banner {
-                min-height: 240px;
-                padding: 2rem 0;
-            }
-            
-            .banner-content {
-                padding: 0 1.5rem;
-            }
-            
-            .vendor-info {
-                flex-direction: column;
-                text-align: center;
-                gap: 1.5rem;
-            }
-            
-            .vendor-header {
-                flex-direction: column;
-                align-items: center;
-                gap: 1rem;
-            }
-            
-            .vendor-name {
-                font-size: 2rem;
-            }
-            
-            .vendor-avatar {
-                width: 90px;
-                height: 90px;
-                font-size: 2.25rem;
-            }
-            
-            .vendor-meta {
-                align-items: center;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .vendor-banner {
-                min-height: 200px;
-                padding: 1.5rem 0;
-            }
-            
-            .vendor-name {
-                font-size: 1.75rem;
-            }
-            
-            .vendor-avatar {
-                width: 80px;
-                height: 80px;
-                font-size: 2rem;
-            }
-            
-            .save-vendor-btn {
-                padding: 0.6rem 1.25rem;
-                font-size: 0.9rem;
-            }
-            
-            .vendor-field {
-                font-size: 1rem;
-            }
-        }
-    </style>
 </head>
 <body data-page="search">
     <!-- Background Image Element -->
@@ -362,40 +70,43 @@
         <div class="vendor-banner">
             <div class="banner-content">
                 <div class="vendor-info">
-                    <div class="vendor-avatar" id="vendorAvatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <span class="loading-text">Caricamento...</span>
-                    </div>
-                    <div class="vendor-details">
-                        <div class="vendor-header">
-                            <div>
-                                <h1 class="vendor-name" id="vendorName">Caricamento...</h1>
-                                <div class="vendor-meta">
-                                    <div class="vendor-field">
-                                        <span class="vendor-field-label">Facoltà:</span>
-                                        <span id="vendorFaculty">Caricamento...</span>
-                                    </div>
-                                    <div class="vendor-field">
-                                        <span class="vendor-field-label">Canale:</span>
-                                        <span id="vendorChannel">Caricamento...</span>
-                                    </div>
-                                    <div class="vendor-rating-container">
-                                        <button class="vendor-rating-btn" id="vendorRatingBtn">
-                                            <div class="vendor-rating-stars">
-                                                <span class="vendor-rating-star">★</span>
-                                                <span class="vendor-rating-star">★</span>
-                                                <span class="vendor-rating-star">★</span>
-                                                <span class="vendor-rating-star">★</span>
-                                                <span class="vendor-rating-star">★</span>
-                                            </div>
-                                            <span class="vendor-rating-text">Caricamento...</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Header Section -->
+                    <div class="vendor-header-section">
+                        <div class="vendor-avatar" id="vendorAvatar">
+                            <span class="loading-text">Caricamento...</span>
+                        </div>
+                        <div class="vendor-header-details">
+                            <h1 class="vendor-name" id="vendorName">Caricamento...</h1>
                             <button class="save-vendor-btn" id="saveVendorBtn">
                                 <span class="material-symbols-outlined">bookmark_add</span>
                                 <span>Salva venditore</span>
                             </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Document Info Section -->
+                    <div class="vendor-document-info">
+                        <div class="vendor-meta">
+                            <div class="vendor-field">
+                                <span class="vendor-field-label">Facoltà:</span>
+                                <span id="vendorFaculty">Caricamento...</span>
+                            </div>
+                            <div class="vendor-field">
+                                <span class="vendor-field-label">Canale:</span>
+                                <span id="vendorChannel">Caricamento...</span>
+                            </div>
+                            <div class="vendor-rating-container">
+                                <button class="vendor-rating-btn" id="vendorRatingBtn">
+                                    <div class="vendor-banner-rating-stars">
+                                        <span class="vendor-banner-rating-star">★</span>
+                                        <span class="vendor-banner-rating-star">★</span>
+                                        <span class="vendor-banner-rating-star">★</span>
+                                        <span class="vendor-banner-rating-star">★</span>
+                                        <span class="vendor-banner-rating-star">★</span>
+                                    </div>
+                                    <span class="vendor-rating-text">Caricamento...</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

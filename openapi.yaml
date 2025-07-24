@@ -1489,6 +1489,9 @@ components:
           type: string
           nullable: true
           description: URL or path to user's profile picture
+        uploaded_documents_count:
+          type: integer
+          description: Number of documents uploaded by the user
 
     File:
       type: object

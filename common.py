@@ -69,6 +69,7 @@ class User:
     user_canale: str | None
     bio: str | None
     profile_picture: str | None
+    uploaded_documents_count: int
 
     def to_dict(self) -> dict:
         return {
@@ -83,6 +84,7 @@ class User:
             "user_canale": self.user_canale,
             "bio": self.bio,
             "profile_picture": self.profile_picture,
+            "uploaded_documents_count": self.uploaded_documents_count,
         }
 
     @classmethod
@@ -90,7 +92,7 @@ class User:
         """
         Create a User object from a dictionary.
         Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
+            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
         """
         return cls(**{key: data[key] for key in user_fields if key in data})
 
@@ -195,7 +197,7 @@ class Vetrina:
         """
         Create a Vetrina object from a dictionary.
         Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date
+            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
             - CourseInstance object fields: instance_id, course_code, course_name, faculty_name, course_year, date_year, language, course_semester, canale, professors
             - Vetrina object fields: vetrina_id, name, author, description, course_instance, favorite (optional), tags (optional), file_count (optional), price (optional)
         """

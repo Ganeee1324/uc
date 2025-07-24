@@ -356,8 +356,8 @@ function updateVendorBanner(vendorData) {
             const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
             
             if (ratingStars && ratingText) {
-                // Generate stars based on rating
-                const stars = generateStars(vendorData.averageRating);
+                // Generate stars based on rating with fractional support
+                const stars = generateVendorBannerStars(vendorData.averageRating);
                 ratingStars.innerHTML = stars;
                 
                 // Update rating text
@@ -3934,6 +3934,24 @@ function generateFractionalStars(rating) {
             <div class="stars-inner" style="width: ${ratingPercentage}%"></div>
         </div>
     `;
+}
+
+function generateVendorBannerStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            // Fully filled star
+            stars += '<span class="vendor-banner-rating-star filled">★</span>';
+        } else if (i - 1 < rating && rating < i) {
+            // Partially filled star - calculate the fill percentage
+            const fillPercentage = (rating - (i - 1)) * 100;
+            stars += `<span class="vendor-banner-rating-star partial" style="--fill-percentage: ${fillPercentage}%">★</span>`;
+        } else {
+            // Empty star
+            stars += '<span class="vendor-banner-rating-star empty">★</span>';
+        }
+    }
+    return stars;
 }
 
 function getOriginalFilename(filename) {

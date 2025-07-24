@@ -249,7 +249,7 @@ html {
     justify-content: center;
     gap: 2rem;
     width: 100%;
-    max-width: 900px;
+    max-width: 500px;
     position: relative;
 }
 
@@ -2853,6 +2853,25 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .vendor-banner-rating-star.empty {
     color: rgba(255, 255, 255, 0.3);
+}
+
+.vendor-banner-rating-star.filled {
+    color: #fbbf24;
+}
+
+.vendor-banner-rating-star.partial {
+    position: relative;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.vendor-banner-rating-star.partial::before {
+    content: '★';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--fill-percentage);
+    overflow: hidden;
+    color: #fbbf24;
 }
  
  /* Dual Range Slider */

@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS vetrina (
     file_count INTEGER NOT NULL DEFAULT 0,
     price REAL NOT NULL DEFAULT 0,
     language VARCHAR(15) NOT NULL DEFAULT 'en',
+    copertina VARCHAR(255),
     UNIQUE (author_id, name, course_instance_id)
 );
 
@@ -74,6 +75,7 @@ CREATE TABLE IF NOT EXISTS files (
     num_pages INTEGER NOT NULL,
     reviews_count INTEGER NOT NULL DEFAULT 0,
     average_rating REAL,
+    thumbnail VARCHAR(255),
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
 

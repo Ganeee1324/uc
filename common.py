@@ -21,6 +21,7 @@ class File:
     num_pages: int
     fact_mark: int | None
     fact_mark_updated_at: datetime | None
+    thumbnail: str | None
     owned: bool = False
     favorite: bool = False
 
@@ -43,6 +44,7 @@ class File:
             "extension": self.extension,
             "language": self.language,
             "num_pages": self.num_pages,
+            "thumbnail": self.thumbnail,
         }
 
     @classmethod
@@ -162,6 +164,7 @@ class Vetrina:
     tags: List[str]
     file_count: int
     price: float
+    copertina: str | None
     favorite: bool = False
 
     def __post_init__(self):
@@ -189,6 +192,7 @@ class Vetrina:
             "tags": self.tags,
             "file_count": self.file_count,
             "price": self.price,
+            "copertina": self.copertina,
         }
         return res
 

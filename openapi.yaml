@@ -1409,6 +1409,10 @@ components:
           type: number
           description: Price of the vetrina
           example: 1000
+        copertina:
+          type: string
+          nullable: true
+          description: URL or path to the vetrina's cover image
 
     CourseInstance:
       type: object
@@ -1533,6 +1537,10 @@ components:
         price:
           type: number
           description: Price of the file
+        thumbnail:
+          type: string
+          nullable: true
+          description: URL or path to the file's thumbnail image
         owned:
           type: boolean
           description: Whether the current user owns this file

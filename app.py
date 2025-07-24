@@ -11,7 +11,7 @@ from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -180,9 +180,6 @@ def delete_vetrina(vetrina_id):
     user_id = get_jwt_identity()
     database.delete_vetrina(user_id, vetrina_id)
     return jsonify({"msg": "Vetrina deleted"}), 200
-
-
-
 
 
 @app.route("/vetrine", methods=["GET"])
@@ -532,7 +529,7 @@ def delete_file_review(file_id):
 def get_user_author_reviews(user_id):
     """
     Get all reviews for vetrine and files that belong to vetrine authored by a specific user.
-    
+
     Args:
         user_id: ID of the user whose vetrine and file reviews to retrieve
     """
@@ -544,7 +541,7 @@ def get_user_author_reviews(user_id):
 def get_user_reviews(user_id):
     """
     Get all reviews authored by a specific user (reviews written by that user).
-    
+
     Args:
         user_id: ID of the user whose reviews to retrieve
     """
@@ -562,7 +559,7 @@ def get_user_reviews(user_id):
 def follow(user_id):
     """
     Follow a user.
-    
+
     Args:
         user_id: ID of the user to follow
     """
@@ -576,7 +573,7 @@ def follow(user_id):
 def unfollow(user_id):
     """
     Unfollow a user.
-    
+
     Args:
         user_id: ID of the user to unfollow
     """
@@ -589,7 +586,7 @@ def unfollow(user_id):
 def get_followers(user_id):
     """
     Get all followers of a user.
-    
+
     Args:
         user_id: ID of the user whose followers to retrieve
     """
@@ -601,12 +598,43 @@ def get_followers(user_id):
 def get_following(user_id):
     """
     Get all users that a user is following.
-    
+
     Args:
         user_id: ID of the user whose following list to retrieve
     """
     following = database.get_user_following(user_id)
     return jsonify({"following": [user.to_dict() for user in following], "count": len(following)}), 200
+
+
+# ---------------------------------------------
+# Images routes
+# ---------------------------------------------
+
+
+@app.route("/images/<path:filename>", methods=["GET"])
+def serve_image(filename):
+    """
+    Serve images from the images folder in the script directory.
+
+    Args:
+        filename: The name of the image file to serve
+    """
+
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    images_folder = os.path.join(script_dir, "images")
+
+    # Check if the requested file exists
+    file_path = os.path.join(images_folder, filename)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "image_not_found", "msg": f"Image '{filename}' not found"}), 404
+
+    # Check if it's actually a file (not a directory)
+    if not os.path.isfile(file_path):
+        return jsonify({"error": "not_a_file", "msg": f"'{filename}' is not a file"}), 400
+
+    # Serve the image file
+    return send_from_directory(images_folder, filename)
 
 
 # ---------------------------------------------

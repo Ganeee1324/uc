@@ -272,6 +272,8 @@ html {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     flex-shrink: 0;
+    margin: 0 auto;
+    align-self: center;
 }
 
 .vendor-avatar:hover {
@@ -6274,6 +6276,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 90px;
         height: 90px;
         font-size: 2.25rem;
+        margin: 0 auto;
+        align-self: center;
     }
     
     .save-vendor-btn {
@@ -6323,6 +6327,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 80px;
         height: 80px;
         font-size: 2rem;
+        margin: 0 auto;
+        align-self: center;
     }
     
     .save-vendor-btn {
@@ -6368,6 +6374,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 70px;
         height: 70px;
         font-size: 1.75rem;
+        margin: 0 auto;
+        align-self: center;
     }
     
     .save-vendor-btn {
@@ -6406,6 +6414,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 60px;
         height: 60px;
         font-size: 1.5rem;
+        margin: 0 auto;
+        align-self: center;
     }
     
     .save-vendor-btn {
@@ -6456,6 +6466,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         width: 80px;
         height: 80px;
         font-size: 2rem;
+        margin: 0 auto;
+        align-self: center;
     }
     
     .save-vendor-btn {

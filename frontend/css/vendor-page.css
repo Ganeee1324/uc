@@ -291,10 +291,10 @@ html {
 .vendor-details {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     flex: 1;
     min-width: 0;
-    text-align: center;
+    text-align: left;
 }
 
 .vendor-header {
@@ -6254,7 +6254,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-details {
-        align-items: center;
+        align-items: flex-start;
         width: 100%;
     }
     
@@ -6267,7 +6267,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .vendor-name {
         font-size: 1.5rem;
-        text-align: center;
+        text-align: left;
     }
     
     .vendor-avatar {
@@ -6318,7 +6318,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .vendor-name {
         font-size: 1.25rem;
-        text-align: center;
+        text-align: left;
         line-height: 1.2;
     }
     

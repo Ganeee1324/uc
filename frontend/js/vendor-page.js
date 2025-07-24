@@ -6159,6 +6159,48 @@ async function deleteUserReview() {
     }
 }
 
+// Update vendor banner rating
+function updateVendorBannerRating(averageRating, reviewCount) {
+    const vendorRatingBtn = document.getElementById('vendorRatingBtn');
+    if (vendorRatingBtn) {
+        const ratingStars = vendorRatingBtn.querySelector('.vendor-banner-rating-stars');
+        const ratingText = vendorRatingBtn.querySelector('.vendor-rating-text');
+        
+        if (ratingStars && ratingText) {
+            console.log('Updating vendor banner rating:', averageRating, reviewCount);
+            
+            const stars = generateVendorBannerStars(averageRating);
+            console.log('Generated stars HTML:', stars);
+            
+            // Clear and update the stars
+            ratingStars.innerHTML = '';
+            ratingStars.innerHTML = stars;
+            ratingText.textContent = `${averageRating.toFixed(1)} (${reviewCount})`;
+            
+            // Force multiple reflows to ensure CSS is applied
+            ratingStars.offsetHeight;
+            
+            // Add a small delay and force another update
+            setTimeout(() => {
+                const starElements = ratingStars.querySelectorAll('.vendor-banner-rating-star');
+                console.log('Found star elements:', starElements.length);
+                
+                starElements.forEach((star, index) => {
+                    star.style.display = 'inline-block';
+                    star.style.visibility = 'visible';
+                    star.style.opacity = '1';
+                });
+                
+                // Force another reflow
+                ratingStars.offsetHeight;
+                
+                // Log the final state
+                console.log('Final stars HTML:', ratingStars.innerHTML);
+            }, 50);
+        }
+    }
+}
+
 // Update vetrina rating in search results
 function updateVetrinaRatingInSearch(vetrinaId) {
     const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);

@@ -246,11 +246,9 @@ html {
 .vendor-info {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 2.5rem;
+    justify-content: center;
     width: 100%;
     max-width: 900px;
-    flex-wrap: wrap;
     position: relative;
 }
 
@@ -270,7 +268,10 @@ html {
         0 0 0 4px rgba(255, 255, 255, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+    position: absolute;
+    left: -140px;
+    top: 50%;
+    transform: translateY(-50%);
     flex-shrink: 0;
 }
 
@@ -297,6 +298,7 @@ html {
     flex: 1;
     min-width: 0;
     text-align: center;
+    position: relative;
 }
 
 .vendor-header {
@@ -6240,12 +6242,19 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 1.5rem;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
         max-width: 100%;
+    }
+    
+    .vendor-avatar {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        margin-bottom: 1rem;
     }
     
     .vendor-details {
@@ -6296,8 +6305,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 1rem;
         max-width: 100%;
+    }
+    
+    .vendor-avatar {
+        margin-bottom: 0.75rem;
     }
     
     .vendor-details {
@@ -6351,7 +6363,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 0.75rem;
+        /* gap removed since we're using absolute positioning on desktop */
+    }
+    
+    .vendor-avatar {
+        margin-bottom: 0.5rem;
     }
     
     .vendor-name {
@@ -6390,7 +6406,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
     
     .vendor-info {
-        gap: 0.5rem;
+        /* gap removed since we're using absolute positioning on desktop */
+    }
+    
+    .vendor-avatar {
+        margin-bottom: 0.5rem;
     }
     
     .vendor-name {

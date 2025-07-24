@@ -821,12 +821,470 @@ html {
 
 
 
+/* Empty state styling - Professional and Stunning */
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) var(--space-20) var(--space-20) var(--space-20);
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    position: relative;
+    overflow: visible;
+}
 
+/* Removed pseudo-elements for cleaner design */
 
+.no-results .material-symbols-outlined {
+    font-size: 80px;
+    background: linear-gradient(135deg, var(--blue-500), var(--purple-500));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-8);
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 4px 8px rgba(14, 165, 233, 0.2));
+    animation: float 3s ease-in-out infinite;
+}
 
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
 
+.no-results h3 {
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gray-800), var(--gray-700));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-6);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 2;
+}
 
+.no-results p {
+    font-size: 18px;
+    color: var(--gray-600);
+    line-height: 1.7;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
 
+/* Add decorative elements */
+.no-results .decoration {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, 
+        rgba(14, 165, 233, 0.1), 
+        rgba(99, 102, 241, 0.1));
+    filter: blur(20px);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+.no-results .decoration:nth-child(1) {
+    top: -30px;
+    left: -30px;
+    animation-delay: 0s;
+}
+
+.no-results .decoration:nth-child(2) {
+    bottom: -30px;
+    right: -30px;
+    animation-delay: 2s;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    50% { 
+        transform: scale(1.2);
+        opacity: 0.6;
+    }
+}
+
+/* When no results, adjust the search section layout */
+.search-section:has(.no-results) {
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: var(--space-8);
+}
+
+.search-section:has(.no-results) .search-title,
+.search-section:has(.no-results) .search-subtitle {
+    margin-bottom: var(--space-8);
+}
+
+.search-section:has(.no-results) .search-container {
+    margin-bottom: var(--space-8);
+}
+
+/* Center the documents grid when it contains no-results */
+.documents-grid:has(.no-results) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 50px 0;
+    overflow: visible;
+}
+
+/* Loading state placeholders to maintain correct positioning */
+.loading-placeholder {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    visibility: hidden;
+    pointer-events: none;
+    grid-column: 1 / -1; /* Span all columns */
+    width: 100%;
+}
+
+.loading-placeholder.document-count {
+    height: 60px; /* Approximate height of document count container */
+    margin-bottom: var(--space-4);
+    margin-top: calc(-1 * var(--space-2)); /* Move up a bit */
+}
+
+.loading-placeholder.active-filters {
+    height: 40px; /* Approximate height of active filters display */
+    margin-bottom: var(--space-4);
+    margin-top: calc(-1 * var(--space-1)); /* Move up a bit */
+}
+
+/* When loading, change grid to flexbox to stack placeholders above cards */
+.documents-grid.loading {
+    /* Keep the grid layout during loading */
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+}
+
+.documents-grid.loading .document-card {
+    /* Ensure cards maintain proper grid sizing */
+    width: 100%;
+    min-width: 0;
+}
+
+/* Responsive adjustments for empty state */
+@media (max-width: 768px) {
+    .no-results {
+        padding: var(--space-12);
+        margin: 0 auto;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .no-results .material-symbols-outlined {
+        font-size: 64px;
+        margin-bottom: var(--space-6);
+    }
+    
+    .no-results h3 {
+        font-size: 28px;
+        margin-bottom: var(--space-4);
+    }
+    
+    .no-results p {
+        font-size: 16px;
+        max-width: 100%;
+    }
+    
+    .no-results .decoration {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .search-section:has(.no-results) {
+        padding-top: var(--space-6);
+    }
+    
+    .search-section:has(.no-results) .search-title,
+    .search-section:has(.no-results) .search-subtitle {
+        margin-bottom: var(--space-6);
+    }
+    
+    .search-section:has(.no-results) .search-container {
+        margin-bottom: var(--space-6);
+    }
+}
+
+@media (max-width: 480px) {
+    .no-results {
+        padding: var(--space-8);
+        margin: 0 auto;
+        border-radius: 0;
+    }
+    
+    .no-results .material-symbols-outlined {
+        font-size: 56px;
+        margin-bottom: var(--space-4);
+    }
+    
+    .no-results h3 {
+        font-size: 24px;
+        margin-bottom: var(--space-3);
+    }
+    
+    .no-results p {
+        font-size: 15px;
+        line-height: 1.6;
+    }
+    
+    .no-results .decoration {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .no-results .decoration:nth-child(1) {
+        top: -30px;
+        left: -30px;
+    }
+    
+    .no-results .decoration:nth-child(2) {
+        bottom: -30px;
+        right: -30px;
+    }
+}
+
+.search-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.search-subtitle {
+    font-size: 36px;
+    color: #4d4d4d;
+    font-weight: 500;
+    margin-bottom: var(--space-8);
+    letter-spacing: -0.01em;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.search-container-wrapper {
+    /* The wrapper is now back inside search-section. */
+    width: 100%;
+    margin-top: 0px; /* Restore the original spacing between subtitle and search bar. */
+
+    position: sticky;
+    top: var(--sticky-top-offset); /* Calculated by JS */
+    z-index: 1001; /* High z-index to stay on top */
+
+    /* The background and padding are only applied when it's stuck. */
+    transition: padding 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    
+    /* Ensure negative values work properly */
+    transform: translateZ(0);
+}
+
+.search-container-wrapper.is-stuck {
+    background: linear-gradient(135deg, rgba(157, 218, 253, 0.95), rgba(132, 208, 252, 0.95));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
+    /* A little padding for aesthetics when it sticks */
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    
+    /* We center the container within the sticky wrapper. */
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 495px;
+    max-width: 495px;
+    height: 50px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-2xl);
+    padding: 0 var(--space-6);
+    transition: all 0.25s var(--ease-2);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    margin-top: 0;
+}
+
+.search-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.8) 0%, 
+        rgba(244, 246, 248, 0.4) 100%);
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-2);
+    pointer-events: none;
+}
+
+.search-bar:hover {
+    border-color: var(--gray-300);
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+}
+
+.search-bar:hover::before {
+    opacity: 1;
+}
+
+.search-bar:focus-within {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1), var(--shadow-xl);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+/* Search bar wrapper for proper layering */
+.search-bar-wrapper {
+    position: relative;
+    display: inline-block;
+    border-radius: 20px;
+}
+
+/* Animated border background that moves with search bar */
+@property --angle{
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+.search-bar-background, .search-bar-background::before {
+    position: absolute;
+    top: -2px; /* Move up to create space */
+    left: -2px; /* Move left to create space */
+    width: calc(100% + 4px); /* Increase width to account for padding */
+    height: calc(100% + 4px); /* Increase height to account for padding */
+    background-image: conic-gradient(from var(--angle), transparent 0deg, transparent 30deg, #402fb5 60deg, transparent 90deg, transparent 210deg, #cf30aa 240deg, transparent 270deg, transparent 300deg, transparent 360deg);
+    border: none;
+    border-radius: 20px; /* Slightly larger radius */
+    z-index: 0;
+    pointer-events: none;
+    animation: spin 3s linear infinite;
+    filter: brightness(1.5);
+}
+.search-bar-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    filter: blur(20px);
+    opacity: 0.7;
+    border-radius: 12px;
+    z-index: 0;
+}
+
+/* Move with search bar hover/focus animation */
+.search-bar-wrapper:hover .search-bar-background,
+.search-bar-wrapper:has(.search-bar:hover) .search-bar-background,
+.search-bar-wrapper:has(.search-bar:focus-within) .search-bar-background {
+    transform: translateY(-2px);
+}
+
+/* Animation starts when toggle is checked */
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background {
+    opacity: 1;
+    animation: spin 3s linear infinite;
+}
+
+/* Show glow effect when toggle is checked */
+.search-bar-wrapper:has(.toggle-input:checked) .search-bar-background::before {
+    opacity: 0.7;
+}
+
+@keyframes spin {
+    from {
+        --angle: 0deg;
+    }
+    to {
+        --angle: 360deg;
+    }
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--gray-900);
+    background: transparent;
+    letter-spacing: -0.011em;
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+}
+
+.search-input:focus {
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: var(--gray-500);
+    font-weight: 400;
+}
+
+.search-btn {
+    background: transparent;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all 0.2s var(--ease-2);
+    margin-left: var(--space-2);
+    position: relative;
+    z-index: 1001;
+}
+
+.search-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    transform: scale(1.05);
+}
 
 .filters-btn {
     display: flex;
@@ -1537,7 +1995,27 @@ html {
     margin-left: 2px;
 }
 
+/* Search Section Rating Badge - Uses exact search.css rules */
+/* Note: These styles are kept for reference but the actual styling comes from search.css */
+.rating-badge {
+    /* Inherits from search.css - no overrides needed */
+}
 
+.rating-badge[data-action="open-reviews"]:hover {
+    /* Inherits from search.css - no overrides needed */
+}
+
+.rating-stars {
+    /* Inherits from search.css - no overrides needed */
+}
+
+.rating-star {
+    /* Inherits from search.css - no overrides needed */
+}
+
+.rating-count {
+    /* Inherits from search.css - no overrides needed */
+}
  
  /* Preview Available Badge */
 .preview-available-badge {
@@ -3122,13 +3600,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-5) var(--space-8);
    }
    
+   .search-container {
        max-width: 700px;
    }
    
+   /* Search bar maintains default size at 1200px */
    
+   .search-title {
        font-size: 56px;
    }
    
+   .search-subtitle {
        font-size: 22px;
    }
    
@@ -3272,6 +3754,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        color: var(--gray-700);
    }
    
+   /* Professional Mobile Search Section */
+   .search-section {
        padding: var(--space-8) var(--space-5) var(--space-10) var(--space-5);
        min-height: 60vh;
        display: flex;
@@ -3280,9 +3764,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    /* Adjust background positioning line for mobile */
+   .search-section::after {
        transform: translateY(15px); /* Adjust for mobile layout */
    }
    
+   .search-title {
        font-size: 42px;
        font-weight: 800;
        letter-spacing: -0.03em;
@@ -3290,6 +3776,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        margin-bottom: var(--space-2);
    }
    
+   .search-subtitle {
        font-size: 18px;
        font-weight: 500;
        color: rgba(77, 77, 77, 0.8);
@@ -3297,17 +3784,21 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        line-height: 1.4;
    }
    
+   .search-container {
        max-width: none;
        flex-direction: column;
        gap: var(--space-4);
        width: 100%;
    }
    
+   /* Search bar maintains default size at 900px */
    
+   .search-input {
        font-size: 17px;
        font-weight: 400;
    }
    
+   .search-btn {
        width: 40px;
        height: 40px;
        border-radius: var(--radius-md);
@@ -3316,6 +3807,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        margin-right: var(--space-2);
    }
    
+   .search-btn:hover {
        background: var(--gray-100);
        color: var(--gray-700);
        transform: scale(1.05);
@@ -3340,10 +3832,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        display: block;
    }
    
+   .compact-search-container {
        flex-direction: column;
        gap: var(--space-3);
    }
    
+   .compact-search-bar {
        max-width: none;
    }
    
@@ -3495,7 +3989,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
+/* Search bar responsive sizing - Only when screen is smaller than search bar */
 @media (max-width: 520px) {
+   .search-bar {
        width: 100%;
        max-width: calc(100% - 40px);
        margin: 0 20px;
@@ -3504,6 +4000,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: 0 var(--space-4);
    }
    
+   .search-input {
        font-size: 16px; /* Prevents zoom on iOS */
    }
    
@@ -3540,11 +4037,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        height: 36px;
    }
    
+   .search-section {
        padding: var(--space-6) var(--space-4) var(--space-8) var(--space-4);
        min-height: 55vh;
    }
    
    /* Adjust background positioning line for small screens */
+   .search-section::after {
        transform: translateY(10px); /* Adjust for smallest screens */
    }
    
@@ -3552,21 +4051,27 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-4) var(--space-4) var(--space-16) var(--space-4);
    }
    
+   .search-title {
        font-size: 32px;
        font-weight: 900;
        letter-spacing: -0.04em;
        line-height: 1.05;
    }
    
+   .search-subtitle {
        font-size: 16px;
        font-weight: 500;
        margin-bottom: var(--space-6);
    }
    
+   /* Search bar size handled by 520px media query when needed */
    
+   .search-input,
+   .compact-search-input {
        font-size: 16px; /* iOS optimization - prevents zoom */
    }
    
+   .search-btn {
        width: 40px;
        height: 40px;
        border-radius: var(--radius-md);
@@ -3574,6 +4079,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        color: var(--gray-500);
    }
    
+   .search-btn:hover {
        background: var(--gray-100);
        color: var(--gray-700);
        transform: scale(1.05);
@@ -3782,10 +4288,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Professional Tablet Design */
+/* Medium screens: 600-900px range - smaller search bar */
 @media (max-width: 900px) and (min-width: 601px) {
+   .search-container {
        max-width: 600px;
    }
    
+   .search-bar {
        height: 55px;
        max-width: 400px;
        width: 100%;
@@ -3797,6 +4306,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        max-width: 180px;
    }
    
+   .search-btn {
        width: 40px;
        height: 40px;
        border-radius: var(--radius-md);
@@ -3804,12 +4314,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        color: var(--gray-500);
    }
    
+   .search-btn:hover {
        background: var(--gray-100);
        color: var(--gray-700);
        transform: scale(1.05);
    }
    
    /* Adjust background positioning line for medium screens */
+   .search-section::after {
        transform: translateY(18px);
    }
 }
@@ -3819,10 +4331,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        --bg-offset-top: -1300px; /* Adjust for tablet layout */
    }
 
+   .search-title {
        font-size: 38px;
        font-weight: 800;
    }
    
+   .search-subtitle {
        font-size: 17px;
    }
    
@@ -3861,6 +4375,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Enhanced Touch Interactions */
 @media (hover: none) and (pointer: coarse) {
+   .search-btn:active {
        transform: scale(0.95);
    }
    
@@ -3928,7 +4443,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .filters-btn:hover,
+   .search-bar:hover,
    .compact-filters-btn:hover,
+   .compact-search-bar:hover {
        transform: none;
        box-shadow: var(--shadow-sm);
    }
@@ -3948,7 +4465,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .filters-btn,
+   .search-bar,
    .compact-filters-btn,
+   .compact-search-bar {
        border-width: 2px;
    }
 }
@@ -3969,7 +4488,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .filters-btn:hover,
+   .search-bar:hover,
    .compact-filters-btn:hover,
+   .compact-search-bar:hover {
        transform: none;
    }
 }

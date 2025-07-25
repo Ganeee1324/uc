@@ -2145,10 +2145,16 @@ async function applyFiltersAndRender() {
 
 function toggleFiltersPanel() {
     isFiltersOpen = !isFiltersOpen;
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for toggleFiltersPanel');
+        return;
+    }
+    
+    const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
+    const filtersOverlay = context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
-    const documentsGrid = document.getElementById('documentsGrid');
+    const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     
     if (isFiltersOpen) {
         // Ensure robust positioning before showing
@@ -2427,10 +2433,16 @@ function updateActiveFiltersDisplay() {
 
 function closeFiltersPanel() {
     isFiltersOpen = false;
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for closeFiltersPanel');
+        return;
+    }
+    
+    const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
+    const filtersOverlay = context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
-    const documentsGrid = document.getElementById('documentsGrid');
+    const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     
     if (filtersPanel) filtersPanel.classList.remove('active');
     if (filtersOverlay) filtersOverlay.classList.remove('active');
@@ -2499,11 +2511,17 @@ async function populateFilterOptions() {
 
 
 function populateDropdownFilter(type, options) {
-    const optionsContainer = document.getElementById(`${type}Options`);
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for populateDropdownFilter');
+        return;
+    }
+    
+    const optionsContainer = context.querySelector(`#${type}Options`) || document.getElementById(`${type}Options`);
     if (!optionsContainer) return;
 
     // Save current selection and input value
-    const input = document.getElementById(`${type}Filter`);
+    const input = context.querySelector(`#${type}Filter`) || document.getElementById(`${type}Filter`);
     const currentValue = filterManager.filters[type] || '';
     const currentInputValue = input ? input.value : '';
 

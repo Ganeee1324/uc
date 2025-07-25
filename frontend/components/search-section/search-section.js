@@ -7,6 +7,9 @@ const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
+// Global context for the current search section being initialized
+let currentSearchSectionContext = null;
+
 // DOM element cache for performance optimization
 const DOM_CACHE = {
     documentsGrid: null,
@@ -15,10 +18,16 @@ const DOM_CACHE = {
     documentCount: null,
     searchInput: null,
     init() {
-        this.documentsGrid = document.getElementById('documentsGrid');
-        this.searchSection = document.querySelector('.search-section');
-        this.documentCountContainer = document.getElementById('documentCountContainer');
-        this.documentCount = document.getElementById('documentCount');
+        const context = currentSearchSectionContext || document.querySelector('.search-section');
+        if (!context) {
+            console.error('❌ No search section context found for DOM_CACHE.init');
+            return;
+        }
+        
+        this.documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
+        this.searchSection = context;
+        this.documentCountContainer = context.querySelector('#documentCountContainer') || document.getElementById('documentCountContainer');
+        this.documentCount = context.querySelector('#documentCount') || document.getElementById('documentCount');
         this.searchInput = document.getElementById('searchInput');
     },
     get(elementName) {
@@ -977,8 +986,15 @@ function populateDropdownOptions() {
 }
 
 function populateOptions(type, items) {
-    const options = document.getElementById(`${type}Options`);
-    const currentValue = document.getElementById(`${type}Filter`).value;
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for populateOptions');
+        return;
+    }
+    
+    const options = context.querySelector(`#${type}Options`) || document.getElementById(`${type}Options`);
+    const filterElement = context.querySelector(`#${type}Filter`) || document.getElementById(`${type}Filter`);
+    const currentValue = filterElement ? filterElement.value : '';
     
     if (!options) {
         return;
@@ -3273,7 +3289,13 @@ async function makeAuthenticatedRequest(url) {
 
 // Function to create and display loading cards
 function showLoadingCards(count = null) {
-    const grid = document.getElementById('documentsGrid');
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for showLoadingCards');
+        return;
+    }
+    
+    const grid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     if (!grid) {
         console.error('❌ Grid element not found!');
         return;
@@ -7073,6 +7095,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 Initializing Search Section Component');
 
         try {
+            // Store the current search section context for this initialization
+            currentSearchSectionContext = searchSection;
+            
             // Initialize core functionality for this specific search section
             DOM_CACHE.init();
             initializeFilters();

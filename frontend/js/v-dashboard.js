@@ -157,6 +157,10 @@ async function switchTab(tabName) {
                     const documentsSearchSection = documentsSearchContainer.querySelector('.search-section');
                     if (documentsSearchSection && typeof window.initializeSpecificSearchSection === 'function') {
                         console.log('Manually initializing documents search section...');
+                        // Update the context to the documents search section
+                        if (typeof window.updateSearchSectionContext === 'function') {
+                            window.updateSearchSectionContext(documentsSearchSection);
+                        }
                         window.initializeSpecificSearchSection(documentsSearchSection);
                     }
                 }, 100);
@@ -203,6 +207,14 @@ async function switchTab(tabName) {
             }
         } else {
             console.log('Main search container not found or already has search component:', hasSearchComponent ? 'has component' : 'container not found');
+            
+            // Update context to the profile search section if it exists
+            if (hasSearchComponent && typeof window.updateSearchSectionContext === 'function') {
+                const profileSearchSection = mainSearchContainer.querySelector('.search-section');
+                if (profileSearchSection) {
+                    window.updateSearchSectionContext(profileSearchSection);
+                }
+            }
         }
         
         currentTab = 'profile';

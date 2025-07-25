@@ -123,6 +123,12 @@ let isFiltersOpen = false;
 
     // Initialize the page
     window.onload = async function() {
+        // Set the initial search section context
+        const initialSearchSection = document.querySelector('.search-section');
+        if (initialSearchSection) {
+            currentSearchSectionContext = initialSearchSection;
+        }
+        
         // Show loading cards immediately when page loads
         showLoadingCards();
         
@@ -7192,6 +7198,14 @@ document.addEventListener('DOMContentLoaded', function() {
         window.initializeSpecificSearchSection = function(searchSection) {
             if (searchSection && searchSection.dataset.initialized !== 'true') {
                 initializeSearchSectionComponent(searchSection);
+            }
+        };
+        
+        // Function to update the current search section context
+        window.updateSearchSectionContext = function(searchSection) {
+            if (searchSection) {
+                currentSearchSectionContext = searchSection;
+                console.log('🔄 Updated search section context');
             }
         };
     }

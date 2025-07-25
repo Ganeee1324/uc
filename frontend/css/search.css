@@ -8915,37 +8915,94 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .chunks-body {
-    max-height: 50vh;
-    overflow-y: auto;
-    padding: 0;
+    padding: 24px;
+    overflow: hidden;
 }
 
-.chunks-list {
+.chunks-horizontal-scroll {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 4px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.chunks-horizontal-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.chunks-horizontal-scroll::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 4px;
+}
+
+.chunks-horizontal-scroll::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: 4px;
+}
+
+.chunks-horizontal-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-400);
+}
+
+.chunk-preview-card {
+    flex: 0 0 320px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chunk-preview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: var(--blue-200);
+}
+
+.chunk-preview-image {
+    height: 180px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-preview-placeholder {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--gray-500);
 }
 
-.chunk-item {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--gray-100);
-    transition: background-color 0.2s ease;
+.page-preview-placeholder .material-symbols-outlined {
+    font-size: 48px;
+    color: var(--gray-400);
 }
 
-.chunk-item:hover {
-    background: var(--gray-50);
+.page-number {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-600);
 }
 
-.chunk-item:last-child {
-    border-bottom: none;
+.chunk-preview-content {
+    padding: 16px;
 }
 
-.chunk-header {
+.chunk-preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 8px;
 }
 
 .chunk-page-info {
@@ -8964,7 +9021,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .chunk-relevance {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     font-size: 12px;
     font-weight: 600;
     color: var(--green-600);
@@ -8974,27 +9031,31 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .chunk-relevance .material-symbols-outlined {
-    font-size: 16px;
+    font-size: 14px;
 }
 
-.chunk-content {
-    margin-left: 0;
-}
-
-.chunk-description {
-    font-size: 16px;
-    line-height: 1.6;
+.chunk-preview-description {
+    font-size: 14px;
+    line-height: 1.5;
     color: var(--gray-700);
     margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-.chunk-context {
-    font-size: 14px;
+.chunk-preview-context {
+    font-size: 12px;
     color: var(--gray-600);
     background: var(--gray-50);
-    padding: 12px;
-    border-radius: 8px;
-    border-left: 3px solid var(--blue-200);
+    padding: 8px;
+    border-radius: 6px;
+    border-left: 2px solid var(--blue-200);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .chunks-footer {
@@ -9052,17 +9113,91 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         font-size: 20px;
     }
     
-    .chunk-item {
-        padding: 16px 20px;
+    .chunks-body {
+        padding: 16px;
     }
     
-    .chunk-header {
+    .chunks-horizontal-scroll {
+        gap: 16px;
+        padding: 4px 2px;
+    }
+    
+    .chunk-preview-card {
+        flex: 0 0 280px;
+    }
+    
+    .chunk-preview-image {
+        height: 140px;
+    }
+    
+    .chunk-preview-content {
+        padding: 12px;
+    }
+    
+    .chunk-preview-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 6px;
     }
     
     .chunks-footer {
         padding: 16px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chunks-modal {
+        width: 98%;
+        margin: 10px;
+    }
+    
+    .chunks-header {
+        padding: 16px;
+    }
+    
+    .chunks-title {
+        font-size: 18px;
+    }
+    
+    .chunks-description {
+        font-size: 14px;
+    }
+    
+    .chunks-body {
+        padding: 12px;
+    }
+    
+    .chunks-horizontal-scroll {
+        gap: 12px;
+    }
+    
+    .chunk-preview-card {
+        flex: 0 0 260px;
+    }
+    
+    .chunk-preview-image {
+        height: 120px;
+    }
+    
+    .page-preview-placeholder .material-symbols-outlined {
+        font-size: 36px;
+    }
+    
+    .page-number {
+        font-size: 14px;
+    }
+    
+    .chunk-preview-content {
+        padding: 10px;
+    }
+    
+    .chunk-preview-description {
+        font-size: 13px;
+        -webkit-line-clamp: 2;
+    }
+    
+    .chunk-preview-context {
+        font-size: 11px;
+        -webkit-line-clamp: 1;
     }
 }

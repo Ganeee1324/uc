@@ -5559,22 +5559,30 @@ function openChunksOverlay(item) {
                     </div>
                 </div>
                 <div class="chunks-body">
-                    <div class="chunks-list">
+                    <div class="chunks-horizontal-scroll">
                         ${item.semanticChunks.map((chunk, index) => `
-                            <div class="chunk-item" data-index="${index}">
-                                <div class="chunk-header">
-                                    <div class="chunk-page-info">
+                            <div class="chunk-preview-card" data-index="${index}">
+                                <div class="chunk-preview-image">
+                                    <div class="page-preview-placeholder">
                                         <span class="material-symbols-outlined">description</span>
-                                        <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
-                                    </div>
-                                    <div class="chunk-relevance">
-                                        <span class="material-symbols-outlined">trending_up</span>
-                                        <span class="chunk-score">Rilevanza: ${((chunk.semantic_score || 0) * 100).toFixed(1)}%</span>
+                                        <span class="page-number">Pagina ${chunk.page_number || 'N/A'}</span>
                                     </div>
                                 </div>
-                                <div class="chunk-content">
-                                    <div class="chunk-description">${chunk.chunk_description || chunk.description || 'Nessuna descrizione disponibile'}</div>
-                                    ${chunk.context ? `<div class="chunk-context"><strong>Contesto:</strong> ${chunk.context}</div>` : ''}
+                                <div class="chunk-preview-content">
+                                    <div class="chunk-preview-header">
+                                        <div class="chunk-page-info">
+                                            <span class="material-symbols-outlined">description</span>
+                                            <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
+                                        </div>
+                                        <div class="chunk-relevance">
+                                            <span class="material-symbols-outlined">trending_up</span>
+                                            <span class="chunk-score">${((chunk.semantic_score || 0) * 100).toFixed(1)}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="chunk-preview-description">
+                                        ${chunk.chunk_description || chunk.description || 'Nessuna descrizione disponibile'}
+                                    </div>
+                                    ${chunk.context ? `<div class="chunk-preview-context"><strong>Contesto:</strong> ${chunk.context}</div>` : ''}
                                 </div>
                             </div>
                         `).join('')}

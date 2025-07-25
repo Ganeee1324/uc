@@ -549,6 +549,38 @@ body {
     display: flex;
     align-items: center;
     padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: var(--radius-md);
+    margin: 0 var(--space-2);
+    position: relative;
+}
+
+.dropdown-user-info:hover {
+    background-color: var(--gray-50);
+}
+
+.dropdown-user-info:active {
+    background-color: var(--gray-100);
+}
+
+/* Add a subtle visual indicator that the user info is clickable */
+.dropdown-user-info::after {
+    content: '';
+    position: absolute;
+    right: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid var(--gray-400);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    transition: border-left-color 0.2s ease;
+}
+
+.dropdown-user-info:hover::after {
+    border-left-color: var(--gray-600);
 }
 
 .dropdown-avatar {

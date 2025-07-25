@@ -472,6 +472,16 @@ function updateHeaderUserInfo(user) {
             userInfo.classList.toggle('open');
         });
 
+        // Make dropdown user info clickable to redirect to profile
+        const dropdownUserInfo = document.querySelector('.dropdown-user-info');
+        if (dropdownUserInfo) {
+            dropdownUserInfo.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+            });
+        }
+
         // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
         if(logoutBtn) {

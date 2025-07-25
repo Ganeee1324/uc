@@ -141,15 +141,21 @@ async function switchTab(tabName) {
             try {
                 console.log('Loading search component for documents...');
                 const response = await fetch('components/search-section/search-section-component.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const html = await response.text();
+                console.log('Search component HTML loaded for documents, length:', html.length);
                 documentsSearchContainer.innerHTML = html;
-                console.log('Search component loaded for documents');
+                console.log('Search component inserted into documents container');
                 
                 // Search component will auto-initialize itself with smart retry logic
                 console.log('Search component loaded for documents - auto-initialization in progress');
             } catch (error) {
                 console.error('Error loading documents search component:', error);
             }
+        } else {
+            console.log('Documents search container not found or already has search component:', hasDocumentsSearchComponent ? 'has component' : 'container not found');
         }
     } else {
         // Show profile/dashboard content, hide stats and documents
@@ -173,15 +179,21 @@ async function switchTab(tabName) {
             try {
                 console.log('Loading search component in switchTab...');
                 const response = await fetch('components/search-section/search-section-component.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const html = await response.text();
+                console.log('Search component HTML loaded in switchTab, length:', html.length);
                 mainSearchContainer.innerHTML = html;
-                console.log('Search component loaded in switchTab');
+                console.log('Search component inserted into main container');
                 
                 // Search component will auto-initialize itself with smart retry logic
                 console.log('Search component loaded in switchTab - auto-initialization in progress');
             } catch (error) {
                 console.error('Error loading main search component:', error);
             }
+        } else {
+            console.log('Main search container not found or already has search component:', hasSearchComponent ? 'has component' : 'container not found');
         }
         
         currentTab = 'profile';

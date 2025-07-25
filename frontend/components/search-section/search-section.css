@@ -8553,21 +8553,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-size: 18px;
 }
 
-.chunk-relevance {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--green-600);
-    background: var(--green-50);
-    padding: 4px 8px;
-    border-radius: 8px;
-}
 
-.chunk-relevance .material-symbols-outlined {
-    font-size: 14px;
-}
 
 .chunk-preview-description {
     font-size: 14px;
@@ -8696,14 +8682,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .chunks-modal {
         width: 98%;
         margin: 10px;
-        display: flex;
-        flex-direction: column;
-        max-height: 95vh;
     }
     
     .chunks-header {
         padding: 16px;
-        flex-shrink: 0;
     }
     
     .chunks-title {
@@ -8716,9 +8698,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .chunks-body {
         padding: 12px;
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
     }
     
     .chunks-horizontal-scroll {
@@ -8753,12 +8732,5 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     .chunk-preview-context {
         font-size: 11px;
         -webkit-line-clamp: 1;
-    }
-    
-    .chunks-footer {
-        padding: 12px 16px;
-        flex-shrink: 0;
-        position: relative;
-        z-index: 5;
     }
 }

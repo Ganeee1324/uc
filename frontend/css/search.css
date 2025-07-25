@@ -9024,21 +9024,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     font-size: 18px;
 }
 
-.chunk-relevance {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--green-600);
-    background: var(--green-50);
-    padding: 4px 8px;
-    border-radius: 8px;
-}
 
-.chunk-relevance .material-symbols-outlined {
-    font-size: 14px;
-}
 
 .chunk-preview-description {
     font-size: 14px;

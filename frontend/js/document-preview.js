@@ -820,11 +820,11 @@ function updateHeaderUserInfo(user) {
                 });
             }
             
-            // Handle click on avatar - redirect to v-dashboard
+            // Handle click on avatar - redirect to profile
             userAvatar.addEventListener('click', (event) => {
                 event.stopPropagation();
-                // Redirect to v-dashboard with user info
-                window.location.href = 'v-dashboard.html';
+                // Redirect to profile with user info
+                window.location.href = 'profile.html';
             });
             
             // Add dropdown toggle functionality with a small arrow

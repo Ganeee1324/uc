@@ -30,14 +30,14 @@
 
         .verification-container {
             width: 100%;
-            max-width: 480px;
+            max-width: 400px;
         }
 
         .verification-card {
             background: white;
-            border-radius: 20px;
-            padding: 60px 48px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -54,19 +54,19 @@
         }
 
         .loading-icon {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 32px;
+            margin: 0 auto 24px;
             animation: pulse 2s infinite;
         }
 
         .loading-icon .material-symbols-outlined {
-            font-size: 40px;
+            font-size: 28px;
             color: white;
             font-weight: 600;
             animation: spin 2s linear infinite;
@@ -83,58 +83,58 @@
         }
 
         .verification-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #111827;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             line-height: 1.2;
         }
 
         .verification-subtitle {
-            font-size: 16px;
+            font-size: 15px;
             color: #6b7280;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             line-height: 1.5;
         }
 
         .logo-container {
-            margin-bottom: 32px;
+            margin-bottom: 20px;
         }
 
         .logo-container img {
-            height: 48px;
+            height: 40px;
             width: auto;
             opacity: 0.8;
         }
 
         /* Success/Error states */
         .success-icon {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #10b981, #059669);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 32px;
+            margin: 0 auto 24px;
             animation: scaleIn 0.5s ease-out;
         }
 
         .error-icon {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #ef4444, #dc2626);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 32px;
+            margin: 0 auto 24px;
             animation: shake 0.5s ease-out;
         }
 
         .success-icon .material-symbols-outlined,
         .error-icon .material-symbols-outlined {
-            font-size: 40px;
+            font-size: 28px;
             color: white;
             font-weight: 600;
         }
@@ -161,12 +161,12 @@
 
         .action-button {
             width: 100%;
-            padding: 16px 24px;
+            padding: 14px 20px;
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -175,7 +175,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .action-button:hover {
@@ -230,34 +230,34 @@
         /* Responsive Design */
         @media (max-width: 480px) {
             body {
-                padding: 12px;
+                padding: 8px;
             }
 
             .verification-card {
-                padding: 48px 32px;
-                border-radius: 16px;
+                padding: 24px 20px;
+                border-radius: 12px;
             }
 
             .verification-title {
-                font-size: 24px;
+                font-size: 22px;
             }
 
             .verification-subtitle {
-                font-size: 15px;
+                font-size: 14px;
             }
 
             .loading-icon,
             .success-icon,
             .error-icon {
-                width: 70px;
-                height: 70px;
-                margin-bottom: 24px;
+                width: 56px;
+                height: 56px;
+                margin-bottom: 20px;
             }
 
             .loading-icon .material-symbols-outlined,
             .success-icon .material-symbols-outlined,
             .error-icon .material-symbols-outlined {
-                font-size: 36px;
+                font-size: 24px;
             }
         }
     </style>

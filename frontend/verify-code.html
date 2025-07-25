@@ -32,13 +32,13 @@
 
         .verification-container {
             width: 100%;
-            max-width: 440px;
+            max-width: 400px;
         }
 
         .verification-card {
             background: white;
             border-radius: 16px;
-            padding: 48px;
+            padding: 32px 24px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
             border: 1px solid #e5e7eb;
             position: relative;
@@ -67,43 +67,43 @@
 
         .verification-header {
             text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .logo-container {
             margin-bottom: 24px;
         }
 
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
         .logo-container img {
-            height: 56px;
+            height: 48px;
             width: auto;
         }
 
         .verification-icon {
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
+            margin: 0 auto 20px;
         }
 
         .verification-icon .material-symbols-outlined {
-            font-size: 32px;
+            font-size: 28px;
             color: white;
         }
 
         .verification-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #111827;
             margin-bottom: 8px;
         }
 
         .verification-subtitle {
-            font-size: 16px;
+            font-size: 15px;
             color: #6b7280;
             font-weight: 400;
         }
@@ -112,8 +112,8 @@
             background: #f0f9ff;
             border: 1px solid #bae6fd;
             border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 32px;
+            padding: 14px;
+            margin-bottom: 24px;
             text-align: center;
         }
 
@@ -180,16 +180,16 @@
 
         .verify-button {
             width: 100%;
-            padding: 16px 24px;
+            padding: 14px 20px;
             background: #2563eb;
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -232,7 +232,7 @@
 
         .resend-section {
             text-align: center;
-            padding-top: 24px;
+            padding-top: 20px;
             border-top: 1px solid #e5e7eb;
         }
 
@@ -300,23 +300,18 @@
         /* Responsive Design */
         @media (max-width: 480px) {
             body {
-                padding: 0;
+                padding: 8px;
             }
             
             .verification-container {
                 max-width: 100%;
-                min-height: 100vh;
             }
             
             .verification-card {
-                padding: 32px 24px;
-                border-radius: 0;
-                border: none;
-                box-shadow: none;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+                padding: 24px 20px;
+                border-radius: 12px;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
             }
 
             .code-input-container {

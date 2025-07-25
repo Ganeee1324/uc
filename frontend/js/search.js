@@ -5619,6 +5619,10 @@ function openChunksOverlay(item) {
     // Prevent multiple modals
     if (document.getElementById('chunks-overlay')) return;
 
+    // Get current search query
+    const searchInput = document.querySelector('.search-input');
+    const currentQuery = searchInput?.value?.trim() || '';
+
     const modalHTML = `
         <div id="chunks-overlay" class="chunks-overlay">
             <div class="chunks-modal">
@@ -5626,7 +5630,7 @@ function openChunksOverlay(item) {
                 <div class="chunks-header">
                     <div class="chunks-header-content">
                         <h2 class="chunks-title">Risultati Semantici</h2>
-                        <p class="chunks-description">${item.semanticChunks.length} contenuti trovati per "${item.title || item.name}"</p>
+                        <p class="chunks-description">${item.semanticChunks.length} contenuti trovati per "${currentQuery || item.title || item.name}"</p>
                         <div class="chunks-meta">
                             <span class="material-symbols-outlined">psychology</span>
                             <span>Ricerca semantica ha identificato questi argomenti specifici nella vetrina</span>

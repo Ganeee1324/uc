@@ -362,7 +362,11 @@ function initializeFilters() {
     const clearAllFilters = context.querySelector('#clearAllFilters') || document.getElementById('clearAllFilters');
 
     // Filter panel toggle
-    if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
+    if (filtersBtn) filtersBtn.addEventListener('click', (e) => {
+        // Pass the context through the event
+        e.target.dataset.searchSectionContext = context.dataset.instanceId;
+        toggleFiltersPanel(e);
+    });
     if (filtersClose) filtersClose.addEventListener('click', closeFiltersPanel);
     if (filtersOverlay) filtersOverlay.addEventListener('click', closeFiltersPanel);
 
@@ -2246,9 +2250,20 @@ async function applyFiltersAndRender() {
     }
 }
 
-function toggleFiltersPanel() {
+function toggleFiltersPanel(event = null) {
     isFiltersOpen = !isFiltersOpen;
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    
+    // Get context from the event or fallback to current context
+    let context;
+    if (event && event.target && event.target.dataset.searchSectionContext) {
+        const instanceId = event.target.dataset.searchSectionContext;
+        context = document.querySelector(`[data-instance-id="${instanceId}"]`);
+    } else {
+        // Find the search section that contains the filtersBtn that was clicked
+        const filtersBtn = document.querySelector('#filtersBtn:focus') || document.activeElement?.closest('#filtersBtn') || document.querySelector('#filtersBtn');
+        context = filtersBtn ? filtersBtn.closest('.search-section') : (currentSearchSectionContext || document.querySelector('.search-section'));
+    }
+    
     if (!context) {
         console.error('❌ No search section context found for toggleFiltersPanel');
         return;

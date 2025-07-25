@@ -871,6 +871,26 @@ function updateHeaderUserInfo(user) {
             }
         }
 
+        // Make dropdown avatar clickable to redirect to profile
+        const dropdownAvatar = document.getElementById('dropdownAvatar');
+        if (dropdownAvatar) {
+            dropdownAvatar.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+            });
+        }
+
+        // Make dropdown username clickable to redirect to profile
+        const dropdownUserName = document.getElementById('dropdownUserName');
+        if (dropdownUserName) {
+            dropdownUserName.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+            });
+        }
+
         // Make dropdown user info clickable to redirect to profile
         const dropdownUserInfo = document.querySelector('.dropdown-user-info');
         if (dropdownUserInfo) {

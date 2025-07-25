@@ -7139,6 +7139,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     background-size: cover;
     background-position: center;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dropdown-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-avatar:active {
+    transform: scale(0.95);
 }
 
 .dropdown-user-details {
@@ -7155,6 +7166,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.dropdown-user-name:hover {
+    color: var(--gray-900);
+    text-decoration: underline;
 }
 
 .dropdown-user-email {

@@ -34,13 +34,13 @@
         /* Main Content */
         .login-container {
             width: 100%;
-            max-width: 420px; /* Slightly narrower for a more focused look */
+            max-width: 380px; /* More compact for better screen fit */
         }
 
         .login-card {
             background: white;
             border-radius: 16px;
-            padding: 48px; /* More padding */
+            padding: 32px 24px; /* Reduced padding */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
             border: 1px solid #e5e7eb;
         }
@@ -48,27 +48,27 @@
         /* Header Section */
         .login-header {
             text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .logo-container {
             margin-bottom: 24px;
         }
 
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
         .logo-container img {
-            height: 56px;
+            height: 48px;
             width: auto;
         }
 
         .login-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700; /* Bolder */
             color: #111827;
             margin-bottom: 8px;
         }
 
         .login-subtitle {
-            font-size: 16px;
+            font-size: 15px;
             color: #6b7280;
             font-weight: 400;
         }
@@ -78,8 +78,8 @@
             background: #f0f9ff;
             border: 1px solid #bae6fd;
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
             text-align: center;
             display: none;
         }
@@ -104,8 +104,8 @@
         }
 
         .email-status-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
+            font-size: 28px;
+            margin-bottom: 10px;
             display: block;
         }
 
@@ -122,7 +122,7 @@
         }
 
         .email-status-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             margin-bottom: 8px;
         }
@@ -214,7 +214,7 @@
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             padding: 4px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             position: relative;
         }
 
@@ -256,9 +256,9 @@
 
         /* Messages */
         .message {
-            padding: 14px 18px;
+            padding: 12px 16px;
             border-radius: 10px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             font-size: 14px;
             font-weight: 500;
             display: none;
@@ -297,7 +297,7 @@
 
         /* Form Groups */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             position: relative;
         }
 
@@ -308,7 +308,7 @@
         .form-icon {
             position: absolute;
             left: 16px;
-            top: 50%;
+            top: 70%;
             transform: translateY(-50%);
             color: #9ca3af;
             font-size: 20px;
@@ -336,7 +336,7 @@
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 14px;
         }
 
         .form-label {
@@ -351,10 +351,10 @@
 
         .form-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 11px 14px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 400;
             background: white;
             transition: all 0.2s ease;
@@ -387,16 +387,16 @@
         /* Submit Button */
         .submit-btn {
             width: 100%;
-            padding: 14px 24px;
+            padding: 13px 20px;
             background: #2563eb; /* Stronger blue */
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
         .submit-btn:hover {
@@ -420,8 +420,8 @@
         /* Additional Links */
         .additional-links {
             text-align: center;
-            margin-top: 24px;
-            padding-top: 24px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid #e5e7eb;
         }
 
@@ -468,8 +468,8 @@
 
         /* Demo Credentials */
         .demo-info {
-            margin-top: 32px;
-            padding: 16px;
+            margin-top: 24px;
+            padding: 14px;
             background: #f9fafb;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
@@ -500,17 +500,16 @@
         /* Responsive Design */
         @media (max-width: 480px) {
             body {
-                padding: 0;
+                padding: 8px;
             }
             .login-container {
                 max-width: 100%;
-                min-height: 100vh;
             }
             .login-card {
-                padding: 32px 24px;
-                border-radius: 0;
-                border: none;
-                box-shadow: none;
+                padding: 24px 20px;
+                border-radius: 12px;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
             }
 
             .form-row {
@@ -518,7 +517,7 @@
                 gap: 0;
             }
             .form-group {
-                margin-bottom: 20px;
+                margin-bottom: 18px;
             }
         }
     </style>

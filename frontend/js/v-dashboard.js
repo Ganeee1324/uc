@@ -124,22 +124,23 @@ async function switchTab(tabName) {
         
         currentTab = 'stats';
     } else if (tabName === 'documents') {
-        // Show purchased documents section, hide others
+        // Show documents dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         
-        // Show purchased documents section
-        const purchasedDocumentsSection = document.getElementById('purchasedDocumentsSection');
-        if (purchasedDocumentsSection) {
-            purchasedDocumentsSection.style.display = 'block';
-        }
+        // Show documents dashboard
+        if (documentsDashboard) documentsDashboard.style.display = 'block';
         
         currentTab = 'documents';
         
-        // Load purchased documents when switching to documents tab
-        loadPurchasedDocuments();
+        // Load search component for documents
+        await loadSearchComponent('documentsSearchSectionContainer', {
+            title: 'I Miei Documenti',
+            subtitle: 'Gestisci i tuoi documenti',
+            placeholder: 'Cerca nei tuoi documenti...'
+        });
     } else {
         // Show profile/dashboard content, hide stats and documents
         if (profileSection) profileSection.style.display = 'block';
@@ -1007,8 +1008,8 @@ async function loadSearchComponent(containerId, config = {}) {
 async function initializeSearchComponentForContext(container, context) {
     console.log(`Initializing search component for context: ${context}`);
     
-    // Add a delay to ensure DOM is ready and search-section.js is loaded
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Add a small delay to ensure DOM is ready
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Reinitialize the search-section.js functionality
     try {
@@ -1032,50 +1033,6 @@ async function initializeSearchComponentForContext(container, context) {
         // Initialize performance cache if available
         if (window.performanceCache) {
             window.performanceCache.preloadCriticalData();
-        }
-        
-        // Force re-initialization of search-section.js functions if they exist
-        if (typeof window.initializeFilters === 'function') {
-            console.log('Re-initializing filters from search-section.js');
-            window.initializeFilters();
-        }
-        
-        if (typeof window.initializeFilterControls === 'function') {
-            console.log('Re-initializing filter controls from search-section.js');
-            window.initializeFilterControls();
-        }
-        
-        // Initialize order dropdown text on page load
-        const orderBtn = document.getElementById('orderBtn');
-        const orderText = orderBtn?.querySelector('.order-text');
-        if (orderText) {
-            orderText.textContent = 'Rilevanza';
-        }
-        
-        // Ensure all search-section.js functions are available globally
-        if (typeof window.initializeOrderDropdown === 'function') {
-            console.log('Re-initializing order dropdown from search-section.js');
-            window.initializeOrderDropdown();
-        }
-        
-        if (typeof window.setupDropdowns === 'function') {
-            console.log('Re-initializing dropdowns from search-section.js');
-            window.setupDropdowns();
-        }
-        
-        if (typeof window.initializeRatingFilter === 'function') {
-            console.log('Re-initializing rating filter from search-section.js');
-            window.initializeRatingFilter();
-        }
-        
-        if (typeof window.initializeToggleFilters === 'function') {
-            console.log('Re-initializing toggle filters from search-section.js');
-            window.initializeToggleFilters();
-        }
-        
-        if (typeof window.initializePriceRangeFilter === 'function') {
-            console.log('Re-initializing price range filter from search-section.js');
-            window.initializePriceRangeFilter();
         }
         
         console.log(`Search component initialized successfully for ${context}`);
@@ -1148,70 +1105,25 @@ function initializeSearchFunctionality(context) {
     }
     // For profile context, leave the original search-section.js handlers intact
     
-    // Initialize filters functionality from search-section.js
-    if (typeof initializeFilters === 'function') {
-        initializeFilters();
-    } else {
-        // Fallback: manually initialize filters button
-        const filtersBtn = document.getElementById('filtersBtn');
-        if (filtersBtn) {
-            // Remove existing listeners
-            const newFiltersBtn = filtersBtn.cloneNode(true);
-            filtersBtn.parentNode.replaceChild(newFiltersBtn, filtersBtn);
-            
-            // Add new listener
-            newFiltersBtn.addEventListener('click', function() {
-                const filtersPanel = document.getElementById('filtersPanel');
-                const filtersOverlay = document.getElementById('filtersOverlay');
-                if (filtersPanel) {
-                    filtersPanel.classList.add('active');
-                }
-                if (filtersOverlay) {
-                    filtersOverlay.classList.add('active');
-                }
-                document.body.style.overflow = 'hidden';
-            });
-        }
+    // Initialize filters button
+    const filtersBtn = document.getElementById('filtersBtn');
+    if (filtersBtn) {
+        // Remove existing listeners
+        const newFiltersBtn = filtersBtn.cloneNode(true);
+        filtersBtn.parentNode.replaceChild(newFiltersBtn, filtersBtn);
         
-        // Initialize filters close button
-        const filtersClose = document.getElementById('filtersClose');
-        if (filtersClose) {
-            filtersClose.addEventListener('click', function() {
-                const filtersPanel = document.getElementById('filtersPanel');
-                const filtersOverlay = document.getElementById('filtersOverlay');
-                if (filtersPanel) {
-                    filtersPanel.classList.remove('active');
-                }
-                if (filtersOverlay) {
-                    filtersOverlay.classList.remove('active');
-                }
-                document.body.style.overflow = '';
-            });
-        }
-        
-        // Initialize filters overlay click
-        const filtersOverlay = document.getElementById('filtersOverlay');
-        if (filtersOverlay) {
-            filtersOverlay.addEventListener('click', function() {
-                const filtersPanel = document.getElementById('filtersPanel');
-                if (filtersPanel) {
-                    filtersPanel.classList.remove('active');
-                }
-                this.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-        }
+        // Add new listener
+        newFiltersBtn.addEventListener('click', function() {
+            const filtersPanel = document.getElementById('filtersPanel');
+            if (filtersPanel) {
+                filtersPanel.classList.add('show');
+            }
+        });
     }
     
     // Initialize other necessary elements
     initializeSearchUIElements();
 }
-
-// Global variables needed for search functionality
-let currentOrder = 'relevance';
-let originalFiles = []; // Keep original unfiltered data
-let currentFiles = []; // Current displayed files
-let isFiltersOpen = false;
 
 function initializeSearchUIElements() {
     // Initialize AI toggle
@@ -1222,224 +1134,16 @@ function initializeSearchUIElements() {
         });
     }
     
-    // Initialize order dropdown with full functionality
-    initializeOrderDropdown();
-}
-
-// Order functionality - copied from search.js
-function initializeOrderDropdown() {
+    // Initialize order dropdown
     const orderBtn = document.getElementById('orderBtn');
-    const orderDropdown = document.querySelector('.order-dropdown-content');
-    const orderOptions = document.querySelectorAll('.order-option');
-    
-    if (!orderBtn || !orderDropdown) return;
-    
-    // Toggle dropdown on button click
-    orderBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        orderDropdown.classList.toggle('show');
-        // Always open downwards: remove .open-upwards if present
-        orderDropdown.classList.remove('open-upwards');
-        // Close other dropdowns
-        if (typeof closeAllDropdowns === 'function') {
-            closeAllDropdowns();
-        }
-    });
-    
-    // Handle order option selection
-    orderOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderType = option.getAttribute('data-order');
-            selectOrderOption(orderType);
-            orderDropdown.classList.remove('show');
+    if (orderBtn) {
+        orderBtn.addEventListener('click', function() {
+            const dropdown = this.parentNode.querySelector('.order-dropdown-content');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
         });
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
-            orderDropdown.classList.remove('show');
-        }
-    });
-    
-    // Close dropdown on escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            orderDropdown.classList.remove('show');
-        }
-    });
-}
-
-function selectOrderOption(orderType) {
-    currentOrder = orderType;
-    
-    // Update button text based on selection
-    const orderBtn = document.getElementById('orderBtn');
-    const orderText = orderBtn?.querySelector('.order-text');
-    
-    const orderLabels = {
-        'relevance': 'Rilevanza',
-        'reviews': 'Recensioni',
-        'price-lowest': 'Prezzo crescente',
-        'price-highest': 'Prezzo decrescente',
-        'name-asc': 'Nome A-Z',
-        'name-desc': 'Nome Z-A',
-        'date-newest': 'Più recenti',
-        'date-oldest': 'Meno recenti'
-    };
-    
-    if (orderText) {
-        orderText.textContent = orderLabels[orderType] || 'Ordina';
     }
-    
-    // Apply the order to current results
-    applyOrderToResults();
-}
-
-function applyOrderToResults() {
-    if (!originalFiles || originalFiles.length === 0) return;
-    
-    // Get current filtered results
-    const currentResults = applyClientSideFilters ? applyClientSideFilters(originalFiles) : originalFiles;
-    
-    // Sort the results based on current order
-    const sortedResults = sortDocuments(currentResults, currentOrder);
-    
-    // Re-render the documents with new order
-    if (typeof renderDocuments === 'function') {
-        renderDocuments(sortedResults);
-    }
-}
-
-function sortDocuments(documents, orderType) {
-    const sorted = [...documents];
-    
-    switch (orderType) {
-        case 'relevance':
-            // Keep original order (relevance from search)
-            return sorted;
-            
-        case 'reviews':
-            return sorted.sort((a, b) => {
-                const ratingA = parseFloat(a.rating || 0);
-                const ratingB = parseFloat(b.rating || 0);
-                return ratingB - ratingA;
-            });
-            
-        case 'price-lowest':
-            return sorted.sort((a, b) => {
-                const priceA = parseFloat(a.price || 0);
-                const priceB = parseFloat(b.price || 0);
-                return priceA - priceB;
-            });
-            
-        case 'price-highest':
-            return sorted.sort((a, b) => {
-                const priceA = parseFloat(a.price || 0);
-                const priceB = parseFloat(b.price || 0);
-                return priceB - priceA;
-            });
-            
-        case 'name-asc':
-            return sorted.sort((a, b) => {
-                const nameA = (a.title || '').toLowerCase();
-                const nameB = (b.title || '').toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
-            
-        case 'name-desc':
-            return sorted.sort((a, b) => {
-                const nameA = (a.title || '').toLowerCase();
-                const nameB = (b.title || '').toLowerCase();
-                return nameB.localeCompare(nameA);
-            });
-            
-        case 'date-newest':
-            return sorted.sort((a, b) => {
-                const dateA = new Date(a.created_at || 0);
-                const dateB = new Date(b.created_at || 0);
-                return dateB - dateA;
-            });
-            
-        case 'date-oldest':
-            return sorted.sort((a, b) => {
-                const dateA = new Date(a.created_at || 0);
-                const dateB = new Date(b.created_at || 0);
-                return dateA - dateB;
-            });
-            
-        default:
-            return sorted;
-    }
-}
-
-// Essential functions for filters to work properly
-function closeAllDropdowns() {
-    const dropdowns = document.querySelectorAll('.dropdown-container.open');
-    dropdowns.forEach(dropdown => {
-        dropdown.classList.remove('open');
-    });
-}
-
-function toggleFiltersPanel() {
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    
-    if (filtersPanel && filtersOverlay) {
-        isFiltersOpen = !isFiltersOpen;
-        
-        if (isFiltersOpen) {
-            filtersPanel.classList.add('active');
-            filtersOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        } else {
-            filtersPanel.classList.remove('active');
-            filtersOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    }
-}
-
-function closeFiltersPanel() {
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    
-    if (filtersPanel) {
-        filtersPanel.classList.remove('active');
-    }
-    if (filtersOverlay) {
-        filtersOverlay.classList.remove('active');
-    }
-    document.body.style.overflow = '';
-    isFiltersOpen = false;
-}
-
-// Mock functions for compatibility
-function applyClientSideFilters(files) {
-    // This is a mock function - in real implementation it would filter files
-    return files;
-}
-
-function renderDocuments(files) {
-    // This is a mock function - in real implementation it would render documents
-    console.log('Rendering documents:', files.length);
-}
-
-// Initialize filter manager if not exists
-if (!window.filterManager) {
-    window.filterManager = {
-        filters: {},
-        setFilter: function(key, value) {
-            this.filters[key] = value;
-        },
-        removeFilter: function(key) {
-            delete this.filters[key];
-        },
-        getActiveFilterCount: function() {
-            return Object.keys(this.filters).length;
-        }
-    };
 }
 
 function initializeFiltersForContext(context) {

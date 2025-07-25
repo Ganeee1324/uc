@@ -288,8 +288,17 @@ let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
-    // Initialize the page
+    // Initialize the page only when required elements exist
     window.onload = async function() {
+        // Check if required elements exist before initializing
+        const documentsGrid = document.getElementById('documentsGrid');
+        const searchSection = document.querySelector('.search-section');
+        
+        if (!documentsGrid || !searchSection) {
+            console.log('Search section elements not found, skipping initialization');
+            return;
+        }
+        
         // Show loading cards immediately when page loads
         showLoadingCards();
         
@@ -319,15 +328,15 @@ let isFiltersOpen = false;
         // Load files for both authenticated and guest users
         await loadAllFiles();
 
-            // Ensure documents are shown after loading
-    if (originalFiles && originalFiles.length > 0) {
-        renderDocuments(originalFiles);
-        currentFiles = originalFiles;
-        showStatus(`${originalFiles.length} documenti disponibili 📚`);
-        
-        // Debug position after initial render
-        setTimeout(() => debugPensatoTextPosition(), 200);
-    }
+        // Ensure documents are shown after loading
+        if (originalFiles && originalFiles.length > 0) {
+            renderDocuments(originalFiles);
+            currentFiles = originalFiles;
+            showStatus(`${originalFiles.length} documenti disponibili 📚`);
+            
+            // Debug position after initial render
+            setTimeout(() => debugPensatoTextPosition(), 200);
+        }
         
         // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
         setTimeout(() => {
@@ -353,46 +362,46 @@ let isFiltersOpen = false;
         // Favorite status is already loaded from the backend in loadAllFiles()
         // No need to refresh on page load since the data is already correct
     
-    // Add keyboard shortcut to clear all filters (Ctrl/Cmd + Alt + C)
-    document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'c') {
-            e.preventDefault();
-            clearAllFiltersAction();
-        }
-    });
-    
-    // Add a single, reliable event listener to refresh favorites when the page is shown.
-    window.addEventListener('pageshow', (event) => {
-        // This event fires on initial load and when navigating back to the page.
-        const favoritesChanged = sessionStorage.getItem('favoritesChanged');
+        // Add keyboard shortcut to clear all filters (Ctrl/Cmd + Alt + C)
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'c') {
+                e.preventDefault();
+                clearAllFiltersAction();
+            }
+        });
         
-        if (favoritesChanged === 'true') {
-            sessionStorage.removeItem('favoritesChanged'); // Clear the flag
-            // Favorite status is already included in vetrine data, no need for separate refresh
-        }
-    });
-    
-    // Mark when we're leaving the page
-    let isLeavingPage = false;
-    window.addEventListener('beforeunload', () => {
-        isLeavingPage = true;
-    });
-    
-    // Check if we're returning to the page
-    window.addEventListener('pageshow', async (event) => {
-        if (isLeavingPage && currentFiles && currentFiles.length > 0) {
-            isLeavingPage = false;
-            // Favorite status is already included in vetrine data, no need for separate refresh
-        }
-    });
-    
-    // Handle browser back/forward navigation
-    window.addEventListener('popstate', async (event) => {
-        if (currentFiles && currentFiles.length > 0) {
-            // Favorite status is already included in vetrine data, no need for separate refresh
-        }
-    });
-};
+        // Add a single, reliable event listener to refresh favorites when the page is shown.
+        window.addEventListener('pageshow', (event) => {
+            // This event fires on initial load and when navigating back to the page.
+            const favoritesChanged = sessionStorage.getItem('favoritesChanged');
+            
+            if (favoritesChanged === 'true') {
+                sessionStorage.removeItem('favoritesChanged'); // Clear the flag
+                // Favorite status is already included in vetrine data, no need for separate refresh
+            }
+        });
+        
+        // Mark when we're leaving the page
+        let isLeavingPage = false;
+        window.addEventListener('beforeunload', () => {
+            isLeavingPage = true;
+        });
+        
+        // Check if we're returning to the page
+        window.addEventListener('pageshow', async (event) => {
+            if (isLeavingPage && currentFiles && currentFiles.length > 0) {
+                isLeavingPage = false;
+                // Favorite status is already included in vetrine data, no need for separate refresh
+            }
+        });
+        
+        // Handle browser back/forward navigation
+        window.addEventListener('popstate', async (event) => {
+            if (currentFiles && currentFiles.length > 0) {
+                // Favorite status is already included in vetrine data, no need for separate refresh
+            }
+        });
+    };
 
 async function initializeUserInfo() {
     const user = await fetchCurrentUserData();
@@ -415,16 +424,27 @@ function updateHeaderUserInfo(user) {
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
-    if (user && user.username) {
-        const fullName = user.full_name || user.username;
+    if (!userAvatar) {
+        console.log('User avatar element not found, skipping user info update');
+        return;
+    }
+    
+    if (user) {
+        // Construct the user's full name for the avatar
+        let fullName = '';
+        if (user.name && user.surname) {
+            fullName = `${user.name} ${user.surname}`;
+        } else if (user.name) {
+            fullName = user.name;
+        } else if (user.username) {
+            fullName = user.username;
+        } else {
+            fullName = 'User';
+        }
         
         // Use consistent gradient avatar instead of UI Avatars service
         const gradientAvatar = createGradientAvatar(fullName, user.username);
-        
-        // Add null check for userAvatar
-        if (userAvatar) {
-            userAvatar.innerHTML = gradientAvatar;
-        }
+        userAvatar.innerHTML = gradientAvatar;
         
         // Apply the same gradient to dropdown avatar
         if (dropdownAvatar) {
@@ -450,27 +470,23 @@ function updateHeaderUserInfo(user) {
         const userInfo = document.querySelector('.user-info');
         
         // Show dropdown on hover
-        if (userAvatar) {
-            userAvatar.addEventListener('mouseenter', (event) => {
-                event.stopPropagation();
-                if (userInfo) userInfo.classList.add('open');
-            });
-            
-            // Redirect to v-dashboard when user clicks their avatar
-            userAvatar.addEventListener('click', (event) => {
-                event.stopPropagation();
-                // Redirect to v-dashboard with user info
-                window.location.href = 'v-dashboard.html';
-            });
-        }
+        userAvatar.addEventListener('mouseenter', (event) => {
+            event.stopPropagation();
+            userInfo.classList.add('open');
+        });
         
         // Hide dropdown when mouse leaves the user info area
-        if (userInfo) {
-            userInfo.addEventListener('mouseleave', (event) => {
-                event.stopPropagation();
-                userInfo.classList.remove('open');
-            });
-        }
+        userInfo.addEventListener('mouseleave', (event) => {
+            event.stopPropagation();
+            userInfo.classList.remove('open');
+        });
+        
+        // Redirect to v-dashboard when user clicks their avatar
+        userAvatar.addEventListener('click', (event) => {
+            event.stopPropagation();
+            // Redirect to v-dashboard with user info
+            window.location.href = 'v-dashboard.html';
+        });
 
         // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
@@ -483,13 +499,11 @@ function updateHeaderUserInfo(user) {
 
     } else {
         // Handle case where user is not logged in - show login button
-        if (userAvatar) {
-            userAvatar.innerHTML = `
-                <button class="login-btn" onclick="window.location.href='index.html'">
-                    <span class="login-btn-text">Accedi</span>
-                </button>
-            `;
-        }
+        userAvatar.innerHTML = `
+            <button class="login-btn" onclick="window.location.href='index.html'">
+                <span class="login-btn-text">Accedi</span>
+            </button>
+        `;
         
         // Remove dropdown functionality for non-authenticated users
         const userInfo = document.querySelector('.user-info');
@@ -1271,17 +1285,12 @@ function populateOptions(type, items) {
     const options = document.getElementById(`${type}Options`);
     const filterElement = document.getElementById(`${type}Filter`);
     
-    // Add null check for filter element
-    if (!filterElement) {
-        console.warn(`Filter element ${type}Filter not found`);
+    if (!options || !filterElement) {
+        console.log(`${type} filter elements not found, skipping options population`);
         return;
     }
     
     const currentValue = filterElement.value;
-    
-    if (!options) {
-        return;
-    }
     
     // Language display text mapping
     const languageDisplayMap = {
@@ -3581,7 +3590,7 @@ async function makeAuthenticatedRequest(url) {
 function showLoadingCards(count = null) {
     const grid = document.getElementById('documentsGrid');
     if (!grid) {
-        console.warn('📱 Grid element not found - this is normal in some contexts');
+        console.log('Grid element not found, skipping loading cards');
         return;
     }
     

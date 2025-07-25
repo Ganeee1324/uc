@@ -4388,6 +4388,7 @@ function renderDocuments(files) {
     }, 100);
 }
 
+
 function generateStars(rating) {
     let stars = '';
     for (let i = 1; i <= 5; i++) {

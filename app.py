@@ -130,19 +130,59 @@ def value_error(e):
 # Auth routes
 # ---------------------------------------------
 
+# Email sending configuration (implement with your preferred email service)
+# For production, integrate with services like SendGrid, AWS SES, etc.
+def send_verification_email(email: str, verification_token: str, verification_code: str):
+    """
+    Send verification email to user.
+    This is a placeholder - implement with your email service.
+    """
+    # Example verification link
+    verification_link = f"https://your-domain.com/verify-email?token={verification_token}"
+    
+    # Log for development (replace with actual email sending)
+    logging.info(f"Sending verification email to {email}")
+    logging.info(f"Verification link: {verification_link}")
+    logging.info(f"Verification code: {verification_code}")
+    
+    # TODO: Implement actual email sending
+    # email_service.send_verification_email(email, verification_link, verification_code)
+    pass
+
 
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    user = database.create_user(
+    email = str(data.get("email"))
+    
+    # Check if email verification is enabled (default: True)
+    require_verification = os.getenv("REQUIRE_EMAIL_VERIFICATION", "true").lower() == "true"
+    
+    user, verification_token, verification_code = database.create_user(
         username=str(data.get("username")),
-        email=str(data.get("email")),
+        email=email,
         password=str(data.get("password")),
         name=str(data.get("name")),
         surname=str(data.get("surname")),
+        require_email_verification=require_verification
     )
-    access_token = create_access_token(identity=user.user_id)
-    return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
+    
+    if require_verification:
+        # Send verification email here (implement email sending service)
+        # For now, we'll just log the verification details
+        logging.info(f"Email verification required for {email}")
+        logging.info(f"Verification token: {verification_token}")
+        logging.info(f"Verification code: {verification_code}")
+        
+        return jsonify({
+            "email_verification_required": True,
+            "message": "Please check your email and verify your account to complete registration.",
+            "user": user.to_dict()
+        }), 200
+    else:
+        # Legacy behavior - direct login
+        access_token = create_access_token(identity=user.user_id)
+        return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
 
 
 @app.route("/login", methods=["POST"])
@@ -154,6 +194,75 @@ def login():
     user = database.verify_user(email, password)
     access_token = create_access_token(identity=user.user_id)
     return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
+
+
+@app.route("/verify-email", methods=["GET"])
+def verify_email():
+    token = request.args.get("token")
+    if not token:
+        return jsonify({"error": "missing_token", "msg": "Verification token is required"}), 400
+    
+    try:
+        user = database.verify_email_token(token)
+        return jsonify({
+            "message": "Email verified successfully",
+            "user": user.to_dict()
+        }), 200
+    except UnauthorizedError as e:
+        return jsonify({"error": "invalid_token", "msg": str(e)}), 401
+
+
+@app.route("/verify-email-code", methods=["POST"])
+def verify_email_code():
+    data = request.json
+    email = data.get("email")
+    code = data.get("code")
+    
+    if not email or not code:
+        return jsonify({"error": "missing_data", "msg": "Email and code are required"}), 400
+    
+    try:
+        user = database.verify_email_code(email, code)
+        access_token = create_access_token(identity=user.user_id)
+        return jsonify({
+            "message": "Email verified successfully",
+            "access_token": access_token,
+            "user": user.to_dict()
+        }), 200
+    except UnauthorizedError as e:
+        return jsonify({"error": "invalid_code", "msg": str(e)}), 401
+
+
+@app.route("/resend-verification", methods=["POST"])
+def resend_verification():
+    data = request.json
+    email = data.get("email")
+    
+    if not email:
+        return jsonify({"error": "missing_email", "msg": "Email is required"}), 400
+    
+    try:
+        verification_token, verification_code = database.resend_verification_email(email)
+        
+        # Send verification email here (implement email sending service)
+        # For now, we'll just log the verification details
+        logging.info(f"Resending verification for {email}")
+        logging.info(f"New verification token: {verification_token}")
+        logging.info(f"New verification code: {verification_code}")
+        
+        return jsonify({
+            "message": "Verification email sent successfully"
+        }), 200
+    except NotFoundException as e:
+        return jsonify({"error": "user_not_found", "msg": str(e)}), 404
+    except ValueError as e:
+        return jsonify({"error": "already_verified", "msg": str(e)}), 400
+
+
+@app.route("/resend-verification-code", methods=["POST"])
+def resend_verification_code():
+    """Alias for resend-verification for code-based verification"""
+    return resend_verification()
 
 
 # ---------------------------------------------

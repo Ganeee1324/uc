@@ -73,6 +73,140 @@
             font-weight: 400;
         }
 
+        /* Email Verification Status */
+        .email-status {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            display: none;
+        }
+
+        .email-status.show {
+            display: block;
+        }
+
+        .email-status.pending {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .email-status.success {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+
+        .email-status.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .email-status-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .email-status.pending .email-status-icon {
+            color: #d97706;
+        }
+
+        .email-status.success .email-status-icon {
+            color: #10b981;
+        }
+
+        .email-status.error .email-status-icon {
+            color: #ef4444;
+        }
+
+        .email-status-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .email-status.pending .email-status-title {
+            color: #92400e;
+        }
+
+        .email-status.success .email-status-title {
+            color: #065f46;
+        }
+
+        .email-status.error .email-status-title {
+            color: #991b1b;
+        }
+
+        .email-status-text {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .email-status.pending .email-status-text {
+            color: #a16207;
+        }
+
+        .email-status.success .email-status-text {
+            color: #047857;
+        }
+
+        .email-status.error .email-status-text {
+            color: #b91c1c;
+        }
+
+        .email-address {
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .email-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .email-action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .email-action-btn.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .email-action-btn.primary:hover {
+            background: #1d4ed8;
+        }
+
+        .email-action-btn.secondary {
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .email-action-btn.secondary:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .email-action-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
         /* Form Toggle */
         .form-toggle {
             display: flex;
@@ -164,6 +298,38 @@
         /* Form Groups */
         .form-group {
             margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group.has-icon {
+            position: relative;
+        }
+
+        .form-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 20px;
+            pointer-events: none;
+            transition: color 0.2s ease;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            line-height: 1;
+        }
+
+        .form-group.has-icon .form-input {
+            padding-left: 48px;
+        }
+
+        .form-group.has-icon .form-input:focus + .form-icon,
+        .form-group.has-icon .form-input.filled + .form-icon {
+            color: #3b82f6;
         }
 
         .form-row {
@@ -178,6 +344,8 @@
             font-size: 14px;
             color: #374151;
             margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
         }
 
         .form-input {
@@ -190,6 +358,8 @@
             background: white;
             transition: all 0.2s ease;
             color: #111827;
+            position: relative;
+            z-index: 0;
         }
 
         .form-input:focus {
@@ -244,6 +414,33 @@
             transform: none;
             background: #9ca3af;
             box-shadow: none;
+        }
+
+        /* Additional Links */
+        .additional-links {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .link-item {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .link-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .link-item a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-item a:hover {
+            text-decoration: underline;
         }
 
         .btn-content {
@@ -347,6 +544,29 @@
                 <button type="button" class="toggle-btn" data-form="register">Crea Account</button>
             </div>
 
+            <!-- Email Status -->
+            <div class="email-status" id="emailStatus">
+                <span class="material-symbols-outlined email-status-icon" id="emailStatusIcon">mail</span>
+                <div class="email-status-title" id="emailStatusTitle">Email Inviata</div>
+                <div class="email-status-text" id="emailStatusText">
+                    Abbiamo inviato un link di verifica a <span class="email-address" id="emailStatusAddress"></span>
+                </div>
+                <div class="email-actions">
+                    <button class="email-action-btn primary" id="checkEmailBtn">
+                        <span class="material-symbols-outlined">mail</span>
+                        Apri Email
+                    </button>
+                    <button class="email-action-btn secondary" id="resendEmailBtn">
+                        <span class="material-symbols-outlined">refresh</span>
+                        Invia di nuovo
+                    </button>
+                    <button class="email-action-btn secondary" id="useCodeBtn">
+                        <span class="material-symbols-outlined">pin</span>
+                        Usa codice
+                    </button>
+                </div>
+            </div>
+
             <!-- Messages -->
             <div class="message success" id="successMessage">
                 <span>✓</span>
@@ -361,7 +581,7 @@
             <div class="form-section">
                 <!-- Login Form -->
                 <form class="login-form active" id="loginForm">
-                    <div class="form-group">
+                    <div class="form-group has-icon">
                         <label for="loginEmail" class="form-label">Indirizzo email</label>
                         <input 
                             type="email" 
@@ -371,9 +591,10 @@
                             required
                             autocomplete="email"
                         >
+                        <span class="material-symbols-outlined form-icon">mail</span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group has-icon">
                         <label for="loginPassword" class="form-label">Password</label>
                         <input 
                             type="password" 
@@ -383,6 +604,7 @@
                             required
                             autocomplete="current-password"
                         >
+                        <span class="material-symbols-outlined form-icon">lock</span>
                     </div>
 
                     <button type="submit" class="submit-btn" id="loginBtn">
@@ -390,12 +612,18 @@
                             <span class="btn-text">Accedi</span>
                         </span>
                     </button>
+
+                    <div class="additional-links">
+                        <div class="link-item">
+                            <a href="#" id="forgotPasswordLink">Hai dimenticato la password?</a>
+                        </div>
+                    </div>
                 </form>
 
                 <!-- Register Form -->
                 <form class="register-form" id="registerForm">
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group has-icon">
                             <label for="registerName" class="form-label">Nome</label>
                             <input 
                                 type="text" 
@@ -405,8 +633,9 @@
                                 required
                                 autocomplete="given-name"
                             >
+                            <span class="material-symbols-outlined form-icon">person</span>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group has-icon">
                             <label for="registerSurname" class="form-label">Cognome</label>
                             <input 
                                 type="text" 
@@ -416,10 +645,11 @@
                                 required
                                 autocomplete="family-name"
                             >
+                            <span class="material-symbols-outlined form-icon">person</span>
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group has-icon">
                         <label for="registerUsername" class="form-label">Nome utente</label>
                         <input 
                             type="text" 
@@ -429,9 +659,10 @@
                             required
                             autocomplete="username"
                         >
+                        <span class="material-symbols-outlined form-icon">alternate_email</span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group has-icon">
                         <label for="registerEmail" class="form-label">Indirizzo email</label>
                         <input 
                             type="email" 
@@ -441,9 +672,10 @@
                             required
                             autocomplete="email"
                         >
+                        <span class="material-symbols-outlined form-icon">mail</span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group has-icon">
                         <label for="registerPassword" class="form-label">Password</label>
                         <input 
                             type="password" 
@@ -454,9 +686,10 @@
                             minlength="6"
                             autocomplete="new-password"
                         >
+                        <span class="material-symbols-outlined form-icon">lock</span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group has-icon">
                         <label for="registerPasswordConfirm" class="form-label">Conferma password</label>
                         <input 
                             type="password" 
@@ -467,6 +700,7 @@
                             minlength="6"
                             autocomplete="new-password"
                         >
+                        <span class="material-symbols-outlined form-icon">lock</span>
                     </div>
 
                     <button type="submit" class="submit-btn" id="registerBtn">
@@ -474,6 +708,12 @@
                             <span class="btn-text">Crea Account</span>
                         </span>
                     </button>
+
+                    <div class="additional-links">
+                        <div class="link-item">
+                            Registrandoti accetti i nostri <a href="#">Termini di Servizio</a> e la <a href="#">Privacy Policy</a>
+                        </div>
+                    </div>
                 </form>
             </div>
 

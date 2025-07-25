@@ -12,11 +12,19 @@ let currentSearchSectionContext = null;
 
 // Function to create unique overlay elements for each search section instance
 function createUniqueOverlays(searchSection) {
-    const instanceId = searchSection.dataset.instanceId || Math.random().toString(36).substr(2, 9);
-    searchSection.dataset.instanceId = instanceId;
+    // Generate a unique instance ID if not present
+    if (!searchSection.dataset.instanceId) {
+        const instanceId = 'search_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        searchSection.dataset.instanceId = instanceId;
+        console.log(`🆔 Generated new instance ID: ${instanceId}`);
+    }
+    
+    const instanceId = searchSection.dataset.instanceId;
+    console.log(`🔧 Creating unique overlays for instance: ${instanceId}`);
     
     // Check if overlays already exist for this instance
-    if (searchSection.querySelector(`[data-instance="${instanceId}"]`)) {
+    if (document.getElementById(`filtersOverlay_${instanceId}`)) {
+        console.log(`🔄 Overlays already exist for instance: ${instanceId}`);
         return;
     }
     
@@ -111,6 +119,25 @@ function createUniqueOverlays(searchSection) {
     document.body.appendChild(reviewsOverlay);
     
     console.log(`🔄 Created unique overlays for search section instance: ${instanceId}`);
+}
+
+// Helper function to get the correct overlay for a search section instance
+function getInstanceOverlay(searchSection, overlayType = 'filters') {
+    if (!searchSection) return null;
+    
+    const instanceId = searchSection.dataset.instanceId;
+    if (!instanceId) return null;
+    
+    switch (overlayType) {
+        case 'filters':
+            return document.getElementById(`filtersOverlay_${instanceId}`);
+        case 'preview':
+            return document.getElementById(`previewModal_${instanceId}`);
+        case 'reviews':
+            return document.getElementById(`reviewsOverlay_${instanceId}`);
+        default:
+            return null;
+    }
 }
 
 // DOM element cache for performance optimization
@@ -224,6 +251,31 @@ let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
+// Function to customize search section based on context
+function customizeSearchSectionContext() {
+    const searchSections = document.querySelectorAll('.search-section');
+    
+    searchSections.forEach(searchSection => {
+        // Detect context based on parent container
+        const favoritesContainer = searchSection.closest('#favoritesDashboard');
+        const documentsContainer = searchSection.closest('#documentsDashboard');
+        
+        const titleElement = searchSection.querySelector('.search-title');
+        const subtitleElement = searchSection.querySelector('.search-subtitle');
+        
+        if (favoritesContainer) {
+            // Favorites context - remove subtitle
+            if (titleElement) titleElement.textContent = 'Cerca nei Preferiti.';
+            if (subtitleElement) subtitleElement.style.display = 'none';
+        } else if (documentsContainer) {
+            // Documents context - update subtitle
+            if (titleElement) titleElement.textContent = 'I Miei Documenti.';
+            if (subtitleElement) subtitleElement.textContent = 'Gestisci e organizza i tuoi contenuti.';
+        }
+        // For main search context, keep default title and subtitle
+    });
+}
+
     // Initialize the page
     window.onload = async function() {
         // Set the initial search section context
@@ -250,6 +302,7 @@ let isFiltersOpen = false;
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
+        customizeSearchSectionContext();
         initializeAISearchToggle();
         
         // Load valid tags from backend first
@@ -348,8 +401,8 @@ function initializeAnimations() {
 // ADVANCED FILTER SYSTEM - FULLY FUNCTIONAL
 // ===========================
 
-function initializeFilters() {
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
+function initializeFilters(specificContext = null) {
+    const context = specificContext || currentSearchSectionContext || document.querySelector('.search-section');
     if (!context) {
         console.error('❌ No search section context found for initializeFilters');
         return;
@@ -357,16 +410,20 @@ function initializeFilters() {
     
     const filtersBtn = context.querySelector('#filtersBtn') || document.getElementById('filtersBtn');
     const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay');
+    const filtersOverlay = getInstanceOverlay(context, 'filters') || document.getElementById('filtersOverlay');
     const filtersClose = context.querySelector('#filtersClose') || document.getElementById('filtersClose');
     const clearAllFilters = context.querySelector('#clearAllFilters') || document.getElementById('clearAllFilters');
 
-    // Filter panel toggle
-    if (filtersBtn) filtersBtn.addEventListener('click', (e) => {
-        // Pass the context through the event
-        e.target.dataset.searchSectionContext = context.dataset.instanceId;
-        toggleFiltersPanel(e);
-    });
+    // Store context reference on the button for later retrieval
+    if (filtersBtn) {
+        filtersBtn.searchSectionContext = context;
+        filtersBtn.addEventListener('click', (e) => {
+            // Pass the context through the event
+            e.target.dataset.searchSectionContext = context.dataset.instanceId;
+            e.searchSectionContext = context;
+            toggleFiltersPanel(e);
+        });
+    }
     if (filtersClose) filtersClose.addEventListener('click', closeFiltersPanel);
     if (filtersOverlay) filtersOverlay.addEventListener('click', closeFiltersPanel);
 
@@ -2053,8 +2110,8 @@ let currentOrder = 'relevance';
 
 // Initialize order button text on page load
 
-function initializeOrderDropdown() {
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
+function initializeOrderDropdown(specificContext = null) {
+    const context = specificContext || currentSearchSectionContext || document.querySelector('.search-section');
     if (!context) {
         console.error('❌ No search section context found for initializeOrderDropdown');
         return;
@@ -2255,13 +2312,38 @@ function toggleFiltersPanel(event = null) {
     
     // Get context from the event or fallback to current context
     let context;
-    if (event && event.target && event.target.dataset.searchSectionContext) {
+    
+    // First try to get context from the event object
+    if (event && event.searchSectionContext) {
+        context = event.searchSectionContext;
+        console.log('🎯 Got context from event.searchSectionContext:', context.dataset.instanceId);
+    }
+    
+    // Try to get context from the button's stored reference
+    if (!context && event && event.target && event.target.searchSectionContext) {
+        context = event.target.searchSectionContext;
+        console.log('🎯 Got context from button.searchSectionContext:', context.dataset.instanceId);
+    }
+    
+    // Try to get context from instance ID
+    if (!context && event && event.target && event.target.dataset.searchSectionContext) {
         const instanceId = event.target.dataset.searchSectionContext;
-        context = document.querySelector(`[data-instance-id="${instanceId}"]`);
-    } else {
-        // Find the search section that contains the filtersBtn that was clicked
-        const filtersBtn = document.querySelector('#filtersBtn:focus') || document.activeElement?.closest('#filtersBtn') || document.querySelector('#filtersBtn');
-        context = filtersBtn ? filtersBtn.closest('.search-section') : (currentSearchSectionContext || document.querySelector('.search-section'));
+        context = document.querySelector(`[data-instance-id="${instanceId}"]`) || 
+                  document.querySelector(`[data-instance="${instanceId}"]`);
+        console.log('🎯 Got context from instanceId lookup:', instanceId, context?.dataset.instanceId);
+    }
+    
+    // If we couldn't find context from event, try to get it from the clicked element
+    if (!context && event && event.target) {
+        const clickedElement = event.target;
+        context = clickedElement.closest('.search-section');
+        console.log('🎯 Got context from closest search-section:', context?.dataset.instanceId);
+    }
+    
+    // Final fallback to global search
+    if (!context) {
+        context = currentSearchSectionContext || document.querySelector('.search-section');
+        console.log('🎯 Using fallback context:', context?.dataset.instanceId);
     }
     
     if (!context) {
@@ -2271,7 +2353,16 @@ function toggleFiltersPanel(event = null) {
     
     const instanceId = context.dataset.instanceId;
     const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = instanceId ? document.getElementById(`filtersOverlay_${instanceId}`) : (context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay'));
+    const filtersOverlay = getInstanceOverlay(context, 'filters') || document.getElementById('filtersOverlay');
+    
+    console.log(`🔍 ToggleFiltersPanel Debug:`, {
+        instanceId,
+        hasFiltersPanel: !!filtersPanel,
+        hasFiltersOverlay: !!filtersOverlay,
+        overlayId: filtersOverlay?.id,
+        contextElement: context,
+        usingInstanceOverlay: !!getInstanceOverlay(context, 'filters')
+    });
     const mainContent = document.querySelector('.main-content');
     const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     
@@ -2560,7 +2651,7 @@ function closeFiltersPanel() {
     
     const instanceId = context.dataset.instanceId;
     const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = instanceId ? document.getElementById(`filtersOverlay_${instanceId}`) : (context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay'));
+    const filtersOverlay = getInstanceOverlay(context, 'filters') || document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
     const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     
@@ -7241,56 +7332,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Component initialization function
     function initializeSearchSectionComponent(specificSearchSection = null) {
-        // Check if search section container exists
-        const searchSection = specificSearchSection || document.querySelector('.search-section');
-        if (!searchSection) {
+        // Find all search sections or use specific one
+        const searchSections = specificSearchSection ? [specificSearchSection] : document.querySelectorAll('.search-section');
+        
+        if (searchSections.length === 0) {
             console.log('⏳ Search section container not found yet, will retry...');
             return;
         }
 
-        // Check if this specific search section is already initialized
-        if (searchSection.dataset.initialized === 'true') {
-            console.log('🔄 Search Section Component already initialized for this container');
-            return;
-        }
-
-        initializationInProgress = true;
-        console.log('🚀 Initializing Search Section Component');
-
-        try {
-            // Store the current search section context for this initialization
-            currentSearchSectionContext = searchSection;
-            
-            // Create unique overlay elements for this search section instance
-            createUniqueOverlays(searchSection);
-            
-            // Initialize core functionality for this specific search section
-            DOM_CACHE.init();
-            initializeFilters();
-            handleCSPEventHandlers();
-            initializeAnimations();
-            initializeOrderDropdown();
-            
-            // Initialize search functionality
-            if (typeof performInitialSearch === 'function') {
-                performInitialSearch();
-            } else {
-                // Fallback - perform initial search
-                setTimeout(() => {
-                    if (typeof applyFiltersAndRender === 'function') {
-                        applyFiltersAndRender();
-                    }
-                }, 500);
+        // Initialize each search section separately
+        searchSections.forEach(searchSection => {
+            // Check if this specific search section is already initialized
+            if (searchSection.dataset.initialized === 'true') {
+                console.log('🔄 Search Section Component already initialized for this container');
+                return;
             }
-            
-            // Mark this specific search section as initialized
-            searchSection.dataset.initialized = 'true';
-            console.log('✅ Search Section Component initialized successfully');
-        } catch (error) {
-            console.error('❌ Error initializing Search Section Component:', error);
-        } finally {
-            initializationInProgress = false;
-        }
+
+            console.log('🚀 Initializing Search Section Component for instance:', searchSection.dataset.instanceId || 'new');
+
+            try {
+                // Store the current search section context for this initialization
+                currentSearchSectionContext = searchSection;
+                
+                // Create unique overlay elements for this search section instance
+                createUniqueOverlays(searchSection);
+                
+                // Initialize core functionality for this specific search section
+                DOM_CACHE.init();
+                initializeFilters(searchSection);
+                handleCSPEventHandlers();
+                initializeAnimations();
+                initializeOrderDropdown(searchSection);
+                
+                // Initialize search functionality
+                if (typeof performInitialSearch === 'function') {
+                    performInitialSearch();
+                } else {
+                    // Fallback - perform initial search
+                    setTimeout(() => {
+                        if (typeof applyFiltersAndRender === 'function') {
+                            applyFiltersAndRender();
+                        }
+                    }, 500);
+                }
+                
+                // Apply context-specific customization
+                customizeSearchSectionContext();
+                
+                // Mark this specific search section as initialized
+                searchSection.dataset.initialized = 'true';
+                console.log('✅ Search Section Component initialized successfully for instance:', searchSection.dataset.instanceId);
+            } catch (error) {
+                console.error('❌ Error initializing Search Section Component:', error);
+            }
+        });
+        
+        initializationInProgress = false;
     }
 
     // Smart initialization with retry logic
@@ -7347,6 +7444,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (searchSection) {
                 currentSearchSectionContext = searchSection;
                 console.log('🔄 Updated search section context');
+                // Also apply context-specific customization
+                customizeSearchSectionContext();
             }
         };
     }

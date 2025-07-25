@@ -14,6 +14,9 @@ import pandas as pd
 import numpy as np
 from langdetect import detect
 import json
+import secrets
+import string
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -78,9 +81,9 @@ def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
 # ---------------------------------------------
 
 
-def create_user(username: str, email: str, password: str, name: str, surname: str) -> User:
+def create_user(username: str, email: str, password: str, name: str, surname: str, require_email_verification: bool = True) -> Tuple[User, Optional[str], Optional[str]]:
     """
-    Create a new user.
+    Create a new user with optional email verification.
 
     Args:
         username: The username for the new user
@@ -88,28 +91,39 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
         password: The password for the new user
         name: The name for the new user
         surname: The surname for the new user
+        require_email_verification: Whether to require email verification
 
     Returns:
-        User: The newly created user object
+        Tuple[User, Optional[str], Optional[str]]: The newly created user object, verification token, and verification code
 
     Raises:
         UniqueViolation: If the username or email already exists
     """
+    verification_token = None
+    verification_code = None
+    
+    if require_email_verification:
+        verification_token = secrets.token_urlsafe(32)
+        verification_code = ''.join(random.choices(string.digits, k=6))
+        expires_at = datetime.utcnow() + timedelta(hours=24)
+    else:
+        expires_at = None
+    
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO users (username, email, password, first_name, last_name)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO users (username, email, password, first_name, last_name, email_verified, email_verification_token, email_verification_code, email_verification_expires)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING *
                 """,
-                (username, email, password, name, surname),
+                (username, email, password, name, surname, not require_email_verification, verification_token, verification_code, expires_at),
             )
             user_data = cursor.fetchone()
             conn.commit()
-            logging.info(f"User {user_data['user_id']} created")
+            logging.info(f"User {user_data['user_id']} created with email verification: {require_email_verification}")
 
-            return User.from_dict(user_data)
+            return User.from_dict(user_data), verification_token, verification_code
 
 
 def verify_user(email: str, password: str) -> User:
@@ -124,7 +138,7 @@ def verify_user(email: str, password: str) -> User:
         User: The user object if the credentials are valid
 
     Raises:
-        UnauthorizedError: If the email or password is invalid
+        UnauthorizedError: If the email or password is invalid or email not verified
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -132,6 +146,8 @@ def verify_user(email: str, password: str) -> User:
             user_data = cursor.fetchone()
             if not user_data or password != user_data["password"]:
                 raise UnauthorizedError("Invalid email or password")
+            if not user_data.get("email_verified", True):  # Default to True for backward compatibility
+                raise UnauthorizedError("Email not verified. Please check your email and verify your account.")
             logging.info(f"User {user_data['user_id']} verified")
             return User.from_dict(user_data)
 
@@ -150,7 +166,7 @@ def delete_user(user_id: int) -> None:
             logging.info(f"User {user_id} deleted")
 
 
-def get_user_by_id(user_id: int) -> User:
+def get_user_by_id(user_id: int) -> Optional[User]:
     """
     Get a user by their ID.
 
@@ -1355,3 +1371,173 @@ def get_user_following(user_id: int) -> List[User]:
             logging.info(f"Found {len(following_data)} users that user {user_id} is following")
 
             return [User.from_dict(following_row) for following_row in following_data]
+
+
+# ---------------------------------------------
+# Email verification management
+# ---------------------------------------------
+
+
+def verify_email_token(token: str) -> User:
+    """
+    Verify an email verification token and activate the user account.
+
+    Args:
+        token: The email verification token
+
+    Returns:
+        User: The verified user object
+
+    Raises:
+        UnauthorizedError: If the token is invalid or expired
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT * FROM users 
+                WHERE email_verification_token = %s 
+                AND email_verification_expires > %s
+                AND email_verified = FALSE
+                """,
+                (token, datetime.utcnow())
+            )
+            user_data = cursor.fetchone()
+            
+            if not user_data:
+                raise UnauthorizedError("Invalid or expired verification token")
+            
+            # Mark email as verified and clear verification data
+            cursor.execute(
+                """
+                UPDATE users 
+                SET email_verified = TRUE, 
+                    email_verification_token = NULL, 
+                    email_verification_code = NULL,
+                    email_verification_expires = NULL
+                WHERE user_id = %s
+                RETURNING *
+                """,
+                (user_data['user_id'],)
+            )
+            
+            updated_user_data = cursor.fetchone()
+            conn.commit()
+            logging.info(f"Email verified for user {user_data['user_id']}")
+            
+            return User.from_dict(updated_user_data)
+
+
+def verify_email_code(email: str, code: str) -> User:
+    """
+    Verify an email verification code and activate the user account.
+
+    Args:
+        email: The user's email address
+        code: The 6-digit verification code
+
+    Returns:
+        User: The verified user object
+
+    Raises:
+        UnauthorizedError: If the code is invalid or expired
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT * FROM users 
+                WHERE email = %s 
+                AND email_verification_code = %s 
+                AND email_verification_expires > %s
+                AND email_verified = FALSE
+                """,
+                (email, code, datetime.utcnow())
+            )
+            user_data = cursor.fetchone()
+            
+            if not user_data:
+                raise UnauthorizedError("Invalid or expired verification code")
+            
+            # Mark email as verified and clear verification data
+            cursor.execute(
+                """
+                UPDATE users 
+                SET email_verified = TRUE, 
+                    email_verification_token = NULL, 
+                    email_verification_code = NULL,
+                    email_verification_expires = NULL
+                WHERE user_id = %s
+                RETURNING *
+                """,
+                (user_data['user_id'],)
+            )
+            
+            updated_user_data = cursor.fetchone()
+            conn.commit()
+            logging.info(f"Email verified with code for user {user_data['user_id']}")
+            
+            return User.from_dict(updated_user_data)
+
+
+def resend_verification_email(email: str) -> Tuple[str, str]:
+    """
+    Generate and store new verification token and code for a user.
+
+    Args:
+        email: The user's email address
+
+    Returns:
+        Tuple[str, str]: New verification token and code
+
+    Raises:
+        NotFoundException: If the user doesn't exist
+        ValueError: If the email is already verified
+    """
+    verification_token = secrets.token_urlsafe(32)
+    verification_code = ''.join(random.choices(string.digits, k=6))
+    expires_at = datetime.utcnow() + timedelta(hours=24)
+    
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT user_id, email_verified FROM users WHERE email = %s", (email,))
+            user_data = cursor.fetchone()
+            
+            if not user_data:
+                raise NotFoundException("User not found")
+            
+            if user_data['email_verified']:
+                raise ValueError("Email already verified")
+            
+            cursor.execute(
+                """
+                UPDATE users 
+                SET email_verification_token = %s, 
+                    email_verification_code = %s,
+                    email_verification_expires = %s
+                WHERE user_id = %s
+                """,
+                (verification_token, verification_code, expires_at, user_data['user_id'])
+            )
+            
+            conn.commit()
+            logging.info(f"Verification email resent for user {user_data['user_id']}")
+            
+            return verification_token, verification_code
+
+
+def get_user_by_email(email: str) -> Optional[User]:
+    """
+    Get a user by their email address.
+
+    Args:
+        email: The email address to search for
+
+    Returns:
+        User: The user object if found, None otherwise
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            user_data = cursor.fetchone()
+            return User.from_dict(user_data) if user_data else None

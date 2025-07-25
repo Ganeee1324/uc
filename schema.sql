@@ -25,7 +25,13 @@ CREATE TABLE IF NOT EXISTS users (
     bio TEXT,
     profile_picture VARCHAR(255),
     password VARCHAR(255) NOT NULL,
-    uploaded_documents_count INTEGER NOT NULL DEFAULT 0
+    uploaded_documents_count INTEGER NOT NULL DEFAULT 0,
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    email_verification_token VARCHAR(255),
+    email_verification_code VARCHAR(6),
+    email_verification_expires TIMESTAMP,
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS course_instances (
@@ -431,4 +437,4 @@ CREATE TRIGGER trigger_update_user_document_count_delete
     FOR EACH ROW
     EXECUTE FUNCTION update_user_document_count();
 
-INSERT INTO users (username, first_name, last_name, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');
+INSERT INTO users (username, first_name, last_name, email, password, email_verified) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin', TRUE);

@@ -1,19 +1,8 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Section Component</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="components/search-section/search-section.css">
-</head>
-<body>
-
 <!-- Search Section Component - Reusable search interface -->
-<div class="search-section has-results" id="searchSection">
+
+<!-- Component Styles -->
+<link rel="stylesheet" href="components/search-section/search-section.css">
+<div class="search-section has-results" id="searchSection" data-instance-id="">
     <h1 class="search-title">Cerca.</h1>
     <p class="search-subtitle">Pensato per chi vuole di più.</p>
     
@@ -753,28 +742,5 @@
     </div>
 </div>
 
+<!-- Component JavaScript -->
 <script src="components/search-section/search-section.js"></script>
-<script>
-// Auto-initialize the search component when loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're in a container context (like v-dashboard)
-    const container = document.closest('#searchSectionContainer, #documentsSearchSectionContainer');
-    const context = container?.id === 'documentsSearchSectionContainer' ? 'documents' : 'profile';
-    
-    console.log('Search section component auto-initializing for context:', context);
-    
-    // Initialize the component
-    if (typeof initializeSearchComponent === 'function') {
-        initializeSearchComponent(context);
-    } else {
-        // Fallback: wait for the main script to load
-        setTimeout(() => {
-            if (typeof initializeSearchComponent === 'function') {
-                initializeSearchComponent(context);
-            }
-        }, 100);
-    }
-});
-</script>
-</body>
-</html>

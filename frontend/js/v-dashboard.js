@@ -106,8 +106,10 @@ async function switchTab(tabName) {
     const dashboardRow = document.querySelector('.dashboard-row');
     const statsDashboard = document.getElementById('statsDashboard');
     const documentsDashboard = document.getElementById('documentsDashboard');
+    const favoritesDashboard = document.getElementById('favoritesDashboard');
     const mainSearchContainer = document.getElementById('searchSectionContainer');
     const documentsSearchContainer = document.getElementById('documentsSearchSectionContainer');
+    const favoritesSearchContainer = document.getElementById('favoritesSearchSectionContainer');
     
     if (tabName === 'stats') {
         // Show stats dashboard, hide others
@@ -115,10 +117,15 @@ async function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'block';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (favoritesDashboard) favoritesDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
             documentsSearchContainer.innerHTML = '';
+        }
+        if (favoritesSearchContainer) {
+            favoritesSearchContainer.style.display = 'none';
+            favoritesSearchContainer.innerHTML = '';
         }
         
         currentTab = 'stats';
@@ -127,7 +134,12 @@ async function switchTab(tabName) {
         if (profileSection) profileSection.style.display = 'none';
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
+        if (favoritesDashboard) favoritesDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
+        if (favoritesSearchContainer) {
+            favoritesSearchContainer.style.display = 'none';
+            favoritesSearchContainer.innerHTML = '';
+        }
         
         // Show documents dashboard
         if (documentsDashboard) documentsDashboard.style.display = 'block';
@@ -151,31 +163,62 @@ async function switchTab(tabName) {
                 
                 // Search component will auto-initialize itself with smart retry logic
                 console.log('Search component loaded for documents - auto-initialization in progress');
-                
-                // Manually initialize the specific search section that was just loaded
-                setTimeout(() => {
-                    const documentsSearchSection = documentsSearchContainer.querySelector('.search-section');
-                    if (documentsSearchSection && typeof window.initializeSpecificSearchSection === 'function') {
-                        console.log('Manually initializing documents search section...');
-                        // Update the context to the documents search section
-                        if (typeof window.updateSearchSectionContext === 'function') {
-                            window.updateSearchSectionContext(documentsSearchSection);
-                        }
-                        window.initializeSpecificSearchSection(documentsSearchSection);
-                    }
-                }, 100);
             } catch (error) {
                 console.error('Error loading documents search component:', error);
             }
         } else {
             console.log('Documents search container not found or already has search component:', hasDocumentsSearchComponent ? 'has component' : 'container not found');
         }
+    } else if (tabName === 'favorites') {
+        // Show favorites dashboard, hide others
+        if (profileSection) profileSection.style.display = 'none';
+        if (dashboardRow) dashboardRow.style.display = 'none';
+        if (statsDashboard) statsDashboard.style.display = 'none';
+        if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (mainSearchContainer) mainSearchContainer.style.display = 'none';
+        if (documentsSearchContainer) {
+            documentsSearchContainer.style.display = 'none';
+            documentsSearchContainer.innerHTML = '';
+        }
+        
+        // Show favorites dashboard
+        if (favoritesDashboard) favoritesDashboard.style.display = 'block';
+        if (favoritesSearchContainer) favoritesSearchContainer.style.display = 'block';
+        
+        currentTab = 'favorites';
+        
+        // Load favorites users first
+        await loadFavoritesUsers();
+        
+        // Load search component for favorites - let search-section handle itself
+        const hasFavoritesSearchComponent = favoritesSearchContainer && favoritesSearchContainer.querySelector('.search-section');
+        if (favoritesSearchContainer && !hasFavoritesSearchComponent) {
+            try {
+                console.log('Loading search component for favorites...');
+                const response = await fetch('components/search-section/search-section-component.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const html = await response.text();
+                console.log('Search component HTML loaded for favorites, length:', html.length);
+                favoritesSearchContainer.innerHTML = html;
+                console.log('Search component inserted into favorites container');
+                
+                // Search component will auto-initialize itself with smart retry logic
+                console.log('Search component loaded for favorites - auto-initialization in progress');
+            } catch (error) {
+                console.error('Error loading favorites search component:', error);
+            }
+        } else {
+            console.log('Favorites search container not found or already has search component:', hasFavoritesSearchComponent ? 'has component' : 'container not found');
+        }
     } else {
-        // Show profile/dashboard content, hide stats and documents
+        // Show profile/dashboard content, hide stats, documents, and favorites
         if (profileSection) profileSection.style.display = 'block';
         if (dashboardRow) dashboardRow.style.display = 'flex';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (favoritesDashboard) favoritesDashboard.style.display = 'none';
         if (mainSearchContainer) {
             mainSearchContainer.style.display = 'block';
             console.log('Setting main search container to display: block');
@@ -184,6 +227,11 @@ async function switchTab(tabName) {
             documentsSearchContainer.style.display = 'none';
             // Clear documents search container
             documentsSearchContainer.innerHTML = '';
+        }
+        if (favoritesSearchContainer) {
+            favoritesSearchContainer.style.display = 'none';
+            // Clear favorites search container
+            favoritesSearchContainer.innerHTML = '';
         }
         
         // Ensure main search component is loaded - let search-section handle itself
@@ -255,6 +303,9 @@ function initializeTabSwitching() {
                 } else if (text === 'I Miei Documenti') {
                     console.log('Switching to I Miei Documenti tab');
                     await switchTab('documents');
+                } else if (text === 'Preferiti') {
+                    console.log('Switching to Preferiti tab');
+                    await switchTab('favorites');
                 } else {
                     // For other menu items, just switch back to profile view
                     console.log('Switching to profile view for:', text);
@@ -263,6 +314,184 @@ function initializeTabSwitching() {
             }
         });
     });
+}
+
+// ===========================
+// FAVORITES DASHBOARD FUNCTIONALITY
+// ===========================
+
+async function loadFavoritesUsers() {
+    const favoritesUsersContainer = document.getElementById('favoritesUsersContainer');
+    if (!favoritesUsersContainer) {
+        console.error('Favorites users container not found');
+        return;
+    }
+    
+    try {
+        // Show loading state
+        favoritesUsersContainer.innerHTML = '<div class="loading-state">Caricamento...</div>';
+        
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            console.error('No auth token found');
+            showFavoritesUsersEmpty(favoritesUsersContainer);
+            return;
+        }
+        
+        const response = await fetch(`${API_BASE}/user/favorites`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Favorites data loaded:', data);
+        
+        // Extract unique users from favorites
+        const uniqueUsers = new Map();
+        
+        if (data.vetrine && Array.isArray(data.vetrine)) {
+            data.vetrine.forEach(vetrina => {
+                if (vetrina.author) {
+                    const userId = vetrina.author.user_id;
+                    if (!uniqueUsers.has(userId)) {
+                        uniqueUsers.set(userId, {
+                            user_id: userId,
+                            username: vetrina.author.username,
+                            first_name: vetrina.author.first_name,
+                            last_name: vetrina.author.last_name,
+                            email: vetrina.author.email,
+                            uploaded_documents_count: vetrina.author.uploaded_documents_count || 0,
+                            favorite_vetrine_count: 1
+                        });
+                    } else {
+                        // Increment favorite vetrine count for this user
+                        uniqueUsers.get(userId).favorite_vetrine_count++;
+                    }
+                }
+            });
+        }
+        
+        const usersArray = Array.from(uniqueUsers.values());
+        
+        // Add placeholder users for testing
+        const placeholderUsers = generatePlaceholderUsers();
+        const allUsers = [...usersArray, ...placeholderUsers];
+        
+        if (allUsers.length === 0) {
+            showFavoritesUsersEmpty(favoritesUsersContainer);
+        } else {
+            renderFavoritesUsers(favoritesUsersContainer, allUsers);
+        }
+        
+    } catch (error) {
+        console.error('Error loading favorites users:', error);
+        showFavoritesUsersEmpty(favoritesUsersContainer, true);
+    }
+}
+
+function showFavoritesUsersEmpty(container, isError = false) {
+    const message = isError 
+        ? 'Errore nel caricamento dei preferiti'
+        : 'Non hai ancora aggiunto utenti ai preferiti';
+    const subMessage = isError
+        ? 'Riprova più tardi'
+        : 'Inizia ad aggiungere documenti ai preferiti per vedere gli autori qui';
+        
+    container.innerHTML = `
+        <div class="favorites-users-empty">
+            <span class="material-symbols-outlined">${isError ? 'error' : 'favorite_border'}</span>
+            <h3>${message}</h3>
+            <p>${subMessage}</p>
+        </div>
+    `;
+}
+
+function renderFavoritesUsers(container, users) {
+    const usersHtml = users.map(user => {
+        const initials = getInitials(user.first_name, user.last_name, user.username);
+        const fullName = getFullName(user.first_name, user.last_name, user.username);
+        const statsText = `${user.favorite_vetrine_count} preferit${user.favorite_vetrine_count === 1 ? 'o' : 'i'} • ${user.uploaded_documents_count} document${user.uploaded_documents_count === 1 ? 'o' : 'i'}`;
+        
+        return `
+            <div class="favorite-user-card" onclick="goToUserProfile(${user.user_id})">
+                <div class="favorite-user-avatar">${initials}</div>
+                <div class="favorite-user-name">${fullName}</div>
+                <div class="favorite-user-email">${user.email}</div>
+                <div class="favorite-user-stats">${statsText}</div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = usersHtml;
+}
+
+function getInitials(firstName, lastName, username) {
+    if (firstName && lastName) {
+        return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+    } else if (firstName) {
+        return firstName.charAt(0).toUpperCase();
+    } else if (username) {
+        return username.charAt(0).toUpperCase();
+    }
+    return '?';
+}
+
+function getFullName(firstName, lastName, username) {
+    if (firstName && lastName) {
+        return `${firstName} ${lastName}`;
+    } else if (firstName) {
+        return firstName;
+    } else if (username) {
+        return username;
+    }
+    return 'Utente';
+}
+
+function goToUserProfile(userId) {
+    // Navigate to user profile page - using the same pattern as other parts of the app
+    window.location.href = `vendor-page.html?userId=${userId}`;
+}
+
+function generatePlaceholderUsers() {
+    const names = [
+        { first: 'Marco', last: 'Rossi', email: 'marco.rossi@email.com' },
+        { first: 'Giulia', last: 'Bianchi', email: 'giulia.bianchi@email.com' },
+        { first: 'Alessandro', last: 'Verdi', email: 'a.verdi@email.com' },
+        { first: 'Francesca', last: 'Neri', email: 'f.neri@email.com' },
+        { first: 'Lorenzo', last: 'Gialli', email: 'lorenzo.g@email.com' },
+        { first: 'Sofia', last: 'Blu', email: 'sofia.blu@email.com' },
+        { first: 'Matteo', last: 'Viola', email: 'm.viola@email.com' },
+        { first: 'Chiara', last: 'Rosa', email: 'chiara.rosa@email.com' },
+        { first: 'Andrea', last: 'Marroni', email: 'andrea.m@email.com' },
+        { first: 'Valentina', last: 'Grigi', email: 'v.grigi@email.com' },
+        { first: 'Davide', last: 'Arancioni', email: 'd.arancioni@email.com' },
+        { first: 'Elena', last: 'Azzurri', email: 'elena.a@email.com' },
+        { first: 'Simone', last: 'Fucsia', email: 's.fucsia@email.com' },
+        { first: 'Martina', last: 'Oro', email: 'martina.oro@email.com' },
+        { first: 'Federico', last: 'Argento', email: 'f.argento@email.com' },
+        { first: 'Camilla', last: 'Bronzo', email: 'camilla.b@email.com' },
+        { first: 'Riccardo', last: 'Rame', email: 'riccardo.r@email.com' },
+        { first: 'Giorgia', last: 'Platino', email: 'giorgia.p@email.com' },
+        { first: 'Luca', last: 'Ferro', email: 'luca.ferro@email.com' },
+        { first: 'Alice', last: 'Acciaio', email: 'alice.acciaio@email.com' }
+    ];
+    
+    return names.map((name, index) => ({
+        user_id: 1000 + index,
+        username: `${name.first.toLowerCase()}_${name.last.toLowerCase()}`,
+        first_name: name.first,
+        last_name: name.last,
+        email: name.email,
+        uploaded_documents_count: Math.floor(Math.random() * 50) + 1,
+        favorite_vetrine_count: Math.floor(Math.random() * 10) + 1
+    }));
 }
 
 // ===========================

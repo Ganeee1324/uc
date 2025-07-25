@@ -1,7 +1,5 @@
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 
-// Debug logging removed
-
 // DOM Elements
 const toggleBtns = document.querySelectorAll('.toggle-btn');
 const formToggle = document.querySelector('.form-toggle');
@@ -11,6 +9,15 @@ const successMessage = document.getElementById('successMessage');
 const errorMessage = document.getElementById('errorMessage');
 const successText = document.getElementById('successText');
 const errorText = document.getElementById('errorText');
+const emailStatus = document.getElementById('emailStatus');
+const emailStatusIcon = document.getElementById('emailStatusIcon');
+const emailStatusTitle = document.getElementById('emailStatusTitle');
+const emailStatusText = document.getElementById('emailStatusText');
+const emailStatusAddress = document.getElementById('emailStatusAddress');
+const checkEmailBtn = document.getElementById('checkEmailBtn');
+const resendEmailBtn = document.getElementById('resendEmailBtn');
+const useCodeBtn = document.getElementById('useCodeBtn');
+const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
 // Form Toggle Functionality
 toggleBtns.forEach(btn => {
@@ -30,6 +37,7 @@ toggleBtns.forEach(btn => {
         }
         clearMessages();
         clearPasswordValidation();
+        hideEmailStatus();
     });
 });
 
@@ -92,6 +100,36 @@ function clearMessages() {
     errorMessage.classList.remove('show');
 }
 
+function showEmailStatus(type, email, title, text) {
+    hideEmailStatus();
+    emailStatus.className = 'email-status show ' + type;
+    emailStatusAddress.textContent = email;
+    emailStatusTitle.textContent = title;
+    emailStatusText.innerHTML = text;
+    
+    // Set appropriate icon
+    switch(type) {
+        case 'pending':
+            emailStatusIcon.textContent = 'schedule';
+            break;
+        case 'success':
+            emailStatusIcon.textContent = 'check_circle';
+            break;
+        case 'error':
+            emailStatusIcon.textContent = 'error';
+            break;
+        default:
+            emailStatusIcon.textContent = 'mail';
+    }
+    
+    emailStatus.classList.add('show');
+}
+
+function hideEmailStatus() {
+    emailStatus.classList.remove('show');
+    emailStatus.className = 'email-status';
+}
+
 function setLoading(button, isLoading) {
     const btnContent = button.querySelector('.btn-content');
     const btnText = button.querySelector('.btn-text');
@@ -110,8 +148,8 @@ function setLoading(button, isLoading) {
     }
 }
 
-// API Request Function
-async function makeRequest(url, options = {}) {
+// API Request Function for Login
+async function makeLoginRequest(url, options = {}) {
     try {
         const response = await fetch(API_BASE + url, {
             ...options,
@@ -124,12 +162,31 @@ async function makeRequest(url, options = {}) {
         if (response.ok) {
             localStorage.setItem('authToken', data.access_token);
             localStorage.setItem('currentUser', JSON.stringify(data.user));
-            // Redirect to search page after successful login
-            window.location.href = 'search.html';
+            // Debug mode: Auto-redirect disabled
+            // window.location.href = 'search.html';
+            showMessage('success', 'Login effettuato con successo! Reindirizzamento disabilitato per debug.');
         } else {
             const errorMessage = data.msg || 'Accesso fallito. Riprova.';
             showMessage('error', errorMessage);
         }
+    } catch (error) {
+        console.error('Request failed:', error);
+        throw error;
+    }
+}
+
+// API Request Function for Registration with Email Verification
+async function makeRegisterRequest(url, options = {}) {
+    try {
+        const response = await fetch(API_BASE + url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+        const data = await response.json();
+        return { response, data };
     } catch (error) {
         console.error('Request failed:', error);
         throw error;
@@ -145,7 +202,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     clearMessages();
     setLoading(loginBtn, true);
     try {
-        await makeRequest('/login', {
+        await makeLoginRequest('/login', {
             method: 'POST',
             body: JSON.stringify({
                 email: email,
@@ -179,7 +236,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     clearMessages();
     setLoading(registerBtn, true);
     try {
-        await makeRequest('/register', {
+        const { response, data } = await makeRegisterRequest('/register', {
             method: 'POST',
             body: JSON.stringify({
                 name: name,
@@ -189,14 +246,124 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
                 password: password
             })
         });
+
+        if (response.ok) {
+            // Check if email verification is required
+            if (data.email_verification_required) {
+                // Store email for verification flow
+                localStorage.setItem('pendingEmail', email);
+                
+                // Show email verification status
+                showEmailStatus('pending', email, 'Verifica la tua Email', 
+                    `Abbiamo inviato un link di verifica a <span class="email-address">${email}</span>. Clicca sul link per attivare il tuo account.`);
+                
+                // Hide the registration form
+                document.querySelector('.form-toggle').style.display = 'none';
+                document.querySelector('.form-section').style.display = 'none';
+                document.querySelector('.demo-info').style.display = 'none';
+            } else {
+                // Direct login without email verification (legacy)
+                localStorage.setItem('authToken', data.access_token);
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
+                // Debug mode: Auto-redirect disabled
+                // window.location.href = 'search.html';
+                showMessage('success', 'Account creato con successo! Reindirizzamento disabilitato per debug.');
+            }
+        } else {
+            const errorMsg = data.msg || 'Registrazione fallita. Riprova.';
+            showMessage('error', errorMsg);
+        }
     } catch (error) {
-        showMessage('error', error.message);
+        showMessage('error', 'Errore di connessione. Riprova più tardi.');
     } finally {
         setLoading(registerBtn, false);
     }
 });
 
-// Auto-redirect if already logged in
-if (localStorage.getItem('authToken')) {
-    window.location.href = 'search.html';
-} 
+// Email Status Button Handlers
+checkEmailBtn?.addEventListener('click', () => {
+    // Try to open default email client
+    window.location.href = 'mailto:';
+});
+
+resendEmailBtn?.addEventListener('click', async () => {
+    const email = localStorage.getItem('pendingEmail');
+    if (!email) return;
+    
+    try {
+        const response = await fetch(API_BASE + '/resend-verification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showMessage('success', 'Link di verifica inviato nuovamente!');
+        } else {
+            showMessage('error', data.msg || 'Errore durante l\'invio.');
+        }
+    } catch (error) {
+        showMessage('error', 'Errore di connessione. Riprova più tardi.');
+    }
+});
+
+useCodeBtn?.addEventListener('click', () => {
+    const email = localStorage.getItem('pendingEmail');
+    if (email) {
+        window.location.href = `verify-code.html?email=${encodeURIComponent(email)}`;
+    }
+});
+
+forgotPasswordLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showMessage('error', 'Funzionalità in arrivo. Contatta il supporto per reimpostare la password.');
+});
+
+// Input field enhancements
+document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('input', () => {
+        if (input.value.trim()) {
+            input.classList.add('filled');
+        } else {
+            input.classList.remove('filled');
+        }
+    });
+    
+    input.addEventListener('focus', () => {
+        input.classList.remove('error');
+    });
+});
+
+// Check for pending email verification on page load
+const pendingEmail = localStorage.getItem('pendingEmail');
+if (pendingEmail && !localStorage.getItem('authToken')) {
+    showEmailStatus('pending', pendingEmail, 'Verifica in Sospeso', 
+        `Hai una verifica email in sospeso per <span class="email-address">${pendingEmail}</span>. Controlla la tua casella di posta.`);
+    
+    // Hide forms initially
+    document.querySelector('.form-toggle').style.display = 'none';
+    document.querySelector('.form-section').style.display = 'none';
+    document.querySelector('.demo-info').style.display = 'none';
+    
+    // Add a button to show forms again
+    const backToLoginBtn = document.createElement('button');
+    backToLoginBtn.className = 'email-action-btn secondary';
+    backToLoginBtn.innerHTML = '<span class="material-symbols-outlined">arrow_back</span> Torna al Login';
+    backToLoginBtn.onclick = () => {
+        hideEmailStatus();
+        localStorage.removeItem('pendingEmail');
+        document.querySelector('.form-toggle').style.display = 'flex';
+        document.querySelector('.form-section').style.display = 'block';
+        document.querySelector('.demo-info').style.display = 'block';
+    };
+    document.querySelector('.email-actions').appendChild(backToLoginBtn);
+}
+
+// Debug mode: Auto-redirect disabled
+// if (localStorage.getItem('authToken')) {
+//     window.location.href = 'search.html';
+// }

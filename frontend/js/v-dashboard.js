@@ -116,7 +116,10 @@ async function switchTab(tabName) {
         if (statsDashboard) statsDashboard.style.display = 'block';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
-        if (documentsSearchContainer) documentsSearchContainer.style.display = 'none';
+        if (documentsSearchContainer) {
+            documentsSearchContainer.style.display = 'none';
+            documentsSearchContainer.innerHTML = '';
+        }
         
         currentTab = 'stats';
     } else if (tabName === 'documents') {
@@ -128,15 +131,22 @@ async function switchTab(tabName) {
         
         // Show documents dashboard
         if (documentsDashboard) documentsDashboard.style.display = 'block';
+        if (documentsSearchContainer) documentsSearchContainer.style.display = 'block';
         
         currentTab = 'documents';
         
         // Load search component for documents - let search-section handle itself
-        if (documentsSearchContainer && !documentsSearchContainer.hasChildNodes()) {
+        const hasDocumentsSearchComponent = documentsSearchContainer && documentsSearchContainer.querySelector('.search-section');
+        if (documentsSearchContainer && !hasDocumentsSearchComponent) {
             try {
-                const response = await fetch('components/search-section/search-section.html');
+                console.log('Loading search component for documents...');
+                const response = await fetch('components/search-section/search-section-component.html');
                 const html = await response.text();
                 documentsSearchContainer.innerHTML = html;
+                console.log('Search component loaded for documents');
+                
+                // Search component will auto-initialize itself with smart retry logic
+                console.log('Search component loaded for documents - auto-initialization in progress');
             } catch (error) {
                 console.error('Error loading documents search component:', error);
             }
@@ -147,20 +157,28 @@ async function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'flex';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
-        if (mainSearchContainer) mainSearchContainer.style.display = 'block';
-        if (documentsSearchContainer) documentsSearchContainer.style.display = 'none';
-        
-        // Clear documents search container
+        if (mainSearchContainer) {
+            mainSearchContainer.style.display = 'block';
+            console.log('Setting main search container to display: block');
+        }
         if (documentsSearchContainer) {
+            documentsSearchContainer.style.display = 'none';
+            // Clear documents search container
             documentsSearchContainer.innerHTML = '';
         }
         
         // Ensure main search component is loaded - let search-section handle itself
-        if (mainSearchContainer && !mainSearchContainer.hasChildNodes()) {
+        const hasSearchComponent = mainSearchContainer && mainSearchContainer.querySelector('.search-section');
+        if (mainSearchContainer && !hasSearchComponent) {
             try {
-                const response = await fetch('components/search-section/search-section.html');
+                console.log('Loading search component in switchTab...');
+                const response = await fetch('components/search-section/search-section-component.html');
                 const html = await response.text();
                 mainSearchContainer.innerHTML = html;
+                console.log('Search component loaded in switchTab');
+                
+                // Search component will auto-initialize itself with smart retry logic
+                console.log('Search component loaded in switchTab - auto-initialization in progress');
             } catch (error) {
                 console.error('Error loading main search component:', error);
             }
@@ -951,14 +969,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Load main search component for Profilo tab - let search-section handle itself
     const mainSearchContainer = document.getElementById('searchSectionContainer');
-    if (mainSearchContainer && !mainSearchContainer.hasChildNodes()) {
+    console.log('Search container found:', mainSearchContainer);
+    const hasSearchComponent = mainSearchContainer && mainSearchContainer.querySelector('.search-section');
+    if (mainSearchContainer && !hasSearchComponent) {
         try {
-            const response = await fetch('components/search-section/search-section.html');
+            console.log('Loading search component...');
+            const response = await fetch('components/search-section/search-section-component.html');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const html = await response.text();
+            console.log('Search component HTML loaded, length:', html.length);
             mainSearchContainer.innerHTML = html;
+            console.log('Search component inserted into container');
+            
+            // Search component will auto-initialize itself with smart retry logic
+            console.log('Search component loaded - auto-initialization in progress');
         } catch (error) {
             console.error('Error loading main search component:', error);
         }
+    } else {
+        console.log('Search container not found or already has search component:', hasSearchComponent ? 'has component' : 'container not found');
     }
     
     // Initialize dashboard functionality
@@ -968,6 +999,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeTimeFilters(); // Add time filters functionality
     initializeDocumentsPeriodFilter(); // Add documents period filter functionality
     initializeDocumentPerformanceItems(); // Add document performance interactivity
+    
+    // Set initial tab state to ensure proper display
+    await switchTab('profile');
     
     // Initialize animations when switching to stats tab
     setTimeout(() => {

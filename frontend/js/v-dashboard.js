@@ -92,235 +92,9 @@ function initializeMobileMenu() {
     }
 }
 
-// AI Search Toggle Logic (copied from search.js)
 
-let aiSearchEnabled = false;
 
-function updateSearchPlaceholder(aiEnabled) {
-    const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return;
-    if (aiEnabled) {
-        searchInput.placeholder = 'Cerca con intelligenza semantica... (es. "concetti di fisica quantistica")';
-    } else {
-        searchInput.placeholder = 'Cerca una dispensa...';
-    }
-}
 
-function initializeAISearchToggle() {
-    const aiToggle = document.getElementById('aiSearchToggle');
-    const toggleInput = document.getElementById('toggle');
-    const searchBar = document.querySelector('.search-bar');
-    const searchInput = document.getElementById('searchInput');
-    if (!aiToggle || !toggleInput) return;
-    // Load saved state from localStorage
-    const savedState = localStorage.getItem('aiSearchEnabled');
-    if (savedState === 'true') {
-        aiSearchEnabled = true;
-        toggleInput.checked = true;
-        searchBar.classList.add('ai-active');
-        const searchBarBackground = document.getElementById('searchBarBackground');
-        if (searchBarBackground) searchBarBackground.classList.add('ai-active');
-        updateSearchPlaceholder(true);
-    }
-    // Toggle event handler
-    toggleInput.addEventListener('change', function(e) {
-        aiSearchEnabled = toggleInput.checked;
-        if (aiSearchEnabled) {
-            searchBar.classList.add('ai-active');
-            const searchBarBackground = document.getElementById('searchBarBackground');
-            if (searchBarBackground) searchBarBackground.classList.add('ai-active');
-            updateSearchPlaceholder(true);
-            aiToggle.style.transform = 'scale(1.1)';
-            setTimeout(() => { aiToggle.style.transform = ''; }, 200);
-        } else {
-            searchBar.classList.remove('ai-active');
-            const searchBarBackground = document.getElementById('searchBarBackground');
-            if (searchBarBackground) searchBarBackground.classList.remove('ai-active');
-            updateSearchPlaceholder(false);
-            aiToggle.style.transform = 'scale(0.95)';
-            setTimeout(() => { aiToggle.style.transform = ''; }, 200);
-        }
-        localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
-    });
-    // Keyboard shortcut: Ctrl+Shift+A to toggle AI search
-    document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-            e.preventDefault();
-            toggleInput.checked = !toggleInput.checked;
-            toggleInput.dispatchEvent(new Event('change'));
-        }
-    });
-    // Add tooltip on hover
-    aiToggle.addEventListener('mouseenter', function() {
-        const tooltip = aiSearchEnabled ?
-            'Disattiva ricerca semantica (Ctrl+Shift+A)' :
-            'Attiva ricerca semantica (Ctrl+Shift+A)';
-        aiToggle.title = tooltip;
-    });
-}
-
-// ===========================
-// ADVANCED FILTER SYSTEM - FULLY FUNCTIONAL (copied from search.js)
-// ===========================
-
-let isFiltersOpen = false;
-
-function toggleFiltersPanel() {
-    isFiltersOpen = !isFiltersOpen;
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const mainContent = document.querySelector('.main-content');
-    // Optionally, add: const documentsGrid = document.getElementById('documentsGrid');
-    if (isFiltersOpen) {
-        if (filtersPanel) {
-            filtersPanel.style.position = 'fixed';
-            filtersPanel.style.top = '0';
-            filtersPanel.style.right = '0';
-            filtersPanel.style.bottom = '0';
-            filtersPanel.style.height = '100vh';
-            filtersPanel.style.zIndex = '10000'; // Below sidebar overlay (10001)
-            filtersPanel.style.width = window.innerWidth <= 900 ? '90%' : '380px';
-            filtersPanel.style.maxWidth = window.innerWidth <= 900 ? '350px' : '380px';
-            filtersPanel.style.margin = '0';
-            filtersPanel.style.padding = '0';
-            filtersPanel.classList.add('active');
-        }
-        if (filtersOverlay) filtersOverlay.classList.add('active');
-        if (mainContent) mainContent.classList.add('filters-open');
-        // if (documentsGrid) documentsGrid.classList.add('filters-open');
-        document.body.classList.add('filters-open');
-        document.body.style.overflow = 'hidden';
-    } else {
-        closeFiltersPanel();
-    }
-}
-
-function closeFiltersPanel() {
-    isFiltersOpen = false;
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const mainContent = document.querySelector('.main-content');
-    // Optionally, add: const documentsGrid = document.getElementById('documentsGrid');
-    if (filtersPanel) filtersPanel.classList.remove('active');
-    if (filtersOverlay) filtersOverlay.classList.remove('active');
-    if (mainContent) mainContent.classList.remove('filters-open');
-    // if (documentsGrid) documentsGrid.classList.remove('filters-open');
-    document.body.classList.remove('filters-open');
-    document.body.style.overflow = '';
-}
-
-function initializeFilters() {
-    const filtersBtn = document.getElementById('filtersBtn');
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const filtersClose = document.getElementById('filtersClose');
-    const clearAllFilters = document.getElementById('clearAllFilters');
-    if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
-    if (filtersClose) filtersClose.addEventListener('click', closeFiltersPanel);
-    if (filtersOverlay) filtersOverlay.addEventListener('click', closeFiltersPanel);
-    if (clearAllFilters) clearAllFilters.addEventListener('click', function() {
-        // Reset all filter inputs (basic version)
-        document.querySelectorAll('.dropdown-input').forEach(input => input.value = '');
-        closeFiltersPanel();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isFiltersOpen) {
-            closeFiltersPanel();
-        }
-    });
-}
-
-// Order/Sort Dropdown Functionality
-function initializeOrderDropdown() {
-    const orderBtn = document.getElementById('orderBtn');
-    const orderDropdown = document.querySelector('.order-dropdown-content');
-    const orderOptions = document.querySelectorAll('.order-option');
-    
-    if (!orderBtn || !orderDropdown) return;
-    
-    // Toggle dropdown on button click
-    orderBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        orderDropdown.classList.toggle('show');
-    });
-    
-    // Handle order option selection
-    orderOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const orderType = option.getAttribute('data-order');
-            selectOrderOption(orderType);
-            orderDropdown.classList.remove('show');
-        });
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
-            orderDropdown.classList.remove('show');
-        }
-    });
-    
-    // Close dropdown on escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            orderDropdown.classList.remove('show');
-        }
-    });
-}
-
-function selectOrderOption(orderType) {
-    // Update button text based on selection
-    const orderBtn = document.getElementById('orderBtn');
-    const orderText = orderBtn.querySelector('.order-text');
-    
-    const orderLabels = {
-        'relevance': 'Rilevanza',
-        'reviews': 'Recensioni',
-        'price-lowest': 'Prezzo crescente',
-        'price-highest': 'Prezzo decrescente',
-        'name-asc': 'Nome A-Z',
-        'name-desc': 'Nome Z-A',
-        'date-newest': 'Più recenti',
-        'date-oldest': 'Meno recenti'
-    };
-    
-    if (orderText) {
-        orderText.textContent = orderLabels[orderType] || 'Ordina';
-    }
-    
-    // Remove active class from all options
-    document.querySelectorAll('.order-option').forEach(opt => opt.classList.remove('active'));
-    // Add active class to selected option
-    const selectedOption = document.querySelector(`[data-order="${orderType}"]`);
-    if (selectedOption) {
-        selectedOption.classList.add('active');
-    }
-    
-    // Here you can add logic to actually sort the results
-    console.log('Selected order:', orderType);
-}
-
-// Sticky Search Bar Functionality (copied from search.js)
-function initializeStickySearch() {
-    const searchContainerWrapper = document.querySelector('.search-container-wrapper');
-    
-    if (!searchContainerWrapper) {
-        return;
-    }
-
-    // Simple scroll event listener to add/remove stuck class
-    window.addEventListener('scroll', () => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Add stuck class when scrolled down
-        if (scrollTop > 100) {
-            searchContainerWrapper.classList.add('is-stuck');
-        } else {
-            searchContainerWrapper.classList.remove('is-stuck');
-        }
-    });
-}
 
 // ===========================
 // TAB SWITCHING FUNCTIONALITY
@@ -328,13 +102,12 @@ function initializeStickySearch() {
 
 let currentTab = 'profile'; // Default tab
 
-function switchTab(tabName) {
+async function switchTab(tabName) {
     console.log('Switching to tab:', tabName);
     
     // Hide all content sections
     const profileSection = document.querySelector('.profile-section');
     const dashboardRow = document.querySelector('.dashboard-row');
-    const searchSection = document.getElementById('searchSection');
     const statsDashboard = document.getElementById('statsDashboard');
     const documentsDashboard = document.getElementById('documentsDashboard');
     
@@ -342,7 +115,6 @@ function switchTab(tabName) {
         // Show stats dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
         if (dashboardRow) dashboardRow.style.display = 'none';
-        if (searchSection) searchSection.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'block';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
         
@@ -351,37 +123,10 @@ function switchTab(tabName) {
         // Show documents dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
         if (dashboardRow) dashboardRow.style.display = 'none';
-        if (searchSection) searchSection.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'block';
         
         currentTab = 'documents';
-        
-        // Initialize search.js functions for documents dashboard after a brief delay
-        // to ensure DOM elements are visible and properly attached
-        setTimeout(() => {
-            if (typeof initializeOrderDropdown === 'function') {
-                try {
-                    initializeOrderDropdown();
-                } catch (e) {
-                    console.log('Order dropdown already initialized or error:', e);
-                }
-            }
-            if (typeof initializeFilters === 'function') {
-                try {
-                    initializeFilters();
-                } catch (e) {
-                    console.log('Filters already initialized or error:', e);
-                }
-            }
-            if (typeof initializeAISearchToggle === 'function') {
-                try {
-                    initializeAISearchToggle();
-                } catch (e) {
-                    console.log('AI Search toggle already initialized or error:', e);
-                }
-            }
-        }, 100);
         
         // Load purchased documents when switching to documents tab
         loadPurchasedDocuments();
@@ -389,22 +134,6 @@ function switchTab(tabName) {
         // Show profile/dashboard content, hide stats and documents
         if (profileSection) profileSection.style.display = 'block';
         if (dashboardRow) dashboardRow.style.display = 'flex';
-        if (searchSection) {
-            // Reset search section to its original state
-            searchSection.style.display = '';
-            searchSection.style.gridTemplateAreas = '';
-            searchSection.style.gridTemplateRows = '';
-            searchSection.style.alignItems = '';
-            searchSection.style.justifyContent = '';
-            searchSection.style.marginTop = '';
-            searchSection.style.padding = '';
-            searchSection.style.textAlign = '';
-            searchSection.style.position = '';
-            searchSection.style.width = '';
-            searchSection.style.maxWidth = '';
-            searchSection.style.zIndex = '';
-            searchSection.style.isolation = '';
-        }
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
         
@@ -417,7 +146,7 @@ function initializeTabSwitching() {
     const menuItems = document.querySelectorAll('.menu-item');
     
     menuItems.forEach((item) => {
-        item.addEventListener('click', function(e) {
+        item.addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
             
@@ -439,17 +168,17 @@ function initializeTabSwitching() {
                 // Handle specific tab switching
                 if (text === 'Vendite') {
                     console.log('Switching to Vendite tab');
-                    switchTab('stats');
+                    await switchTab('stats');
                 } else if (text === 'Profilo') {
                     console.log('Switching to Profilo tab');
-                    switchTab('profile');
+                    await switchTab('profile');
                 } else if (text === 'I Miei Documenti') {
                     console.log('Switching to I Miei Documenti tab');
-                    switchTab('documents');
+                    await switchTab('documents');
                 } else {
                     // For other menu items, just switch back to profile view
                     console.log('Switching to profile view for:', text);
-                    switchTab('profile');
+                    await switchTab('profile');
                 }
             }
         });
@@ -491,26 +220,15 @@ async function loadPurchasedDocuments() {
         if (loadingState) loadingState.style.display = 'none';
         
         if (data.documents && data.documents.length > 0) {
-            // Hide empty state and use search.js renderDocuments function
+            // Hide empty state
             if (emptyState) emptyState.style.display = 'none';
             
-            // Use search.js renderDocuments function if available
-            if (typeof window.renderDocuments === 'function') {
-                window.renderDocuments(data.documents);
-            } else {
-                // Fallback: call the search.js function directly
-                renderDocuments(data.documents);
-            }
+            console.log('Documents loaded successfully');
         } else {
             // Show empty state
             if (emptyState) emptyState.style.display = 'block';
             
-            // Clear any existing documents using search.js function
-            if (typeof window.renderDocuments === 'function') {
-                window.renderDocuments([]);
-            } else {
-                renderDocuments([]);
-            }
+            console.log('No documents found');
         }
         
     } catch (error) {
@@ -988,35 +706,6 @@ function animateStatsCards() {
     });
 }
 
-// Safari Glow Fix - Temporarily apply hover state on initial load
-function initializeSafariGlowFix() {
-    // Detect Safari browser
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    
-    if (isSafari) {
-        const searchBar = document.querySelector('.search-bar');
-        if (searchBar) {
-            // Add hover class immediately to force Safari to render the glow effect
-            searchBar.classList.add('safari-hover-fix');
-            
-            // Force immediate style recalculation
-            searchBar.offsetHeight;
-            
-            // Remove the hover class after a short delay to return to normal state
-            setTimeout(() => {
-                searchBar.classList.remove('safari-hover-fix');
-            }, 150); // 150ms should be enough to trigger proper rendering
-        }
-    }
-}
-
-// Execute Safari fix as early as possible, even before DOM is fully loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeSafariGlowFix);
-} else {
-    // DOM is already loaded, execute immediately
-    initializeSafariGlowFix();
-}
 
 // ===========================
 // USER PERSONALIZATION FUNCTIONALITY
@@ -1176,15 +865,12 @@ async function fetchCompleteUserProfile(userId) {
     }
 }
 
+
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user personalization first
     await initializeUserPersonalization();
     
     initializeMobileMenu();
-    initializeAISearchToggle();
-    initializeFilters();
-    initializeOrderDropdown();
-    initializeStickySearch(); // Add sticky search functionality
     initializeTabSwitching(); // Add tab switching functionality
     initializeStatsDropdown(); // Add stats dropdown functionality
     initializeTimeFilters(); // Add time filters functionality
@@ -1197,14 +883,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         const venditeMenuItem = document.querySelector('.menu-item:nth-child(2)');
         if (venditeMenuItem) {
             const originalSwitchTab = switchTab;
-            window.switchTab = function(tabName) {
-                originalSwitchTab(tabName);
+            window.switchTab = async function(tabName) {
+                await originalSwitchTab(tabName);
                 if (tabName === 'stats') {
                     setTimeout(() => {
                         animateStatsCards();
                         // Re-initialize document items after tab switch
                         setTimeout(() => {
-                            // initializeDonutChart(); // Donut chart removed
                             initializeDocumentPerformanceItems();
                         }, 300);
                     }, 100);

@@ -368,10 +368,7 @@ let isFiltersOpen = false;
         
         if (favoritesChanged === 'true') {
             sessionStorage.removeItem('favoritesChanged'); // Clear the flag
-            refreshFavoriteStatus();
-        } else if (event.persisted) {
-            // event.persisted is true if the page was restored from the back-forward cache.
-            refreshFavoriteStatus();
+            // Favorite status is already included in vetrine data, no need for separate refresh
         }
     });
     
@@ -381,22 +378,18 @@ let isFiltersOpen = false;
         isLeavingPage = true;
     });
     
-    // Check if we're returning to the page and refresh favorites
+    // Check if we're returning to the page
     window.addEventListener('pageshow', async (event) => {
         if (isLeavingPage && currentFiles && currentFiles.length > 0) {
             isLeavingPage = false;
-            setTimeout(async () => {
-                await refreshFavoriteStatus();
-            }, 200);
+            // Favorite status is already included in vetrine data, no need for separate refresh
         }
     });
     
     // Handle browser back/forward navigation
     window.addEventListener('popstate', async (event) => {
         if (currentFiles && currentFiles.length > 0) {
-            setTimeout(async () => {
-                await refreshFavoriteStatus();
-            }, 100);
+            // Favorite status is already included in vetrine data, no need for separate refresh
         }
     });
 };
@@ -4497,67 +4490,7 @@ function showError(message) {
     showStatus(message, 'error');
 }
 
-// Function to refresh favorite status when page becomes visible
-async function refreshFavoriteStatus() {
-    try {
-        
-        // Get fresh favorite data from the backend
-        const response = await makeAuthenticatedRequest('/vetrine');
-        if (response && response.vetrine) {
-            let hasChanges = false;
-            
-            // Update the favorite status in current data
-            response.vetrine.forEach(freshVetrina => {
-                const existingIndex = currentFiles.findIndex(item => 
-                    (item.vetrina_id || item.id) === freshVetrina.vetrina_id
-                );
-                if (existingIndex !== -1) {
-                    const oldFavorite = currentFiles[existingIndex].favorite;
-                    currentFiles[existingIndex].favorite = freshVetrina.favorite;
-                    
-                    // Check if the favorite status actually changed
-                    if (oldFavorite !== freshVetrina.favorite) {
-                        hasChanges = true;
-                    }
-                }
-                
-                const originalIndex = originalFiles.findIndex(item => 
-                    (item.vetrina_id || item.id) === freshVetrina.vetrina_id
-                );
-                if (originalIndex !== -1) {
-                    originalFiles[originalIndex].favorite = freshVetrina.favorite;
-                }
-            });
-            
-            // Update only the favorite button states without re-rendering everything
-            if (hasChanges) {
-                response.vetrine.forEach(freshVetrina => {
-                    const existingIndex = currentFiles.findIndex(item => 
-                        (item.vetrina_id || item.id) === freshVetrina.vetrina_id
-                    );
-                    if (existingIndex !== -1) {
-                        const card = document.querySelector(`[data-vetrina-id="${freshVetrina.vetrina_id}"]`);
-                        if (card) {
-                            const favoriteBtn = card.querySelector('.favorite-button');
-                            if (favoriteBtn) {
-                                if (freshVetrina.favorite) {
-                                    favoriteBtn.classList.add('active');
-                                    favoriteBtn.setAttribute('title', 'Rimuovi dai preferiti');
-                                } else {
-                                    favoriteBtn.classList.remove('active');
-                                    favoriteBtn.setAttribute('title', 'Aggiungi ai preferiti');
-                                }
-                            }
-                        }
-                    }
-                });
-            } else {
-            }
-        }
-    } catch (error) {
-        console.error('Error refreshing favorite status:', error);
-    }
-}
+// Favorite status is already included in vetrine data, no need for separate refresh
 
 async function toggleFavorite(button, event) {
     if (event) {

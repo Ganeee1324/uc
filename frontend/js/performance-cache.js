@@ -470,27 +470,25 @@ class PerformanceCacheManager {
 
     async loadVetrinaReviews(vetrinaId, useCache = true) {
         try {
-            const cacheKey = `reviews_${vetrinaId}`;
+            const cacheKey = `vetrina_reviews_${vetrinaId}`;
             
             if (useCache) {
                 const cached = this.get(cacheKey, 'reviews');
                 if (cached) {
-                    console.log(`✅ Loaded reviews for vetrina ${vetrinaId} from cache`);
+                    console.log('✅ Loaded reviews from cache');
                     return cached;
                 }
             }
 
-            console.log(`🔄 Loading reviews for vetrina ${vetrinaId}...`);
+            console.log('🔄 Loading vetrina reviews...');
             const data = await window.ApiClient.get(`/vetrine/${vetrinaId}/reviews`, {}, 'reviews');
             this.set(cacheKey, data, 'reviews');
             return data;
         } catch (error) {
-            console.error(`❌ Error loading reviews for vetrina ${vetrinaId}:`, error);
-            throw error;
+            console.error('❌ Error loading reviews:', error);
+            return { reviews: [], average_rating: 0, total_reviews: 0 };
         }
     }
-
-
 
     async toggleVetrinaFavorite(vetrinaId, currentlyFavorited) {
         try {
@@ -502,7 +500,8 @@ class PerformanceCacheManager {
                 await window.ApiClient.post(`/user/favorites/vetrine/${vetrinaId}`);
             }
 
-            this.invalidate('favorites');
+            // Invalidate vetrine cache since favorite status is part of vetrine data
+            this.invalidate('vetrine');
             return !currentlyFavorited;
         } catch (error) {
             console.error('❌ Error toggling favorite:', error);

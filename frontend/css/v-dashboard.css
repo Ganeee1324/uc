@@ -2721,3 +2721,63 @@ body.sidebar-open .order-dropdown-content {
         transform: translateY(0);
     }
 }
+
+/* Documents Dashboard Styles */
+.documents-dashboard {
+    width: 100%;
+    padding: 20px;
+    background: transparent;
+}
+
+/* Center the search title and subtitle in documents dashboard */
+.documents-dashboard .search-title {
+    text-align: center;
+}
+
+.documents-dashboard .search-subtitle {
+    text-align: center;
+}
+
+.documents-dashboard .search-section {
+    display: inherit;
+    grid-template-areas: inherit;
+    grid-template-rows: inherit;
+    align-items: inherit;
+    justify-content: inherit;
+    margin-top: inherit;
+    padding: inherit;
+    text-align: inherit;
+    position: inherit;
+    width: inherit;
+    max-width: inherit;
+    z-index: inherit;
+    isolation: inherit;
+}
+
+/* Ensure toggle label is visible in documents dashboard */
+.documents-dashboard .toggle-label {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Ensure search bar elements are properly positioned */
+.documents-dashboard .search-bar {
+    position: relative;
+}
+
+.documents-dashboard .search-container-wrapper {
+    display: block;
+}
+
+.documents-dashboard .search-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Ensure filters button is visible */
+.documents-dashboard .filters-btn {
+    display: flex;
+    visibility: visible;
+}

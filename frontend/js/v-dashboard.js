@@ -151,6 +151,14 @@ async function switchTab(tabName) {
                 
                 // Search component will auto-initialize itself with smart retry logic
                 console.log('Search component loaded for documents - auto-initialization in progress');
+                
+                // Manually trigger document loading for the documents search section
+                setTimeout(() => {
+                    if (typeof applyFiltersAndRender === 'function') {
+                        console.log('Manually triggering document loading for documents search section...');
+                        applyFiltersAndRender();
+                    }
+                }, 500);
             } catch (error) {
                 console.error('Error loading documents search component:', error);
             }

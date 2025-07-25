@@ -1095,7 +1095,7 @@ html {
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
-    z-index: 99999; /* Lower z-index to not block sort button */
+    z-index: 10005; /* Higher z-index for search container wrapper - above everything except filters overlay */
 
     /* The background and padding are only applied when it's stuck. */
     transition: all 0.3s ease-in-out;
@@ -1125,7 +1125,7 @@ html {
     max-width: 600px;
     margin: 0 auto;
     flex-wrap: nowrap;
-    z-index: 9999; /* High z-index for search container */
+    z-index: 10006; /* Higher z-index for search container - above everything except filters overlay */
 }
 
 /* Animated Border Search Bar Container */
@@ -1381,24 +1381,24 @@ html {
 }
 
 /* Search Bar - Updated for animated border */
-.search-bar {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 400px;
-    max-width: 400px;
-    height: 44px;
-    background: var(--white);
-    border: none;
-    border-radius: 20px;
-    padding: 0 var(--space-4);
-    transition: all 0.25s var(--ease-2);
-    margin-top: 0;
-    z-index: 9999; /* High z-index for search bar */
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+        .search-bar {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 400px;
+            max-width: 400px;
+            height: 44px;
+            background: var(--white);
+            border: none;
+            border-radius: 20px;
+            padding: 0 var(--space-4);
+            transition: all 0.25s var(--ease-2);
+            margin-top: 0;
+            z-index: 10000; /* Higher z-index for search bar - above everything except filters overlay */
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
 
 /* Animation keyframes for border rotation */
 @keyframes rotate {
@@ -1438,20 +1438,20 @@ html {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.search-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--gray-900);
-    background: transparent;
-    letter-spacing: -0.011em;
-    line-height: 1.5;
-    position: relative;
-    z-index: 30;
-    padding-right: 50px; /* Space for toggle button without reducing input width */
-}
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--gray-900);
+            background: transparent;
+            letter-spacing: -0.011em;
+            line-height: 1.5;
+            position: relative;
+            z-index: 10001; /* Higher z-index for search input - above everything except filters overlay */
+            padding-right: 50px; /* Space for toggle button without reducing input width */
+        }
 
 .search-input:focus {
     outline: none;
@@ -1462,22 +1462,22 @@ html {
     font-weight: 400;
 }
 
-.search-btn {
-    background: transparent;
-    border: none;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gray-500);
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    transition: all 0.2s var(--ease-2);
-    margin-left: var(--space-2);
-    position: relative;
-    z-index: 1001;
-}
+        .search-btn {
+            background: transparent;
+            border: none;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition: all 0.2s var(--ease-2);
+            margin-left: var(--space-2);
+            position: relative;
+            z-index: 10002; /* Higher z-index for search button - above everything except filters overlay */
+        }
 
 .search-btn:hover {
     background: var(--gray-100);
@@ -1510,7 +1510,7 @@ html {
     margin-top: 0;
     opacity: 1;
     visibility: visible;
-    z-index: 1001;
+    z-index: 10003; /* Higher z-index for filters button - above everything except filters overlay */
     margin-left: 8px;
 }
 
@@ -1565,7 +1565,7 @@ html {
 .order-dropdown-container {
     position: relative;
     display: inline-block;
-    z-index: 100000;
+    z-index: 10004; /* Higher z-index for order dropdown - above everything except filters overlay */
 }
 
 .order-btn {

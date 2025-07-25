@@ -150,12 +150,12 @@ async function switchTab(tabName) {
         if (mainSearchContainer) mainSearchContainer.style.display = 'block';
         if (documentsSearchContainer) documentsSearchContainer.style.display = 'none';
         
-        // Clear documents search and ensure main search is loaded
+        // Clear documents search container
         if (documentsSearchContainer) {
             documentsSearchContainer.innerHTML = '';
         }
         
-        // Reload main search component if it's empty (fresh load to ensure proper initialization)
+        // Ensure main search component is loaded
         if (mainSearchContainer && !mainSearchContainer.hasChildNodes()) {
             await loadSearchComponent('searchSectionContainer', {
                 title: '', // Remove title
@@ -948,11 +948,13 @@ async function fetchCompleteUserProfile(userId) {
 
 async function loadSearchComponent(containerId, config = {}) {
     try {
+        // Load the search-section component HTML
         const response = await fetch('components/search-section/search-section.html');
         const html = await response.text();
         
         const container = document.getElementById(containerId);
         if (container) {
+            // Clear container and load the component
             container.innerHTML = html;
             
             // Apply custom configuration
@@ -979,26 +981,9 @@ async function loadSearchComponent(containerId, config = {}) {
                 if (inputElement) inputElement.placeholder = config.placeholder;
             }
             
-            // For documents section, we need to ensure search-section.js can work properly
-            if (containerId === 'documentsSearchSectionContainer') {
-                // Clear the main search section to avoid conflicts
-                const mainSearchContainer = document.getElementById('searchSectionContainer');
-                if (mainSearchContainer) {
-                    mainSearchContainer.innerHTML = '';
-                }
-                
-                // Initialize the search component for documents
-                await initializeSearchComponentForContext(container, 'documents');
-            } else {
-                // For the main search section, ensure documents search is cleared
-                const documentsSearchContainer = document.getElementById('documentsSearchSectionContainer');
-                if (documentsSearchContainer) {
-                    documentsSearchContainer.innerHTML = '';
-                }
-                
-                // Initialize the search component for profile
-                await initializeSearchComponentForContext(container, 'profile');
-            }
+            // Initialize the search component based on context
+            const context = containerId === 'documentsSearchSectionContainer' ? 'documents' : 'profile';
+            await initializeSearchComponentForContext(container, context);
         }
     } catch (error) {
         console.error('Error loading search component:', error);
@@ -1011,7 +996,6 @@ async function initializeSearchComponentForContext(container, context) {
     // Add a small delay to ensure DOM is ready
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Reinitialize the search-section.js functionality
     try {
         // Initialize user info
         const user = getCurrentUser();
@@ -1085,35 +1069,25 @@ function initializeSearchFunctionality(context) {
     // Initialize search input based on context
     const searchInput = document.getElementById('searchInput');
     if (searchInput && context === 'documents') {
-        // Only override search input for documents context
-        // Remove existing listeners to avoid duplicates
-        const newSearchInput = searchInput.cloneNode(true);
-        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-        
-        // Add documents-specific search listeners
-        newSearchInput.addEventListener('input', function(e) {
+        // For documents context, override search behavior
+        searchInput.addEventListener('input', function(e) {
             const query = e.target.value.trim();
             handleDocumentsSearch(query);
         });
         
-        newSearchInput.addEventListener('keypress', function(e) {
+        searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const query = e.target.value.trim();
                 handleDocumentsSearch(query);
             }
         });
     }
-    // For profile context, leave the original search-section.js handlers intact
+    // For profile context, the search-section.js will handle the search functionality
     
     // Initialize filters button
     const filtersBtn = document.getElementById('filtersBtn');
     if (filtersBtn) {
-        // Remove existing listeners
-        const newFiltersBtn = filtersBtn.cloneNode(true);
-        filtersBtn.parentNode.replaceChild(newFiltersBtn, filtersBtn);
-        
-        // Add new listener
-        newFiltersBtn.addEventListener('click', function() {
+        filtersBtn.addEventListener('click', function() {
             const filtersPanel = document.getElementById('filtersPanel');
             if (filtersPanel) {
                 filtersPanel.classList.add('show');
@@ -1147,54 +1121,15 @@ function initializeSearchUIElements() {
 }
 
 function initializeFiltersForContext(context) {
-    // Safely initialize filters to prevent null errors
-    try {
-        // Check if filter elements exist before trying to populate them
-        const filterTypes = ['faculty', 'course', 'canale', 'tag', 'documentType', 'language', 'academicYear'];
-        
-        filterTypes.forEach(type => {
-            const filterElement = document.getElementById(`${type}Filter`);
-            const optionsElement = document.getElementById(`${type}Options`);
-            
-            if (filterElement && optionsElement) {
-                // Only populate if elements exist
-                populateOptionsIfExists(type, []);
-            }
-        });
-        
-        // Initialize filter manager if available
-        if (window.filterManager) {
-            window.filterManager.updateActiveFiltersDisplay();
-        }
-    } catch (error) {
-        console.warn('Error initializing filters:', error);
-    }
+    // The search-section.js will handle filter initialization
+    // We just need to ensure the component is properly loaded
+    console.log(`Filters will be initialized by search-section.js for context: ${context}`);
 }
 
+// This function is no longer needed as search-section.js handles filter population
 function populateOptionsIfExists(type, items) {
-    const options = document.getElementById(`${type}Options`);
-    const filterInput = document.getElementById(`${type}Filter`);
-    
-    if (!options || !filterInput) {
-        return; // Silently return if elements don't exist
-    }
-    
-    const currentValue = filterInput.value;
-    
-    // Clear existing options
-    options.innerHTML = '';
-    
-    // Add options if items exist
-    items.forEach(item => {
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'dropdown-option';
-        optionDiv.textContent = item;
-        optionDiv.addEventListener('click', () => {
-            filterInput.value = item;
-            options.parentElement.classList.remove('show');
-        });
-        options.appendChild(optionDiv);
-    });
+    // Deprecated - search-section.js handles this
+    console.log(`Filter population handled by search-section.js for type: ${type}`);
 }
 
 function initializeDocumentsGrid() {
@@ -1315,7 +1250,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeStatsDropdown(); // Add stats dropdown functionality
     initializeTimeFilters(); // Add time filters functionality
     initializeDocumentsPeriodFilter(); // Add documents period filter functionality
-    // initializeDonutChart(); // Donut chart removed
     initializeDocumentPerformanceItems(); // Add document performance interactivity
     
     // Initialize animations when switching to stats tab

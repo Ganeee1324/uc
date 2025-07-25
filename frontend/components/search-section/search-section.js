@@ -7077,9 +7077,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let initializationInProgress = false;
 
     // Component initialization function
-    function initializeSearchSectionComponent() {
+    function initializeSearchSectionComponent(specificSearchSection = null) {
         // Check if search section container exists
-        const searchSection = document.querySelector('.search-section');
+        const searchSection = specificSearchSection || document.querySelector('.search-section');
         if (!searchSection) {
             console.log('⏳ Search section container not found yet, will retry...');
             return;
@@ -7133,10 +7133,19 @@ document.addEventListener('DOMContentLoaded', function() {
         let retries = 0;
 
         function tryInitialize() {
-            const searchSection = document.querySelector('.search-section');
-            if (searchSection) {
-                initializeSearchSectionComponent();
-            } else if (retries < maxRetries) {
+            // Find ALL search-section instances that haven't been initialized yet
+            const searchSections = document.querySelectorAll('.search-section');
+            let foundUninitialized = false;
+            
+            searchSections.forEach(searchSection => {
+                if (searchSection.dataset.initialized !== 'true') {
+                    console.log('🚀 Found uninitialized search-section, initializing...');
+                    foundUninitialized = true;
+                    initializeSearchSectionComponent(searchSection);
+                }
+            });
+            
+            if (!foundUninitialized && retries < maxRetries) {
                 retries++;
                 setTimeout(tryInitialize, 100);
             }
@@ -7158,6 +7167,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof window !== 'undefined') {
         window.initializeSearchSection = function() {
             smartInitialize();
+        };
+        
+        // Also make it available to initialize a specific search section
+        window.initializeSpecificSearchSection = function(searchSection) {
+            if (searchSection && searchSection.dataset.initialized !== 'true') {
+                initializeSearchSectionComponent(searchSection);
+            }
         };
     }
 

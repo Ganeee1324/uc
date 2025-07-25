@@ -152,13 +152,14 @@ async function switchTab(tabName) {
                 // Search component will auto-initialize itself with smart retry logic
                 console.log('Search component loaded for documents - auto-initialization in progress');
                 
-                // Manually trigger document loading for the documents search section
+                // Manually initialize the specific search section that was just loaded
                 setTimeout(() => {
-                    if (typeof applyFiltersAndRender === 'function') {
-                        console.log('Manually triggering document loading for documents search section...');
-                        applyFiltersAndRender();
+                    const documentsSearchSection = documentsSearchContainer.querySelector('.search-section');
+                    if (documentsSearchSection && typeof window.initializeSpecificSearchSection === 'function') {
+                        console.log('Manually initializing documents search section...');
+                        window.initializeSpecificSearchSection(documentsSearchSection);
                     }
-                }, 500);
+                }, 100);
             } catch (error) {
                 console.error('Error loading documents search component:', error);
             }

@@ -240,11 +240,17 @@ function initializeAnimations() {
 // ===========================
 
 function initializeFilters() {
-    const filtersBtn = document.getElementById('filtersBtn');
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const filtersClose = document.getElementById('filtersClose');
-    const clearAllFilters = document.getElementById('clearAllFilters');
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for initializeFilters');
+        return;
+    }
+    
+    const filtersBtn = context.querySelector('#filtersBtn') || document.getElementById('filtersBtn');
+    const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
+    const filtersOverlay = context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay');
+    const filtersClose = context.querySelector('#filtersClose') || document.getElementById('filtersClose');
+    const clearAllFilters = context.querySelector('#clearAllFilters') || document.getElementById('clearAllFilters');
 
     // Filter panel toggle
     if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
@@ -271,6 +277,12 @@ function initializeFilters() {
 }
 
 function initializeFilterControls() {
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for initializeFilterControls');
+        return;
+    }
+    
     // Professional dropdowns (includes all dropdown types now)
     setupDropdowns();
     // Rating filter
@@ -282,7 +294,7 @@ function initializeFilterControls() {
     // Order functionality
     initializeOrderDropdown();
     // Ensure price range is visible for 'Tutti' after all initializations
-    const priceRangeContainer = document.getElementById('priceRangeContainer');
+    const priceRangeContainer = context.querySelector('#priceRangeContainer') || document.getElementById('priceRangeContainer');
     if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
         priceRangeContainer.style.display = 'block';
     }
@@ -1929,9 +1941,15 @@ let currentOrder = 'relevance';
 // Initialize order button text on page load
 
 function initializeOrderDropdown() {
-    const orderBtn = document.getElementById('orderBtn');
-    const orderDropdown = document.querySelector('.order-dropdown-content');
-    const orderOptions = document.querySelectorAll('.order-option');
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    if (!context) {
+        console.error('❌ No search section context found for initializeOrderDropdown');
+        return;
+    }
+    
+    const orderBtn = context.querySelector('#orderBtn') || document.getElementById('orderBtn');
+    const orderDropdown = context.querySelector('.order-dropdown-content') || document.querySelector('.order-dropdown-content');
+    const orderOptions = context.querySelectorAll('.order-option') || document.querySelectorAll('.order-option');
     
     if (!orderBtn || !orderDropdown) return;
     
@@ -1974,8 +1992,9 @@ function selectOrderOption(orderType) {
     currentOrder = orderType;
     
     // Update button text based on selection
-    const orderBtn = document.getElementById('orderBtn');
-    const orderText = orderBtn.querySelector('.order-text');
+    const context = currentSearchSectionContext || document.querySelector('.search-section');
+    const orderBtn = context ? (context.querySelector('#orderBtn') || document.getElementById('orderBtn')) : document.getElementById('orderBtn');
+    const orderText = orderBtn ? orderBtn.querySelector('.order-text') : null;
     
     const orderLabels = {
         'relevance': 'Rilevanza',

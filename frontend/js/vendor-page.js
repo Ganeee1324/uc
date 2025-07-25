@@ -450,8 +450,24 @@ function updateHeaderUserInfo(user) {
             });
         }
         
-        // Toggle dropdown on click as well
+        // Handle click on avatar - redirect to v-dashboard
         userAvatar.addEventListener('click', (event) => {
+            event.stopPropagation();
+            // Redirect to v-dashboard with user info
+            window.location.href = 'v-dashboard.html';
+        });
+        
+        // Add dropdown toggle functionality with a small arrow
+        const dropdownToggle = document.createElement('div');
+        dropdownToggle.className = 'dropdown-toggle';
+        dropdownToggle.innerHTML = '<span class="material-symbols-outlined">expand_more</span>';
+        
+        // Position the user-info container relatively to contain the toggle
+        userInfo.style.position = 'relative';
+        userInfo.appendChild(dropdownToggle);
+        
+        // Toggle dropdown when clicking the arrow
+        dropdownToggle.addEventListener('click', (event) => {
             event.stopPropagation();
             userInfo.classList.toggle('open');
         });

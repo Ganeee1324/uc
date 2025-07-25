@@ -560,7 +560,6 @@ html {
 .main-content {
     /* --sticky-top-offset is set by JavaScript */
     --sticky-top-offset: 10px; /* Default fallback value */
-    padding-top: 100px;
     min-height: calc(100vh - 120px);
     position: relative;
     width: 100%;

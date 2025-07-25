@@ -210,7 +210,7 @@ body {
 
 .main-content {
     flex: 1;
-    padding: 0;
+    padding-top: 10px;
     margin-left: 280px;
     min-height: 100vh;
     background-color: #ffffff;
@@ -910,6 +910,12 @@ body {
         transition: none;
     }
     
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* ===========================
@@ -2159,5 +2165,47 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Document Search Buttons */
+.explore-documents-btn,
+.clear-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    margin-top: 16px;
+}
+
+.explore-documents-btn:hover,
+.clear-search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.explore-documents-btn:active,
+.clear-search-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.clear-search-btn {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+}
+
+.clear-search-btn:hover {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    box-shadow: 0 6px 20px rgba(100, 116, 139, 0.3);
 }
 

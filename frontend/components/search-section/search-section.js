@@ -284,7 +284,7 @@ function checkAuthentication() {
 let currentVetrine = [];
 let currentFiles = [];
 let originalFiles = []; // Keep original unfiltered data
-let searchSectionFiltersOpen = false;
+let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
@@ -415,27 +415,16 @@ function updateHeaderUserInfo(user) {
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
-    if (!userAvatar) {
-        console.warn('[search-section] userAvatar element not found in DOM. Skipping updateHeaderUserInfo.');
-        return;
-    }
-    
-    if (user) {
-        // Construct the user's full name for the avatar
-        let fullName = '';
-        if (user.name && user.surname) {
-            fullName = `${user.name} ${user.surname}`;
-        } else if (user.name) {
-            fullName = user.name;
-        } else if (user.username) {
-            fullName = user.username;
-        } else {
-            fullName = 'User';
-        }
+    if (user && user.username) {
+        const fullName = user.full_name || user.username;
         
         // Use consistent gradient avatar instead of UI Avatars service
         const gradientAvatar = createGradientAvatar(fullName, user.username);
-        userAvatar.innerHTML = gradientAvatar;
+        
+        // Add null check for userAvatar
+        if (userAvatar) {
+            userAvatar.innerHTML = gradientAvatar;
+        }
         
         // Apply the same gradient to dropdown avatar
         if (dropdownAvatar) {
@@ -461,23 +450,27 @@ function updateHeaderUserInfo(user) {
         const userInfo = document.querySelector('.user-info');
         
         // Show dropdown on hover
-        userAvatar.addEventListener('mouseenter', (event) => {
-            event.stopPropagation();
-            userInfo.classList.add('open');
-        });
+        if (userAvatar) {
+            userAvatar.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                if (userInfo) userInfo.classList.add('open');
+            });
+            
+            // Redirect to v-dashboard when user clicks their avatar
+            userAvatar.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to v-dashboard with user info
+                window.location.href = 'v-dashboard.html';
+            });
+        }
         
         // Hide dropdown when mouse leaves the user info area
-        userInfo.addEventListener('mouseleave', (event) => {
-            event.stopPropagation();
-            userInfo.classList.remove('open');
-        });
-        
-        // Redirect to v-dashboard when user clicks their avatar
-        userAvatar.addEventListener('click', (event) => {
-            event.stopPropagation();
-            // Redirect to v-dashboard with user info
-            window.location.href = 'v-dashboard.html';
-        });
+        if (userInfo) {
+            userInfo.addEventListener('mouseleave', (event) => {
+                event.stopPropagation();
+                userInfo.classList.remove('open');
+            });
+        }
 
         // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
@@ -490,11 +483,13 @@ function updateHeaderUserInfo(user) {
 
     } else {
         // Handle case where user is not logged in - show login button
-        userAvatar.innerHTML = `
-            <button class="login-btn" onclick="window.location.href='index.html'">
-                <span class="login-btn-text">Accedi</span>
-            </button>
-        `;
+        if (userAvatar) {
+            userAvatar.innerHTML = `
+                <button class="login-btn" onclick="window.location.href='index.html'">
+                    <span class="login-btn-text">Accedi</span>
+                </button>
+            `;
+        }
         
         // Remove dropdown functionality for non-authenticated users
         const userInfo = document.querySelector('.user-info');
@@ -551,7 +546,7 @@ function initializeFilters() {
 
     // Close on escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && searchSectionFiltersOpen) {
+        if (e.key === 'Escape' && isFiltersOpen) {
             closeFiltersPanel();
         }
     });
@@ -1274,7 +1269,15 @@ function populateDropdownOptions() {
 
 function populateOptions(type, items) {
     const options = document.getElementById(`${type}Options`);
-    const currentValue = document.getElementById(`${type}Filter`).value;
+    const filterElement = document.getElementById(`${type}Filter`);
+    
+    // Add null check for filter element
+    if (!filterElement) {
+        console.warn(`Filter element ${type}Filter not found`);
+        return;
+    }
+    
+    const currentValue = filterElement.value;
     
     if (!options) {
         return;
@@ -2406,13 +2409,13 @@ async function applyFiltersAndRender() {
 }
 
 function toggleFiltersPanel() {
-    searchSectionFiltersOpen = !searchSectionFiltersOpen;
+    isFiltersOpen = !isFiltersOpen;
     const filtersPanel = document.getElementById('filtersPanel');
     const filtersOverlay = document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
     const documentsGrid = document.getElementById('documentsGrid');
     
-    if (searchSectionFiltersOpen) {
+    if (isFiltersOpen) {
         // Ensure robust positioning before showing
         if (filtersPanel) {
             filtersPanel.style.position = 'fixed';
@@ -2688,7 +2691,7 @@ function updateActiveFiltersDisplay() {
 }
 
 function closeFiltersPanel() {
-    searchSectionFiltersOpen = false;
+    isFiltersOpen = false;
     const filtersPanel = document.getElementById('filtersPanel');
     const filtersOverlay = document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
@@ -3578,7 +3581,7 @@ async function makeAuthenticatedRequest(url) {
 function showLoadingCards(count = null) {
     const grid = document.getElementById('documentsGrid');
     if (!grid) {
-        console.error('❌ Grid element not found!');
+        console.warn('📱 Grid element not found - this is normal in some contexts');
         return;
     }
     
@@ -4495,7 +4498,6 @@ function showError(message) {
     showStatus(message, 'error');
 }
 
-// Function to refresh favorite status when page becomes visible
 // Favorite status is already included in vetrine data, no need for separate refresh
 
 async function toggleFavorite(button, event) {
@@ -5387,7 +5389,7 @@ function initializeKeyboardShortcuts() {
         // Escape to close filters or preview
         if (e.key === 'Escape') {
             e.preventDefault();
-            if (searchSectionFiltersOpen) {
+            if (isFiltersOpen) {
                 closeFiltersPanel();
             } else {
                 const previewModal = document.getElementById('previewModal');
@@ -6532,7 +6534,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Global variable to track AI search state
-let searchSectionAiSearchEnabled = false;
+let aiSearchEnabled = false;
 
 // Initialize AI Search Toggle
 function initializeAISearchToggle() {
@@ -6546,7 +6548,7 @@ function initializeAISearchToggle() {
     // Load saved state from localStorage
     const savedState = localStorage.getItem('aiSearchEnabled');
     if (savedState === 'true') {
-        searchSectionAiSearchEnabled = true;
+        aiSearchEnabled = true;
         toggleInput.checked = true;
         searchBar.classList.add('ai-active');
         const searchBarBackground = document.getElementById('searchBarBackground');
@@ -6557,10 +6559,10 @@ function initializeAISearchToggle() {
     // Toggle event handler
     toggleInput.addEventListener('change', function(e) {
         // Toggle state
-        searchSectionAiSearchEnabled = toggleInput.checked;
+        aiSearchEnabled = toggleInput.checked;
         
         // Update UI with enhanced visual feedback
-        if (searchSectionAiSearchEnabled) {
+        if (aiSearchEnabled) {
             searchBar.classList.add('ai-active');
             const searchBarBackground = document.getElementById('searchBarBackground');
             if (searchBarBackground) searchBarBackground.classList.add('ai-active');
@@ -6589,7 +6591,7 @@ function initializeAISearchToggle() {
         }
         
         // Save state to localStorage
-        localStorage.setItem('aiSearchEnabled', searchSectionAiSearchEnabled.toString());
+        localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
         
         // If there's a current search query, re-run the search with new mode
         const currentQuery = searchInput.value.trim();
@@ -6609,7 +6611,7 @@ function initializeAISearchToggle() {
     
     // Add tooltip on hover
     aiToggle.addEventListener('mouseenter', function() {
-        const tooltip = searchSectionAiSearchEnabled ? 
+        const tooltip = aiSearchEnabled ? 
             'Disattiva ricerca semantica (Ctrl+Shift+A)' : 
             'Attiva ricerca semantica (Ctrl+Shift+A)';
         aiToggle.title = tooltip;
@@ -6648,7 +6650,7 @@ function initializeAISearchToggle() {
         
         // Focus event to show current mode
         searchInput.addEventListener('focus', function() {
-            if (searchSectionAiSearchEnabled) {
+            if (aiSearchEnabled) {
                 showStatus('Modalità semantica attiva 🤖', 'success');
             }
         });
@@ -6683,7 +6685,7 @@ async function performSearch(query) {
         showLoadingCards();
         
         // Show search-specific loading message
-        if (searchSectionAiSearchEnabled) {
+        if (aiSearchEnabled) {
             showStatus('Ricerca semantica in corso... 🤖', 'success');
             // Add loading animation to toggle
             const aiToggle = document.getElementById('aiSearchToggle');
@@ -6704,7 +6706,7 @@ async function performSearch(query) {
         let searchParams;
         let endpoint;
         
-        if (searchSectionAiSearchEnabled) {
+        if (aiSearchEnabled) {
             // Use new semantic search endpoint
             endpoint = '/vetrine/search';
             searchParams = new URLSearchParams();
@@ -6766,10 +6768,10 @@ async function performSearch(query) {
                 aiToggle.classList.remove('loading');
             }
             
-            if (searchSectionAiSearchEnabled) {
+            if (aiSearchEnabled) {
                 showStatus('Ricerca semantica non disponibile. Passaggio a ricerca standard...', 'error');
                 // Fallback to standard search
-                searchSectionAiSearchEnabled = false;
+                aiSearchEnabled = false;
                 const toggle = document.getElementById('aiSearchToggle');
                 const searchBar = document.querySelector('.search-bar');
                 if (toggle) toggle.classList.remove('active');
@@ -6805,7 +6807,7 @@ async function performSearch(query) {
         // Handle different response formats based on search mode
         let searchResults, totalCount, chunks;
         
-        if (searchSectionAiSearchEnabled) {
+        if (aiSearchEnabled) {
             // New semantic search response format
             searchResults = response.vetrine || [];
             totalCount = response.count || searchResults.length;
@@ -6820,7 +6822,7 @@ async function performSearch(query) {
         if (searchResults.length === 0) {
             currentFiles = [];
             renderDocuments([]);
-            const searchMode = searchSectionAiSearchEnabled ? 'semantica' : 'standard';
+            const searchMode = aiSearchEnabled ? 'semantica' : 'standard';
             showStatus(`Nessun risultato trovato per "${query}" con ricerca ${searchMode} 🔍`);
             
             return;
@@ -6865,7 +6867,7 @@ async function performSearch(query) {
             };
             
             // Add semantic search chunks if available
-            if (searchSectionAiSearchEnabled && chunks && chunks[vetrina.vetrina_id]) {
+            if (aiSearchEnabled && chunks && chunks[vetrina.vetrina_id]) {
                 vetrineCard.semanticChunks = chunks[vetrina.vetrina_id];
                 vetrineCard.hasSemanticResults = true;
             }
@@ -6889,8 +6891,8 @@ async function performSearch(query) {
             ? `"${searchTerms.join('" + "')}"` 
             : `"${query}"`;
         
-        const searchMode = searchSectionAiSearchEnabled ? 'semantica' : 'standard';
-        const aiIcon = searchSectionAiSearchEnabled ? '🤖' : '🔍';
+        const searchMode = aiSearchEnabled ? 'semantica' : 'standard';
+        const aiIcon = aiSearchEnabled ? '🤖' : '🔍';
         
         if (totalCount > filteredResults.length) {
             showStatus(`Trovati ${filteredResults.length} di ${totalCount} documenti per ${searchSummary} (${searchMode}) ${aiIcon}`);
@@ -6938,7 +6940,7 @@ let currentTypewriterIndex = 0;
 let currentTypewriterSuggestions = standardSuggestions;
 
 function setTypewriterSuggestions() {
-    currentTypewriterSuggestions = searchSectionAiSearchEnabled ? aiSuggestions : standardSuggestions;
+    currentTypewriterSuggestions = aiSearchEnabled ? aiSuggestions : standardSuggestions;
 }
 
 function clearTypewriterPlaceholder(input) {
@@ -7343,5 +7345,3 @@ document.addEventListener('DOMContentLoaded', function() {
             filterManager.updateActiveFiltersDisplay();
         });
     }
-    // Pills are handled by FilterManager.createFilterPill
-// ... existing code ...

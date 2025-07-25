@@ -110,6 +110,8 @@ async function switchTab(tabName) {
     const dashboardRow = document.querySelector('.dashboard-row');
     const statsDashboard = document.getElementById('statsDashboard');
     const documentsDashboard = document.getElementById('documentsDashboard');
+    const mainSearchContainer = document.getElementById('searchSectionContainer');
+    const documentsSearchContainer = document.getElementById('documentsSearchSectionContainer');
     
     if (tabName === 'stats') {
         // Show stats dashboard, hide others
@@ -117,14 +119,22 @@ async function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'block';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (mainSearchContainer) mainSearchContainer.style.display = 'none';
+        if (documentsSearchContainer) documentsSearchContainer.style.display = 'none';
         
         currentTab = 'stats';
     } else if (tabName === 'documents') {
-        // Show documents dashboard, hide others
+        // Show purchased documents section, hide others
         if (profileSection) profileSection.style.display = 'none';
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
-        if (documentsDashboard) documentsDashboard.style.display = 'block';
+        if (mainSearchContainer) mainSearchContainer.style.display = 'none';
+        
+        // Show purchased documents section
+        const purchasedDocumentsSection = document.getElementById('purchasedDocumentsSection');
+        if (purchasedDocumentsSection) {
+            purchasedDocumentsSection.style.display = 'block';
+        }
         
         currentTab = 'documents';
         
@@ -136,6 +146,22 @@ async function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'flex';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (mainSearchContainer) mainSearchContainer.style.display = 'block';
+        if (documentsSearchContainer) documentsSearchContainer.style.display = 'none';
+        
+        // Clear documents search and ensure main search is loaded
+        if (documentsSearchContainer) {
+            documentsSearchContainer.innerHTML = '';
+        }
+        
+        // Reload main search component if it's empty (fresh load to ensure proper initialization)
+        if (mainSearchContainer && !mainSearchContainer.hasChildNodes()) {
+            await loadSearchComponent('searchSectionContainer', {
+                title: '', // Remove title
+                subtitle: '', // Remove subtitle
+                placeholder: 'Cerca una dispensa...'
+            });
+        }
         
         currentTab = 'profile';
     }
@@ -194,14 +220,16 @@ async function loadPurchasedDocuments() {
     
     const loadingState = document.getElementById('myDocumentsLoading');
     const emptyState = document.getElementById('myDocumentsEmpty');
+    const documentsList = document.getElementById('myDocumentsList');
     
-    // Show loading state
+    // Show loading state, hide others
     if (loadingState) loadingState.style.display = 'block';
     if (emptyState) emptyState.style.display = 'none';
+    if (documentsList) documentsList.style.display = 'none';
     
     try {
         // Make API call to fetch user's purchased/downloaded documents
-        const response = await fetch('/api/documents/purchased', {
+        const response = await fetch('https://marketplace-backend-9b8c.onrender.com/api/documents/purchased', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -220,13 +248,18 @@ async function loadPurchasedDocuments() {
         if (loadingState) loadingState.style.display = 'none';
         
         if (data.documents && data.documents.length > 0) {
-            // Hide empty state
+            // Hide empty state and show documents list
             if (emptyState) emptyState.style.display = 'none';
+            if (documentsList) {
+                documentsList.style.display = 'block';
+                renderPurchasedDocuments(data.documents);
+            }
             
             console.log('Documents loaded successfully');
         } else {
             // Show empty state
             if (emptyState) emptyState.style.display = 'block';
+            if (documentsList) documentsList.style.display = 'none';
             
             console.log('No documents found');
         }
@@ -245,7 +278,49 @@ async function loadPurchasedDocuments() {
             if (emptyTitle) emptyTitle.textContent = 'Errore nel caricamento';
             if (emptyText) emptyText.textContent = 'Si è verificato un errore durante il caricamento dei documenti acquistati. Riprova più tardi.';
         }
+        if (documentsList) documentsList.style.display = 'none';
     }
+}
+
+function renderPurchasedDocuments(documents) {
+    const documentsList = document.getElementById('myDocumentsList');
+    if (!documentsList) return;
+    
+    documentsList.innerHTML = '';
+    
+    documents.forEach((doc, index) => {
+        const documentElement = document.createElement('div');
+        documentElement.className = 'purchased-document-item';
+        documentElement.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: white;
+            transition: all 0.2s ease;
+        `;
+        
+        documentElement.innerHTML = `
+            <div style="flex: 1;">
+                <h4 style="margin: 0 0 4px 0; color: #1f2937; font-size: 16px;">${doc.title || 'Documento senza titolo'}</h4>
+                <p style="margin: 0; color: #6b7280; font-size: 14px;">${doc.description || 'Nessuna descrizione disponibile'}</p>
+                <p style="margin: 4px 0 0 0; color: #9ca3af; font-size: 12px;">Acquistato il: ${new Date(doc.purchase_date || Date.now()).toLocaleDateString('it-IT')}</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="downloadDocument('${doc.id}')" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    Scarica
+                </button>
+                <button onclick="viewDocumentDetails('${doc.id}')" style="padding: 8px 16px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    Dettagli
+                </button>
+            </div>
+        `;
+        
+        documentsList.appendChild(documentElement);
+    });
 }
 
 // Document action functions for purchased documents
@@ -866,9 +941,373 @@ async function fetchCompleteUserProfile(userId) {
 }
 
 
+// ===========================
+// SEARCH COMPONENT FUNCTIONALITY
+// ===========================
+
+async function loadSearchComponent(containerId, config = {}) {
+    try {
+        const response = await fetch('components/search-section/search-section.html');
+        const html = await response.text();
+        
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = html;
+            
+            // Apply custom configuration
+            const titleElement = container.querySelector('.search-title');
+            if (titleElement) {
+                if (config.title === '') {
+                    titleElement.style.display = 'none';
+                } else if (config.title) {
+                    titleElement.textContent = config.title;
+                }
+            }
+            
+            const subtitleElement = container.querySelector('.search-subtitle');
+            if (subtitleElement) {
+                if (config.subtitle === '') {
+                    subtitleElement.style.display = 'none';
+                } else if (config.subtitle) {
+                    subtitleElement.textContent = config.subtitle;
+                }
+            }
+            
+            if (config.placeholder) {
+                const inputElement = container.querySelector('.search-input');
+                if (inputElement) inputElement.placeholder = config.placeholder;
+            }
+            
+            // For documents section, we need to ensure search-section.js can work properly
+            if (containerId === 'documentsSearchSectionContainer') {
+                // Clear the main search section to avoid conflicts
+                const mainSearchContainer = document.getElementById('searchSectionContainer');
+                if (mainSearchContainer) {
+                    mainSearchContainer.innerHTML = '';
+                }
+                
+                // Initialize the search component for documents
+                await initializeSearchComponentForContext(container, 'documents');
+            } else {
+                // For the main search section, ensure documents search is cleared
+                const documentsSearchContainer = document.getElementById('documentsSearchSectionContainer');
+                if (documentsSearchContainer) {
+                    documentsSearchContainer.innerHTML = '';
+                }
+                
+                // Initialize the search component for profile
+                await initializeSearchComponentForContext(container, 'profile');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading search component:', error);
+    }
+}
+
+async function initializeSearchComponentForContext(container, context) {
+    console.log(`Initializing search component for context: ${context}`);
+    
+    // Add a small delay to ensure DOM is ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Reinitialize the search-section.js functionality
+    try {
+        // Initialize user info
+        const user = getCurrentUser();
+        if (user) {
+            updateSearchHeaderUserInfo(user);
+        }
+        
+        // Initialize search functionality
+        initializeSearchFunctionality(context);
+        
+        // Initialize filters safely
+        initializeFiltersForContext(context);
+        
+        // Initialize documents grid for documents context
+        if (context === 'documents') {
+            initializeDocumentsGrid();
+        }
+        
+        // Initialize performance cache if available
+        if (window.performanceCache) {
+            window.performanceCache.preloadCriticalData();
+        }
+        
+        console.log(`Search component initialized successfully for ${context}`);
+    } catch (error) {
+        console.error(`Error initializing search component for ${context}:`, error);
+    }
+}
+
+function updateSearchHeaderUserInfo(user) {
+    // Safely update user avatar if element exists
+    const userAvatar = document.getElementById('userAvatar');
+    if (userAvatar && user) {
+        let fullName = '';
+        if (user.name && user.surname) {
+            fullName = `${user.name} ${user.surname}`;
+        } else if (user.name) {
+            fullName = user.name;
+        } else if (user.username) {
+            fullName = user.username;
+        } else {
+            fullName = 'User';
+        }
+        
+        // Create gradient avatar
+        const gradient = getConsistentGradient(user.username);
+        const initials = getInitials(fullName);
+        userAvatar.innerHTML = `<div style="background: ${gradient}; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: inherit; color: white; font-weight: 600;">${initials}</div>`;
+    }
+    
+    // Update dropdown elements if they exist
+    const dropdownAvatar = document.getElementById('dropdownAvatar');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    
+    if (dropdownAvatar && user) {
+        const gradient = getConsistentGradient(user.username);
+        dropdownAvatar.style.background = gradient;
+    }
+    
+    if (dropdownUserName && user) {
+        dropdownUserName.textContent = user.username || 'User';
+    }
+    
+    if (dropdownUserEmail && user) {
+        dropdownUserEmail.textContent = user.email || 'user@example.com';
+    }
+}
+
+function initializeSearchFunctionality(context) {
+    // Initialize search input based on context
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && context === 'documents') {
+        // Only override search input for documents context
+        // Remove existing listeners to avoid duplicates
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+        
+        // Add documents-specific search listeners
+        newSearchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            handleDocumentsSearch(query);
+        });
+        
+        newSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                handleDocumentsSearch(query);
+            }
+        });
+    }
+    // For profile context, leave the original search-section.js handlers intact
+    
+    // Initialize filters button
+    const filtersBtn = document.getElementById('filtersBtn');
+    if (filtersBtn) {
+        // Remove existing listeners
+        const newFiltersBtn = filtersBtn.cloneNode(true);
+        filtersBtn.parentNode.replaceChild(newFiltersBtn, filtersBtn);
+        
+        // Add new listener
+        newFiltersBtn.addEventListener('click', function() {
+            const filtersPanel = document.getElementById('filtersPanel');
+            if (filtersPanel) {
+                filtersPanel.classList.add('show');
+            }
+        });
+    }
+    
+    // Initialize other necessary elements
+    initializeSearchUIElements();
+}
+
+function initializeSearchUIElements() {
+    // Initialize AI toggle
+    const aiToggle = document.getElementById('toggle');
+    if (aiToggle) {
+        aiToggle.addEventListener('change', function() {
+            console.log('AI search toggled:', this.checked);
+        });
+    }
+    
+    // Initialize order dropdown
+    const orderBtn = document.getElementById('orderBtn');
+    if (orderBtn) {
+        orderBtn.addEventListener('click', function() {
+            const dropdown = this.parentNode.querySelector('.order-dropdown-content');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
+        });
+    }
+}
+
+function initializeFiltersForContext(context) {
+    // Safely initialize filters to prevent null errors
+    try {
+        // Check if filter elements exist before trying to populate them
+        const filterTypes = ['faculty', 'course', 'canale', 'tag', 'documentType', 'language', 'academicYear'];
+        
+        filterTypes.forEach(type => {
+            const filterElement = document.getElementById(`${type}Filter`);
+            const optionsElement = document.getElementById(`${type}Options`);
+            
+            if (filterElement && optionsElement) {
+                // Only populate if elements exist
+                populateOptionsIfExists(type, []);
+            }
+        });
+        
+        // Initialize filter manager if available
+        if (window.filterManager) {
+            window.filterManager.updateActiveFiltersDisplay();
+        }
+    } catch (error) {
+        console.warn('Error initializing filters:', error);
+    }
+}
+
+function populateOptionsIfExists(type, items) {
+    const options = document.getElementById(`${type}Options`);
+    const filterInput = document.getElementById(`${type}Filter`);
+    
+    if (!options || !filterInput) {
+        return; // Silently return if elements don't exist
+    }
+    
+    const currentValue = filterInput.value;
+    
+    // Clear existing options
+    options.innerHTML = '';
+    
+    // Add options if items exist
+    items.forEach(item => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'dropdown-option';
+        optionDiv.textContent = item;
+        optionDiv.addEventListener('click', () => {
+            filterInput.value = item;
+            options.parentElement.classList.remove('show');
+        });
+        options.appendChild(optionDiv);
+    });
+}
+
+function initializeDocumentsGrid() {
+    const documentsGrid = document.getElementById('documentsGrid');
+    const documentCount = document.getElementById('documentCount');
+    
+    if (!documentsGrid) {
+        console.warn('Documents grid not found');
+        return;
+    }
+    
+    // Initialize with empty state
+    if (documentCount) {
+        documentCount.textContent = 'Nessun documento trovato nella tua collezione';
+    }
+    
+    // Clear the loading cards and show empty state
+    documentsGrid.innerHTML = `
+        <div class="no-results-container">
+            <div class="no-results-icon">
+                <span class="material-symbols-outlined">folder_open</span>
+            </div>
+            <h3 class="no-results-title">La tua collezione è vuota</h3>
+            <p class="no-results-description">
+                Non hai ancora documenti nella tua libreria personale.<br>
+                Acquista documenti per vederli apparire qui.
+            </p>
+            <button class="explore-documents-btn" onclick="switchTab('profile')">
+                <span class="material-symbols-outlined">explore</span>
+                Esplora Documenti
+            </button>
+        </div>
+    `;
+}
+
+function handleDocumentsSearch(query) {
+    console.log('Searching documents for:', query);
+    
+    const documentsGrid = document.getElementById('documentsGrid');
+    const documentCount = document.getElementById('documentCount');
+    
+    if (!documentsGrid) {
+        console.warn('Documents grid not found');
+        return;
+    }
+    
+    // Use debounced search
+    clearTimeout(window.documentsSearchTimeout);
+    window.documentsSearchTimeout = setTimeout(() => {
+        searchDocuments(query, documentsGrid, documentCount);
+    }, 300);
+}
+
+function searchDocuments(query, documentsGrid, documentCount) {
+    // For now, just show empty results since this is a purchased documents search
+    // In a real implementation, this would search through user's purchased documents
+    
+    if (query.length === 0) {
+        // Show empty state
+        documentsGrid.innerHTML = `
+            <div class="no-results-container">
+                <div class="no-results-icon">
+                    <span class="material-symbols-outlined">folder_open</span>
+                </div>
+                <h3 class="no-results-title">La tua collezione è vuota</h3>
+                <p class="no-results-description">
+                    Non hai ancora documenti nella tua libreria personale.<br>
+                    Acquista documenti per vederli apparire qui.
+                </p>
+                <button class="explore-documents-btn" onclick="switchTab('profile')">
+                    <span class="material-symbols-outlined">explore</span>
+                    Esplora Documenti
+                </button>
+            </div>
+        `;
+        if (documentCount) {
+            documentCount.textContent = 'Nessun documento trovato nella tua collezione';
+        }
+    } else {
+        // Show search results (empty for now)
+        documentsGrid.innerHTML = `
+            <div class="no-results-container">
+                <div class="no-results-icon">
+                    <span class="material-symbols-outlined">search_off</span>
+                </div>
+                <h3 class="no-results-title">Nessun documento trovato</h3>
+                <p class="no-results-description">
+                    Non ci sono risultati per "${query}" nella tua collezione.<br>
+                    Prova con parole chiave diverse.
+                </p>
+                <button class="clear-search-btn" onclick="document.querySelector('#documentsSearchSectionContainer .search-input').value = ''; document.querySelector('#documentsSearchSectionContainer .search-input').dispatchEvent(new Event('input'));">
+                    <span class="material-symbols-outlined">clear</span>
+                    Cancella Ricerca
+                </button>
+            </div>
+        `;
+        if (documentCount) {
+            documentCount.textContent = `Nessun risultato per "${query}"`;
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user personalization first
     await initializeUserPersonalization();
+    
+    // Load main search component for Profilo tab
+    await loadSearchComponent('searchSectionContainer', {
+        title: '', // Remove title
+        subtitle: '', // Remove subtitle
+        placeholder: 'Cerca una dispensa...'
+    });
+    
+    // Note: Documents search component will be loaded dynamically when switching to that tab
     
     initializeMobileMenu();
     initializeTabSwitching(); // Add tab switching functionality

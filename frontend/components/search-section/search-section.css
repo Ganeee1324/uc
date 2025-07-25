@@ -42,6 +42,9 @@
 
 /* Design System */
 :root {
+    /* BACKGROUND TRANSITION CONTROL */
+    --bg-transition-point: 70vh; /* Change this value to control where blue background starts */
+    
     /* Pure Color Palette */
     --white: #ffffff;
     --white-soft: #fefefe;
@@ -120,11 +123,14 @@
     --space-16: 4rem;
     --space-20: 5rem;
     
+    /* Background removed for component version */
+    
     /* Search Bar Toggle Switch :after Pseudo-element */
     --search-bar-toggle-after: '';
 
 }
 
+/* Background preload removed for component version */
 
 /* Base Styles */
 html {
@@ -132,16 +138,73 @@ html {
     font-size: 16px;
 }
 
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd);
+    color: var(--gray-900);
+    line-height: 1.6;
+    min-height: 100vh;
+    height: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
+    letter-spacing: -0.011em;
+    overflow-x: hidden;
+    position: relative;
+}
 
+/* Ensure filters panel is never affected by parent container issues */
+body.filters-open {
+    position: relative !important;
+}
 
 html {
     height: 100%;
 }
 
+/* Hide scrollbar for webkit browsers */
+body::-webkit-scrollbar {
+    display: none;
+}
 
+/* Hide scrollbar for Firefox */
+html {
+    scrollbar-width: none;
+}
 
+/* Background image element removed for component version */
 
+/* Header removed for component version */
 
+/* Logo styles removed for component version */
+
+/* Navigation menu styles removed for component version */
+
+/* Auth buttons and user info styles removed for component version */
+
+/* Header user avatar styles removed for component version */
+
+/* Login button styles removed for component version */
+
+/* Responsive login button styles and user/logout styles removed for component version */
+
+.main-content {
+    /* --sticky-top-offset is set by JavaScript */
+    --sticky-top-offset: 10px; /* Default fallback value */
+    padding-top: 100px;
+    min-height: calc(100vh - 120px);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Main Content - Dual Layout System */
+.main-content {
+    min-height: calc(100vh - 120px);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+}
 
 /* Initial Search Section - Centered Layout */
 .search-section {
@@ -529,10 +592,7 @@ html {
         min-height: auto; /* Let natural height prevail */
     }
     
-    .search-section.no-results-state .search-title,
-    .search-section.no-results-state .search-subtitle {
-        margin-bottom: var(--space-4);
-    }
+    /* Search title and subtitle styles removed for component version */
     
     .search-section.no-results-state .search-container {
         margin-bottom: var(--space-4);
@@ -601,23 +661,7 @@ html {
     }
 }
 
-.search-title {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: -10px;
-    letter-spacing: -0.02em;
-    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.search-subtitle {
-    font-size: 36px;
-    color: #4d4d4d;
-    font-weight: 500;
-    margin-bottom: var(--space-12);
-    letter-spacing: -0.01em;
-    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+/* Search title and subtitle removed for component version */
 
 .search-container-wrapper {
     /* The wrapper is now back inside search-section. */
@@ -626,7 +670,7 @@ html {
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
-    z-index: 9998; /* Lower z-index to not block sort button */
+    z-index: 9997; /* Lower z-index to not block sort button */
 
     /* The background and padding are only applied when it's stuck. */
     transition: all 0.3s ease-in-out;
@@ -656,7 +700,7 @@ html {
     max-width: 600px;
     margin: 0 auto;
     flex-wrap: nowrap;
-    z-index: 9998; /* High z-index for search container */
+    z-index: 9997; /* High z-index for search container */
 }
 
 /* Animated Border Search Bar Container */
@@ -4145,9 +4189,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        /* No changes - documents stay exactly as they are */
    }
    
-   .header {
-       padding: var(--space-5) var(--space-8);
-   }
+   /* Header styles removed for component version */
    
    .search-container {
        max-width: 550px;
@@ -4163,13 +4205,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    
    /* Search bar maintains default size at 1200px */
    
-   .search-title {
-       font-size: 56px;
-   }
-   
-   .search-subtitle {
-       font-size: 22px;
-   }
+   /* Search title and subtitle styles removed for component version */
    
    .document-card {
        height: 480px;
@@ -4224,90 +4260,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        /* No changes - documents stay exactly as they are */
    }
    
-   /* Professional Mobile Header */
-   .header {
-       padding: var(--space-4) var(--space-5);
-       flex-direction: row;
-       justify-content: space-between;
-       align-items: center;
-       gap: var(--space-3);
-       min-height: 70px;
-       background: rgba(255, 255, 255, 0.95);
-       backdrop-filter: blur(20px);
-       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-   }
-   
-   .logo {
-       order: 1;
-       flex-shrink: 0;
-   }
-   
-   .logo img {
-       height: 32px;
-       width: auto;
-   }
-   
-   /* Mobile Navigation Menu */
-   .nav-menu {
-       display: none;
-       position: fixed;
-       top: 70px;
-       left: 0;
-       right: 0;
-       background: rgba(255, 255, 255, 0.98);
-       backdrop-filter: blur(20px);
-       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-       padding: var(--space-4) var(--space-5);
-       gap: var(--space-3);
-       flex-direction: column;
-       z-index: 1000;
-       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-   }
-   
-   .nav-menu.active {
-       display: flex;
-   }
-   
-   .nav-link {
-       padding: var(--space-3) 0;
-       font-size: 16px;
-       font-weight: 500;
-       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-   }
-   
-   .nav-link:last-child {
-       border-bottom: none;
-   }
-   
-   .auth-buttons {
-       order: 3;
-       gap: var(--space-2);
-       flex-shrink: 0;
-   }
-   
-   /* Mobile Menu Toggle */
-   .mobile-menu-toggle {
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       width: 44px;
-       height: 44px;
-       background: transparent;
-       border: none;
-       border-radius: var(--radius-lg);
-       cursor: pointer;
-       transition: all 0.2s ease;
-       order: 2;
-   }
-   
-   .mobile-menu-toggle:hover {
-       background: rgba(0, 0, 0, 0.05);
-   }
-   
-   .mobile-menu-toggle .material-symbols-outlined {
-       font-size: 24px;
-       color: var(--gray-700);
-   }
+   /* Professional Mobile Header styles removed for component version */
    
    /* Professional Mobile Search Section */
    .search-section {
@@ -4323,21 +4276,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        transform: translateY(15px); /* Adjust for mobile layout */
    }
    
-   .search-title {
-       font-size: 42px;
-       font-weight: 800;
-       letter-spacing: -0.03em;
-       line-height: 1.1;
-       margin-bottom: var(--space-2);
-   }
-   
-   .search-subtitle {
-       font-size: 18px;
-       font-weight: 500;
-       color: rgba(77, 77, 77, 0.8);
-       margin-bottom: var(--space-8);
-       line-height: 1.4;
-   }
+   /* Search title and subtitle styles removed for component version */
    
    .search-container {
        max-width: 500px;
@@ -4558,23 +4497,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        --bg-offset-top: -2470px; /* Adjust for small mobile layout */
    }
 
-   .header {
-       padding: var(--space-4);
-       min-height: 64px;
-   }
-   
-   .mobile-menu-toggle .material-symbols-outlined {
-       font-size: 20px;
-   }
-   
-   .auth-buttons {
-       gap: var(--space-1);
-   }
-   
-   .user-avatar {
-       width: 36px;
-       height: 36px;
-   }
+   /* Header styles removed for component version */
    
    .search-section {
        padding: var(--space-6) var(--space-4) var(--space-8) var(--space-4);
@@ -4590,18 +4513,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-4) var(--space-4) var(--space-16) var(--space-4);
    }
    
-   .search-title {
-       font-size: 32px;
-       font-weight: 900;
-       letter-spacing: -0.04em;
-       line-height: 1.05;
-   }
-   
-   .search-subtitle {
-       font-size: 16px;
-       font-weight: 500;
-       margin-bottom: var(--space-6);
-   }
+   /* Search title and subtitle styles removed for component version */
    
    .search-container {
        max-width: 350px;
@@ -4991,14 +4903,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        --bg-offset-top: -1300px; /* Adjust for tablet layout */
    }
 
-   .search-title {
-       font-size: 38px;
-       font-weight: 800;
-   }
-   
-   .search-subtitle {
-       font-size: 17px;
-   }
+   /* Search title and subtitle styles removed for component version */
    
    .documents-grid {
        grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5052,19 +4957,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        transform: scale(0.95);
    }
    
-   /* Improve tap targets */
-   .nav-link {
-       min-height: 48px; /* iOS recommended minimum */
-   }
-   
-   .mobile-menu-toggle {
-       min-width: 48px;
-       min-height: 48px;
-   }
-   
-   .user-info {
-       min-height: 48px;
-   }
+   /* Header-related styles removed for component version */
 }
 
 /* Utility Classes */
@@ -5162,7 +5055,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Print styles */
 @media print {
-   .header,
+   /* Header styles removed for component version */
    .filters-panel,
    .filters-overlay,
    .preview-modal {
@@ -6971,239 +6864,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
 
-.user-dropdown {
-    position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
-    background-color: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    border: 1px solid var(--gray-200);
-    width: 280px;
-    padding: var(--space-2) 0;
-    z-index: 1001;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: all 0.3s var(--ease-out);
-    overflow: hidden;
-}
-
-/* Add invisible bridge to prevent gap between avatar and dropdown */
-.user-info::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 280px;
-    height: 12px;
-    background: transparent;
-    pointer-events: none;
-}
-
-/* When dropdown is open, make the bridge interactive */
-.user-info.open::after {
-    pointer-events: auto;
-}
-
-/* Disable hover effects on touch devices */
-@media (hover: none) and (pointer: coarse) {
-    .user-info::after {
-        display: none;
-    }
-    
-    .user-info.open::after {
-        display: none;
-    }
-}
-
-/* Dropdown toggle arrow styles */
-.dropdown-toggle {
-    position: absolute;
-    top: 50%;
-    right: -8px;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    background: var(--white);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    z-index: 1002;
-    font-size: 12px;
-    color: var(--gray-600);
-    transition: all 0.2s ease;
-    border: 1px solid var(--gray-200);
-}
-
-.dropdown-toggle:hover {
-    background: var(--gray-50);
-    color: var(--gray-800);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    transform: translateY(-50%) scale(1.1);
-}
-
-.dropdown-toggle:active {
-    transform: translateY(-50%) scale(0.95);
-}
-
-.dropdown-toggle .material-symbols-outlined {
-    font-size: 12px;
-    line-height: 1;
-}
-
-/* Ensure user-info container is positioned relatively */
-.user-info {
-    position: relative;
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-    .dropdown-toggle {
-        width: 18px;
-        height: 18px;
-        right: -6px;
-        font-size: 14px;
-    }
-    
-    .dropdown-toggle .material-symbols-outlined {
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 480px) {
-    .dropdown-toggle {
-        width: 20px;
-        height: 20px;
-        right: -4px;
-        font-size: 16px;
-    }
-    
-    .dropdown-toggle .material-symbols-outlined {
-        font-size: 16px;
-    }
-}
-
-.user-info.open .user-dropdown {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.dropdown-user-info {
-    display: flex;
-    align-items: center;
-    padding: var(--space-3) var(--space-4);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-radius: var(--radius-md);
-    margin: 0 var(--space-2);
-    position: relative;
-}
-
-.dropdown-user-info:hover {
-    background-color: var(--gray-50);
-}
-
-.dropdown-user-info:active {
-    background-color: var(--gray-100);
-}
-
-/* Add a subtle visual indicator that the user info is clickable */
-.dropdown-user-info::after {
-    content: '';
-    position: absolute;
-    right: var(--space-4);
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid var(--gray-400);
-    border-top: 3px solid transparent;
-    border-bottom: 3px solid transparent;
-    transition: border-left-color 0.2s ease;
-}
-
-.dropdown-user-info:hover::after {
-    border-left-color: var(--gray-600);
-}
-
-.dropdown-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: var(--space-3);
-    background-size: cover;
-    background-position: center;
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.dropdown-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dropdown-user-details {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.4;
-    overflow: hidden;
-}
-
-.dropdown-user-name {
-    font-weight: 600;
-    color: var(--gray-800);
-    font-size: 1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.dropdown-user-name:hover {
-    color: var(--primary-600);
-}
-
-.dropdown-user-email {
-    font-size: 0.875rem;
-    color: var(--gray-600);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.dropdown-divider {
-    height: 1px;
-    background-color: var(--gray-150);
-    margin: var(--space-2) 0;
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    font-size: 0.9375rem;
-    color: var(--gray-700);
-    text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.dropdown-item:hover {
-    background-color: var(--gray-50);
-    color: var(--gray-900);
-}
-
-.dropdown-item i {
-    font-size: 22px;
-    color: var(--gray-500);
-}
+/* User dropdown and user info styles removed for component version */
 
 /* Force circular shape in document cards */
 .document-footer-left .owner-avatar {
@@ -8358,7 +8019,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     bottom: 0;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(8px);
-    z-index: 1000;
+    z-index: 9998;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -8448,42 +8109,46 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .chunks-body {
-    padding: 24px;
-    overflow: hidden;
+    overflow: visible;
     flex: 1;
     min-height: 0;
+    position: relative;
 }
+
+
 
 .chunks-horizontal-scroll {
     display: flex;
     gap: 20px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 8px 4px;
+    padding: 8px 4px 16px 4px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
 }
 
 .chunks-horizontal-scroll::-webkit-scrollbar {
-    height: 8px;
+    height: 12px;
 }
 
 .chunks-horizontal-scroll::-webkit-scrollbar-track {
     background: var(--gray-100);
-    border-radius: 4px;
+    border-radius: 6px;
+    margin: 0 4px;
 }
 
 .chunks-horizontal-scroll::-webkit-scrollbar-thumb {
-    background: var(--gray-300);
-    border-radius: 4px;
+    background: var(--gray-400);
+    border-radius: 6px;
+    border: 2px solid var(--gray-100);
 }
 
 .chunks-horizontal-scroll::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-400);
+    background: var(--gray-500);
 }
 
 .chunk-preview-card {
-    flex: 0 0 320px;
+    flex: 0 0 240px;
     background: white;
     border-radius: 12px;
     border: 1px solid var(--gray-200);
@@ -8644,16 +8309,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         padding: 16px;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow: visible;
     }
     
     .chunks-horizontal-scroll {
         gap: 16px;
-        padding: 4px 2px;
+        padding: 4px 2px 12px 2px;
     }
     
     .chunk-preview-card {
-        flex: 0 0 280px;
+        flex: 0 0 220px;
     }
     
     .chunk-preview-image {
@@ -8698,14 +8363,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .chunks-body {
         padding: 12px;
+        overflow: visible;
     }
     
     .chunks-horizontal-scroll {
         gap: 12px;
+        padding: 4px 2px 10px 2px;
     }
     
     .chunk-preview-card {
-        flex: 0 0 260px;
+        flex: 0 0 200px;
     }
     
     .chunk-preview-image {

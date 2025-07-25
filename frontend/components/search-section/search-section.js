@@ -7,139 +7,6 @@ const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
-// Global context for the current search section being initialized
-let currentSearchSectionContext = null;
-
-// Function to create unique overlay elements for each search section instance
-function createUniqueOverlays(searchSection) {
-    // Generate a unique instance ID if not present
-    if (!searchSection.dataset.instanceId) {
-        const instanceId = 'search_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-        searchSection.dataset.instanceId = instanceId;
-        console.log(`🆔 Generated new instance ID: ${instanceId}`);
-    }
-    
-    const instanceId = searchSection.dataset.instanceId;
-    console.log(`🔧 Creating unique overlays for instance: ${instanceId}`);
-    
-    // Check if overlays already exist for this instance
-    if (document.getElementById(`filtersOverlay_${instanceId}`)) {
-        console.log(`🔄 Overlays already exist for instance: ${instanceId}`);
-        return;
-    }
-    
-    // Create unique filters overlay
-    const filtersOverlay = document.createElement('div');
-    filtersOverlay.className = 'filters-overlay';
-    filtersOverlay.id = `filtersOverlay_${instanceId}`;
-    filtersOverlay.setAttribute('data-instance', instanceId);
-    document.body.appendChild(filtersOverlay);
-    
-    // Create unique preview modal
-    const previewModal = document.createElement('div');
-    previewModal.id = `previewModal_${instanceId}`;
-    previewModal.className = 'preview-modal';
-    previewModal.setAttribute('data-instance', instanceId);
-    previewModal.innerHTML = `
-        <div class="preview-content">
-            <div class="preview-header">
-                <h2 class="preview-title" id="previewTitle_${instanceId}">Document Preview</h2>
-                <button class="preview-close" id="previewCloseBtn_${instanceId}">×</button>
-            </div>
-            <div id="previewBody_${instanceId}" class="preview-body">
-                <!-- Preview content will be loaded here -->
-            </div>
-            <div id="previewActions_${instanceId}" class="preview-actions">
-                <!-- Action buttons will be added here -->
-            </div>
-        </div>
-    `;
-    document.body.appendChild(previewModal);
-    
-    // Create unique reviews overlay
-    const reviewsOverlay = document.createElement('div');
-    reviewsOverlay.className = 'reviews-overlay';
-    reviewsOverlay.id = `reviewsOverlay_${instanceId}`;
-    reviewsOverlay.setAttribute('data-instance', instanceId);
-    reviewsOverlay.innerHTML = `
-        <div class="reviews-overlay-content">
-            <div class="reviews-overlay-header">
-                <h2>
-                    <span class="material-symbols-outlined">rate_review</span>
-                    Recensioni
-                </h2>
-                <button class="close-overlay-btn" data-action="close-reviews">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            
-            <div class="reviews-overlay-body">
-                <div class="reviews-summary">
-                    <div class="overall-rating">
-                        <div class="rating-display">
-                            <div class="big-stars"></div>
-                            <span class="big-rating-score">0.0</span>
-                        </div>
-                        <span class="total-reviews">Basato su 0 recensioni</span>
-                    </div>
-                    <button class="add-review-btn" data-action="show-review-form">
-                        <span class="material-symbols-outlined">add</span>
-                        Aggiungi Recensione
-                    </button>
-                </div>
-                
-                <div class="reviews-list" id="reviewsList_${instanceId}">
-                    <!-- Reviews will be populated here -->
-                </div>
-                
-                <div class="add-review-form" id="addReviewForm_${instanceId}" style="display: none;">
-                    <h3>Aggiungi la tua recensione</h3>
-                    <div class="rating-input">
-                        <label>Valutazione:</label>
-                        <div class="star-rating">
-                            <span class="star-input" data-rating="1">★</span>
-                            <span class="star-input" data-rating="2">★</span>
-                            <span class="star-input" data-rating="3">★</span>
-                            <span class="star-input" data-rating="4">★</span>
-                            <span class="star-input" data-rating="5">★</span>
-                        </div>
-                    </div>
-                    <div class="review-text-input">
-                        <label for="reviewComment_${instanceId}">Commento:</label>
-                        <textarea id="reviewComment_${instanceId}" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
-                    </div>
-                    <div class="review-form-actions">
-                        <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
-                        <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(reviewsOverlay);
-    
-    console.log(`🔄 Created unique overlays for search section instance: ${instanceId}`);
-}
-
-// Helper function to get the correct overlay for a search section instance
-function getInstanceOverlay(searchSection, overlayType = 'filters') {
-    if (!searchSection) return null;
-    
-    const instanceId = searchSection.dataset.instanceId;
-    if (!instanceId) return null;
-    
-    switch (overlayType) {
-        case 'filters':
-            return document.getElementById(`filtersOverlay_${instanceId}`);
-        case 'preview':
-            return document.getElementById(`previewModal_${instanceId}`);
-        case 'reviews':
-            return document.getElementById(`reviewsOverlay_${instanceId}`);
-        default:
-            return null;
-    }
-}
-
 // DOM element cache for performance optimization
 const DOM_CACHE = {
     documentsGrid: null,
@@ -148,16 +15,10 @@ const DOM_CACHE = {
     documentCount: null,
     searchInput: null,
     init() {
-        const context = currentSearchSectionContext || document.querySelector('.search-section');
-        if (!context) {
-            console.error('❌ No search section context found for DOM_CACHE.init');
-            return;
-        }
-        
-        this.documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
-        this.searchSection = context;
-        this.documentCountContainer = context.querySelector('#documentCountContainer') || document.getElementById('documentCountContainer');
-        this.documentCount = context.querySelector('#documentCount') || document.getElementById('documentCount');
+        this.documentsGrid = document.getElementById('documentsGrid');
+        this.searchSection = document.querySelector('.search-section');
+        this.documentCountContainer = document.getElementById('documentCountContainer');
+        this.documentCount = document.getElementById('documentCount');
         this.searchInput = document.getElementById('searchInput');
     },
     get(elementName) {
@@ -168,6 +29,182 @@ const DOM_CACHE = {
     }
 };
 
+// Debug function to track "Pensato per chi vuole di più" text position
+function debugPensatoTextPosition() {
+    // Make this function globally accessible for manual debugging
+    window.debugPensatoTextPosition = debugPensatoTextPosition;
+    console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
+    
+    // Find the search subtitle element
+    const searchSubtitle = document.querySelector('.search-subtitle');
+    if (searchSubtitle) {
+        const rect = searchSubtitle.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(searchSubtitle);
+        
+        console.log('📍 Search Subtitle ("Pensato per chi vuole di più"):');
+        console.log('  - Text content:', searchSubtitle.textContent.trim());
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            margin: computedStyle.margin,
+            padding: computedStyle.padding,
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            transform: computedStyle.transform,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            opacity: computedStyle.opacity
+        });
+        console.log('  - Parent container:', searchSubtitle.parentElement?.className);
+    } else {
+        console.log('❌ Search subtitle element not found');
+    }
+    
+    // Check search section
+    const searchSection = document.querySelector('.search-section');
+    if (searchSection) {
+        const rect = searchSection.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(searchSection);
+        
+        console.log('📍 Search Section:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            minHeight: computedStyle.minHeight,
+            height: computedStyle.height,
+            padding: computedStyle.padding,
+            margin: computedStyle.margin,
+            position: computedStyle.position,
+            display: computedStyle.display
+        });
+        console.log('  - Has no-results class:', searchSection.classList.contains('has-results'));
+    }
+    
+    // Check documents grid
+    const documentsGrid = document.getElementById('documentsGrid');
+    if (documentsGrid) {
+        const rect = documentsGrid.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(documentsGrid);
+        const hasNoResults = documentsGrid.querySelector('.no-results');
+        
+        console.log('📍 Documents Grid:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            minHeight: computedStyle.minHeight,
+            height: computedStyle.height,
+            padding: computedStyle.padding,
+            margin: computedStyle.margin,
+            position: computedStyle.position,
+            display: computedStyle.display,
+            gridTemplateColumns: computedStyle.gridTemplateColumns
+        });
+        console.log('  - Has no-results:', !!hasNoResults);
+        console.log('  - Number of children:', documentsGrid.children.length);
+        console.log('  - Loading cards count:', documentsGrid.querySelectorAll('.document-card.loading').length);
+    }
+    
+    // Check main content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        const rect = mainContent.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(mainContent);
+        
+        console.log('📍 Main Content:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            padding: computedStyle.padding,
+            margin: computedStyle.margin,
+            position: computedStyle.position,
+            display: computedStyle.display
+        });
+    }
+    
+    // Check if we're in no-results state
+    const noResultsElement = document.querySelector('.no-results');
+    if (noResultsElement) {
+        const rect = noResultsElement.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(noResultsElement);
+        
+        console.log('📍 No-Results Element:');
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            transform: computedStyle.transform,
+            zIndex: computedStyle.zIndex,
+            display: computedStyle.display
+        });
+    }
+    
+    // Check elements below the grid that might be affected
+    const elementsBelowGrid = [];
+    if (documentsGrid) {
+        let nextElement = documentsGrid.nextElementSibling;
+        let count = 0;
+        while (nextElement && count < 5) {
+            const rect = nextElement.getBoundingClientRect();
+            elementsBelowGrid.push({
+                element: nextElement,
+                className: nextElement.className,
+                tagName: nextElement.tagName,
+                position: {
+                    top: rect.top,
+                    left: rect.left,
+                    bottom: rect.bottom,
+                    right: rect.right,
+                    width: rect.width,
+                    height: rect.height
+                }
+            });
+            nextElement = nextElement.nextElementSibling;
+            count++;
+        }
+    }
+    
+    if (elementsBelowGrid.length > 0) {
+        console.log('📍 Elements Below Grid:');
+        elementsBelowGrid.forEach((item, index) => {
+            console.log(`  ${index + 1}. ${item.tagName}.${item.className}:`, item.position);
+        });
+    }
+    
+    console.log('🔍 === END DEBUGGING ===\n');
+}
 
 // Handle CSP-compliant event handlers
 function handleCSPEventHandlers() {
@@ -251,39 +288,8 @@ let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
-// Function to customize search section based on context
-function customizeSearchSectionContext() {
-    const searchSections = document.querySelectorAll('.search-section');
-    
-    searchSections.forEach(searchSection => {
-        // Detect context based on parent container
-        const favoritesContainer = searchSection.closest('#favoritesDashboard');
-        const documentsContainer = searchSection.closest('#documentsDashboard');
-        
-        const titleElement = searchSection.querySelector('.search-title');
-        const subtitleElement = searchSection.querySelector('.search-subtitle');
-        
-        if (favoritesContainer) {
-            // Favorites context - remove subtitle
-            if (titleElement) titleElement.textContent = 'Cerca nei Preferiti.';
-            if (subtitleElement) subtitleElement.style.display = 'none';
-        } else if (documentsContainer) {
-            // Documents context - update subtitle
-            if (titleElement) titleElement.textContent = 'I Miei Documenti.';
-            if (subtitleElement) subtitleElement.textContent = 'Gestisci e organizza i tuoi contenuti.';
-        }
-        // For main search context, keep default title and subtitle
-    });
-}
-
     // Initialize the page
     window.onload = async function() {
-        // Set the initial search section context
-        const initialSearchSection = document.querySelector('.search-section');
-        if (initialSearchSection) {
-            currentSearchSectionContext = initialSearchSection;
-        }
-        
         // Show loading cards immediately when page loads
         showLoadingCards();
         
@@ -296,13 +302,14 @@ function customizeSearchSectionContext() {
         // Check authentication after showing loading state
         const isAuthenticated = checkAuthentication();
         
+            /* Header initialization removed for component version */
+        
         // Initialize CSP-compliant event handlers
         handleCSPEventHandlers();
         
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
-        customizeSearchSectionContext();
         initializeAISearchToggle();
         
         // Load valid tags from backend first
@@ -318,6 +325,7 @@ function customizeSearchSectionContext() {
         showStatus(`${originalFiles.length} documenti disponibili 📚`);
         
         // Debug position after initial render
+        setTimeout(() => debugPensatoTextPosition(), 200);
     }
         
         // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
@@ -385,6 +393,20 @@ function customizeSearchSectionContext() {
     });
 };
 
+/* Header-related functions removed for component version */
+
+        // Make dropdown username clickable to redirect to profile
+        if (dropdownUserName) {
+            dropdownUserName.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+            });
+        }
+
+        // Logout button
+        const logoutBtn = document.getElementById('logoutBtn');
+/* Header-related code removed for component version */
 
 function initializeAnimations() {
     // Remove static cards initialization since we'll load dynamic data
@@ -401,29 +423,15 @@ function initializeAnimations() {
 // ADVANCED FILTER SYSTEM - FULLY FUNCTIONAL
 // ===========================
 
-function initializeFilters(specificContext = null) {
-    const context = specificContext || currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for initializeFilters');
-        return;
-    }
-    
-    const filtersBtn = context.querySelector('#filtersBtn') || document.getElementById('filtersBtn');
-    const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = getInstanceOverlay(context, 'filters') || document.getElementById('filtersOverlay');
-    const filtersClose = context.querySelector('#filtersClose') || document.getElementById('filtersClose');
-    const clearAllFilters = context.querySelector('#clearAllFilters') || document.getElementById('clearAllFilters');
+function initializeFilters() {
+    const filtersBtn = document.getElementById('filtersBtn');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersOverlay = document.getElementById('filtersOverlay');
+    const filtersClose = document.getElementById('filtersClose');
+    const clearAllFilters = document.getElementById('clearAllFilters');
 
-    // Store context reference on the button for later retrieval
-    if (filtersBtn) {
-        filtersBtn.searchSectionContext = context;
-        filtersBtn.addEventListener('click', (e) => {
-            // Pass the context through the event
-            e.target.dataset.searchSectionContext = context.dataset.instanceId;
-            e.searchSectionContext = context;
-            toggleFiltersPanel(e);
-        });
-    }
+    // Filter panel toggle
+    if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
     if (filtersClose) filtersClose.addEventListener('click', closeFiltersPanel);
     if (filtersOverlay) filtersOverlay.addEventListener('click', closeFiltersPanel);
 
@@ -447,12 +455,6 @@ function initializeFilters(specificContext = null) {
 }
 
 function initializeFilterControls() {
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for initializeFilterControls');
-        return;
-    }
-    
     // Professional dropdowns (includes all dropdown types now)
     setupDropdowns();
     // Rating filter
@@ -464,7 +466,7 @@ function initializeFilterControls() {
     // Order functionality
     initializeOrderDropdown();
     // Ensure price range is visible for 'Tutti' after all initializations
-    const priceRangeContainer = context.querySelector('#priceRangeContainer') || document.getElementById('priceRangeContainer');
+    const priceRangeContainer = document.getElementById('priceRangeContainer');
     if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
         priceRangeContainer.style.display = 'block';
     }
@@ -1168,15 +1170,8 @@ function populateDropdownOptions() {
 }
 
 function populateOptions(type, items) {
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for populateOptions');
-        return;
-    }
-    
-    const options = context.querySelector(`#${type}Options`) || document.getElementById(`${type}Options`);
-    const filterElement = context.querySelector(`#${type}Filter`) || document.getElementById(`${type}Filter`);
-    const currentValue = filterElement ? filterElement.value : '';
+    const options = document.getElementById(`${type}Options`);
+    const currentValue = document.getElementById(`${type}Filter`).value;
     
     if (!options) {
         return;
@@ -2109,17 +2104,18 @@ function applyPriceFilters(minVal, maxVal) {
 let currentOrder = 'relevance';
 
 // Initialize order button text on page load
-
-function initializeOrderDropdown(specificContext = null) {
-    const context = specificContext || currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for initializeOrderDropdown');
-        return;
+document.addEventListener('DOMContentLoaded', function() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = orderBtn?.querySelector('.order-text');
+    if (orderText) {
+        orderText.textContent = 'Rilevanza';
     }
-    
-    const orderBtn = context.querySelector('#orderBtn') || document.getElementById('orderBtn');
-    const orderDropdown = context.querySelector('.order-dropdown-content') || document.querySelector('.order-dropdown-content');
-    const orderOptions = context.querySelectorAll('.order-option') || document.querySelectorAll('.order-option');
+});
+
+function initializeOrderDropdown() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderDropdown = document.querySelector('.order-dropdown-content');
+    const orderOptions = document.querySelectorAll('.order-option');
     
     if (!orderBtn || !orderDropdown) return;
     
@@ -2162,9 +2158,8 @@ function selectOrderOption(orderType) {
     currentOrder = orderType;
     
     // Update button text based on selection
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
-    const orderBtn = context ? (context.querySelector('#orderBtn') || document.getElementById('orderBtn')) : document.getElementById('orderBtn');
-    const orderText = orderBtn ? orderBtn.querySelector('.order-text') : null;
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = orderBtn.querySelector('.order-text');
     
     const orderLabels = {
         'relevance': 'Rilevanza',
@@ -2307,64 +2302,12 @@ async function applyFiltersAndRender() {
     }
 }
 
-function toggleFiltersPanel(event = null) {
+function toggleFiltersPanel() {
     isFiltersOpen = !isFiltersOpen;
-    
-    // Get context from the event or fallback to current context
-    let context;
-    
-    // First try to get context from the event object
-    if (event && event.searchSectionContext) {
-        context = event.searchSectionContext;
-        console.log('🎯 Got context from event.searchSectionContext:', context.dataset.instanceId);
-    }
-    
-    // Try to get context from the button's stored reference
-    if (!context && event && event.target && event.target.searchSectionContext) {
-        context = event.target.searchSectionContext;
-        console.log('🎯 Got context from button.searchSectionContext:', context.dataset.instanceId);
-    }
-    
-    // Try to get context from instance ID
-    if (!context && event && event.target && event.target.dataset.searchSectionContext) {
-        const instanceId = event.target.dataset.searchSectionContext;
-        context = document.querySelector(`[data-instance-id="${instanceId}"]`) || 
-                  document.querySelector(`[data-instance="${instanceId}"]`);
-        console.log('🎯 Got context from instanceId lookup:', instanceId, context?.dataset.instanceId);
-    }
-    
-    // If we couldn't find context from event, try to get it from the clicked element
-    if (!context && event && event.target) {
-        const clickedElement = event.target;
-        context = clickedElement.closest('.search-section');
-        console.log('🎯 Got context from closest search-section:', context?.dataset.instanceId);
-    }
-    
-    // Final fallback to global search
-    if (!context) {
-        context = currentSearchSectionContext || document.querySelector('.search-section');
-        console.log('🎯 Using fallback context:', context?.dataset.instanceId);
-    }
-    
-    if (!context) {
-        console.error('❌ No search section context found for toggleFiltersPanel');
-        return;
-    }
-    
-    const instanceId = context.dataset.instanceId;
-    const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = getInstanceOverlay(context, 'filters') || document.getElementById('filtersOverlay');
-    
-    console.log(`🔍 ToggleFiltersPanel Debug:`, {
-        instanceId,
-        hasFiltersPanel: !!filtersPanel,
-        hasFiltersOverlay: !!filtersOverlay,
-        overlayId: filtersOverlay?.id,
-        contextElement: context,
-        usingInstanceOverlay: !!getInstanceOverlay(context, 'filters')
-    });
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersOverlay = document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
-    const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
+    const documentsGrid = document.getElementById('documentsGrid');
     
     if (isFiltersOpen) {
         // Ensure robust positioning before showing
@@ -2643,17 +2586,10 @@ function updateActiveFiltersDisplay() {
 
 function closeFiltersPanel() {
     isFiltersOpen = false;
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for closeFiltersPanel');
-        return;
-    }
-    
-    const instanceId = context.dataset.instanceId;
-    const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = getInstanceOverlay(context, 'filters') || document.getElementById('filtersOverlay');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersOverlay = document.getElementById('filtersOverlay');
     const mainContent = document.querySelector('.main-content');
-    const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
+    const documentsGrid = document.getElementById('documentsGrid');
     
     if (filtersPanel) filtersPanel.classList.remove('active');
     if (filtersOverlay) filtersOverlay.classList.remove('active');
@@ -2722,17 +2658,11 @@ async function populateFilterOptions() {
 
 
 function populateDropdownFilter(type, options) {
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for populateDropdownFilter');
-        return;
-    }
-    
-    const optionsContainer = context.querySelector(`#${type}Options`) || document.getElementById(`${type}Options`);
+    const optionsContainer = document.getElementById(`${type}Options`);
     if (!optionsContainer) return;
 
     // Save current selection and input value
-    const input = context.querySelector(`#${type}Filter`) || document.getElementById(`${type}Filter`);
+    const input = document.getElementById(`${type}Filter`);
     const currentValue = filterManager.filters[type] || '';
     const currentInputValue = input ? input.value : '';
 
@@ -3543,13 +3473,7 @@ async function makeAuthenticatedRequest(url) {
 
 // Function to create and display loading cards
 function showLoadingCards(count = null) {
-    const context = currentSearchSectionContext || document.querySelector('.search-section');
-    if (!context) {
-        console.error('❌ No search section context found for showLoadingCards');
-        return;
-    }
-    
-    const grid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
+    const grid = document.getElementById('documentsGrid');
     if (!grid) {
         console.error('❌ Grid element not found!');
         return;
@@ -3629,6 +3553,7 @@ function showLoadingCards(count = null) {
     }
     
     // Debug position after showing loading cards
+    setTimeout(() => debugPensatoTextPosition(), 100);
     
     // Add resize listener to update loading cards when screen size changes
     if (!window.loadingCardsResizeListener) {
@@ -5577,6 +5502,7 @@ function openChunksOverlay(item) {
                                             <span class="material-symbols-outlined">description</span>
                                             <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
                                         </div>
+
                                     </div>
                                     <div class="chunk-preview-description">
                                         ${chunk.chunk_description || chunk.description || 'Nessuna descrizione disponibile'}
@@ -5820,116 +5746,7 @@ document.addEventListener('DOMContentLoaded', initializeScrollToTop);
 // DYNAMIC BACKGROUND POSITIONING
 // ===========================
 
-// Global variable to store image dimensions for immediate access
-let bgImageDimensions = null;
-
-// Preload and cache image dimensions immediately
-function preloadBackgroundImage() {
-    const tempImage = new Image();
-    tempImage.src = 'images/bg.png';
-    
-    const storeImageDimensions = () => {
-        if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
-            bgImageDimensions = {
-                width: tempImage.naturalWidth,
-                height: tempImage.naturalHeight,
-                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
-            };
-            // Position immediately if DOM elements are ready
-            adjustBackgroundPosition();
-        }
-    };
-    
-    if (tempImage.complete && tempImage.naturalWidth > 0) {
-        storeImageDimensions();
-    } else {
-        tempImage.onload = storeImageDimensions;
-        tempImage.onerror = () => console.error("Background image failed to load");
-    }
-}
-
-function adjustBackgroundPosition() {
-    const bgElement = document.querySelector('.background-image');
-    const title = document.querySelector('.search-title');
-    const searchContainer = document.querySelector('.search-container');
-
-    if (!bgElement || !title || !searchContainer) {
-        return;
-    }
-
-    // If we don't have image dimensions yet, try to get them
-    if (!bgImageDimensions) {
-        const tempImage = new Image();
-        tempImage.src = 'images/bg.png';
-        
-        if (tempImage.complete && tempImage.naturalWidth > 0) {
-            bgImageDimensions = {
-                width: tempImage.naturalWidth,
-                height: tempImage.naturalHeight,
-                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
-            };
-        } else {
-            // Image not ready yet, will be called again when it loads
-            return;
-        }
-    }
-
-    const calculatePosition = () => {
-        const imageAspectRatio = bgImageDimensions.aspectRatio;
-
-        // Calculate the rendered height of the background based on viewport width + 2px
-        const bgWidth = window.innerWidth + 2;
-        const bgRenderedHeight = bgWidth / imageAspectRatio;
-
-        // Set the container's height to match the image's rendered height
-        bgElement.style.height = `${bgRenderedHeight}px`;
-
-        // Find the page anchor's Y-coordinate relative to the document
-        const scrollY = window.scrollY;
-        const titleRect = title.getBoundingClientRect();
-        const searchRect = searchContainer.getBoundingClientRect();
-        const pageAnchorY = scrollY + titleRect.bottom + (searchRect.top - titleRect.bottom) / 2;
-
-        // Calculate the image's internal anchor point in pixels (50% from the top)
-        const imageAnchorInPixels = bgRenderedHeight * 0.50;
-
-        // Calculate the final 'top' offset for the element.
-        // This makes the image's anchor line up with the page's anchor.
-        const finalTopOffset = pageAnchorY - imageAnchorInPixels;
-        
-        bgElement.style.top = `${finalTopOffset}px`;
-    };
-
-    calculatePosition();
-}
-
-// Debounce function to limit how often a function can run.
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Start preloading image immediately - even before DOM is ready
-preloadBackgroundImage();
-
-// Initialize background positioning immediately when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Position immediately when DOM is ready
-    adjustBackgroundPosition();
-});
-
-// Also run on window load to ensure everything is fully loaded
-window.addEventListener('load', adjustBackgroundPosition);
-
-// Add event listeners for dynamic background
-window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
+/* Background image functions removed for component version */
 
 
 
@@ -6860,6 +6677,7 @@ async function performSearch(query) {
         renderDocuments(filteredResults);
         
         // Debug position after search results
+        setTimeout(() => debugPensatoTextPosition(), 200);
         
         // Show enhanced search results status
         const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
@@ -7321,140 +7139,5 @@ document.addEventListener('DOMContentLoaded', function() {
             filterManager.updateActiveFiltersDisplay();
         });
     }
-
-// ===========================
-// SEARCH SECTION COMPONENT INITIALIZATION
-// ===========================
-
-/**
- * Search Section Component - Autonomous initialization
- * This component can be loaded anywhere and will work seamlessly
- */
-(function() {
-    'use strict';
-
-    // Track initialization state to prevent multiple initializations
-    let isInitialized = false;
-    let initializationInProgress = false;
-
-    // Component initialization function
-    function initializeSearchSectionComponent(specificSearchSection = null) {
-        // Find all search sections or use specific one
-        const searchSections = specificSearchSection ? [specificSearchSection] : document.querySelectorAll('.search-section');
-        
-        if (searchSections.length === 0) {
-            console.log('⏳ Search section container not found yet, will retry...');
-            return;
-        }
-
-        // Initialize each search section separately
-        searchSections.forEach(searchSection => {
-            // Check if this specific search section is already initialized
-            if (searchSection.dataset.initialized === 'true') {
-                console.log('🔄 Search Section Component already initialized for this container');
-                return;
-            }
-
-            console.log('🚀 Initializing Search Section Component for instance:', searchSection.dataset.instanceId || 'new');
-
-            try {
-                // Store the current search section context for this initialization
-                currentSearchSectionContext = searchSection;
-                
-                // Create unique overlay elements for this search section instance
-                createUniqueOverlays(searchSection);
-                
-                // Initialize core functionality for this specific search section
-                DOM_CACHE.init();
-                initializeFilters(searchSection);
-                handleCSPEventHandlers();
-                initializeAnimations();
-                initializeOrderDropdown(searchSection);
-                
-                // Initialize search functionality
-                if (typeof performInitialSearch === 'function') {
-                    performInitialSearch();
-                } else {
-                    // Fallback - perform initial search
-                    setTimeout(() => {
-                        if (typeof applyFiltersAndRender === 'function') {
-                            applyFiltersAndRender();
-                        }
-                    }, 500);
-                }
-                
-                // Apply context-specific customization
-                customizeSearchSectionContext();
-                
-                // Mark this specific search section as initialized
-                searchSection.dataset.initialized = 'true';
-                console.log('✅ Search Section Component initialized successfully for instance:', searchSection.dataset.instanceId);
-            } catch (error) {
-                console.error('❌ Error initializing Search Section Component:', error);
-            }
-        });
-        
-        initializationInProgress = false;
-    }
-
-    // Smart initialization with retry logic
-    function smartInitialize() {
-        const maxRetries = 10;
-        let retries = 0;
-
-        function tryInitialize() {
-            // Find ALL search-section instances that haven't been initialized yet
-            const searchSections = document.querySelectorAll('.search-section');
-            let foundUninitialized = false;
-            
-            searchSections.forEach(searchSection => {
-                if (searchSection.dataset.initialized !== 'true') {
-                    console.log('🚀 Found uninitialized search-section, initializing...');
-                    foundUninitialized = true;
-                    initializeSearchSectionComponent(searchSection);
-                }
-            });
-            
-            if (!foundUninitialized && retries < maxRetries) {
-                retries++;
-                setTimeout(tryInitialize, 100);
-            }
-        }
-
-        tryInitialize();
-    }
-
-    // Auto-initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        // DOM is still loading
-        document.addEventListener('DOMContentLoaded', smartInitialize);
-    } else {
-        // DOM is already ready
-        smartInitialize();
-    }
-
-    // Make initialization function globally available
-    if (typeof window !== 'undefined') {
-        window.initializeSearchSection = function() {
-            smartInitialize();
-        };
-        
-        // Also make it available to initialize a specific search section
-        window.initializeSpecificSearchSection = function(searchSection) {
-            if (searchSection && searchSection.dataset.initialized !== 'true') {
-                initializeSearchSectionComponent(searchSection);
-            }
-        };
-        
-        // Function to update the current search section context
-        window.updateSearchSectionContext = function(searchSection) {
-            if (searchSection) {
-                currentSearchSectionContext = searchSection;
-                console.log('🔄 Updated search section context');
-                // Also apply context-specific customization
-                customizeSearchSectionContext();
-            }
-        };
-    }
-
-})();
+    // Pills are handled by FilterManager.createFilterPill
+// ... existing code ...

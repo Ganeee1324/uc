@@ -490,29 +490,7 @@ class PerformanceCacheManager {
         }
     }
 
-    async loadUserFavorites(forceRefresh = false) {
-        try {
-            const authToken = localStorage.getItem('authToken');
-            if (!authToken) {
-                return { vetrine: [], files: [] };
-            }
 
-            if (!forceRefresh) {
-                const cached = this.get('user_favorites', 'favorites');
-                if (cached) {
-                    console.log('✅ Loaded favorites from cache');
-                    return cached;
-                }
-            }
-
-            console.log('🔄 Loading user favorites...');
-            const data = await window.ApiClient.get('/user/favorites', {}, 'favorites');
-            return data;
-        } catch (error) {
-            console.error('❌ Error loading favorites:', error);
-            return { vetrine: [], files: [] };
-        }
-    }
 
     async toggleVetrinaFavorite(vetrinaId, currentlyFavorited) {
         try {
@@ -542,13 +520,6 @@ class PerformanceCacheManager {
                 this.loadHierarchy(),
                 this.loadVetrine()
             ]);
-
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
-                this.loadUserFavorites().catch(error => {
-                    console.warn('⚠️ Failed to preload favorites:', error);
-                });
-            }
 
             console.log('✅ Critical data preloaded');
             return {

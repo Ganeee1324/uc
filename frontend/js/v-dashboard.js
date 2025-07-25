@@ -92,10 +92,6 @@ function initializeMobileMenu() {
     }
 }
 
-
-
-
-
 // ===========================
 // TAB SWITCHING FUNCTIONALITY
 // ===========================
@@ -135,12 +131,16 @@ async function switchTab(tabName) {
         
         currentTab = 'documents';
         
-        // Load search component for documents
-        await loadSearchComponent('documentsSearchSectionContainer', {
-            title: 'I Miei Documenti',
-            subtitle: 'Gestisci i tuoi documenti',
-            placeholder: 'Cerca nei tuoi documenti...'
-        });
+        // Load search component for documents - let search-section handle itself
+        if (documentsSearchContainer && !documentsSearchContainer.hasChildNodes()) {
+            try {
+                const response = await fetch('components/search-section/search-section.html');
+                const html = await response.text();
+                documentsSearchContainer.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading documents search component:', error);
+            }
+        }
     } else {
         // Show profile/dashboard content, hide stats and documents
         if (profileSection) profileSection.style.display = 'block';
@@ -155,13 +155,15 @@ async function switchTab(tabName) {
             documentsSearchContainer.innerHTML = '';
         }
         
-        // Ensure main search component is loaded
+        // Ensure main search component is loaded - let search-section handle itself
         if (mainSearchContainer && !mainSearchContainer.hasChildNodes()) {
-            await loadSearchComponent('searchSectionContainer', {
-                title: '', // Remove title
-                subtitle: '', // Remove subtitle
-                placeholder: 'Cerca una dispensa...'
-            });
+            try {
+                const response = await fetch('components/search-section/search-section.html');
+                const html = await response.text();
+                mainSearchContainer.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading main search component:', error);
+            }
         }
         
         currentTab = 'profile';
@@ -344,7 +346,6 @@ function removeFromLibrary(documentId) {
         alert('Funzione rimozione documento in sviluppo');
     }
 }
-
 
 // ===========================
 // STATS DASHBOARD FUNCTIONALITY
@@ -782,7 +783,6 @@ function animateStatsCards() {
     });
 }
 
-
 // ===========================
 // USER PERSONALIZATION FUNCTIONALITY
 // ===========================
@@ -941,310 +941,27 @@ async function fetchCompleteUserProfile(userId) {
     }
 }
 
-
 // ===========================
-// SEARCH COMPONENT FUNCTIONALITY
+// MAIN INITIALIZATION
 // ===========================
-
-async function loadSearchComponent(containerId, config = {}) {
-    try {
-        // Load the search-section component HTML
-        const response = await fetch('components/search-section/search-section.html');
-        const html = await response.text();
-        
-        const container = document.getElementById(containerId);
-        if (container) {
-            // Clear container and load the component
-            container.innerHTML = html;
-            
-            // Apply custom configuration
-            const titleElement = container.querySelector('.search-title');
-            if (titleElement) {
-                if (config.title === '') {
-                    titleElement.style.display = 'none';
-                } else if (config.title) {
-                    titleElement.textContent = config.title;
-                }
-            }
-            
-            const subtitleElement = container.querySelector('.search-subtitle');
-            if (subtitleElement) {
-                if (config.subtitle === '') {
-                    subtitleElement.style.display = 'none';
-                } else if (config.subtitle) {
-                    subtitleElement.textContent = config.subtitle;
-                }
-            }
-            
-            if (config.placeholder) {
-                const inputElement = container.querySelector('.search-input');
-                if (inputElement) inputElement.placeholder = config.placeholder;
-            }
-            
-            // Initialize the search component based on context
-            const context = containerId === 'documentsSearchSectionContainer' ? 'documents' : 'profile';
-            await initializeSearchComponentForContext(container, context);
-        }
-    } catch (error) {
-        console.error('Error loading search component:', error);
-    }
-}
-
-async function initializeSearchComponentForContext(container, context) {
-    console.log(`Initializing search component for context: ${context}`);
-    
-    // Add a small delay to ensure DOM is ready
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    try {
-        // Initialize user info
-        const user = getCurrentUser();
-        if (user) {
-            updateSearchHeaderUserInfo(user);
-        }
-        
-        // Initialize search functionality
-        initializeSearchFunctionality(context);
-        
-        // Initialize filters safely
-        initializeFiltersForContext(context);
-        
-        // Initialize documents grid for documents context
-        if (context === 'documents') {
-            initializeDocumentsGrid();
-        }
-        
-        // Initialize performance cache if available
-        if (window.performanceCache) {
-            window.performanceCache.preloadCriticalData();
-        }
-        
-        console.log(`Search component initialized successfully for ${context}`);
-    } catch (error) {
-        console.error(`Error initializing search component for ${context}:`, error);
-    }
-}
-
-function updateSearchHeaderUserInfo(user) {
-    // Safely update user avatar if element exists
-    const userAvatar = document.getElementById('userAvatar');
-    if (userAvatar && user) {
-        let fullName = '';
-        if (user.name && user.surname) {
-            fullName = `${user.name} ${user.surname}`;
-        } else if (user.name) {
-            fullName = user.name;
-        } else if (user.username) {
-            fullName = user.username;
-        } else {
-            fullName = 'User';
-        }
-        
-        // Create gradient avatar
-        const gradient = getConsistentGradient(user.username);
-        const initials = getInitials(fullName);
-        userAvatar.innerHTML = `<div style="background: ${gradient}; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: inherit; color: white; font-weight: 600;">${initials}</div>`;
-    }
-    
-    // Update dropdown elements if they exist
-    const dropdownAvatar = document.getElementById('dropdownAvatar');
-    const dropdownUserName = document.getElementById('dropdownUserName');
-    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
-    
-    if (dropdownAvatar && user) {
-        const gradient = getConsistentGradient(user.username);
-        dropdownAvatar.style.background = gradient;
-    }
-    
-    if (dropdownUserName && user) {
-        dropdownUserName.textContent = user.username || 'User';
-    }
-    
-    if (dropdownUserEmail && user) {
-        dropdownUserEmail.textContent = user.email || 'user@example.com';
-    }
-}
-
-function initializeSearchFunctionality(context) {
-    // Initialize search input based on context
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput && context === 'documents') {
-        // For documents context, override search behavior
-        searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.trim();
-            handleDocumentsSearch(query);
-        });
-        
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                handleDocumentsSearch(query);
-            }
-        });
-    }
-    // For profile context, the search-section.js will handle the search functionality
-    
-    // Initialize filters button
-    const filtersBtn = document.getElementById('filtersBtn');
-    if (filtersBtn) {
-        filtersBtn.addEventListener('click', function() {
-            const filtersPanel = document.getElementById('filtersPanel');
-            if (filtersPanel) {
-                filtersPanel.classList.add('show');
-            }
-        });
-    }
-    
-    // Initialize other necessary elements
-    initializeSearchUIElements();
-}
-
-function initializeSearchUIElements() {
-    // Initialize AI toggle
-    const aiToggle = document.getElementById('toggle');
-    if (aiToggle) {
-        aiToggle.addEventListener('change', function() {
-            console.log('AI search toggled:', this.checked);
-        });
-    }
-    
-    // Initialize order dropdown
-    const orderBtn = document.getElementById('orderBtn');
-    if (orderBtn) {
-        orderBtn.addEventListener('click', function() {
-            const dropdown = this.parentNode.querySelector('.order-dropdown-content');
-            if (dropdown) {
-                dropdown.classList.toggle('show');
-            }
-        });
-    }
-}
-
-function initializeFiltersForContext(context) {
-    // The search-section.js will handle filter initialization
-    // We just need to ensure the component is properly loaded
-    console.log(`Filters will be initialized by search-section.js for context: ${context}`);
-}
-
-// This function is no longer needed as search-section.js handles filter population
-function populateOptionsIfExists(type, items) {
-    // Deprecated - search-section.js handles this
-    console.log(`Filter population handled by search-section.js for type: ${type}`);
-}
-
-function initializeDocumentsGrid() {
-    const documentsGrid = document.getElementById('documentsGrid');
-    const documentCount = document.getElementById('documentCount');
-    
-    if (!documentsGrid) {
-        console.warn('Documents grid not found');
-        return;
-    }
-    
-    // Initialize with empty state
-    if (documentCount) {
-        documentCount.textContent = 'Nessun documento trovato nella tua collezione';
-    }
-    
-    // Clear the loading cards and show empty state
-    documentsGrid.innerHTML = `
-        <div class="no-results-container">
-            <div class="no-results-icon">
-                <span class="material-symbols-outlined">folder_open</span>
-            </div>
-            <h3 class="no-results-title">La tua collezione è vuota</h3>
-            <p class="no-results-description">
-                Non hai ancora documenti nella tua libreria personale.<br>
-                Acquista documenti per vederli apparire qui.
-            </p>
-            <button class="explore-documents-btn" onclick="switchTab('profile')">
-                <span class="material-symbols-outlined">explore</span>
-                Esplora Documenti
-            </button>
-        </div>
-    `;
-}
-
-function handleDocumentsSearch(query) {
-    console.log('Searching documents for:', query);
-    
-    const documentsGrid = document.getElementById('documentsGrid');
-    const documentCount = document.getElementById('documentCount');
-    
-    if (!documentsGrid) {
-        console.warn('Documents grid not found');
-        return;
-    }
-    
-    // Use debounced search
-    clearTimeout(window.documentsSearchTimeout);
-    window.documentsSearchTimeout = setTimeout(() => {
-        searchDocuments(query, documentsGrid, documentCount);
-    }, 300);
-}
-
-function searchDocuments(query, documentsGrid, documentCount) {
-    // For now, just show empty results since this is a purchased documents search
-    // In a real implementation, this would search through user's purchased documents
-    
-    if (query.length === 0) {
-        // Show empty state
-        documentsGrid.innerHTML = `
-            <div class="no-results-container">
-                <div class="no-results-icon">
-                    <span class="material-symbols-outlined">folder_open</span>
-                </div>
-                <h3 class="no-results-title">La tua collezione è vuota</h3>
-                <p class="no-results-description">
-                    Non hai ancora documenti nella tua libreria personale.<br>
-                    Acquista documenti per vederli apparire qui.
-                </p>
-                <button class="explore-documents-btn" onclick="switchTab('profile')">
-                    <span class="material-symbols-outlined">explore</span>
-                    Esplora Documenti
-                </button>
-            </div>
-        `;
-        if (documentCount) {
-            documentCount.textContent = 'Nessun documento trovato nella tua collezione';
-        }
-    } else {
-        // Show search results (empty for now)
-        documentsGrid.innerHTML = `
-            <div class="no-results-container">
-                <div class="no-results-icon">
-                    <span class="material-symbols-outlined">search_off</span>
-                </div>
-                <h3 class="no-results-title">Nessun documento trovato</h3>
-                <p class="no-results-description">
-                    Non ci sono risultati per "${query}" nella tua collezione.<br>
-                    Prova con parole chiave diverse.
-                </p>
-                <button class="clear-search-btn" onclick="document.querySelector('#documentsSearchSectionContainer .search-input').value = ''; document.querySelector('#documentsSearchSectionContainer .search-input').dispatchEvent(new Event('input'));">
-                    <span class="material-symbols-outlined">clear</span>
-                    Cancella Ricerca
-                </button>
-            </div>
-        `;
-        if (documentCount) {
-            documentCount.textContent = `Nessun risultato per "${query}"`;
-        }
-    }
-}
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user personalization first
     await initializeUserPersonalization();
     
-    // Load main search component for Profilo tab
-    await loadSearchComponent('searchSectionContainer', {
-        title: '', // Remove title
-        subtitle: '', // Remove subtitle
-        placeholder: 'Cerca una dispensa...'
-    });
+    // Load main search component for Profilo tab - let search-section handle itself
+    const mainSearchContainer = document.getElementById('searchSectionContainer');
+    if (mainSearchContainer && !mainSearchContainer.hasChildNodes()) {
+        try {
+            const response = await fetch('components/search-section/search-section.html');
+            const html = await response.text();
+            mainSearchContainer.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading main search component:', error);
+        }
+    }
     
-    // Note: Documents search component will be loaded dynamically when switching to that tab
-    
+    // Initialize dashboard functionality
     initializeMobileMenu();
     initializeTabSwitching(); // Add tab switching functionality
     initializeStatsDropdown(); // Add stats dropdown functionality

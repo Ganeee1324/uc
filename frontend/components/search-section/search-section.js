@@ -10,6 +10,109 @@ let authToken = localStorage.getItem('authToken');
 // Global context for the current search section being initialized
 let currentSearchSectionContext = null;
 
+// Function to create unique overlay elements for each search section instance
+function createUniqueOverlays(searchSection) {
+    const instanceId = searchSection.dataset.instanceId || Math.random().toString(36).substr(2, 9);
+    searchSection.dataset.instanceId = instanceId;
+    
+    // Check if overlays already exist for this instance
+    if (searchSection.querySelector(`[data-instance="${instanceId}"]`)) {
+        return;
+    }
+    
+    // Create unique filters overlay
+    const filtersOverlay = document.createElement('div');
+    filtersOverlay.className = 'filters-overlay';
+    filtersOverlay.id = `filtersOverlay_${instanceId}`;
+    filtersOverlay.setAttribute('data-instance', instanceId);
+    document.body.appendChild(filtersOverlay);
+    
+    // Create unique preview modal
+    const previewModal = document.createElement('div');
+    previewModal.id = `previewModal_${instanceId}`;
+    previewModal.className = 'preview-modal';
+    previewModal.setAttribute('data-instance', instanceId);
+    previewModal.innerHTML = `
+        <div class="preview-content">
+            <div class="preview-header">
+                <h2 class="preview-title" id="previewTitle_${instanceId}">Document Preview</h2>
+                <button class="preview-close" id="previewCloseBtn_${instanceId}">×</button>
+            </div>
+            <div id="previewBody_${instanceId}" class="preview-body">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div id="previewActions_${instanceId}" class="preview-actions">
+                <!-- Action buttons will be added here -->
+            </div>
+        </div>
+    `;
+    document.body.appendChild(previewModal);
+    
+    // Create unique reviews overlay
+    const reviewsOverlay = document.createElement('div');
+    reviewsOverlay.className = 'reviews-overlay';
+    reviewsOverlay.id = `reviewsOverlay_${instanceId}`;
+    reviewsOverlay.setAttribute('data-instance', instanceId);
+    reviewsOverlay.innerHTML = `
+        <div class="reviews-overlay-content">
+            <div class="reviews-overlay-header">
+                <h2>
+                    <span class="material-symbols-outlined">rate_review</span>
+                    Recensioni
+                </h2>
+                <button class="close-overlay-btn" data-action="close-reviews">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="reviews-overlay-body">
+                <div class="reviews-summary">
+                    <div class="overall-rating">
+                        <div class="rating-display">
+                            <div class="big-stars"></div>
+                            <span class="big-rating-score">0.0</span>
+                        </div>
+                        <span class="total-reviews">Basato su 0 recensioni</span>
+                    </div>
+                    <button class="add-review-btn" data-action="show-review-form">
+                        <span class="material-symbols-outlined">add</span>
+                        Aggiungi Recensione
+                    </button>
+                </div>
+                
+                <div class="reviews-list" id="reviewsList_${instanceId}">
+                    <!-- Reviews will be populated here -->
+                </div>
+                
+                <div class="add-review-form" id="addReviewForm_${instanceId}" style="display: none;">
+                    <h3>Aggiungi la tua recensione</h3>
+                    <div class="rating-input">
+                        <label>Valutazione:</label>
+                        <div class="star-rating">
+                            <span class="star-input" data-rating="1">★</span>
+                            <span class="star-input" data-rating="2">★</span>
+                            <span class="star-input" data-rating="3">★</span>
+                            <span class="star-input" data-rating="4">★</span>
+                            <span class="star-input" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    <div class="review-text-input">
+                        <label for="reviewComment_${instanceId}">Commento:</label>
+                        <textarea id="reviewComment_${instanceId}" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                    </div>
+                    <div class="review-form-actions">
+                        <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                        <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(reviewsOverlay);
+    
+    console.log(`🔄 Created unique overlays for search section instance: ${instanceId}`);
+}
+
 // DOM element cache for performance optimization
 const DOM_CACHE = {
     documentsGrid: null,
@@ -2151,8 +2254,9 @@ function toggleFiltersPanel() {
         return;
     }
     
+    const instanceId = context.dataset.instanceId;
     const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay');
+    const filtersOverlay = instanceId ? document.getElementById(`filtersOverlay_${instanceId}`) : (context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay'));
     const mainContent = document.querySelector('.main-content');
     const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     
@@ -2439,8 +2543,9 @@ function closeFiltersPanel() {
         return;
     }
     
+    const instanceId = context.dataset.instanceId;
     const filtersPanel = context.querySelector('#filtersPanel') || document.getElementById('filtersPanel');
-    const filtersOverlay = context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay');
+    const filtersOverlay = instanceId ? document.getElementById(`filtersOverlay_${instanceId}`) : (context.querySelector('#filtersOverlay') || document.getElementById('filtersOverlay'));
     const mainContent = document.querySelector('.main-content');
     const documentsGrid = context.querySelector('#documentsGrid') || document.getElementById('documentsGrid');
     
@@ -7140,6 +7245,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Store the current search section context for this initialization
             currentSearchSectionContext = searchSection;
+            
+            // Create unique overlay elements for this search section instance
+            createUniqueOverlays(searchSection);
             
             // Initialize core functionality for this specific search section
             DOM_CACHE.init();

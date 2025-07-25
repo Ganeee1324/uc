@@ -135,21 +135,35 @@ async function switchTab(tabName) {
         
         currentTab = 'documents';
         
-        // Move the existing search-section component from Profilo to Documents
-        const existingSearchSection = document.querySelector('.search-section');
-        if (existingSearchSection && documentsSearchContainer) {
-            console.log('Moving existing search-section component to documents container...');
-            documentsSearchContainer.appendChild(existingSearchSection);
-            
-            // Trigger document loading
-            setTimeout(() => {
-                if (typeof applyFiltersAndRender === 'function') {
-                    console.log('Triggering document loading after moving search-section...');
-                    applyFiltersAndRender();
+        // Load search component for documents - let search-section handle itself
+        const hasDocumentsSearchComponent = documentsSearchContainer && documentsSearchContainer.querySelector('.search-section');
+        if (documentsSearchContainer && !hasDocumentsSearchComponent) {
+            try {
+                console.log('Loading search component for documents...');
+                const response = await fetch('components/search-section/search-section-component.html');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            }, 100);
+                const html = await response.text();
+                console.log('Search component HTML loaded for documents, length:', html.length);
+                documentsSearchContainer.innerHTML = html;
+                console.log('Search component inserted into documents container');
+                
+                // Search component will auto-initialize itself with smart retry logic
+                console.log('Search component loaded for documents - auto-initialization in progress');
+                
+                // Manually trigger document loading for the documents search section
+                setTimeout(() => {
+                    if (typeof applyFiltersAndRender === 'function') {
+                        console.log('Manually triggering document loading for documents search section...');
+                        applyFiltersAndRender();
+                    }
+                }, 500);
+            } catch (error) {
+                console.error('Error loading documents search component:', error);
+            }
         } else {
-            console.log('No existing search-section found or documents container not available');
+            console.log('Documents search container not found or already has search component:', hasDocumentsSearchComponent ? 'has component' : 'container not found');
         }
     } else {
         // Show profile/dashboard content, hide stats and documents
@@ -167,13 +181,9 @@ async function switchTab(tabName) {
             documentsSearchContainer.innerHTML = '';
         }
         
-        // Move the existing search-section component back to Profilo if it's in Documents
-        const existingSearchSection = document.querySelector('.search-section');
-        if (existingSearchSection && mainSearchContainer && !mainSearchContainer.contains(existingSearchSection)) {
-            console.log('Moving search-section component back to Profilo container...');
-            mainSearchContainer.appendChild(existingSearchSection);
-        } else if (!existingSearchSection) {
-            // If no search-section exists, load it
+        // Ensure main search component is loaded - let search-section handle itself
+        const hasSearchComponent = mainSearchContainer && mainSearchContainer.querySelector('.search-section');
+        if (mainSearchContainer && !hasSearchComponent) {
             try {
                 console.log('Loading search component in switchTab...');
                 const response = await fetch('components/search-section/search-section-component.html');
@@ -191,7 +201,7 @@ async function switchTab(tabName) {
                 console.error('Error loading main search component:', error);
             }
         } else {
-            console.log('Search-section component already in Profilo container');
+            console.log('Main search container not found or already has search component:', hasSearchComponent ? 'has component' : 'container not found');
         }
         
         currentTab = 'profile';

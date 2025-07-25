@@ -598,39 +598,5 @@
 <!-- Professional Performance & Caching System -->
 <script src="js/config.js" defer></script>
 <script src="js/performance-cache.js" defer></script>
-<script>
-// Load search-section component dynamically
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('searchSectionContainer');
-    if (container) {
-        fetch('components/search-section/search-section.html')
-            .then(response => response.text())
-            .then(html => {
-                container.innerHTML = html;
-                
-                // Extract and execute script tags from the loaded HTML
-                const scripts = container.querySelectorAll('script');
-                scripts.forEach(script => {
-                    if (script.src) {
-                        // External script
-                        const newScript = document.createElement('script');
-                        newScript.src = script.src;
-                        newScript.defer = script.defer;
-                        document.head.appendChild(newScript);
-                    } else {
-                        // Inline script
-                        const newScript = document.createElement('script');
-                        newScript.textContent = script.textContent;
-                        document.head.appendChild(newScript);
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error loading search section:', error);
-                container.innerHTML = '<p>Error loading search section component.</p>';
-            });
-    }
-});
-</script>
 <script src="js/v-dashboard.js"></script>
 </html>

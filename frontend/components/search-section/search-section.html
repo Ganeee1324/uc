@@ -754,5 +754,27 @@
 </div>
 
 <script src="components/search-section/search-section.js"></script>
+<script>
+// Auto-initialize the search component when loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're in a container context (like v-dashboard)
+    const container = document.closest('#searchSectionContainer, #documentsSearchSectionContainer');
+    const context = container?.id === 'documentsSearchSectionContainer' ? 'documents' : 'profile';
+    
+    console.log('Search section component auto-initializing for context:', context);
+    
+    // Initialize the component
+    if (typeof initializeSearchComponent === 'function') {
+        initializeSearchComponent(context);
+    } else {
+        // Fallback: wait for the main script to load
+        setTimeout(() => {
+            if (typeof initializeSearchComponent === 'function') {
+                initializeSearchComponent(context);
+            }
+        }, 100);
+    }
+});
+</script>
 </body>
 </html>

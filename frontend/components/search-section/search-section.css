@@ -626,7 +626,7 @@ html {
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
-    z-index: 99999; /* Lower z-index to not block sort button */
+    z-index: 9998; /* Lower z-index to not block sort button */
 
     /* The background and padding are only applied when it's stuck. */
     transition: all 0.3s ease-in-out;
@@ -656,7 +656,7 @@ html {
     max-width: 600px;
     margin: 0 auto;
     flex-wrap: nowrap;
-    z-index: 9999; /* High z-index for search container */
+    z-index: 9998; /* High z-index for search container */
 }
 
 /* Animated Border Search Bar Container */
@@ -6987,6 +6987,34 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     transform: translateY(10px);
     transition: all 0.3s var(--ease-out);
     overflow: hidden;
+}
+
+/* Add invisible bridge to prevent gap between avatar and dropdown */
+.user-info::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 280px;
+    height: 12px;
+    background: transparent;
+    pointer-events: none;
+}
+
+/* When dropdown is open, make the bridge interactive */
+.user-info.open::after {
+    pointer-events: auto;
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .user-info::after {
+        display: none;
+    }
+    
+    .user-info.open::after {
+        display: none;
+    }
 }
 
 .user-info.open .user-dropdown {

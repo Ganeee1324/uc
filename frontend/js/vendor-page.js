@@ -410,8 +410,47 @@ function updateHeaderUserInfo(user) {
             dropdownUserEmail.textContent = user.email;
         }
         
-        // Toggle dropdown
+        // Handle hover and click for user avatar
         const userInfo = document.querySelector('.user-info');
+        let hoverTimeout;
+        
+        // Check if device supports hover
+        const supportsHover = window.matchMedia('(hover: hover)').matches;
+        
+        if (supportsHover) {
+            // Show dropdown on hover with delay to prevent accidental closing
+            userAvatar.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                clearTimeout(hoverTimeout);
+                userInfo.classList.add('open');
+            });
+            
+            // Handle mouse enter on dropdown to keep it open
+            const userDropdown = document.getElementById('userDropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('mouseenter', (event) => {
+                    event.stopPropagation();
+                    clearTimeout(hoverTimeout);
+                    userInfo.classList.add('open');
+                });
+            }
+            
+            // Hide dropdown when mouse leaves the user info area with small delay
+            userInfo.addEventListener('mouseleave', (event) => {
+                event.stopPropagation();
+                hoverTimeout = setTimeout(() => {
+                    userInfo.classList.remove('open');
+                }, 150); // Small delay to allow moving to dropdown
+            });
+            
+            // Cancel timeout when re-entering the area
+            userInfo.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                clearTimeout(hoverTimeout);
+            });
+        }
+        
+        // Toggle dropdown on click as well
         userAvatar.addEventListener('click', (event) => {
             event.stopPropagation();
             userInfo.classList.toggle('open');

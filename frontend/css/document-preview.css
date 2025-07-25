@@ -441,6 +441,34 @@ body {
     overflow: hidden;
 }
 
+/* Add invisible bridge to prevent gap between avatar and dropdown */
+.user-info::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 280px;
+    height: 12px;
+    background: transparent;
+    pointer-events: none;
+}
+
+/* When dropdown is open, make the bridge interactive */
+.user-info.open::after {
+    pointer-events: auto;
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .user-info::after {
+        display: none;
+    }
+    
+    .user-info.open::after {
+        display: none;
+    }
+}
+
 .user-info.open .user-dropdown {
     opacity: 1;
     visibility: visible;

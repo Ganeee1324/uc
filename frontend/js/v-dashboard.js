@@ -1007,8 +1007,8 @@ async function loadSearchComponent(containerId, config = {}) {
 async function initializeSearchComponentForContext(container, context) {
     console.log(`Initializing search component for context: ${context}`);
     
-    // Add a small delay to ensure DOM is ready
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Add a delay to ensure DOM is ready and search-section.js is loaded
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Reinitialize the search-section.js functionality
     try {
@@ -1032,6 +1032,17 @@ async function initializeSearchComponentForContext(container, context) {
         // Initialize performance cache if available
         if (window.performanceCache) {
             window.performanceCache.preloadCriticalData();
+        }
+        
+        // Force re-initialization of search-section.js functions if they exist
+        if (typeof window.initializeFilters === 'function') {
+            console.log('Re-initializing filters from search-section.js');
+            window.initializeFilters();
+        }
+        
+        if (typeof window.initializeFilterControls === 'function') {
+            console.log('Re-initializing filter controls from search-section.js');
+            window.initializeFilterControls();
         }
         
         console.log(`Search component initialized successfully for ${context}`);
@@ -1104,20 +1115,59 @@ function initializeSearchFunctionality(context) {
     }
     // For profile context, leave the original search-section.js handlers intact
     
-    // Initialize filters button
-    const filtersBtn = document.getElementById('filtersBtn');
-    if (filtersBtn) {
-        // Remove existing listeners
-        const newFiltersBtn = filtersBtn.cloneNode(true);
-        filtersBtn.parentNode.replaceChild(newFiltersBtn, filtersBtn);
+    // Initialize filters functionality from search-section.js
+    if (typeof initializeFilters === 'function') {
+        initializeFilters();
+    } else {
+        // Fallback: manually initialize filters button
+        const filtersBtn = document.getElementById('filtersBtn');
+        if (filtersBtn) {
+            // Remove existing listeners
+            const newFiltersBtn = filtersBtn.cloneNode(true);
+            filtersBtn.parentNode.replaceChild(newFiltersBtn, filtersBtn);
+            
+            // Add new listener
+            newFiltersBtn.addEventListener('click', function() {
+                const filtersPanel = document.getElementById('filtersPanel');
+                const filtersOverlay = document.getElementById('filtersOverlay');
+                if (filtersPanel) {
+                    filtersPanel.classList.add('active');
+                }
+                if (filtersOverlay) {
+                    filtersOverlay.classList.add('active');
+                }
+                document.body.style.overflow = 'hidden';
+            });
+        }
         
-        // Add new listener
-        newFiltersBtn.addEventListener('click', function() {
-            const filtersPanel = document.getElementById('filtersPanel');
-            if (filtersPanel) {
-                filtersPanel.classList.add('show');
-            }
-        });
+        // Initialize filters close button
+        const filtersClose = document.getElementById('filtersClose');
+        if (filtersClose) {
+            filtersClose.addEventListener('click', function() {
+                const filtersPanel = document.getElementById('filtersPanel');
+                const filtersOverlay = document.getElementById('filtersOverlay');
+                if (filtersPanel) {
+                    filtersPanel.classList.remove('active');
+                }
+                if (filtersOverlay) {
+                    filtersOverlay.classList.remove('active');
+                }
+                document.body.style.overflow = '';
+            });
+        }
+        
+        // Initialize filters overlay click
+        const filtersOverlay = document.getElementById('filtersOverlay');
+        if (filtersOverlay) {
+            filtersOverlay.addEventListener('click', function() {
+                const filtersPanel = document.getElementById('filtersPanel');
+                if (filtersPanel) {
+                    filtersPanel.classList.remove('active');
+                }
+                this.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        }
     }
     
     // Initialize other necessary elements

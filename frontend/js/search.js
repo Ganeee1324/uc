@@ -4365,7 +4365,6 @@ function renderDocuments(files) {
                                 <div class="chunk-description">${chunk.chunk_description || chunk.description || 'N/A'}</div>
                                 <div class="chunk-meta">
                                     <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
-                                    <span class="chunk-score">Rilevanza: ${((chunk.semantic_score || 0) * 100).toFixed(1)}%</span>
                                 </div>
                             </div>
                         `).join('')}
@@ -5650,10 +5649,7 @@ function openChunksOverlay(item) {
                                             <span class="material-symbols-outlined">description</span>
                                             <span class="chunk-page">Pagina ${chunk.page_number || 'N/A'}</span>
                                         </div>
-                                        <div class="chunk-relevance">
-                                            <span class="material-symbols-outlined">trending_up</span>
-                                            <span class="chunk-score">${((chunk.semantic_score || 0) * 100).toFixed(1)}%</span>
-                                        </div>
+
                                     </div>
                                     <div class="chunk-preview-description">
                                         ${chunk.chunk_description || chunk.description || 'Nessuna descrizione disponibile'}

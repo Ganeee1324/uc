@@ -74,6 +74,7 @@ def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
             cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
             conn.commit()
 
+
 # ---------------------------------------------
 # User management
 # ---------------------------------------------
@@ -497,6 +498,46 @@ def delete_vetrina(user_id: int, vetrina_id: int) -> None:
             logging.info(f"Vetrina {vetrina_id} deleted by user {user_id}")
 
 
+def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetrina, List[File], List[Review]]:
+    """
+    Get a vetrina by its ID.
+    If user_id is provided, it will also check if the vetrina is in the user's favorites.
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            favorite_select = ""
+            params = [vetrina_id]
+            
+            if user_id is not None:
+                favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS favorite"
+                params.insert(0, user_id)
+            
+            cursor.execute(
+                f"""
+                SELECT v.*, u.*, ci.*{favorite_select}
+                FROM vetrina v
+                JOIN users u ON v.author_id = u.user_id
+                JOIN course_instances ci ON v.course_instance_id = ci.instance_id
+                WHERE v.vetrina_id = %s
+                LIMIT 1
+                """,
+                params,
+            )
+            vetrina_data = cursor.fetchone()
+            if not vetrina_data:
+                raise NotFoundException("Vetrina not found")
+            vetrina = Vetrina.from_dict(vetrina_data)
+            
+            cursor.execute("SELECT * FROM files WHERE vetrina_id = %s", (vetrina_id,))
+            files_data = cursor.fetchall()
+            files = [File.from_dict(file_data) for file_data in files_data]
+
+            cursor.execute("SELECT * FROM review WHERE vetrina_id = %s", (vetrina_id,))
+            reviews_data = cursor.fetchall()
+            reviews = [Review.from_dict(review_data) for review_data in reviews_data]
+
+            return vetrina, files, reviews
+            
 # ---------------------------------------------
 # Course management
 # ---------------------------------------------
@@ -1051,10 +1092,10 @@ def get_favorites(user_id: int) -> List[Vetrina]:
 def get_reviews_for_user_vetrine(user_id: int) -> List[Review]:
     """
     Get all reviews for vetrine and files that belong to vetrine authored by a specific user.
-    
+
     Args:
         user_id: ID of the user whose vetrine reviews to retrieve
-        
+
     Returns:
         List[Review]: List of Review objects for vetrine and files authored by the user
     """
@@ -1080,10 +1121,10 @@ def get_reviews_for_user_vetrine(user_id: int) -> List[Review]:
 def get_reviews_authored_by_user(user_id: int) -> List[Review]:
     """
     Get all reviews authored by a specific user (reviews written by that user).
-    
+
     Args:
         user_id: ID of the user whose reviews to retrieve
-        
+
     Returns:
         List[Review]: List of Review objects authored by the user
     """
@@ -1247,7 +1288,7 @@ def delete_review(user_id: int, file_id: int | None = None, vetrina_id: int | No
             else:
                 # Delete vetrina review
                 cursor.execute("DELETE FROM review WHERE user_id = %s AND vetrina_id = %s AND file_id IS NULL", (user_id, vetrina_id))
-            
+
             if cursor.rowcount == 0:
                 raise NotFoundException("Review not found")
             conn.commit()

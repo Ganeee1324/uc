@@ -182,6 +182,18 @@ def delete_vetrina(vetrina_id):
     return jsonify({"msg": "Vetrina deleted"}), 200
 
 
+@app.route("/vetrine/<int:vetrina_id>", methods=["GET"])
+@jwt_required(optional=True)
+def get_vetrina(vetrina_id):
+    user_id = get_jwt_identity()
+    vetrina, files, reviews = database.get_vetrina_by_id(vetrina_id, user_id)
+    return jsonify({
+        "vetrina": vetrina.to_dict(),
+        "files": [f.to_dict() for f in files],
+        "reviews": [r.to_dict() for r in reviews]
+    }), 200
+
+
 @app.route("/vetrine", methods=["GET"])
 @jwt_required(optional=True)
 def search_vetrine():

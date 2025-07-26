@@ -33,39 +33,7 @@ const DOM_CACHE = {
 function debugPensatoTextPosition() {
     // Make this function globally accessible for manual debugging
     window.debugPensatoTextPosition = debugPensatoTextPosition;
-    console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
-    
-    // Find the search subtitle element
-    const searchSubtitle = document.querySelector('.search-subtitle');
-    if (searchSubtitle) {
-        const rect = searchSubtitle.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(searchSubtitle);
-        
-        console.log('📍 Search Subtitle ("Pensato per chi vuole di più"):');
-        console.log('  - Text content:', searchSubtitle.textContent.trim());
-        console.log('  - Position:', {
-            top: rect.top,
-            left: rect.left,
-            bottom: rect.bottom,
-            right: rect.right,
-            width: rect.width,
-            height: rect.height
-        });
-        console.log('  - CSS Properties:', {
-            margin: computedStyle.margin,
-            padding: computedStyle.padding,
-            position: computedStyle.position,
-            top: computedStyle.top,
-            left: computedStyle.left,
-            transform: computedStyle.transform,
-            display: computedStyle.display,
-            visibility: computedStyle.visibility,
-            opacity: computedStyle.opacity
-        });
-        console.log('  - Parent container:', searchSubtitle.parentElement?.className);
-    } else {
-        console.log('❌ Search subtitle element not found');
-    }
+    console.log('🔍 === DEBUGGING SEARCH SECTION POSITION ===');
     
     // Check search section
     const searchSection = document.querySelector('.search-section');

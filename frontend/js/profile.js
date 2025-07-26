@@ -147,28 +147,8 @@ async function switchTab(tabName) {
         
         currentTab = 'documents';
         
-        // Load search component for documents - let search-section handle itself
-        const hasDocumentsSearchComponent = documentsSearchContainer && documentsSearchContainer.querySelector('.search-section');
-        if (documentsSearchContainer && !hasDocumentsSearchComponent) {
-            try {
-                console.log('Loading search component for documents...');
-                const response = await fetch('components/search-section/search-section-component.html');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const html = await response.text();
-                console.log('Search component HTML loaded for documents, length:', html.length);
-                documentsSearchContainer.innerHTML = html;
-                console.log('Search component inserted into documents container');
-                
-                // Search component will auto-initialize itself with smart retry logic
-                console.log('Search component loaded for documents - auto-initialization in progress');
-            } catch (error) {
-                console.error('Error loading documents search component:', error);
-            }
-        } else {
-            console.log('Documents search container not found or already has search component:', hasDocumentsSearchComponent ? 'has component' : 'container not found');
-        }
+        // Documents search component is now handled via HTML Web Component - will auto-initialize
+        console.log('Documents dashboard activated - search-section web component will handle itself');
     } else if (tabName === 'favorites') {
         // Show favorites dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
@@ -190,28 +170,8 @@ async function switchTab(tabName) {
         // Load favorites users first
         await loadFavoritesUsers();
         
-        // Load search component for favorites - let search-section handle itself
-        const hasFavoritesSearchComponent = favoritesSearchContainer && favoritesSearchContainer.querySelector('.search-section');
-        if (favoritesSearchContainer && !hasFavoritesSearchComponent) {
-            try {
-                console.log('Loading search component for favorites...');
-                const response = await fetch('components/search-section/search-section-component.html');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const html = await response.text();
-                console.log('Search component HTML loaded for favorites, length:', html.length);
-                favoritesSearchContainer.innerHTML = html;
-                console.log('Search component inserted into favorites container');
-                
-                // Search component will auto-initialize itself with smart retry logic
-                console.log('Search component loaded for favorites - auto-initialization in progress');
-            } catch (error) {
-                console.error('Error loading favorites search component:', error);
-            }
-        } else {
-            console.log('Favorites search container not found or already has search component:', hasFavoritesSearchComponent ? 'has component' : 'container not found');
-        }
+        // Favorites search component is now handled via HTML Web Component - will auto-initialize
+        console.log('Favorites dashboard activated - search-section web component will handle itself');
     } else {
         // Show profile/dashboard content, hide stats, documents, and favorites
         if (profileSection) profileSection.style.display = 'block';
@@ -234,36 +194,8 @@ async function switchTab(tabName) {
             favoritesSearchContainer.innerHTML = '';
         }
         
-        // Ensure main search component is loaded - let search-section handle itself
-        const hasSearchComponent = mainSearchContainer && mainSearchContainer.querySelector('.search-section');
-        if (mainSearchContainer && !hasSearchComponent) {
-            try {
-                console.log('Loading search component in switchTab...');
-                const response = await fetch('components/search-section/search-section-component.html');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const html = await response.text();
-                console.log('Search component HTML loaded in switchTab, length:', html.length);
-                mainSearchContainer.innerHTML = html;
-                console.log('Search component inserted into main container');
-                
-                // Search component will auto-initialize itself with smart retry logic
-                console.log('Search component loaded in switchTab - auto-initialization in progress');
-            } catch (error) {
-                console.error('Error loading main search component:', error);
-            }
-        } else {
-            console.log('Main search container not found or already has search component:', hasSearchComponent ? 'has component' : 'container not found');
-            
-            // Update context to the profile search section if it exists
-            if (hasSearchComponent && typeof window.updateSearchSectionContext === 'function') {
-                const profileSearchSection = mainSearchContainer.querySelector('.search-section');
-                if (profileSearchSection) {
-                    window.updateSearchSectionContext(profileSearchSection);
-                }
-            }
-        }
+        // Main search component is now handled via HTML Web Component - will auto-initialize
+        console.log('Profile tab switched - search-section web component will handle itself');
         
         currentTab = 'profile';
     }
@@ -1102,30 +1034,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user personalization first
     await initializeUserPersonalization();
     
-    // Load main search component for Profilo tab - let search-section handle itself
-    const mainSearchContainer = document.getElementById('searchSectionContainer');
-    console.log('Search container found:', mainSearchContainer);
-    const hasSearchComponent = mainSearchContainer && mainSearchContainer.querySelector('.search-section');
-    if (mainSearchContainer && !hasSearchComponent) {
-        try {
-            console.log('Loading search component...');
-            const response = await fetch('components/search-section/search-section-component.html');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const html = await response.text();
-            console.log('Search component HTML loaded, length:', html.length);
-            mainSearchContainer.innerHTML = html;
-            console.log('Search component inserted into container');
-            
-            // Search component will auto-initialize itself with smart retry logic
-            console.log('Search component loaded - auto-initialization in progress');
-        } catch (error) {
-            console.error('Error loading main search component:', error);
-        }
-    } else {
-        console.log('Search container not found or already has search component:', hasSearchComponent ? 'has component' : 'container not found');
-    }
+    // Main search component is now handled via HTML Web Component - will auto-initialize
+    console.log('Profile page loaded - search-section web components will handle themselves');
     
     // Initialize dashboard functionality
     initializeMobileMenu();

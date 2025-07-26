@@ -16465,7 +16465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Call the standalone function
         triggerFilterUpdate();
     };
-}
+};
 
 // Register the custom element
 customElements.define('search-section', SearchSection);

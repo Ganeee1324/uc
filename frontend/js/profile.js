@@ -1027,6 +1027,41 @@ async function fetchCompleteUserProfile(userId) {
 }
 
 // ===========================
+// LOGOUT FUNCTIONALITY
+// ===========================
+
+function initializeLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Show confirmation dialog
+            if (confirm('Sei sicuro di voler disconnetterti?')) {
+                try {
+                    // Clear all stored data
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('userProfile');
+                    
+                    // Clear any other session data
+                    sessionStorage.clear();
+                    
+                    // Redirect to login page
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Error during logout:', error);
+                    // Even if there's an error, redirect to login page
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+    }
+}
+
+// ===========================
 // MAIN INITIALIZATION
 // ===========================
 
@@ -1044,6 +1079,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeTimeFilters(); // Add time filters functionality
     initializeDocumentsPeriodFilter(); // Add documents period filter functionality
     initializeDocumentPerformanceItems(); // Add document performance interactivity
+    initializeLogout(); // Add logout functionality
     
     // Set initial tab state to ensure proper display
     await switchTab('profile');

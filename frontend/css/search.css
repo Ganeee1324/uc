@@ -8917,11 +8917,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .chunks-body {
-    padding: 24px;
-    overflow: hidden;
+    overflow: visible;
     flex: 1;
     min-height: 0;
+    position: relative;
 }
+
+
 
 .chunks-horizontal-scroll {
     display: flex;
@@ -9115,7 +9117,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
         padding: 16px;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow: visible;
     }
     
     .chunks-horizontal-scroll {
@@ -9169,6 +9171,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     
     .chunks-body {
         padding: 12px;
+        overflow: visible;
     }
     
     .chunks-horizontal-scroll {

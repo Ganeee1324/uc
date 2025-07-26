@@ -16460,6 +16460,11 @@ document.addEventListener('DOMContentLoaded', function() {
     getElementById(id) {
         return this.shadowRoot.getElementById(id);
     }
+
+    triggerFilterUpdate() {
+        // Call the standalone function
+        triggerFilterUpdate();
+    }
 }
 
 // Register the custom element

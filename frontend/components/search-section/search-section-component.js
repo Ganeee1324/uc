@@ -16326,74 +16326,78 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `);
     }
-    // Faculty filter
-    const facultyInput = this.shadowRoot.getElementById('facultyFilter');
-    if (facultyInput) {
-        facultyInput.addEventListener('change', (e) => {
-            this.filterManager.setFilter('faculty', e.target.value);
+
+    setupEventListeners() {
+        // Faculty filter
+        const facultyInput = this.shadowRoot.getElementById('facultyFilter');
+        if (facultyInput) {
+            facultyInput.addEventListener('change', (e) => {
+                this.filterManager.setFilter('faculty', e.target.value);
+            });
+        }
+        // Course filter
+        const courseInput = this.shadowRoot.getElementById('courseFilter');
+        if (courseInput) {
+            courseInput.addEventListener('change', (e) => {
+                this.filterManager.setFilter('course', e.target.value);
+            });
+        }
+        // Canale filter
+        const canaleInput = this.shadowRoot.getElementById('canaleFilter');
+        if (canaleInput) {
+            canaleInput.addEventListener('change', (e) => {
+                this.filterManager.setFilter('canale', e.target.value);
+            });
+        }
+        // Price range sliders
+        const minPriceRange = this.shadowRoot.getElementById('minPriceRange');
+        const maxPriceRange = this.shadowRoot.getElementById('maxPriceRange');
+        if (minPriceRange && maxPriceRange) {
+            const updatePrice = () => {
+                const min = parseInt(minPriceRange.value, 10);
+                const max = parseInt(maxPriceRange.value, 10);
+                this.filterManager.setFilter('priceRange', [min, max]);
+            };
+            minPriceRange.addEventListener('input', updatePrice);
+            maxPriceRange.addEventListener('input', updatePrice);
+        }
+        // Pages range sliders
+        const minPagesRange = this.shadowRoot.getElementById('minPagesRange');
+        const maxPagesRange = this.shadowRoot.getElementById('maxPagesRange');
+        if (minPagesRange && maxPagesRange) {
+            const updatePages = () => {
+                const min = parseInt(minPagesRange.value, 10);
+                const max = parseInt(maxPagesRange.value, 10);
+                this.filterManager.setFilter('minPages', min);
+                this.filterManager.setFilter('maxPages', max);
+            };
+            minPagesRange.addEventListener('input', updatePages);
+            maxPagesRange.addEventListener('input', updatePages);
+        }
+        // Rating filter (example for stars)
+        this.shadowRoot.querySelectorAll('.rating-star-filter').forEach(star => {
+            star.addEventListener('click', (e) => {
+                const rating = parseInt(star.getAttribute('data-rating'), 10);
+                this.filterManager.setFilter('minRating', rating);
+            });
         });
-    }
-    // Course filter
-    const courseInput = this.shadowRoot.getElementById('courseFilter');
-    if (courseInput) {
-        courseInput.addEventListener('change', (e) => {
-            this.filterManager.setFilter('course', e.target.value);
+        // Toggle groups (example for priceType)
+        this.shadowRoot.querySelectorAll('.price-toggle').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                this.filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
+            });
         });
+        // Clear all button
+        const clearAllBtn = this.shadowRoot.getElementById('clearAllFilters');
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                this.filterManager.filters = {};
+                this.filterManager.updateActiveFiltersDisplay();
+            });
+        }
     }
-    // Canale filter
-    const canaleInput = this.shadowRoot.getElementById('canaleFilter');
-    if (canaleInput) {
-        canaleInput.addEventListener('change', (e) => {
-            this.filterManager.setFilter('canale', e.target.value);
-        });
-    }
-    // Price range sliders
-    const minPriceRange = this.shadowRoot.getElementById('minPriceRange');
-    const maxPriceRange = this.shadowRoot.getElementById('maxPriceRange');
-    if (minPriceRange && maxPriceRange) {
-        const updatePrice = () => {
-            const min = parseInt(minPriceRange.value, 10);
-            const max = parseInt(maxPriceRange.value, 10);
-            this.filterManager.setFilter('priceRange', [min, max]);
-        };
-        minPriceRange.addEventListener('input', updatePrice);
-        maxPriceRange.addEventListener('input', updatePrice);
-    }
-    // Pages range sliders
-    const minPagesRange = this.shadowRoot.getElementById('minPagesRange');
-    const maxPagesRange = this.shadowRoot.getElementById('maxPagesRange');
-    if (minPagesRange && maxPagesRange) {
-        const updatePages = () => {
-            const min = parseInt(minPagesRange.value, 10);
-            const max = parseInt(maxPagesRange.value, 10);
-            this.filterManager.setFilter('minPages', min);
-            this.filterManager.setFilter('maxPages', max);
-        };
-        minPagesRange.addEventListener('input', updatePages);
-        maxPagesRange.addEventListener('input', updatePages);
-    }
-    // Rating filter (example for stars)
-    this.shadowRoot.querySelectorAll('.rating-star-filter').forEach(star => {
-        star.addEventListener('click', (e) => {
-            const rating = parseInt(star.getAttribute('data-rating'), 10);
-            this.filterManager.setFilter('minRating', rating);
-        });
-    });
-    // Toggle groups (example for priceType)
-    this.shadowRoot.querySelectorAll('.price-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            this.filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
-        });
-    });
-    // Clear all button
-    const clearAllBtn = this.shadowRoot.getElementById('clearAllFilters');
-    if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', () => {
-            this.filterManager.filters = {};
-            this.filterManager.updateActiveFiltersDisplay();
-        });
-    }
-        
+
+    initializeFilters() {
         // Temporary placeholder functionality
         console.log('SearchSection component initialized:', {
             filterType: this.config.filterType,
@@ -16401,9 +16405,6 @@ document.addEventListener('DOMContentLoaded', function() {
             defaultFilters: this.config.defaultFilters,
             apiBase: this.config.apiBase
         });
-        
-        this.setupEventListeners();
-        this.initializeFilters();
     }
 
     // ================================================

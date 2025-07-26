@@ -412,7 +412,30 @@ function generatePlaceholderUsers() {
         { first: 'Riccardo', last: 'Rame', email: 'riccardo.r@email.com' },
         { first: 'Giorgia', last: 'Platino', email: 'giorgia.p@email.com' },
         { first: 'Luca', last: 'Ferro', email: 'luca.ferro@email.com' },
-        { first: 'Alice', last: 'Acciaio', email: 'alice.acciaio@email.com' }
+        { first: 'Alice', last: 'Acciaio', email: 'alice.acciaio@email.com' },
+        { first: 'Tommaso', last: 'Bruno', email: 'tommaso.bruno@email.com' },
+        { first: 'Beatrice', last: 'Celeste', email: 'beatrice.celeste@email.com' },
+        { first: 'Gabriele', last: 'Dorato', email: 'gabriele.dorato@email.com' },
+        { first: 'Lucia', last: 'Emeraldo', email: 'lucia.emeraldo@email.com' },
+        { first: 'Daniele', last: 'Fucsia', email: 'daniele.fucsia@email.com' },
+        { first: 'Alessia', last: 'Granato', email: 'alessia.granato@email.com' },
+        { first: 'Filippo', last: 'Indaco', email: 'filippo.indaco@email.com' },
+        { first: 'Elisa', last: 'Jade', email: 'elisa.jade@email.com' },
+        { first: 'Giovanni', last: 'Kaki', email: 'giovanni.kaki@email.com' },
+        { first: 'Marta', last: 'Lavanda', email: 'marta.lavanda@email.com' },
+        { first: 'Nicola', last: 'Magenta', email: 'nicola.magenta@email.com' },
+        { first: 'Roberta', last: 'Nero', email: 'roberta.nero@email.com' },
+        { first: 'Paolo', last: 'Ocra', email: 'paolo.ocra@email.com' },
+        { first: 'Silvia', last: 'Pesca', email: 'silvia.pesca@email.com' },
+        { first: 'Roberto', last: 'Quarzo', email: 'roberto.quarzo@email.com' },
+        { first: 'Teresa', last: 'Rubino', email: 'teresa.rubino@email.com' },
+        { first: 'Stefano', last: 'Smeraldo', email: 'stefano.smeraldo@email.com' },
+        { first: 'Veronica', last: 'Topazio', email: 'veronica.topazio@email.com' },
+        { first: 'Umberto', last: 'Ultrar', email: 'umberto.ultrar@email.com' },
+        { first: 'Wanda', last: 'Viola', email: 'wanda.viola@email.com' },
+        { first: 'Xavier', last: 'Xantico', email: 'xavier.xantico@email.com' },
+        { first: 'Ylenia', last: 'Yellow', email: 'ylenia.yellow@email.com' },
+        { first: 'Zeno', last: 'Zaffiro', email: 'zeno.zaffiro@email.com' }
     ];
     
     return names.map((name, index) => ({

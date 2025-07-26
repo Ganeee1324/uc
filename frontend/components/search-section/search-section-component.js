@@ -16428,43 +16428,43 @@ document.addEventListener('DOMContentLoaded', function() {
             const event = new Event('input', { bubbles: true });
             searchInput.dispatchEvent(event);
         }
-    }
+    };
 
     setFilter(key, value) {
         if (this.filterManager) {
             this.filterManager.filters[key] = value;
             this.triggerFilterUpdate();
         }
-    }
+    };
 
     clearFilters() {
         if (this.filterManager) {
             this.filterManager.filters = { ...this.config.defaultFilters };
             this.triggerFilterUpdate();
         }
-    }
+    };
 
     getFilterManager() {
         return this.filterManager;
-    }
+    };
 
     // Utility method to help with DOM queries in pasted code
     querySelector(selector) {
         return this.shadowRoot.querySelector(selector);
-    }
+    };
 
     querySelectorAll(selector) {
         return this.shadowRoot.querySelectorAll(selector);
-    }
+    };
 
     getElementById(id) {
         return this.shadowRoot.getElementById(id);
-    }
+    };
 
     triggerFilterUpdate() {
         // Call the standalone function
         triggerFilterUpdate();
-    }
+    };
 }
 
 // Register the custom element

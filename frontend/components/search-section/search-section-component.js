@@ -16417,14 +16417,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.initializeFilters();
     }
 
-    // DUPLICATE METHOD REMOVED - functionality preserved in standalone functions above
-
-    // DUPLICATE METHOD REMOVED - functionality preserved in standalone functions above
-
-    // DUPLICATE METHOD REMOVED - functionality preserved in standalone functions above
-
-    // DUPLICATE METHOD REMOVED - functionality preserved in standalone functions above
-
     // ================================================
     // PUBLIC API METHODS (Keep these unchanged)
     // ================================================

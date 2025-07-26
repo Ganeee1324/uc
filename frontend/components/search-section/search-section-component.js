@@ -16454,20 +16454,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     getFilterManager() {
         return this.filterManager;
-    }
+    };
 
     // Utility method to help with DOM queries in pasted code
     querySelector(selector) {
         return this.shadowRoot.querySelector(selector);
-    }
+    };
 
     querySelectorAll(selector) {
         return this.shadowRoot.querySelectorAll(selector);
-    }
+    };
 
     getElementById(id) {
         return this.shadowRoot.getElementById(id);
-    }
+    };
 }
 
 // Register the custom element

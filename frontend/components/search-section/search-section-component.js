@@ -16288,16 +16288,13 @@ function applyPagesFilters(minVal, maxVal) {
     debouncedApplyFilters();
 }
 
-// ... existing code ...
 // In the main initialization section, call initializePagesRangeFilter()
 document.addEventListener('DOMContentLoaded', function() {
     // ... existing code ...
     initializePagesRangeFilter();
     // ... existing code ...
 });
-// ... existing code ...
 
-// ... existing code ...
     // Failsafe: always show price slider if 'Tutti' is active after initialization
     const initializePriceSlider = () => {
         const priceRangeContainer = this.shadowRoot.getElementById('priceRangeContainer');
@@ -16307,9 +16304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     initializePriceSlider();
-// ... existing code ...
 
-// ... existing code ...
     // Failsafe: always show price slider if 'Tutti' is active after restoring filters
     setTimeout(() => {
         const priceRangeContainer = this.shadowRoot.getElementById('priceRangeContainer');
@@ -16318,9 +16313,6 @@ document.addEventListener('DOMContentLoaded', function() {
             priceRangeContainer.style.display = 'block';
         }
     }, 0);
-// ... existing code ...
-
-// ... existing code ...
     // Add pages range pill if min/max are set and not default values
     if ((filterManager.filters.minPages !== undefined || this.filterManager.filters.maxPages !== undefined) &&
         (filterManager.filters.minPages !== 1 || this.filterManager.filters.maxPages !== 1000)) {
@@ -16334,9 +16326,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `);
     }
-// ... existing code ...
-
-// ... existing code ...
     // Faculty filter
     const facultyInput = this.shadowRoot.getElementById('facultyFilter');
     if (facultyInput) {

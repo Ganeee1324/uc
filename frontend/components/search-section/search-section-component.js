@@ -2358,7 +2358,7 @@ class SearchSectionComponent extends HTMLElement {
           });
       };
       
-      function initializeToggleFilters() {
+      this.initializeToggleFilters = function() {
           // Ensure priceType is always set to 'all' by default
           if (!component.filterManager.filters.priceType) {
               component.filterManager.filters.priceType = 'all';
@@ -2439,13 +2439,13 @@ class SearchSectionComponent extends HTMLElement {
                   } else {
                       component.filterManager.filters.vetrinaType = vetrinaType;
                   }
-                  applyFiltersAndRender();
-                  saveFiltersToStorage();
+                  component.applyFiltersAndRender();
+                  component.saveFiltersToStorage();
               });
           });
-      }
+      };
       
-      function initializePriceRangeFilter() {
+      this.initializePriceRangeFilter = function() {
           const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
           const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
           const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
@@ -2465,12 +2465,12 @@ class SearchSectionComponent extends HTMLElement {
               maxPriceRange.addEventListener('change', handlePriceRangeChange);
               
               // Initialize editable values
-              initializeEditableValues();
+              component.initializeEditableValues();
           }
-      }
+      };
       
       // Debounce function to delay filter application for smooth UX
-      function debounce(func, wait) {
+      this.debounce = function(func, wait) {
           let timeout;
           return function executedFunction(...args) {
               const later = () => {
@@ -2480,12 +2480,12 @@ class SearchSectionComponent extends HTMLElement {
               clearTimeout(timeout);
               timeout = setTimeout(later, wait);
           };
-      }
+      };
       
       // Create debounced version of applyFiltersAndRender
-      const debouncedApplyFilters = debounce(applyFiltersAndRender, 200);
+      const debouncedApplyFilters = component.debounce(component.applyFiltersAndRender, 200);
       
-      function handlePriceRangeChange() {
+      this.handlePriceRangeChange = function() {
           const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
           const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
           const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
@@ -2507,13 +2507,13 @@ class SearchSectionComponent extends HTMLElement {
           if (minPriceValue) minPriceValue.textContent = `€${minVal}`;
           if (maxPriceValue) maxPriceValue.textContent = `€${maxVal}`;
           
-          updatePriceSliderFill();
+          component.updatePriceSliderFill();
           
           // Apply filters
-          applyPriceFilters(minVal, maxVal);
-      }
+          component.applyPriceFilters(minVal, maxVal);
+      };
       
-      function updatePriceSliderFill() {
+      this.updatePriceSliderFill = function() {
           const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
           const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
           const rangeFill = component.shadowRoot.getElementById ('rangeFill');
@@ -2530,18 +2530,18 @@ class SearchSectionComponent extends HTMLElement {
               rangeFill.style.left = `${minPercent}%`;
               rangeFill.style.width = `${maxPercent - minPercent}%`;
           }
-      }
+      };
       
-      function initializeEditableValues() {
+      this.initializeEditableValues = function() {
           const editableValues = component.shadowRoot.querySelectorAll('.editable-value');
           
           editableValues.forEach(element => {
-              element.addEventListener('click', handleEditableValueClick);
-              element.addEventListener('keydown', handleEditableValueKeydown);
+              element.addEventListener('click', component.handleEditableValueClick);
+              element.addEventListener('keydown', component.handleEditableValueKeydown);
           });
-      }
+      };
       
-      function handleEditableValueClick(event) {
+      this.handleEditableValueClick = function(event) {
           const element = event.target;
           if (element.classList.contains('editing')) return;
           
@@ -2581,16 +2581,16 @@ class SearchSectionComponent extends HTMLElement {
           input.select();
           
           // Add event listeners
-          input.addEventListener('blur', () => handleEditableValueBlur(element, type, position));
-          input.addEventListener('keydown', (e) => handleEditableValueInputKeydown(e, element, type, position));
-      }
+          input.addEventListener('blur', () => component.handleEditableValueBlur(element, type, position));
+          input.addEventListener('keydown', (e) => component.handleEditableValueInputKeydown(e, element, type, position));
+      };
       
-      function handleEditableValueKeydown(event) {
+      this.handleEditableValueKeydown = function(event) {
           if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              handleEditableValueClick(event);
+              component.handleEditableValueClick(event);
           }
-      }
+      };
       
       function handleEditableValueInputKeydown(event, element, type, position) {
           if (event.key === 'Enter') {

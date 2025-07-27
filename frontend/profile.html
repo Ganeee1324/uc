@@ -239,10 +239,15 @@
         <div id="searchSectionContainer" style="margin-top: 20px; width: 100%; display: block;">
             <!-- User's uploaded documents search -->
             <search-section-component 
-                api-base="https://symbia.it:5000"
-                placeholder-text="Cerca i tuoi documenti..."
-                button-text="Cerca">
-            </search-section-component>
+            api-base="https://symbia.it:5000"
+            placeholder-text="Cerca una dispensa..."
+            button-text="Cerca">
+            <!-- Fallback content if component doesn't load -->
+            <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                <p>⚠️ Web component not loaded</p>
+                <p>Check console for errors</p>
+            </div>
+        </search-section-component>
         </div>
 
 
@@ -577,6 +582,11 @@
                     api-base="https://symbia.it:5000"
                     placeholder-text="Cerca i tuoi documenti..."
                     button-text="Cerca">
+                    <!-- Fallback content if component doesn't load -->
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Web component not loaded</p>
+                        <p>Check console for errors</p>
+                    </div>
                 </search-section-component>
             </div>
         </div>
@@ -603,10 +613,15 @@
                 <div id="favoritesSearchSectionContainer">
                     <!-- User's favorite documents -->
                     <search-section-component 
-                        api-base="https://symbia.it:5000"
-                        placeholder-text="Cerca i tuoi preferiti..."
-                        button-text="Cerca">
-                    </search-section-component>
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca una dispensa..."
+                    button-text="Cerca">
+                    <!-- Fallback content if component doesn't load -->
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Web component not loaded</p>
+                        <p>Check console for errors</p>
+                    </div>
+                </search-section-component>
                 </div>
             </div>
         </div>
@@ -618,4 +633,45 @@
 <script src="js/performance-cache.js" defer></script>
 <script src="components/search-section/search-section-component.js"></script>
 <script src="js/profile.js"></script>
+
+<!-- Debug script to check component loading -->
+<script>
+    // Wait for the component to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Profile Page Loaded');
+        
+        // Check if the component is defined
+        if (customElements.get('search-section-component')) {
+            console.log('✅ Search Section Component is defined');
+        } else {
+            console.error('❌ Search Section Component is NOT defined');
+        }
+        
+        // Check for components in the DOM
+        const components = document.querySelectorAll('search-section-component');
+        console.log(`Found ${components.length} search-section-component instances`);
+        
+        components.forEach((component, index) => {
+            console.log(`Component ${index}:`, component);
+            console.log('Component shadow root:', component.shadowRoot);
+            console.log('Component attributes:', {
+                apiBase: component.getAttribute('api-base'),
+                placeholderText: component.getAttribute('placeholder-text'),
+                buttonText: component.getAttribute('button-text')
+            });
+        });
+        
+        // Check for any script loading errors
+        const scripts = document.querySelectorAll('script');
+        scripts.forEach((script, index) => {
+            console.log(`Script ${index}:`, script.src || 'inline script');
+        });
+    });
+    
+    // Add error handling for script loading
+    window.addEventListener('error', function(e) {
+        console.error('❌ Script error:', e.error);
+        console.error('Error details:', e.filename, e.lineno, e.colno);
+    });
+</script>
 </html>

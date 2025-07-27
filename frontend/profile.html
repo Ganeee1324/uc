@@ -238,11 +238,11 @@
         <!-- Search Section Component - Integrated under My space and Overview sections -->
         <div id="searchSectionContainer" style="margin-top: 20px; width: 100%; display: block;">
             <!-- User's uploaded documents search -->
-            <search-section 
-                filter-type="user" 
-                filter-value="current-user"
-                default-filters='{"userDocuments":true}'>
-            </search-section>
+            <search-section-component 
+                api-base="https://symbia.it:5000"
+                placeholder-text="Cerca i tuoi documenti..."
+                button-text="Cerca">
+            </search-section-component>
         </div>
 
 
@@ -573,11 +573,11 @@
             <!-- Search Section Component for Documents -->
             <div id="documentsSearchSectionContainer">
                 <!-- User's own documents with management capabilities -->
-                <search-section 
-                    filter-type="author" 
-                    filter-value="current-user"
-                    default-filters='{"includeManagement":true}'>
-                </search-section>
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca i tuoi documenti..."
+                    button-text="Cerca">
+                </search-section-component>
             </div>
         </div>
 
@@ -602,11 +602,11 @@
                 <h2 class="section-title">Documenti Preferiti</h2>
                 <div id="favoritesSearchSectionContainer">
                     <!-- User's favorite documents -->
-                    <search-section 
-                        filter-type="favorites" 
-                        filter-value="current-user"
-                        default-filters='{"onlyFavorites":true}'>
-                    </search-section>
+                    <search-section-component 
+                        api-base="https://symbia.it:5000"
+                        placeholder-text="Cerca i tuoi preferiti..."
+                        button-text="Cerca">
+                    </search-section-component>
                 </div>
             </div>
         </div>

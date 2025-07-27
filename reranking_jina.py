@@ -8,7 +8,7 @@ model = AutoModel.from_pretrained(
     # attn_implementation="flash_attention_2"
 )
 
-model.to('cpu')  # or 'cpu' if no GPU is available
+model.to('cuda')  # or 'cpu' if no GPU is available
 model.eval()
 
 # Example query and documents

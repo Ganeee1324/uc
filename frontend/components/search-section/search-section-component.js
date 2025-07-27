@@ -1978,7 +1978,7 @@ class SearchSectionComponent extends HTMLElement {
           component.populateOptions(type, sortedItems);
       };
       
-      function selectDropdownOption(type, value, displayText = null) {
+      this.selectDropdownOption = function(type, value, displayText = null) {
           const input = component.shadowRoot.getElementById (`${type}Filter`);
           const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
           
@@ -2047,13 +2047,13 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Refresh active filter indicators in all dropdowns
-          updateActiveFilterIndicators();
+          component.updateActiveFilterIndicators();
           
-          applyFiltersAndRender();
-          saveFiltersToStorage();
-      }
+          component.applyFiltersAndRender();
+          component.saveFiltersToStorage();
+      };
       
-      function removeSpecificFilterValue(type, value) {
+      this.removeSpecificFilterValue = function(type, value) {
           // Map dropdown types to filter keys
           const filterKeyMap = {
               'faculty': 'faculty',
@@ -2169,13 +2169,13 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Refresh active filter indicators
-          updateActiveFilterIndicators();
+          component.updateActiveFilterIndicators();
           
-          applyFiltersAndRender();
-          saveFiltersToStorage();
-      }
+          component.applyFiltersAndRender();
+          component.saveFiltersToStorage();
+      };
       
-      function updateActiveFilterIndicators() {
+      this.updateActiveFilterIndicators = function() {
           // Update indicators for all dropdown types
           const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
           
@@ -2201,9 +2201,9 @@ class SearchSectionComponent extends HTMLElement {
                   option.classList.toggle('has-active-filter', hasActiveFilter);
               });
           });
-      }
+      };
       
-      function removeFilterFromDropdown(type, filterKey) {
+      this.removeFilterFromDropdown = function(type, filterKey) {
           const input = component.shadowRoot.getElementById (`${type}Filter`);
           const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
           
@@ -2263,14 +2263,14 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Update active filter indicators in all dropdowns
-              updateActiveFilterIndicators();
+              component.updateActiveFilterIndicators();
               
-              applyFiltersAndRender();
-              saveFiltersToStorage();
+              component.applyFiltersAndRender();
+              component.saveFiltersToStorage();
           }, 10);
-      }
+      };
       
-      function handleDropdownKeyboard(e, type) {
+      this.handleDropdownKeyboard = function(e, type) {
           const options = component.shadowRoot.getElementById (`${type}Options`);
           const highlighted = options.querySelector('.dropdown-option.highlighted');
           const allOptions = options.querySelectorAll('.dropdown-option');
@@ -2307,12 +2307,12 @@ class SearchSectionComponent extends HTMLElement {
                   
               case 'Escape':
                   e.preventDefault();
-                  closeAllDropdowns();
+                  component.closeAllDropdowns();
                   break;
           }
-      }
+      };
       
-      function initializeRatingFilter() {
+      this.initializeRatingFilter = function() {
           const ratingStars = component.shadowRoot.querySelectorAll('.rating-star-filter');
           const ratingText = component.shadowRoot.getElementById ('ratingText');
           
@@ -2356,7 +2356,7 @@ class SearchSectionComponent extends HTMLElement {
                   });
               });
           });
-      }
+      };
       
       function initializeToggleFilters() {
           // Ensure priceType is always set to 'all' by default

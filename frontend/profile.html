@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
     <!-- Load search component first without defer to ensure proper initialization -->
-    <script src="components/search-section/search-section-component-fixed.js"></script>
+    <script src="components/search-section/search-section-component.js"></script>
 </head>
 <body data-page="dashboard">
     <!-- Mobile Menu Toggle Button -->
@@ -244,7 +244,8 @@
             <search-section-component 
             api-base="https://symbia.it:5000"
             placeholder-text="Cerca una dispensa..."
-            button-text="Cerca">
+            button-text="Cerca"
+            instance-id="main-search">
             <!-- Fallback content if component doesn't load -->
             <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
                 <p>⚠️ Web component not loaded</p>
@@ -584,7 +585,8 @@
                 <search-section-component 
                     api-base="https://symbia.it:5000"
                     placeholder-text="Cerca i tuoi documenti..."
-                    button-text="Cerca">
+                    button-text="Cerca"
+                    instance-id="documents-search">
                     <!-- Fallback content if component doesn't load -->
                     <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
                         <p>⚠️ Web component not loaded</p>
@@ -618,7 +620,8 @@
                     <search-section-component 
                     api-base="https://symbia.it:5000"
                     placeholder-text="Cerca una dispensa..."
-                    button-text="Cerca">
+                    button-text="Cerca"
+                    instance-id="favorites-search">
                     <!-- Fallback content if component doesn't load -->
                     <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
                         <p>⚠️ Web component not loaded</p>

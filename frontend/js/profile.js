@@ -157,11 +157,13 @@ async function switchTab(tabName) {
         setTimeout(() => {
             const searchComponents = documentsSearchContainer.querySelectorAll('search-section-component');
             searchComponents.forEach(component => {
-                if (component.shadowRoot) {
-                    console.log('✅ Documents search component already initialized');
-                } else {
-                    console.log('🔄 Re-initializing documents search component');
+                if (!component.isInitialized) {
+                    console.log('🔄 Initializing documents search component');
+                    // Reset the component state to ensure clean initialization
+                    component.isInitialized = false;
                     component.connectedCallback();
+                } else {
+                    console.log('✅ Documents search component already initialized');
                 }
             });
         }, 100);
@@ -193,11 +195,13 @@ async function switchTab(tabName) {
         setTimeout(() => {
             const searchComponents = favoritesSearchContainer.querySelectorAll('search-section-component');
             searchComponents.forEach(component => {
-                if (component.shadowRoot) {
-                    console.log('✅ Favorites search component already initialized');
-                } else {
-                    console.log('🔄 Re-initializing favorites search component');
+                if (!component.isInitialized) {
+                    console.log('🔄 Initializing favorites search component');
+                    // Reset the component state to ensure clean initialization
+                    component.isInitialized = false;
                     component.connectedCallback();
+                } else {
+                    console.log('✅ Favorites search component already initialized');
                 }
             });
         }, 100);
@@ -228,11 +232,13 @@ async function switchTab(tabName) {
         setTimeout(() => {
             const searchComponents = mainSearchContainer.querySelectorAll('search-section-component');
             searchComponents.forEach(component => {
-                if (component.shadowRoot) {
-                    console.log('✅ Main search component already initialized');
-                } else {
-                    console.log('🔄 Re-initializing main search component');
+                if (!component.isInitialized) {
+                    console.log('🔄 Initializing main search component');
+                    // Reset the component state to ensure clean initialization
+                    component.isInitialized = false;
                     component.connectedCallback();
+                } else {
+                    console.log('✅ Main search component already initialized');
                 }
             });
         }, 100);
@@ -1161,9 +1167,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (container) {
             const searchComponents = container.querySelectorAll('search-section-component');
             searchComponents.forEach(component => {
-                if (!component.shadowRoot) {
+                if (!component.isInitialized) {
                     console.log('🔄 Initializing search component in container:', container.id);
+                    // Ensure clean initialization state
+                    component.isInitialized = false;
                     component.connectedCallback();
+                } else {
+                    console.log('✅ Search component already initialized in container:', container.id);
                 }
             });
         }

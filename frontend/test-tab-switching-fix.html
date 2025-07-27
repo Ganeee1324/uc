@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Tab Switching Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background: #0056b3;
+        }
+        .tab-content {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 4px;
+            min-height: 200px;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        .component-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Tab Switching Fix Test</h1>
+        <p>This test verifies that search components work correctly in all tabs without conflicts.</p>
+        
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="switchToTab('main')">Main Search</button>
+            <button class="tab-button" onclick="switchToTab('documents')">Documents</button>
+            <button class="tab-button" onclick="switchToTab('favorites')">Favorites</button>
+        </div>
+        
+        <div class="tab-content">
+            <div id="main-tab" class="tab-panel active">
+                <h3>Main Search Tab</h3>
+                <div class="component-info" id="main-info">Loading...</div>
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Search main documents..."
+                    button-text="Search Main"
+                    instance-id="main-search">
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Main search component not loaded</p>
+                    </div>
+                </search-section-component>
+            </div>
+            
+            <div id="documents-tab" class="tab-panel">
+                <h3>Documents Search Tab</h3>
+                <div class="component-info" id="documents-info">Loading...</div>
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Search your documents..."
+                    button-text="Search Docs"
+                    instance-id="documents-search">
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Documents search component not loaded</p>
+                    </div>
+                </search-section-component>
+            </div>
+            
+            <div id="favorites-tab" class="tab-panel">
+                <h3>Favorites Search Tab</h3>
+                <div class="component-info" id="favorites-info">Loading...</div>
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Search favorite documents..."
+                    button-text="Search Favs"
+                    instance-id="favorites-search">
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Favorites search component not loaded</p>
+                    </div>
+                </search-section-component>
+            </div>
+        </div>
+        
+        <div id="test-results" class="status success">
+            Test initialized. Switch between tabs to verify components work correctly.
+        </div>
+    </div>
+
+    <!-- Load search component -->
+    <script src="components/search-section/search-section-component.js"></script>
+    
+    <script>
+        let currentTab = 'main';
+        
+        function switchToTab(tabName) {
+            console.log(`🔄 Switching to tab: ${tabName}`);
+            
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab panels
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Check component state
+            setTimeout(() => {
+                checkComponentState(tabName);
+            }, 100);
+        }
+        
+        function checkComponentState(tabName) {
+            const panel = document.getElementById(`${tabName}-tab`);
+            const component = panel.querySelector('search-section-component');
+            const infoDiv = document.getElementById(`${tabName}-info`);
+            
+            if (component) {
+                const instanceId = component.instanceId || 'No instance ID';
+                const isInitialized = component.isInitialized || false;
+                const hasShadowRoot = !!component.shadowRoot;
+                
+                infoDiv.innerHTML = `
+                    <strong>Component Status:</strong><br>
+                    Instance ID: ${instanceId}<br>
+                    Initialized: ${isInitialized}<br>
+                    Has Shadow DOM: ${hasShadowRoot}<br>
+                    Instance-ID Attribute: ${component.getAttribute('instance-id')}
+                `;
+                
+                // Test if component is working by checking shadow DOM elements
+                if (hasShadowRoot) {
+                    const searchInput = component.shadowRoot.querySelector('input[type="text"]');
+                    const documentCount = component.shadowRoot.querySelector('.document-count');
+                    const documentsGrid = component.shadowRoot.querySelector('.documents-grid');
+                    
+                    if (searchInput && documentCount && documentsGrid) {
+                        infoDiv.innerHTML += '<br><strong>✅ Component is functional</strong>';
+                        infoDiv.innerHTML += `<br>Document Count: ${documentCount.textContent}`;
+                        infoDiv.innerHTML += `<br>Documents Grid Children: ${documentsGrid.children.length}`;
+                        
+                        // Check for instance-specific content
+                        const documentTitles = Array.from(documentsGrid.querySelectorAll('.document-title')).map(el => el.textContent);
+                        if (documentTitles.length > 0) {
+                            infoDiv.innerHTML += `<br>Documents: ${documentTitles.join(', ')}`;
+                        }
+                        
+                        // Check for component meta info
+                        const metaInfo = documentsGrid.querySelector('.document-meta');
+                        if (metaInfo) {
+                            infoDiv.innerHTML += `<br>Meta: ${metaInfo.textContent}`;
+                        }
+                    } else {
+                        infoDiv.innerHTML += '<br><strong>⚠️ Component shadow DOM missing elements</strong>';
+                        infoDiv.innerHTML += `<br>Search Input: ${!!searchInput}`;
+                        infoDiv.innerHTML += `<br>Document Count: ${!!documentCount}`;
+                        infoDiv.innerHTML += `<br>Documents Grid: ${!!documentsGrid}`;
+                    }
+                }
+            } else {
+                infoDiv.innerHTML = '<strong>❌ Component not found</strong>';
+            }
+        }
+        
+        // Monitor component initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Tab switching test initialized');
+            
+            // Check initial state
+            setTimeout(() => {
+                checkComponentState('main');
+                
+                // Test all components
+                const allComponents = document.querySelectorAll('search-section-component');
+                console.log(`Found ${allComponents.length} search components`);
+                
+                allComponents.forEach((component, index) => {
+                    console.log(`Component ${index + 1}:`, {
+                        instanceId: component.instanceId,
+                        isInitialized: component.isInitialized,
+                        hasShadowRoot: !!component.shadowRoot,
+                        instanceIdAttr: component.getAttribute('instance-id'),
+                        hasComponentState: !!component.componentState,
+                        stateFiles: component.componentState ? component.componentState.currentFiles.length : 'N/A',
+                        hasInstanceMethods: !!(component.showStatus && component.renderDocuments)
+                    });
+                });
+            }, 500);
+            
+            // Check components again after they should be fully initialized
+            setTimeout(() => {
+                console.log('🔍 Checking components after full initialization...');
+                ['main', 'documents', 'favorites'].forEach(tabName => {
+                    checkComponentState(tabName);
+                });
+            }, 1000);
+        });
+        
+        // Monitor for errors
+        window.addEventListener('error', function(e) {
+            console.error('❌ Script error:', e.error);
+            document.getElementById('test-results').className = 'status error';
+            document.getElementById('test-results').textContent = `Error: ${e.error?.message || 'Unknown error'}`;
+        });
+    </script>
+</body>
+</html>

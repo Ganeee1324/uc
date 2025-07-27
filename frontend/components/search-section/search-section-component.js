@@ -94,6 +94,9 @@ class SearchSectionComponent extends HTMLElement {
       // Instance-specific event listener tracking
       this.eventListeners = new Map();
       
+      // Instance-specific constants
+      this.component.HIERARCHY_CACHE_KEY = `hierarchy_data_cache_${this.instanceId}`;
+      
       // Instance-specific storage methods
       this.setStorageItem = (key, value) => {
           const fullKey = `${this.storagePrefix}${key}`;
@@ -1530,14 +1533,14 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       // Hierarchy Cache Management
-      const HIERARCHY_CACHE_KEY = 'hierarchy_data_cache';
+      const component.HIERARCHY_CACHE_KEY = 'hierarchy_data_cache';
       const HIERARCHY_CACHE_VERSION = '1.0';
       const HIERARCHY_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       
       // Cache management functions
       function getHierarchyCache() {
           try {
-              const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
+              const cached = localStorage.getItem(component.HIERARCHY_CACHE_KEY);
               if (!cached) return null;
               
               const cacheData = JSON.parse(cached);
@@ -1570,7 +1573,7 @@ class SearchSectionComponent extends HTMLElement {
                   timestamp: Date.now(),
                   data: data
               };
-              localStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
+              localStorage.setItem(component.HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
           } catch (error) {
               console.warn('⚠️ Error caching hierarchy data:', error);
               // Don't throw error - caching failure shouldn't break the app
@@ -1579,7 +1582,7 @@ class SearchSectionComponent extends HTMLElement {
       
       function clearHierarchyCache() {
           try {
-              localStorage.removeItem(HIERARCHY_CACHE_KEY);
+              localStorage.removeItem(component.HIERARCHY_CACHE_KEY);
           } catch (error) {
               console.warn('⚠️ Error clearing hierarchy cache:', error);
           }
@@ -1628,7 +1631,7 @@ class SearchSectionComponent extends HTMLElement {
       // Fallback function to get expired cache data
       function getExpiredHierarchyCache() {
           try {
-              const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
+              const cached = localStorage.getItem(component.HIERARCHY_CACHE_KEY);
               if (!cached) return null;
               
               const cacheData = JSON.parse(cached);
@@ -2884,9 +2887,10 @@ class SearchSectionComponent extends HTMLElement {
           updateBottomFilterCount();
       }
       
-      // Enhanced filter counting system
-      class FilterManager {
-          constructor() {
+      // Enhanced filter counting system - Instance-specific FilterManager
+      this.FilterManager = class {
+          constructor(componentInstance) {
+              this.component = componentInstance;
               this.filters = {};
               this.updateCountTimeout = null;
           }
@@ -2962,8 +2966,8 @@ class SearchSectionComponent extends HTMLElement {
           
           // Updated count function that uses state instead of DOM counting
           updateBottomFilterCount() {
-              const bottomFilterCountElement = component.shadowRoot.getElementById ('bottomFilterCount');
-              const filterCountBadge = component.shadowRoot.getElementById ('filterCount');
+              const bottomFilterCountElement = this.component.shadowRoot.getElementById ('bottomFilterCount');
+              const filterCountBadge = this.component.shadowRoot.getElementById ('filterCount');
               const activeCountObj = this.getActiveFilterCount();
               const activeCount = activeCountObj.count;
               // Debug log
@@ -3079,7 +3083,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       // Initialize the filter manager as instance property
-      this.filterManager = new FilterManager();
+      this.filterManager = new this.FilterManager(this);
       
       // Replace your existing functions with calls to the filter manager
       function updateBottomFilterCount() {

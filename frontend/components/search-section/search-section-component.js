@@ -1080,7 +1080,7 @@ class SearchSectionComponent extends HTMLElement {
       
       
       
-      function initializeCourseFilter() {
+      this.initializeCourseFilter = function() {
           const courseInput = component.shadowRoot.getElementById ('courseFilter');
           const suggestionsContainer = component.shadowRoot.getElementById ('courseSuggestions');
           let courses = [];
@@ -1200,9 +1200,9 @@ class SearchSectionComponent extends HTMLElement {
           
           // Expose update function for faculty changes
           component.updateCoursesForCourse = updateCourses;
-      }
+      };
       
-      function initializeCanaleFilter() {
+      this.initializeCanaleFilter = function() {
           const canaleInput = component.shadowRoot.getElementById ('canaleFilter');
           const suggestionsContainer = component.shadowRoot.getElementById ('canaleSuggestions');
           let canali = ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico'];
@@ -1301,25 +1301,25 @@ class SearchSectionComponent extends HTMLElement {
               component.filterManager.setFilter('canale', canale);
               hideSuggestions();
           }
-      }
+      };
       
       // Helper functions
-      function clearCourseFilter() {
+      this.clearCourseFilter = function() {
           const courseInput = component.shadowRoot.getElementById ('courseFilter');
           if (courseInput) {
               courseInput.value = '';
               component.filterManager.removeFilter('course');
           }
-      }
+      };
       
-      function updateCoursesForFaculty(faculty) {
+      this.updateCoursesForFaculty = function(faculty) {
           if (component.updateCoursesForCourse) {
               component.updateCoursesForCourse();
           }
-      }
+      };
       
       // Professional Dropdown functionality
-      function setupDropdowns() {
+      this.setupDropdowns = function() {
           // Initialize hierarchy data first
           loadHierarchyData().then(() => {
               const searchableDropdowns = ['faculty', 'course', 'canale'];
@@ -1533,11 +1533,11 @@ class SearchSectionComponent extends HTMLElement {
               });
               
               // Initial population
-              populateDropdownOptions();
+              component.populateDropdownOptions();
           });
-      }
+      };
       
-      function toggleDropdown(container, type) {
+      this.toggleDropdown = function(container, type) {
           const isOpen = container.classList.contains('open');
           
           // Determine if this is a multi-select filter
@@ -1562,11 +1562,11 @@ class SearchSectionComponent extends HTMLElement {
                       input.setAttribute('placeholder', `${component.filterManager.filters[type].length} selezionati - scrivi per cercarne altri...`);
                   }
               }
-              filterDropdownOptions(type, '');
+              component.filterDropdownOptions(type, '');
           }
-      }
+      };
       
-      function positionDropdown(input, dropdown) {
+      this.positionDropdown = function(input, dropdown) {
           if (!input || !dropdown) {
               return;
           }
@@ -1589,15 +1589,15 @@ class SearchSectionComponent extends HTMLElement {
           dropdown.style.top = `${top}px`;
           dropdown.style.left = `${rect.left}px`;
           dropdown.style.width = `${width}px`;
-      }
+      };
       
-      function closeAllDropdowns() {
+      this.closeAllDropdowns = function() {
           component.shadowRoot.querySelectorAll('.dropdown-container').forEach(container => {
               container.classList.remove('open');
           });
-      }
+      };
       
-      function repositionOpenDropdowns() {
+      this.repositionOpenDropdowns = function() {
           const allDropdowns = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
           allDropdowns.forEach(type => {
               const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
@@ -1605,13 +1605,13 @@ class SearchSectionComponent extends HTMLElement {
                   const input = component.shadowRoot.getElementById (`${type}Filter`);
                   const dropdown = component.shadowRoot.getElementById (`${type}Dropdown`);
                   if (input && dropdown) {
-                      positionDropdown(input, dropdown);
+                      component.positionDropdown(input, dropdown);
                   }
               }
           });
-      }
+      };
       
-      function resetDropdownHighlight(type) {
+      this.resetDropdownHighlight = function(type) {
           const options = component.shadowRoot.getElementById (`${type}Options`);
           if (options) {
               // Remove all highlights
@@ -1621,7 +1621,7 @@ class SearchSectionComponent extends HTMLElement {
               // Scroll to top of options
               options.scrollTop = 0;
           }
-      }
+      };
       
       // Hierarchy Cache Management
       const HIERARCHY_CACHE_KEY = HIERARCHY_CACHE_KEY;

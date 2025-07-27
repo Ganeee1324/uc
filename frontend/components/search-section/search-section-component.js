@@ -3,10 +3,15 @@ class SearchSectionComponent extends HTMLElement {
     constructor() {
       super();
       this.attachShadow({ mode: 'open' });
+      // Generate unique instance ID to prevent conflicts between multiple instances
+      // Use provided instance-id attribute or generate a unique one
+      const providedId = this.getAttribute('instance-id');
+      this.instanceId = providedId || 'search-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+      this.isInitialized = false;
     }
   
     static get observedAttributes() {
-      return ['api-base', 'auth-token', 'placeholder-text', 'button-text'];
+      return ['api-base', 'auth-token', 'placeholder-text', 'button-text', 'instance-id'];
     }
   
     attributeChangedCallback(name, oldValue, newValue) {
@@ -16,44 +21,72 @@ class SearchSectionComponent extends HTMLElement {
     }
   
     connectedCallback() {
+      // Prevent duplicate initialization
+      if (this.isInitialized) {
+        console.log(`🔄 Search component ${this.instanceId} already initialized, skipping`);
+        return;
+      }
+      
+      console.log(`🚀 Initializing search component ${this.instanceId}`);
       this.render();
       
+      // Mark as initialized to prevent duplicate setup
+      this.isInitialized = true;
+      
+      // Initialize this component instance completely
+      this.initializeComponentInstance();
+    }
+    
+    initializeComponentInstance() {
       // Store reference to component instance for use in nested functions
       const component = this;
       
-      // Add cache-busting timestamp to force browser refresh
-      const CACHE_BUSTER = Date.now();
+      // Helper function to generate unique IDs for this instance
+      this.getUniqueId = (baseId) => `${baseId}-${this.instanceId}`;
       
-      // 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
-      const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
+      // Helper function to get DOM elements with instance-specific IDs
+      this.getElement = (elementId) => {
+          return component.shadowRoot.getElementById(this.getUniqueId(elementId));
+      };
       
-      const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
-      let authToken = localStorage.getItem('authToken');
+      // Instance-specific configuration
+      this.CACHE_BUSTER = Date.now();
+      this.DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
+      this.API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
+      this.authToken = localStorage.getItem('authToken');
       
-      // DOM element cache for performance optimization
-      const DOM_CACHE = {
+      // Instance-specific DOM element cache
+      this.DOM_CACHE = {
           documentsGrid: null,
           searchSection: null,
           documentCountContainer: null,
           documentCount: null,
           searchInput: null,
-          init() {
-              this.documentsGrid = component.shadowRoot.getElementById('documentsGrid');
-              this.searchSection = component.shadowRoot.querySelector('.search-section');
-              this.documentCountContainer = component.shadowRoot.getElementById('documentCountContainer');
-              this.documentCount = component.shadowRoot.getElementById('documentCount');
-              this.searchInput = component.shadowRoot.getElementById('searchInput');
+          filtersBtn: null,
+          filterCount: null,
+          init: () => {
+              this.DOM_CACHE.documentsGrid = component.shadowRoot.getElementById(this.getUniqueId('documentsGrid'));
+              this.DOM_CACHE.searchSection = component.shadowRoot.querySelector('.search-section');
+              this.DOM_CACHE.documentCountContainer = component.shadowRoot.getElementById(this.getUniqueId('documentCountContainer'));
+              this.DOM_CACHE.documentCount = component.shadowRoot.getElementById(this.getUniqueId('documentCount'));
+              this.DOM_CACHE.searchInput = component.shadowRoot.getElementById(this.getUniqueId('searchInput'));
+              this.DOM_CACHE.filtersBtn = component.shadowRoot.getElementById(this.getUniqueId('filtersBtn'));
+              this.DOM_CACHE.filterCount = component.shadowRoot.getElementById(this.getUniqueId('filterCount'));
           },
-          get(elementName) {
-              if (!this[elementName]) {
-                  this.init();
+          get: (elementName) => {
+              if (!this.DOM_CACHE[elementName]) {
+                  this.DOM_CACHE.init();
               }
-              return this[elementName];
+              return this.DOM_CACHE[elementName];
           }
       };
       
-      // Bind the component instance to DOM_CACHE
-      DOM_CACHE.shadowRoot = component.shadowRoot;
+      // Create local references for backward compatibility within this instance
+      const DOM_CACHE = this.DOM_CACHE;
+      const getUniqueId = this.getUniqueId;
+      const getElement = this.getElement;
+      const API_BASE = this.API_BASE;
+      let authToken = this.authToken;
       
       // Debug function to track "Pensato per chi vuole di più" text position
       const debugPensatoTextPosition = () => {
@@ -120,7 +153,7 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Check documents grid
-          const documentsGrid = component.shadowRoot.getElementById('documentsGrid');
+          const documentsGrid = component.shadowRoot.getElementById(getUniqueId('documentsGrid'));
           if (documentsGrid) {
               const rect = documentsGrid.getBoundingClientRect();
               const computedStyle = window.getComputedStyle(documentsGrid);
@@ -307,12 +340,132 @@ class SearchSectionComponent extends HTMLElement {
           return !!authToken;
       }
       
-      let currentVetrine = [];
-      let currentFiles = [];
-      let originalFiles = []; // Keep original unfiltered data
-      let isFiltersOpen = false;
+      // Create instance-specific state to prevent conflicts between multiple components
+      this.componentState = {
+          currentVetrine: [],
+          currentFiles: [],
+          originalFiles: [], // Keep original unfiltered data
+          isFiltersOpen: false,
+          isSearching: false,
+          currentPage: 1,
+          totalPages: 1,
+          searchQuery: '',
+          appliedFilters: {},
+          documentCount: 0
+      };
       
-      // File metadata caching removed - now using only vetrina-level data
+      // Immediately bind all critical functions to this instance to prevent conflicts
+      this.initializeInstanceMethods();
+      
+    }
+    
+    initializeInstanceMethods() {
+      // Make critical functions instance-specific to prevent conflicts between components
+      const component = this;
+      
+      // Instance-specific showStatus function
+      this.showStatus = function(message, type = 'success') {
+          console.log(`[${component.instanceId}] Status: ${message}`);
+          const documentCount = component.DOM_CACHE.get('documentCount');
+          if (documentCount) {
+              documentCount.textContent = message;
+              component.componentState.documentCount = message;
+          }
+      };
+      
+      // Instance-specific renderDocuments function
+      this.renderDocuments = function(files) {
+          console.log(`[${component.instanceId}] Rendering ${files.length} documents`);
+          const documentsGrid = component.DOM_CACHE.get('documentsGrid');
+          if (documentsGrid) {
+              // Clear existing content
+              documentsGrid.innerHTML = '';
+              
+              // Update component state
+              component.componentState.currentFiles = files;
+              component.componentState.originalFiles = [...files];
+              
+              // Update document count
+              component.showStatus(`${files.length} documenti trovati`);
+              
+              // Create simple document cards for testing
+              if (files.length > 0) {
+                  files.forEach((file, index) => {
+                      const card = document.createElement('div');
+                      card.className = 'document-card';
+                      card.innerHTML = `
+                          <div class="document-preview">
+                              <div class="document-title">${file.title || `Document ${index + 1}`}</div>
+                              <div class="document-meta">Component: ${component.instanceId}</div>
+                          </div>
+                      `;
+                      documentsGrid.appendChild(card);
+                  });
+              } else {
+                  // Show empty state
+                  documentsGrid.innerHTML = `
+                      <div class="no-results">
+                          <div class="no-results-text">
+                              <h3>Nessun documento trovato</h3>
+                              <p>Component: ${component.instanceId}</p>
+                          </div>
+                      </div>
+                  `;
+              }
+          }
+      };
+    }
+    
+    startComponentLogic() {
+      const component = this;
+      
+      // Create local references for backward compatibility within this instance
+      let currentVetrine = this.componentState.currentVetrine;
+      let currentFiles = this.componentState.currentFiles;
+      let originalFiles = this.componentState.originalFiles;
+      let isFiltersOpen = this.componentState.isFiltersOpen;
+      
+      // Use instance-specific references
+      const DOM_CACHE = this.DOM_CACHE;
+      const getUniqueId = this.getUniqueId;
+      const getElement = this.getElement;
+      const API_BASE = this.API_BASE;
+      let authToken = this.authToken;
+      
+      // Override functions to use instance methods
+      const showStatus = this.showStatus;
+      const renderDocuments = this.renderDocuments;
+      
+      // Initialize component with test data based on instance
+      setTimeout(() => {
+          showStatus(`Component ${component.instanceId} initialized`);
+          
+          // Create different test data for each component
+          let testData = [];
+          const instanceId = component.instanceId;
+          
+          if (instanceId.includes('main')) {
+              testData = [
+                  { title: 'Main Document 1', type: 'main' },
+                  { title: 'Main Document 2', type: 'main' },
+                  { title: 'Main Document 3', type: 'main' }
+              ];
+          } else if (instanceId.includes('documents')) {
+              testData = [
+                  { title: 'My Document 1', type: 'documents' },
+                  { title: 'My Document 2', type: 'documents' }
+              ];
+          } else if (instanceId.includes('favorites')) {
+              testData = [
+                  { title: 'Favorite Document 1', type: 'favorites' },
+                  { title: 'Favorite Document 2', type: 'favorites' },
+                  { title: 'Favorite Document 3', type: 'favorites' },
+                  { title: 'Favorite Document 4', type: 'favorites' }
+              ];
+          }
+          
+          renderDocuments(testData);
+      }, 100);
       
           // Initialize the page
           window.onload = async function() {
@@ -348,7 +501,8 @@ class SearchSectionComponent extends HTMLElement {
                   // Ensure documents are shown after loading
           if (originalFiles && originalFiles.length > 0) {
               renderDocuments(originalFiles);
-              currentFiles = originalFiles;
+              component.componentState.currentFiles = component.componentState.originalFiles;
+              currentFiles = component.componentState.currentFiles;
               showStatus(`${originalFiles.length} documenti disponibili 📚`);
               
               // Initialize dynamic components after data is loaded
@@ -372,7 +526,8 @@ class SearchSectionComponent extends HTMLElement {
                           const documentsGrid = component.shadowRoot.getElementById ('documentsGrid');
                           if (documentsGrid && documentsGrid.children.length === 0 && originalFiles && originalFiles.length > 0) {
                               renderDocuments(originalFiles);
-                              currentFiles = originalFiles;
+                              component.componentState.currentFiles = component.componentState.originalFiles;
+                              currentFiles = component.componentState.currentFiles;
                               showStatus(`${originalFiles.length} documenti disponibili 📚`);
                           }
                       }, 500);
@@ -662,7 +817,7 @@ class SearchSectionComponent extends HTMLElement {
       // ===========================
       
       function initializeFilters() {
-          const filtersBtn = component.shadowRoot.getElementById ('filtersBtn');
+          const filtersBtn = component.shadowRoot.getElementById(getUniqueId('filtersBtn'));
           const filtersPanel = component.shadowRoot.getElementById ('filtersPanel');
           const filtersOverlay = component.shadowRoot.getElementById ('filtersOverlay');
           const filtersClose = component.shadowRoot.getElementById ('filtersClose');
@@ -2539,7 +2694,8 @@ class SearchSectionComponent extends HTMLElement {
               
               // Apply only client-side filters to original data
               const filteredFiles = applyFiltersToFiles(originalFiles);
-              currentFiles = filteredFiles;
+              component.componentState.currentFiles = filteredFiles;
+              currentFiles = component.componentState.currentFiles;
               renderDocuments(filteredFiles);
               updateActiveFiltersDisplay();
               updateBottomFilterCount();
@@ -3888,7 +4044,8 @@ class SearchSectionComponent extends HTMLElement {
                   throw new Error('Failed to fetch vetrine');
               }
               
-              currentVetrine = vetrineResponse.vetrine || [];
+              component.componentState.currentVetrine = vetrineResponse.vetrine || [];
+              currentVetrine = component.componentState.currentVetrine;
               
               // Transform vetrine into card items using ONLY vetrina metadata
               const allFiles = [];
@@ -3953,8 +4110,10 @@ class SearchSectionComponent extends HTMLElement {
                   allFiles.push(vetrineCard);
               }
               
-              currentFiles = allFiles;
-              originalFiles = [...allFiles]; // Keep original copy
+              component.componentState.currentFiles = allFiles;
+              component.componentState.originalFiles = [...allFiles]; // Keep original copy
+              currentFiles = component.componentState.currentFiles;
+              originalFiles = component.componentState.originalFiles;
               renderDocuments(currentFiles);
               populateFilterOptions();
               showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);
@@ -4280,7 +4439,12 @@ class SearchSectionComponent extends HTMLElement {
           ];
       }
       
-      function renderDocuments(files) {
+      function renderDocumentsWrapper(files) {
+          // Delegate to instance method to prevent conflicts between components
+          return component.renderDocuments(files);
+      }
+      
+      function renderDocuments_OLD(files) {
           const grid = DOM_CACHE.get('documentsGrid');
           if (!grid) {
               console.error('Documents grid not found');
@@ -4752,7 +4916,12 @@ class SearchSectionComponent extends HTMLElement {
           return new Date(dateString).toLocaleDateString('it-IT');
       }
       
-      function showStatus(message, type = 'success') {
+      function showStatusWrapper(message, type = 'success') {
+          // Delegate to instance method to prevent conflicts between components
+          return component.showStatus(message, type);
+      }
+      
+      function showStatus_OLD(message, type = 'success') {
           const notification = document.createElement('div');
           notification.className = `status-message ${type}`;
           notification.textContent = message;
@@ -7682,6 +7851,9 @@ class SearchSectionComponent extends HTMLElement {
     }
   
     render() {
+      // Helper function to generate unique IDs for this instance
+      const getUniqueId = (baseId) => `${baseId}-${this.instanceId}`;
+      
       const template = `
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
@@ -16129,7 +16301,7 @@ class SearchSectionComponent extends HTMLElement {
                             <div class="search-bar-wrapper">
                                 <div class="search-bar-background" id="searchBarBackground"></div>
                                 <div class="search-bar">
-                                    <input type="text" class="search-input" id="searchInput" placeholder="Cerca una dispensa...">
+                                    <input type="text" class="search-input" id="${getUniqueId('searchInput')}" placeholder="Cerca una dispensa...">
                                     <input class="toggle-input" id="toggle" name="toggle" type="checkbox" />
                                     <label class="toggle-label" for="toggle" id="aiSearchToggle">
                                       <div class="cont-icon">
@@ -16231,19 +16403,19 @@ class SearchSectionComponent extends HTMLElement {
                                     </label>
                                 </div>
                             </div>
-                            <button class="filters-btn" id="filtersBtn">
+                            <button class="filters-btn" id="${getUniqueId('filtersBtn')}">
                                 <i class="material-symbols-outlined">tune</i>
                                 <span class="filters-text">Filtri</span>
-                                <span class="filter-count" id="filterCount">0</span>
+                                <span class="filter-count" id="${getUniqueId('filterCount')}">0</span>
                             </button>
         
                         </div>
                     </div>
                     
                     <!-- Document Count and Active Filters Display -->
-                    <div id="documentCountContainer" class="document-count-container" style="display: block;">
+                    <div id="${getUniqueId('documentCountContainer')}" class="document-count-container" style="display: block;">
                         <div class="document-count-and-filters">
-                            <span id="documentCount" class="document-count">Caricamento...</span>
+                            <span id="${getUniqueId('documentCount')}" class="document-count">Caricamento...</span>
                             
                             <!-- Order Dropdown Button -->
                             <span class="order-label" style="font-weight: 500; color: #64748b; font-size: 0.95em;">Ordina per:</span>
@@ -16300,7 +16472,7 @@ class SearchSectionComponent extends HTMLElement {
                     </div>
         
                     <!-- Documents Grid - Will be populated dynamically -->
-                    <div class="documents-grid" id="documentsGrid">
+                    <div class="documents-grid" id="${getUniqueId('documentsGrid')}">
                         <!-- Initial loading cards to prevent layout shift -->
                         <div class="document-card loading-card">
                             <div class="document-preview loading-preview">

@@ -95,7 +95,7 @@ class SearchSectionComponent extends HTMLElement {
       this.eventListeners = new Map();
       
       // Instance-specific constants
-      this.component.HIERARCHY_CACHE_KEY = `hierarchy_data_cache_${this.instanceId}`;
+      this.HIERARCHY_CACHE_KEY = `hierarchy_data_cache_${this.instanceId}`;
       
       // Instance-specific storage methods
       this.setStorageItem = (key, value) => {
@@ -364,11 +364,11 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       // Handle CSP-compliant event handlers
-      function handleCSPEventHandlers() {
+      this.handleCSPEventHandlers = function() {
           document.addEventListener('click', function(e) {
               // Handle filter actions
               if (e.target.closest('[data-action="clear-all-filters"]')) {
-                  clearAllFiltersAction();
+                  component.clearAllFiltersAction();
               }
               
               if (e.target.closest('[data-action="remove-filter"]')) {
@@ -376,13 +376,13 @@ class SearchSectionComponent extends HTMLElement {
                   const filterKey = element.getAttribute('data-filter-key');
                   const specificValue = element.getAttribute('data-specific-value');
                   if (filterKey) {
-                      removeActiveFilter(filterKey, e, specificValue);
+                      component.removeActiveFilter(filterKey, e, specificValue);
                   }
               }
               
               if (e.target.closest('[data-action="toggle-favorite"]')) {
                   const element = e.target.closest('[data-action="toggle-favorite"]');
-                  toggleFavorite(element, e);
+                  component.toggleFavorite(element, e);
               }
               
               if (e.target.closest('[data-action="navigate"]')) {
@@ -397,8 +397,8 @@ class SearchSectionComponent extends HTMLElement {
                   const element = e.target.closest('[data-action="download-document"]');
                   const fileId = element.getAttribute('data-file-id');
                   if (fileId) {
-                      downloadDocument(fileId);
-                      closePreview();
+                      component.downloadDocument(fileId);
+                      component.closePreview();
                   }
               }
               
@@ -406,13 +406,13 @@ class SearchSectionComponent extends HTMLElement {
                   const element = e.target.closest('[data-action="purchase-document"]');
                   const fileId = element.getAttribute('data-file-id');
                   if (fileId) {
-                      purchaseDocument(fileId);
-                      closePreview();
+                      component.purchaseDocument(fileId);
+                      component.closePreview();
                   }
               }
               
               if (e.target.closest('[data-action="close-preview"]')) {
-                  closePreview();
+                  component.closePreview();
               }
               
               if (e.target.closest('[data-action="view-full-document"]')) {
@@ -427,18 +427,18 @@ class SearchSectionComponent extends HTMLElement {
                   const element = e.target.closest('[data-action="add-to-cart"]');
                   const docId = element.getAttribute('data-doc-id');
                   if (docId) {
-                      addToCart(docId, e);
+                      component.addToCart(docId, e);
                   }
               }
           });
-      }
+      };
       
       // Check if user is authenticated, but don't redirect - just return status
-      function checkAuthentication() {
-          return !!authToken;
-      }
+      this.checkAuthentication = function() {
+          return !!this.authToken;
+      };
       
-      // Create instance-specific state to prevent conflicts between multiple components
+            // Create instance-specific state to prevent conflicts between multiple components
       this.componentState = {
           currentVetrine: [],
           currentFiles: [],
@@ -452,9 +452,102 @@ class SearchSectionComponent extends HTMLElement {
           documentCount: 0
       };
       
-      // Immediately bind all critical functions to this instance to prevent conflicts
-      this.initializeInstanceMethods();
-      
+            // Initialize instance methods
+    this.initializeInstanceMethods = this.initializeInstanceMethods.bind(this);
+    this.handleCSPEventHandlers = this.handleCSPEventHandlers.bind(this);
+    this.checkAuthentication = this.checkAuthentication.bind(this);
+    this.initializeUserInfo = this.initializeUserInfo.bind(this);
+    this.fetchCurrentUserData = this.fetchCurrentUserData.bind(this);
+    this.updateHeaderUserInfo = this.updateHeaderUserInfo.bind(this);
+    this.initializeStaticComponents = this.initializeStaticComponents.bind(this);
+    this.initializeDynamicComponents = this.initializeDynamicComponents.bind(this);
+    this.initializeAnimations = this.initializeAnimations.bind(this);
+    this.initializeFilters = this.initializeFilters.bind(this);
+    this.initializeFilterControls = this.initializeFilterControls.bind(this);
+    this.handleFilterChangeImmediate = this.handleFilterChangeImmediate.bind(this);
+    this.initializeCourseFilter = this.initializeCourseFilter.bind(this);
+    this.updateCourses = this.updateCourses.bind(this);
+    this.showSuggestions = this.showSuggestions.bind(this);
+    this.hideSuggestions = this.hideSuggestions.bind(this);
+    this.handleKeyNavigation = this.handleKeyNavigation.bind(this);
+    this.updateSelection = this.updateSelection.bind(this);
+    this.selectCourse = this.selectCourse.bind(this);
+    this.initializeCanaleFilter = this.initializeCanaleFilter.bind(this);
+    this.selectCanale = this.selectCanale.bind(this);
+    this.clearCourseFilter = this.clearCourseFilter.bind(this);
+    this.updateCoursesForFaculty = this.updateCoursesForFaculty.bind(this);
+    this.setupDropdowns = this.setupDropdowns.bind(this);
+    this.toggleDropdown = this.toggleDropdown.bind(this);
+    this.positionDropdown = this.positionDropdown.bind(this);
+    this.closeAllDropdowns = this.closeAllDropdowns.bind(this);
+    this.repositionOpenDropdowns = this.repositionOpenDropdowns.bind(this);
+    this.resetDropdownHighlight = this.resetDropdownHighlight.bind(this);
+    this.getHierarchyCache = this.getHierarchyCache.bind(this);
+    this.setHierarchyCache = this.setHierarchyCache.bind(this);
+    this.clearHierarchyCache = this.clearHierarchyCache.bind(this);
+    this.loadHierarchyData = this.loadHierarchyData.bind(this);
+    this.getExpiredHierarchyCache = this.getExpiredHierarchyCache.bind(this);
+    this.refreshHierarchyData = this.refreshHierarchyData.bind(this);
+    this.populateDropdownOptions = this.populateDropdownOptions.bind(this);
+    this.populateOptions = this.populateOptions.bind(this);
+    this.filterDropdownOptions = this.filterDropdownOptions.bind(this);
+    this.selectDropdownOption = this.selectDropdownOption.bind(this);
+    this.removeSpecificFilterValue = this.removeSpecificFilterValue.bind(this);
+    this.updateActiveFilterIndicators = this.updateActiveFilterIndicators.bind(this);
+    this.removeFilterFromDropdown = this.removeFilterFromDropdown.bind(this);
+    this.handleDropdownKeyboard = this.handleDropdownKeyboard.bind(this);
+    this.initializeRatingFilter = this.initializeRatingFilter.bind(this);
+    this.initializeToggleFilters = this.initializeToggleFilters.bind(this);
+    this.initializePriceRangeFilter = this.initializePriceRangeFilter.bind(this);
+    this.debounce = this.debounce.bind(this);
+    this.handlePriceRangeChange = this.handlePriceRangeChange.bind(this);
+    this.updatePriceSliderFill = this.updatePriceSliderFill.bind(this);
+    this.initializeEditableValues = this.initializeEditableValues.bind(this);
+    this.handleEditableValueClick = this.handleEditableValueClick.bind(this);
+    this.handleEditableValueKeydown = this.handleEditableValueKeydown.bind(this);
+    this.handleEditableValueInputKeydown = this.handleEditableValueInputKeydown.bind(this);
+    this.handleEditableValueBlur = this.handleEditableValueBlur.bind(this);
+    this.updateRangeSliderFromEditableValue = this.updateRangeSliderFromEditableValue.bind(this);
+    this.applyPriceFilters = this.applyPriceFilters.bind(this);
+    this.initializeOrderDropdown = this.initializeOrderDropdown.bind(this);
+    this.selectOrderOption = this.selectOrderOption.bind(this);
+    this.applyOrderToResults = this.applyOrderToResults.bind(this);
+    this.sortDocuments = this.sortDocuments.bind(this);
+    this.applyFiltersAndRender = this.applyFiltersAndRender.bind(this);
+    this.toggleFiltersPanel = this.toggleFiltersPanel.bind(this);
+    this.addBottomClearAllButton = this.addBottomClearAllButton.bind(this);
+    this.updateBottomFilterCount = this.updateBottomFilterCount.bind(this);
+    this.updateActiveFiltersDisplay = this.updateActiveFiltersDisplay.bind(this);
+    this.closeFiltersPanel = this.closeFiltersPanel.bind(this);
+    this.populateFilterOptions = this.populateFilterOptions.bind(this);
+    this.populateDropdownFilter = this.populateDropdownFilter.bind(this);
+    this.populateSelect = this.populateSelect.bind(this);
+    this.clearAllFiltersAction = this.clearAllFiltersAction.bind(this);
+    this.applyFiltersToFiles = this.applyFiltersToFiles.bind(this);
+    this.removeActiveFilter = this.removeActiveFilter.bind(this);
+    this.removeSpecificFilterValueFromPill = this.removeSpecificFilterValueFromPill.bind(this);
+    this.clearAllActiveFilters = this.clearAllActiveFilters.bind(this);
+    this.removeFilter = this.removeFilter.bind(this);
+    this.getAvatarVariant = this.getAvatarVariant.bind(this);
+    this.getConsistentGradient = this.getConsistentGradient.bind(this);
+    this.createGradientAvatar = this.createGradientAvatar.bind(this);
+    this.getInitials = this.getInitials.bind(this);
+    this.makeRequest = this.makeRequest.bind(this);
+    this.makeSimpleRequest = this.makeSimpleRequest.bind(this);
+    this.makeAuthenticatedRequest = this.makeAuthenticatedRequest.bind(this);
+    this.showLoadingCards = this.showLoadingCards.bind(this);
+    this.loadAllFiles = this.loadAllFiles.bind(this);
+    this.extractCourseFromVetrina = this.extractCourseFromVetrina.bind(this);
+    this.extractFacultyFromVetrina = this.extractFacultyFromVetrina.bind(this);
+    this.extractTagsFromVetrina = this.extractTagsFromVetrina.bind(this);
+    this.extractPrimaryTagFromVetrina = this.extractPrimaryTagFromVetrina.bind(this);
+    this.loadValidTags = this.loadValidTags.bind(this);
+    this.updateDocumentCardTags = this.updateDocumentCardTags.bind(this);
+    this.getFileTypeFromFilename = this.getFileTypeFromFilename.bind(this);
+    this.loadVetrinaFiles = this.loadVetrinaFiles.bind(this);
+    this.getDocumentPreviewIcon = this.getDocumentPreviewIcon.bind(this);
+    this.getDocumentCategory = this.getDocumentCategory.bind(this);
+    this.getTagIcon = this.getTagIcon.bind(this);
     }
     
     initializeInstanceMethods() {
@@ -515,7 +608,6 @@ class SearchSectionComponent extends HTMLElement {
     }
     
     startComponentLogic() {
-      const component = this;
       
       // Create local references for backward compatibility within this instance
       let currentVetrine = this.componentState.currentVetrine;
@@ -578,24 +670,24 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Check authentication after showing loading state
-              const isAuthenticated = checkAuthentication();
+              const isAuthenticated = component.checkAuthentication();
               
               // Initialize user info (will show login button if not authenticated)
-              initializeUserInfo();
+              component.initializeUserInfo();
               
               // Initialize CSP-compliant event handlers
-              handleCSPEventHandlers();
+              component.handleCSPEventHandlers();
               
               // Use requestAnimationFrame to ensure DOM is ready before initializing UI components
               requestAnimationFrame(() => {
-                  initializeStaticComponents();
+                  component.initializeStaticComponents();
               });
               
               // Load valid tags from backend first
-              await loadValidTags();
+              await component.loadValidTags();
               
               // Load files for both authenticated and guest users
-              await loadAllFiles();
+              await component.loadAllFiles();
       
                   // Ensure documents are shown after loading
           if (originalFiles && originalFiles.length > 0) {
@@ -605,10 +697,10 @@ class SearchSectionComponent extends HTMLElement {
               showStatus(`${originalFiles.length} documenti disponibili 📚`);
               
               // Initialize dynamic components after data is loaded
-              initializeDynamicComponents();
+              component.initializeDynamicComponents();
               
               // Debug position after initial render
-              setTimeout(() => debugPensatoTextPosition(), 200);
+              setTimeout(() => component.debugPensatoTextPosition(), 200);
           }
               
               // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
@@ -677,12 +769,12 @@ class SearchSectionComponent extends HTMLElement {
           });
       };
       
-      async function initializeUserInfo() {
-          const user = await fetchCurrentUserData();
-          updateHeaderUserInfo(user);
-      }
+      this.initializeUserInfo = async function() {
+          const user = await component.fetchCurrentUserData();
+          component.updateHeaderUserInfo(user);
+      };
       
-      async function fetchCurrentUserData() {
+      this.fetchCurrentUserData = async function() {
           const cachedUser = localStorage.getItem('currentUser');
           if (cachedUser) {
               return JSON.parse(cachedUser);
@@ -690,9 +782,9 @@ class SearchSectionComponent extends HTMLElement {
       
           // If cache is empty, return null (user is not authenticated)
           return null;
-      }
+      };
       
-      function updateHeaderUserInfo(user) {
+      this.updateHeaderUserInfo = function(user) {
           const userAvatar = component.shadowRoot.getElementById ('userAvatar');
           const dropdownAvatar = component.shadowRoot.getElementById ('dropdownAvatar');
           const dropdownUserName = component.shadowRoot.getElementById ('dropdownUserName');
@@ -837,7 +929,7 @@ class SearchSectionComponent extends HTMLElement {
                   userInfo.classList.remove('open');
               }
           }
-      }
+      };
       
       document.addEventListener('click', () => {
           const userInfo = component.shadowRoot.querySelector('.user-info');
@@ -1533,14 +1625,14 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       // Hierarchy Cache Management
-      const component.HIERARCHY_CACHE_KEY = 'hierarchy_data_cache';
+      const HIERARCHY_CACHE_KEY = HIERARCHY_CACHE_KEY;
       const HIERARCHY_CACHE_VERSION = '1.0';
       const HIERARCHY_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       
       // Cache management functions
       function getHierarchyCache() {
           try {
-              const cached = localStorage.getItem(component.HIERARCHY_CACHE_KEY);
+              const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
               if (!cached) return null;
               
               const cacheData = JSON.parse(cached);
@@ -1573,7 +1665,7 @@ class SearchSectionComponent extends HTMLElement {
                   timestamp: Date.now(),
                   data: data
               };
-              localStorage.setItem(component.HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
+              localStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(cacheData));
           } catch (error) {
               console.warn('⚠️ Error caching hierarchy data:', error);
               // Don't throw error - caching failure shouldn't break the app
@@ -1582,7 +1674,7 @@ class SearchSectionComponent extends HTMLElement {
       
       function clearHierarchyCache() {
           try {
-              localStorage.removeItem(component.HIERARCHY_CACHE_KEY);
+              localStorage.removeItem(HIERARCHY_CACHE_KEY);
           } catch (error) {
               console.warn('⚠️ Error clearing hierarchy cache:', error);
           }
@@ -1631,7 +1723,7 @@ class SearchSectionComponent extends HTMLElement {
       // Fallback function to get expired cache data
       function getExpiredHierarchyCache() {
           try {
-              const cached = localStorage.getItem(component.HIERARCHY_CACHE_KEY);
+              const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
               if (!cached) return null;
               
               const cacheData = JSON.parse(cached);

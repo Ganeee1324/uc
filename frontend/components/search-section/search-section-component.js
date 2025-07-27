@@ -5929,7 +5929,7 @@ class SearchSectionComponent extends HTMLElement {
       // Preload and cache image dimensions immediately
       function preloadBackgroundImage() {
           const tempImage = new Image();
-          tempImage.src = 'images/bg.png';
+          tempImage.src = '../../images/bg.png';
           
           const storeImageDimensions = () => {
               if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
@@ -5963,7 +5963,7 @@ class SearchSectionComponent extends HTMLElement {
           // If we don't have image dimensions yet, try to get them
           if (!bgImageDimensions) {
               const tempImage = new Image();
-              tempImage.src = 'images/bg.png';
+              tempImage.src = '../../images/bg.png';
               
               if (tempImage.complete && tempImage.naturalWidth > 0) {
                   bgImageDimensions = {
@@ -15846,7 +15846,7 @@ class SearchSectionComponent extends HTMLElement {
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             
             <!-- Preload critical assets -->
-            <link rel="preload" href="images/Logo.png" as="image" type="image/png">
+            <link rel="preload" href="../../images/Logo.png" as="image" type="image/png">
             <link rel="preload" href="search-section.css" as="style">
             <link rel="preload" href="search-section.js" as="script">
             
@@ -16581,7 +16581,7 @@ class SearchSectionComponent extends HTMLElement {
         </html>
       `;
   
-      component.shadowRoot.innerHTML = template;
+      this.shadowRoot.innerHTML = template;
     }
   
     get apiBase() {

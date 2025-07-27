@@ -552,32 +552,31 @@ class SearchSectionComponent extends HTMLElement {
     
     initializeInstanceMethods() {
       // Make critical functions instance-specific to prevent conflicts between components
-      const component = this;
       
       // Instance-specific showStatus function
       this.showStatus = function(message, type = 'success') {
-          console.log(`[${component.instanceId}] Status: ${message}`);
-          const documentCount = component.DOM_CACHE.get('documentCount');
+          console.log(`[${this.instanceId}] Status: ${message}`);
+          const documentCount = this.DOM_CACHE.get('documentCount');
           if (documentCount) {
               documentCount.textContent = message;
-              component.componentState.documentCount = message;
+              this.componentState.documentCount = message;
           }
       };
       
       // Instance-specific renderDocuments function
       this.renderDocuments = function(files) {
-          console.log(`[${component.instanceId}] Rendering ${files.length} documents`);
-          const documentsGrid = component.DOM_CACHE.get('documentsGrid');
+          console.log(`[${this.instanceId}] Rendering ${files.length} documents`);
+          const documentsGrid = this.DOM_CACHE.get('documentsGrid');
           if (documentsGrid) {
               // Clear existing content
               documentsGrid.innerHTML = '';
               
               // Update component state
-              component.componentState.currentFiles = files;
-              component.componentState.originalFiles = [...files];
+              this.componentState.currentFiles = files;
+              this.componentState.originalFiles = [...files];
               
               // Update document count
-              component.showStatus(`${files.length} documenti trovati`);
+              this.showStatus(`${files.length} documenti trovati`);
               
               // Create simple document cards for testing
               if (files.length > 0) {
@@ -587,7 +586,7 @@ class SearchSectionComponent extends HTMLElement {
                       card.innerHTML = `
                           <div class="document-preview">
                               <div class="document-title">${file.title || `Document ${index + 1}`}</div>
-                              <div class="document-meta">Component: ${component.instanceId}</div>
+                              <div class="document-meta">Component: ${this.instanceId}</div>
                           </div>
                       `;
                       documentsGrid.appendChild(card);
@@ -598,7 +597,7 @@ class SearchSectionComponent extends HTMLElement {
                       <div class="no-results">
                           <div class="no-results-text">
                               <h3>Nessun documento trovato</h3>
-                              <p>Component: ${component.instanceId}</p>
+                              <p>Component: ${this.instanceId}</p>
                           </div>
                       </div>
                   `;
@@ -948,13 +947,13 @@ class SearchSectionComponent extends HTMLElement {
       // 3. Proper error handling and retry mechanisms
       // 4. Debug logging for troubleshooting
       
-      function initializeStaticComponents() {
+      this.initializeStaticComponents = function() {
           try {
               // Initialize static UI components that depend on shadow DOM elements
-              initializeFilters();
-              initializeScrollToTop();
-              initializeAISearchToggle();
-              initializeReviewsOverlay();
+              component.initializeFilters();
+              component.initializeScrollToTop();
+              component.initializeAISearchToggle();
+              component.initializeReviewsOverlay();
               
               console.log('✅ Static UI components initialized successfully');
           } catch (error) {
@@ -962,23 +961,23 @@ class SearchSectionComponent extends HTMLElement {
               // Retry after a short delay if initialization fails
               setTimeout(() => {
                   console.log('🔄 Retrying static component initialization...');
-                  initializeStaticComponents();
+                  component.initializeStaticComponents();
               }, 100);
           }
-      }
+      };
       
-      function initializeDynamicComponents() {
+      this.initializeDynamicComponents = function() {
           try {
               // Initialize components that depend on loaded data
-              initializeAnimations();
+              component.initializeAnimations();
               
               console.log('✅ Dynamic UI components initialized successfully');
           } catch (error) {
               console.error('❌ Error initializing dynamic components:', error);
           }
-      }
+      };
       
-      function initializeAnimations() {
+      this.initializeAnimations = function() {
           // Animate document cards only if they exist
           const cards = component.shadowRoot.querySelectorAll('.document-card');
           
@@ -1001,13 +1000,13 @@ class SearchSectionComponent extends HTMLElement {
           }, 100);
           
           console.log(`✅ Animations initialized for ${cards.length} document cards`);
-      }
+      };
       
       // ===========================
       // ADVANCED FILTER SYSTEM - FULLY FUNCTIONAL
       // ===========================
       
-      function initializeFilters() {
+      this.initializeFilters = function() {
           const filtersBtn = component.shadowRoot.getElementById(getUniqueId('filtersBtn'));
           const filtersPanel = component.shadowRoot.getElementById ('filtersPanel');
           const filtersOverlay = component.shadowRoot.getElementById ('filtersOverlay');
@@ -1044,38 +1043,38 @@ class SearchSectionComponent extends HTMLElement {
           }
       
           // Initialize all filter controls
-          initializeFilterControls();
+          component.initializeFilterControls();
       
           // Close on escape key
           document.addEventListener('keydown', (e) => {
               if (e.key === 'Escape' && isFiltersOpen) {
-                  closeFiltersPanel();
+                  component.closeFiltersPanel();
               }
           });
-      }
+      };
       
-      function initializeFilterControls() {
+      this.initializeFilterControls = function() {
           // Professional dropdowns (includes all dropdown types now)
-          setupDropdowns();
+          component.setupDropdowns();
           // Rating filter
-          initializeRatingFilter();
+          component.initializeRatingFilter();
           // Toggle group filters
-          initializeToggleFilters();
+          component.initializeToggleFilters();
           // Price range filters
-          initializePriceRangeFilter();
+          component.initializePriceRangeFilter();
           // Order functionality
-          initializeOrderDropdown();
+          component.initializeOrderDropdown();
           // Ensure price range is visible for 'Tutti' after all initializations
           const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
           if (component.filterManager.filters.priceType === 'all' && priceRangeContainer) {
               priceRangeContainer.style.display = 'block';
           }
-      }
+      };
       
-      function handleFilterChangeImmediate(e) {
+      this.handleFilterChangeImmediate = function(e) {
           // This function is no longer needed since we're using professional dropdowns
           // All filter changes are now handled through the dropdown system
-      }
+      };
       
       
       

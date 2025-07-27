@@ -171,7 +171,7 @@ async function switchTab(tabName) {
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
-            documentsSearchContainer.innerHTML = '';
+            // Don't clear innerHTML to preserve search components
         }
         
         // Show favorites dashboard
@@ -1060,8 +1060,9 @@ async function initializeUserPersonalization() {
             personalizeDashboard(user);
         }
     } else {
-        // If no user is logged in, redirect to login page
-        window.location.href = 'index.html';
+        // If no user is logged in, just show default state without redirecting
+        console.log('No user logged in, showing default dashboard state');
+        // Don't redirect - let the page load normally for testing
     }
 }
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Multiple Search Components</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .test-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+    
+    <!-- Load the FIXED search component -->
+    <script src="components/search-section/search-section-component-fixed.js"></script>
+</head>
+<body>
+    <h1>Test Multiple Search Components (Fixed Version)</h1>
+    <p>This test verifies that multiple search components can coexist without conflicts.</p>
+    
+    <div class="test-section">
+        <h2 class="test-title">Component 1 - Main Search</h2>
+        <p class="test-description">This is the main search component</p>
+        <search-section-component 
+            api-base="https://symbia.it:5000"
+            placeholder-text="Cerca una dispensa..."
+            button-text="Cerca">
+        </search-section-component>
+    </div>
+    
+    <div class="test-section">
+        <h2 class="test-title">Component 2 - Documents Search</h2>
+        <p class="test-description">This is the documents search component</p>
+        <search-section-component 
+            api-base="https://symbia.it:5000"
+            placeholder-text="Cerca i tuoi documenti..."
+            button-text="Cerca">
+        </search-section-component>
+    </div>
+    
+    <div class="test-section">
+        <h2 class="test-title">Component 3 - Favorites Search</h2>
+        <p class="test-description">This is the favorites search component</p>
+        <search-section-component 
+            api-base="https://symbia.it:5000"
+            placeholder-text="Cerca nei preferiti..."
+            button-text="Cerca">
+        </search-section-component>
+    </div>
+
+    <script>
+        console.log('=== TESTING MULTIPLE SEARCH COMPONENTS (FIXED VERSION) ===');
+        
+        // Wait for components to initialize
+        setTimeout(() => {
+            const components = document.querySelectorAll('search-section-component');
+            console.log(`Found ${components.length} search components`);
+            
+            let workingComponents = 0;
+            
+            components.forEach((component, index) => {
+                console.log(`\n--- Component ${index + 1} ---`);
+                console.log('- Component found:', component !== null);
+                console.log('- Shadow root created:', component?.shadowRoot !== null);
+                console.log('- Component initialized:', component?.shadowRoot?.innerHTML.includes('search') || false);
+                
+                // Test if search functionality works
+                const searchInput = component?.shadowRoot?.querySelector('input[type="text"]');
+                const searchButton = component?.shadowRoot?.querySelector('button');
+                
+                console.log('- Search input found:', searchInput !== null);
+                console.log('- Search button found:', searchButton !== null);
+                
+                // Test instance-specific data
+                console.log('- Instance data exists:', component?.instanceData !== null);
+                console.log('- Instance data structure:', Object.keys(component?.instanceData || {}));
+                
+                if (searchInput && searchButton) {
+                    console.log(`✅ Component ${index + 1} is working!`);
+                    workingComponents++;
+                } else {
+                    console.log(`❌ Component ${index + 1} is broken!`);
+                }
+            });
+            
+            console.log(`\n=== SUMMARY ===`);
+            console.log(`Working components: ${workingComponents}/${components.length}`);
+            
+            if (workingComponents === components.length) {
+                console.log('🎉 ALL COMPONENTS ARE WORKING! The fix is successful!');
+            } else {
+                console.log('⚠️ Some components are still broken');
+            }
+        }, 1000);
+    </script>
+</body>
+</html> 

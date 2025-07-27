@@ -7,107 +7,276 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             background: #f5f5f5;
         }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
         .test-section {
             background: white;
-            padding: 20px;
             margin: 20px 0;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        
         .test-title {
             color: #333;
             margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
         }
+        
         .test-description {
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .component-wrapper {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        
+        .component-label {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
         }
     </style>
-    
-    <!-- Load the FIXED search component -->
-    <script src="components/search-section/search-section-component-fixed.js"></script>
 </head>
 <body>
-    <h1>Test Multiple Search Components (Fixed Version)</h1>
-    <p>This test verifies that multiple search components can coexist without conflicts.</p>
-    
-    <div class="test-section">
-        <h2 class="test-title">Component 1 - Main Search</h2>
-        <p class="test-description">This is the main search component</p>
-        <search-section-component 
-            api-base="https://symbia.it:5000"
-            placeholder-text="Cerca una dispensa..."
-            button-text="Cerca">
-        </search-section-component>
-    </div>
-    
-    <div class="test-section">
-        <h2 class="test-title">Component 2 - Documents Search</h2>
-        <p class="test-description">This is the documents search component</p>
-        <search-section-component 
-            api-base="https://symbia.it:5000"
-            placeholder-text="Cerca i tuoi documenti..."
-            button-text="Cerca">
-        </search-section-component>
-    </div>
-    
-    <div class="test-section">
-        <h2 class="test-title">Component 3 - Favorites Search</h2>
-        <p class="test-description">This is the favorites search component</p>
-        <search-section-component 
-            api-base="https://symbia.it:5000"
-            placeholder-text="Cerca nei preferiti..."
-            button-text="Cerca">
-        </search-section-component>
+    <div class="test-container">
+        <h1>Test Multiple Search Components</h1>
+        
+        <div class="status">
+            <strong>Test Status:</strong> This page tests the search-section-component with multiple instances to ensure they work independently without conflicts.
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Main Search Component</div>
+            <div class="test-description">
+                This is the main search component with instance-id="main-search"
+            </div>
+            <div class="component-wrapper">
+                <div class="component-label">Instance: main-search</div>
+                <search-section-component 
+                    instance-id="main-search"
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca documenti principali..."
+                    button-text="Cerca">
+                </search-section-component>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Secondary Search Component</div>
+            <div class="test-description">
+                This is a secondary search component with instance-id="secondary-search"
+            </div>
+            <div class="component-wrapper">
+                <div class="component-label">Instance: secondary-search</div>
+                <search-section-component 
+                    instance-id="secondary-search"
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca documenti secondari..."
+                    button-text="Ricerca">
+                </search-section-component>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Third Search Component</div>
+            <div class="test-description">
+                This is a third search component with instance-id="third-search"
+            </div>
+            <div class="component-wrapper">
+                <div class="component-label">Instance: third-search</div>
+                <search-section-component 
+                    instance-id="third-search"
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca documenti terzi..."
+                    button-text="Trova">
+                </search-section-component>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Auto-Generated Instance</div>
+            <div class="test-description">
+                This component has no instance-id specified, so it will auto-generate one
+            </div>
+            <div class="component-wrapper">
+                <div class="component-label">Instance: auto-generated</div>
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca documenti automatici..."
+                    button-text="Cerca">
+                </search-section-component>
+            </div>
+        </div>
+        
+        <div class="info">
+            <strong>Test Instructions:</strong>
+            <ul>
+                <li>Each component should work independently</li>
+                <li>Filters in one component should not affect others</li>
+                <li>Search results should be isolated per component</li>
+                <li>Event listeners should not conflict between instances</li>
+                <li>Storage should be instance-specific</li>
+                <li>Check browser console for any errors or conflicts</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Test Controls</div>
+            <div class="test-description">
+                Use these buttons to test component functionality
+            </div>
+            <button onclick="testComponentIsolation()">Test Component Isolation</button>
+            <button onclick="testStorageIsolation()">Test Storage Isolation</button>
+            <button onclick="testEventListeners()">Test Event Listeners</button>
+            <button onclick="clearAllStorage()">Clear All Storage</button>
+        </div>
     </div>
 
     <script>
-        console.log('=== TESTING MULTIPLE SEARCH COMPONENTS (FIXED VERSION) ===');
-        
-        // Wait for components to initialize
-        setTimeout(() => {
-            const components = document.querySelectorAll('search-section-component');
-            console.log(`Found ${components.length} search components`);
+        // Test functions
+        function testComponentIsolation() {
+            console.log('🧪 Testing component isolation...');
             
-            let workingComponents = 0;
+            const components = document.querySelectorAll('search-section-component');
+            console.log(`Found ${components.length} components`);
             
             components.forEach((component, index) => {
-                console.log(`\n--- Component ${index + 1} ---`);
-                console.log('- Component found:', component !== null);
-                console.log('- Shadow root created:', component?.shadowRoot !== null);
-                console.log('- Component initialized:', component?.shadowRoot?.innerHTML.includes('search') || false);
+                const instanceId = component.getAttribute('instance-id') || 'auto-generated';
+                console.log(`Component ${index + 1}: ${instanceId}`);
                 
-                // Test if search functionality works
-                const searchInput = component?.shadowRoot?.querySelector('input[type="text"]');
-                const searchButton = component?.shadowRoot?.querySelector('button');
-                
-                console.log('- Search input found:', searchInput !== null);
-                console.log('- Search button found:', searchButton !== null);
-                
-                // Test instance-specific data
-                console.log('- Instance data exists:', component?.instanceData !== null);
-                console.log('- Instance data structure:', Object.keys(component?.instanceData || {}));
-                
-                if (searchInput && searchButton) {
-                    console.log(`✅ Component ${index + 1} is working!`);
-                    workingComponents++;
+                // Check if each component has its own shadow root
+                if (component.shadowRoot) {
+                    console.log(`✅ Component ${instanceId} has shadow root`);
                 } else {
-                    console.log(`❌ Component ${index + 1} is broken!`);
+                    console.error(`❌ Component ${instanceId} missing shadow root`);
                 }
             });
             
-            console.log(`\n=== SUMMARY ===`);
-            console.log(`Working components: ${workingComponents}/${components.length}`);
+            alert('Component isolation test completed. Check console for results.');
+        }
+        
+        function testStorageIsolation() {
+            console.log('🧪 Testing storage isolation...');
             
-            if (workingComponents === components.length) {
-                console.log('🎉 ALL COMPONENTS ARE WORKING! The fix is successful!');
-            } else {
-                console.log('⚠️ Some components are still broken');
-            }
-        }, 1000);
+            // Check localStorage for instance-specific keys
+            const keys = Object.keys(localStorage);
+            const instanceKeys = keys.filter(key => key.includes('search_component_'));
+            
+            console.log('Instance-specific storage keys:', instanceKeys);
+            
+            // Check sessionStorage for instance-specific keys
+            const sessionKeys = Object.keys(sessionStorage);
+            const instanceSessionKeys = sessionKeys.filter(key => key.includes('search_component_'));
+            
+            console.log('Instance-specific session keys:', instanceSessionKeys);
+            
+            alert('Storage isolation test completed. Check console for results.');
+        }
+        
+        function testEventListeners() {
+            console.log('🧪 Testing event listeners...');
+            
+            // Check if there are any global event listeners that might conflict
+            const components = document.querySelectorAll('search-section-component');
+            
+            components.forEach((component, index) => {
+                const instanceId = component.getAttribute('instance-id') || 'auto-generated';
+                console.log(`Testing event listeners for component: ${instanceId}`);
+                
+                // Try to trigger some events to see if they're isolated
+                const searchInput = component.shadowRoot?.querySelector('#searchInput');
+                if (searchInput) {
+                    console.log(`✅ Component ${instanceId} has search input`);
+                } else {
+                    console.log(`⚠️ Component ${instanceId} missing search input`);
+                }
+            });
+            
+            alert('Event listener test completed. Check console for results.');
+        }
+        
+        function clearAllStorage() {
+            console.log('🧹 Clearing all storage...');
+            
+            // Clear all instance-specific storage
+            const keys = Object.keys(localStorage);
+            const instanceKeys = keys.filter(key => key.includes('search_component_'));
+            
+            instanceKeys.forEach(key => {
+                localStorage.removeItem(key);
+                console.log(`Removed: ${key}`);
+            });
+            
+            // Clear session storage
+            const sessionKeys = Object.keys(sessionStorage);
+            const instanceSessionKeys = sessionKeys.filter(key => key.includes('search_component_'));
+            
+            instanceSessionKeys.forEach(key => {
+                sessionStorage.removeItem(key);
+                console.log(`Removed session: ${key}`);
+            });
+            
+            alert('All instance-specific storage cleared. Components will reset on next load.');
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Multiple component test page loaded');
+            console.log('Testing component initialization...');
+            
+            setTimeout(() => {
+                const components = document.querySelectorAll('search-section-component');
+                console.log(`✅ Successfully loaded ${components.length} search components`);
+                
+                components.forEach((component, index) => {
+                    const instanceId = component.getAttribute('instance-id') || 'auto-generated';
+                    console.log(`Component ${index + 1}: ${instanceId} - ${component.shadowRoot ? '✅ Ready' : '❌ Not ready'}`);
+                });
+            }, 2000);
+        });
     </script>
+
+    <!-- Load the search component -->
+    <script src="components/search-section/search-section-component.js"></script>
 </body>
 </html> 

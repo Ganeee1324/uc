@@ -58,6 +58,23 @@ class SearchSectionComponent extends HTMLElement {
           this.removeSessionItem('favorites_changed');
           this.removeSessionItem('navigating');
       }
+      
+      // Clean up any remaining global references
+      if (this.loadingCardsResizeListener) {
+          this.loadingCardsResizeListener = null;
+      }
+      
+      // Clear any cached data
+      this.facultyCoursesData = null;
+      this.allTags = [];
+      this.allFileTypes = [];
+      
+      // Clear component state
+      if (this.componentState) {
+          this.componentState.currentVetrine = [];
+          this.componentState.currentFiles = [];
+          this.componentState.originalFiles = [];
+      }
     }
     
     initializeComponentInstance() {
@@ -1222,7 +1239,7 @@ class SearchSectionComponent extends HTMLElement {
           courseInput.addEventListener('keydown', handleKeyNavigation());
           
           // Hide suggestions when clicking outside
-          document.addEventListener('click', (e) => {
+          component.addGlobalEventListener(document, 'click', (e) => {
               if (!courseInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
                   hideSuggestions();
               }
@@ -1324,7 +1341,7 @@ class SearchSectionComponent extends HTMLElement {
           canaleInput.addEventListener('keydown', handleKeyNavigation());
           
           // Hide suggestions when clicking outside
-          document.addEventListener('click', (e) => {
+          component.addGlobalEventListener(document, 'click', (e) => {
               if (!canaleInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
                   hideSuggestions();
               }
@@ -1580,7 +1597,7 @@ class SearchSectionComponent extends HTMLElement {
               });
               
               // Close dropdowns when clicking outside (unified for all dropdowns)
-              document.addEventListener('click', (e) => {
+              component.addGlobalEventListener(document, 'click', (e) => {
                   // Check if click is on dropdown input wrapper or dropdown content
                   const clickedDropdownInputWrapper = e.target.closest('.dropdown-input-wrapper');
                   const clickedDropdownContent = e.target.closest('.dropdown-content');
@@ -1618,11 +1635,11 @@ class SearchSectionComponent extends HTMLElement {
               });
               
               // Handle window resize and scroll to reposition dropdowns
-              window.addEventListener('resize', () => {
+              component.addGlobalEventListener(window, 'resize', () => {
                   repositionOpenDropdowns();
               });
               
-              window.addEventListener('scroll', () => {
+              component.addGlobalEventListener(window, 'scroll', () => {
                   repositionOpenDropdowns();
               });
               
@@ -1718,7 +1735,7 @@ class SearchSectionComponent extends HTMLElement {
       };
       
       // Hierarchy Cache Management
-      const HIERARCHY_CACHE_KEY = HIERARCHY_CACHE_KEY;
+      const HIERARCHY_CACHE_KEY = component.HIERARCHY_CACHE_KEY;
       const HIERARCHY_CACHE_VERSION = '1.0';
       const HIERARCHY_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       
@@ -2797,7 +2814,7 @@ class SearchSectionComponent extends HTMLElement {
       let currentOrder = 'relevance';
       
       // Initialize order button text on page load
-      document.addEventListener('DOMContentLoaded', function() {
+      component.addGlobalEventListener(document, 'DOMContentLoaded', function() {
           const orderBtn = component.shadowRoot.getElementById ('orderBtn');
           const orderText = orderBtn?.querySelector('.order-text');
           if (orderText) {
@@ -2833,14 +2850,14 @@ class SearchSectionComponent extends HTMLElement {
           });
           
           // Close dropdown when clicking outside
-          document.addEventListener('click', (e) => {
+          component.addGlobalEventListener(document, 'click', (e) => {
               if (!orderBtn.contains(e.target) && !orderDropdown.contains(e.target)) {
                   orderDropdown.classList.remove('show');
               }
           });
           
           // Close dropdown on escape key
-          document.addEventListener('keydown', (e) => {
+          component.addGlobalEventListener(document, 'keydown', (e) => {
               if (e.key === 'Escape') {
                   orderDropdown.classList.remove('show');
               }
@@ -3021,8 +3038,9 @@ class SearchSectionComponent extends HTMLElement {
               if (filtersOverlay) filtersOverlay.classList.add('active');
               if (mainContent) mainContent.classList.add('filters-open');
               if (documentsGrid) documentsGrid.classList.add('filters-open');
-              document.body.classList.add('filters-open');
-              document.body.style.overflow = 'hidden';
+                        // Use instance-specific body class to prevent conflicts
+          document.body.classList.add(`filters-open-${component.instanceId}`);
+          document.body.style.overflow = 'hidden';
               
               // Populate filter options when opening
               populateFilterOptions();
@@ -3272,11 +3290,11 @@ class SearchSectionComponent extends HTMLElement {
       
       // Replace your existing functions with calls to the filter manager
       function updateBottomFilterCount() {
-          component.component.filterManager.updateBottomFilterCount();
+          component.filterManager.updateBottomFilterCount();
       }
       
       function updateActiveFiltersDisplay() {
-          component.component.filterManager.updateActiveFiltersDisplay();
+          component.filterManager.updateActiveFiltersDisplay();
       }
       
       function closeFiltersPanel() {
@@ -3290,7 +3308,8 @@ class SearchSectionComponent extends HTMLElement {
           if (filtersOverlay) filtersOverlay.classList.remove('active');
           if (mainContent) mainContent.classList.remove('filters-open');
           if (documentsGrid) documentsGrid.classList.remove('filters-open');
-          document.body.classList.remove('filters-open');
+          // Remove instance-specific body class
+          document.body.classList.remove(`filters-open-${component.instanceId}`);
           document.body.style.overflow = '';
       }
       
@@ -4289,16 +4308,18 @@ class SearchSectionComponent extends HTMLElement {
           setTimeout(() => debugPensatoTextPosition(), 100);
           
           // Add resize listener to update loading cards when screen size changes
-          if (!window.loadingCardsResizeListener) {
+          // Make this instance-specific to prevent conflicts between multiple components
+          if (!component.loadingCardsResizeListener) {
               component.loadingCardsResizeListener = debounce(() => {
                   const grid = component.shadowRoot.getElementById ('documentsGrid');
                   if (grid && grid.classList.contains('loading')) {
-                      console.log('📱 Screen resized, updating loading cards...');
+                      console.log(`📱 [${component.instanceId}] Screen resized, updating loading cards...`);
                       showLoadingCards(); // Recalculate and update loading cards
                   }
               }, 250); // Debounce resize events
               
-              window.addEventListener('resize', component.loadingCardsResizeListener);
+              // Add to instance-specific event listeners for proper cleanup
+              component.addGlobalEventListener(window, 'resize', component.loadingCardsResizeListener);
           }
       }
       
@@ -5210,7 +5231,15 @@ class SearchSectionComponent extends HTMLElement {
           const notification = document.createElement('div');
           notification.className = `status-message ${type}`;
           notification.textContent = message;
-          document.body.appendChild(notification);
+          // Use instance-specific container to prevent conflicts
+          const containerId = `notification-container-${component.instanceId}`;
+          let container = document.getElementById(containerId);
+          if (!container) {
+              container = document.createElement('div');
+              container.id = containerId;
+              document.body.appendChild(container);
+          }
+          container.appendChild(notification);
           
           setTimeout(() => notification.classList.add('show'), 100);
           
@@ -5568,9 +5597,17 @@ class SearchSectionComponent extends HTMLElement {
               form.appendChild(filenameInput);
               
               // Submit the form
-              document.body.appendChild(form);
-              form.submit();
-              document.body.removeChild(form);
+                        // Use instance-specific container to prevent conflicts
+          const formContainerId = `form-container-${component.instanceId}`;
+          let formContainer = document.getElementById(formContainerId);
+          if (!formContainer) {
+              formContainer = document.createElement('div');
+              formContainer.id = formContainerId;
+              document.body.appendChild(formContainer);
+          }
+          formContainer.appendChild(form);
+          form.submit();
+          formContainer.removeChild(form);
               
               showStatus('Download avviato! 🎉');
           } catch (error) {
@@ -6009,7 +6046,7 @@ class SearchSectionComponent extends HTMLElement {
       // EVENT LISTENERS
       // ===========================
       
-      document.addEventListener('DOMContentLoaded', function() {
+      component.addGlobalEventListener(document, 'DOMContentLoaded', function() {
           const searchInput = component.shadowRoot.getElementById ('searchInput');
           const searchBtn = component.shadowRoot.getElementById ('searchBtn');
           const uploadBtn = component.shadowRoot.getElementById ('uploadBtn');
@@ -6093,7 +6130,7 @@ class SearchSectionComponent extends HTMLElement {
       });
       
       function initializeKeyboardShortcuts() {
-          document.addEventListener('keydown', (e) => {
+          component.addGlobalEventListener(document, 'keydown', (e) => {
               // Ctrl/Cmd + F to focus search (prevent default browser search)
               if ((e.ctrlKey || e.metaKey) && e.key === 'f' && !e.shiftKey) {
                   e.preventDefault();
@@ -6295,7 +6332,7 @@ class SearchSectionComponent extends HTMLElement {
           });
       
           // Keyboard navigation
-          document.addEventListener('keydown', handleQuickLookKeyboard);
+          component.addGlobalEventListener(document, 'keydown', handleQuickLookKeyboard);
       
           // Animate in
           setTimeout(() => overlay.classList.add('visible'), 10);
@@ -6411,7 +6448,7 @@ class SearchSectionComponent extends HTMLElement {
           });
       
           // Keyboard navigation
-          document.addEventListener('keydown', handleChunksKeyboard);
+          component.addGlobalEventListener(document, 'keydown', handleChunksKeyboard);
       
           // Animate in
           setTimeout(() => overlay.classList.add('visible'), 10);
@@ -6562,7 +6599,7 @@ class SearchSectionComponent extends HTMLElement {
           }
       
           // Event listeners
-          window.addEventListener('scroll', handleScroll, { passive: true });
+          component.addGlobalEventListener(window, 'scroll', handleScroll, { passive: true });
           scrollToTopBtn.addEventListener('click', scrollToTop);
           
           // Keyboard accessibility
@@ -6593,7 +6630,7 @@ class SearchSectionComponent extends HTMLElement {
       
           // Initial adjustment and on resize
           adjustScrollThreshold();
-          window.addEventListener('resize', adjustScrollThreshold);
+          component.addGlobalEventListener(window, 'resize', adjustScrollThreshold);
       
           // Performance optimization: throttle scroll events for better performance
           this.ticking = false;
@@ -6609,7 +6646,7 @@ class SearchSectionComponent extends HTMLElement {
           }
       
           // Use throttled version for all devices for better performance
-          window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+          component.addGlobalEventListener(window, 'scroll', throttledHandleScroll, { passive: true });
       
           throttledHandleScroll(); // Initial check
       }
@@ -6718,16 +6755,16 @@ class SearchSectionComponent extends HTMLElement {
       preloadBackgroundImage();
       
       // Initialize background positioning immediately when DOM is ready
-      document.addEventListener('DOMContentLoaded', () => {
+      component.addGlobalEventListener(document, 'DOMContentLoaded', () => {
           // Position immediately when DOM is ready
           adjustBackgroundPosition();
       });
       
       // Also run on window load to ensure everything is fully loaded
-      window.addEventListener('load', adjustBackgroundPosition);
+      component.addGlobalEventListener(window, 'load', adjustBackgroundPosition);
       
       // Add event listeners for dynamic background
-      window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
+      component.addGlobalEventListener(window, 'resize', debounce(adjustBackgroundPosition, 50));
       
       
       
@@ -6740,7 +6777,7 @@ class SearchSectionComponent extends HTMLElement {
           }
       
           // Simple scroll event listener to add/remove stuck class
-          window.addEventListener('scroll', () => {
+          component.addGlobalEventListener(window, 'scroll', () => {
               const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
               
               // Add stuck class when scrolled down
@@ -6752,7 +6789,7 @@ class SearchSectionComponent extends HTMLElement {
           });
       }
       
-      document.addEventListener('DOMContentLoaded', initializeStickySearch);
+      component.addGlobalEventListener(document, 'DOMContentLoaded', initializeStickySearch);
       
       // Font Loading Detection Script (moved from search.html for CSP compliance)
       function showIconsImmediately() {
@@ -6778,7 +6815,7 @@ class SearchSectionComponent extends HTMLElement {
       setTimeout(showIconsImmediately, 50);
       
       // Add event listener for preview close button (replaces inline onclick)
-      document.addEventListener('DOMContentLoaded', function() {
+      component.addGlobalEventListener(document, 'DOMContentLoaded', function() {
           const previewCloseBtn = component.shadowRoot.getElementById ('previewCloseBtn');
           if (previewCloseBtn) {
               previewCloseBtn.addEventListener('click', closePreview);
@@ -6844,6 +6881,8 @@ class SearchSectionComponent extends HTMLElement {
           
           if (overlay) {
               overlay.classList.add('active');
+              // Use instance-specific body class to prevent conflicts
+              document.body.classList.add(`reviews-open-${component.instanceId}`);
               document.body.style.overflow = 'hidden';
               
               // Show initial rating data instantly from search results
@@ -6923,6 +6962,8 @@ class SearchSectionComponent extends HTMLElement {
           const overlay = component.shadowRoot.getElementById ('reviewsOverlay');
           if (overlay) {
               overlay.classList.remove('active');
+              // Remove instance-specific body class
+              document.body.classList.remove(`reviews-open-${component.instanceId}`);
               document.body.style.overflow = '';
               
               // Reset form
@@ -7386,7 +7427,7 @@ class SearchSectionComponent extends HTMLElement {
           });
           
           // Keyboard shortcut: Ctrl+Shift+A to toggle AI search
-          document.addEventListener('keydown', function(e) {
+          component.addGlobalEventListener(document, 'keydown', function(e) {
               if (e.ctrlKey && e.shiftKey && e.key === 'A') {
                   e.preventDefault();
                   toggleInput.checked = !toggleInput.checked;
@@ -7979,7 +8020,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // ... existing code ...
       // In the main initialization section, call initializePagesRangeFilter()
-      document.addEventListener('DOMContentLoaded', function() {
+      component.addGlobalEventListener(document, 'DOMContentLoaded', function() {
           // ... existing code ...
           initializePagesRangeFilter();
           // ... existing code ...
@@ -7988,7 +8029,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // ... existing code ...
           // Failsafe: always show price slider if 'Tutti' is active after initialization
-          window.addEventListener('DOMContentLoaded', () => {
+          component.addGlobalEventListener(window, 'DOMContentLoaded', () => {
               const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
               const tuttiToggle = component.shadowRoot.querySelector('.price-toggle.active[data-price="all"]');
               if (tuttiToggle && priceRangeContainer) {
@@ -8699,6 +8740,7 @@ class SearchSectionComponent extends HTMLElement {
                   line-height: 1.7; /* Improved line height for mobile */
                   padding: 0; /* Remove all padding for maximum text space */
                   box-sizing: border-box;
+                  /* Improved text wrapping and spacing */
                   word-wrap: break-word;
                   hyphens: auto;
                   white-space: normal;

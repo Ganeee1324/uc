@@ -33,7 +33,39 @@ const DOM_CACHE = {
 function debugPensatoTextPosition() {
     // Make this function globally accessible for manual debugging
     window.debugPensatoTextPosition = debugPensatoTextPosition;
-    console.log('🔍 === DEBUGGING SEARCH SECTION POSITION ===');
+    console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
+    
+    // Find the search subtitle element
+    const searchSubtitle = document.querySelector('.search-subtitle');
+    if (searchSubtitle) {
+        const rect = searchSubtitle.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(searchSubtitle);
+        
+        console.log('📍 Search Subtitle ("Pensato per chi vuole di più"):');
+        console.log('  - Text content:', searchSubtitle.textContent.trim());
+        console.log('  - Position:', {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        });
+        console.log('  - CSS Properties:', {
+            margin: computedStyle.margin,
+            padding: computedStyle.padding,
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            transform: computedStyle.transform,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            opacity: computedStyle.opacity
+        });
+        console.log('  - Parent container:', searchSubtitle.parentElement?.className);
+    } else {
+        console.log('❌ Search subtitle element not found');
+    }
     
     // Check search section
     const searchSection = document.querySelector('.search-section');
@@ -270,7 +302,8 @@ let isFiltersOpen = false;
         // Check authentication after showing loading state
         const isAuthenticated = checkAuthentication();
         
-            /* Header initialization removed for component version */
+        // Initialize user info (will show login button if not authenticated)
+        initializeUserInfo();
         
         // Initialize CSP-compliant event handlers
         handleCSPEventHandlers();
@@ -361,7 +394,129 @@ let isFiltersOpen = false;
     });
 };
 
-/* Header-related functions removed for component version */
+async function initializeUserInfo() {
+    const user = await fetchCurrentUserData();
+    updateHeaderUserInfo(user);
+}
+
+async function fetchCurrentUserData() {
+    const cachedUser = localStorage.getItem('currentUser');
+    if (cachedUser) {
+        return JSON.parse(cachedUser);
+    }
+
+    // If cache is empty, return null (user is not authenticated)
+    return null;
+}
+
+function updateHeaderUserInfo(user) {
+    const userAvatar = document.getElementById('userAvatar');
+    const dropdownAvatar = document.getElementById('dropdownAvatar');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    
+    if (user) {
+        // Construct the user's full name for the avatar
+        let fullName = '';
+        if (user.name && user.surname) {
+            fullName = `${user.name} ${user.surname}`;
+        } else if (user.name) {
+            fullName = user.name;
+        } else if (user.username) {
+            fullName = user.username;
+        } else {
+            fullName = 'User';
+        }
+        
+        // Use consistent gradient avatar instead of UI Avatars service
+        const gradientAvatar = createGradientAvatar(fullName, user.username);
+        userAvatar.innerHTML = gradientAvatar;
+        
+        // Apply the same gradient to dropdown avatar
+        if (dropdownAvatar) {
+            const gradient = getConsistentGradient(user.username);
+            dropdownAvatar.style.background = gradient;
+            dropdownAvatar.textContent = getInitials(fullName);
+            dropdownAvatar.style.color = 'white';
+            dropdownAvatar.style.fontWeight = '700';
+            dropdownAvatar.style.fontSize = '18px';
+            dropdownAvatar.style.display = 'flex';
+            dropdownAvatar.style.alignItems = 'center';
+            dropdownAvatar.style.justifyContent = 'center';
+        }
+        
+        if (dropdownUserName) {
+            dropdownUserName.textContent = user.username || fullName;
+        }
+        if (dropdownUserEmail) {
+            dropdownUserEmail.textContent = user.email;
+        }
+        
+        // Handle hover and click for user avatar
+        const userInfo = document.querySelector('.user-info');
+        let hoverTimeout;
+        
+        // Check if device supports hover
+        const supportsHover = window.matchMedia('(hover: hover)').matches;
+        
+        if (supportsHover) {
+            // Show dropdown on hover with delay to prevent accidental closing
+            userAvatar.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                clearTimeout(hoverTimeout);
+                userInfo.classList.add('open');
+            });
+            
+            // Handle mouse enter on dropdown to keep it open
+            const userDropdown = document.getElementById('userDropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('mouseenter', (event) => {
+                    event.stopPropagation();
+                    clearTimeout(hoverTimeout);
+                    userInfo.classList.add('open');
+                });
+            }
+            
+            // Hide dropdown when mouse leaves the user info area with small delay
+            userInfo.addEventListener('mouseleave', (event) => {
+                event.stopPropagation();
+                hoverTimeout = setTimeout(() => {
+                    userInfo.classList.remove('open');
+                }, 150); // Small delay to allow moving to dropdown
+            });
+            
+            // Cancel timeout when re-entering the area
+            userInfo.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                clearTimeout(hoverTimeout);
+            });
+        }
+        
+        // Redirect to profile when user clicks their avatar
+        userAvatar.addEventListener('click', (event) => {
+            event.stopPropagation();
+            // Redirect to profile with user info
+            window.location.href = 'profile.html';
+        });
+
+        // Make dropdown user info clickable to redirect to profile
+        const dropdownUserInfo = document.querySelector('.dropdown-user-info');
+        if (dropdownUserInfo) {
+            dropdownUserInfo.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+            });
+        }
+
+        // Make dropdown avatar clickable to redirect to profile
+        if (dropdownAvatar) {
+            dropdownAvatar.addEventListener('click', (event) => {
+                event.stopPropagation();
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+            });
+        }
 
         // Make dropdown username clickable to redirect to profile
         if (dropdownUserName) {
@@ -374,7 +529,35 @@ let isFiltersOpen = false;
 
         // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
-/* Header-related code removed for component version */
+        if(logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        }
+
+    } else {
+        // Handle case where user is not logged in - show login button
+        userAvatar.innerHTML = `
+            <button class="login-btn" onclick="window.location.href='index.html'">
+                <span class="login-btn-text">Accedi</span>
+            </button>
+        `;
+        
+        // Remove dropdown functionality for non-authenticated users
+        const userInfo = document.querySelector('.user-info');
+        if (userInfo) {
+            userInfo.classList.remove('open');
+        }
+    }
+}
+
+document.addEventListener('click', () => {
+    const userInfo = document.querySelector('.user-info');
+    if (userInfo && userInfo.classList.contains('open')) {
+        userInfo.classList.remove('open');
+    }
+});
 
 function initializeAnimations() {
     // Remove static cards initialization since we'll load dynamic data
@@ -5714,7 +5897,116 @@ document.addEventListener('DOMContentLoaded', initializeScrollToTop);
 // DYNAMIC BACKGROUND POSITIONING
 // ===========================
 
-/* Background image functions removed for component version */
+// Global variable to store image dimensions for immediate access
+let bgImageDimensions = null;
+
+// Preload and cache image dimensions immediately
+function preloadBackgroundImage() {
+    const tempImage = new Image();
+    tempImage.src = 'images/bg.png';
+    
+    const storeImageDimensions = () => {
+        if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
+            bgImageDimensions = {
+                width: tempImage.naturalWidth,
+                height: tempImage.naturalHeight,
+                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
+            };
+            // Position immediately if DOM elements are ready
+            adjustBackgroundPosition();
+        }
+    };
+    
+    if (tempImage.complete && tempImage.naturalWidth > 0) {
+        storeImageDimensions();
+    } else {
+        tempImage.onload = storeImageDimensions;
+        tempImage.onerror = () => console.error("Background image failed to load");
+    }
+}
+
+function adjustBackgroundPosition() {
+    const bgElement = document.querySelector('.background-image');
+    const title = document.querySelector('.search-title');
+    const searchContainer = document.querySelector('.search-container');
+
+    if (!bgElement || !title || !searchContainer) {
+        return;
+    }
+
+    // If we don't have image dimensions yet, try to get them
+    if (!bgImageDimensions) {
+        const tempImage = new Image();
+        tempImage.src = 'images/bg.png';
+        
+        if (tempImage.complete && tempImage.naturalWidth > 0) {
+            bgImageDimensions = {
+                width: tempImage.naturalWidth,
+                height: tempImage.naturalHeight,
+                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
+            };
+        } else {
+            // Image not ready yet, will be called again when it loads
+            return;
+        }
+    }
+
+    const calculatePosition = () => {
+        const imageAspectRatio = bgImageDimensions.aspectRatio;
+
+        // Calculate the rendered height of the background based on viewport width + 2px
+        const bgWidth = window.innerWidth + 2;
+        const bgRenderedHeight = bgWidth / imageAspectRatio;
+
+        // Set the container's height to match the image's rendered height
+        bgElement.style.height = `${bgRenderedHeight}px`;
+
+        // Find the page anchor's Y-coordinate relative to the document
+        const scrollY = window.scrollY;
+        const titleRect = title.getBoundingClientRect();
+        const searchRect = searchContainer.getBoundingClientRect();
+        const pageAnchorY = scrollY + titleRect.bottom + (searchRect.top - titleRect.bottom) / 2;
+
+        // Calculate the image's internal anchor point in pixels (50% from the top)
+        const imageAnchorInPixels = bgRenderedHeight * 0.50;
+
+        // Calculate the final 'top' offset for the element.
+        // This makes the image's anchor line up with the page's anchor.
+        const finalTopOffset = pageAnchorY - imageAnchorInPixels;
+        
+        bgElement.style.top = `${finalTopOffset}px`;
+    };
+
+    calculatePosition();
+}
+
+// Debounce function to limit how often a function can run.
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Start preloading image immediately - even before DOM is ready
+preloadBackgroundImage();
+
+// Initialize background positioning immediately when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Position immediately when DOM is ready
+    adjustBackgroundPosition();
+});
+
+// Also run on window load to ensure everything is fully loaded
+window.addEventListener('load', adjustBackgroundPosition);
+
+// Add event listeners for dynamic background
+window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
 
 
 

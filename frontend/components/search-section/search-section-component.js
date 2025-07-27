@@ -15848,7 +15848,6 @@ class SearchSectionComponent extends HTMLElement {
             <!-- Preload critical assets -->
             <link rel="preload" href="../../images/Logo.png" as="image" type="image/png">
             <link rel="preload" href="search-section.css" as="style">
-            <link rel="preload" href="search-section.js" as="script">
             
             <!-- Load fonts with display=swap for better performance -->
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />

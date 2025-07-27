@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Section Web Component Test</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .instructions {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            margin: 0 0 15px 0;
+            color: #1e293b;
+        }
+        
+        .instructions ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #475569;
+        }
+        
+        .component-demo {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 20px;
+            background: #fefefe;
+        }
+        
+        .component-demo h3 {
+            margin: 0 0 20px 0;
+            color: #1e293b;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Search Section Web Component</h1>
+            <p>Test page for the modified search section component</p>
+        </div>
+        
+        <div class="content">
+            <div class="instructions">
+                <h3>📋 How to Use This Component</h3>
+                <ul>
+                    <li><strong>Minimal Changes Applied:</strong> The original search-section.js has been modified with only 3 minimal changes as per the MODIFICATION_GUIDE.md</li>
+                    <li><strong>Shadow DOM Support:</strong> All DOM queries now use the shadow root context</li>
+                    <li><strong>Component Isolation:</strong> The component can be used multiple times on the same page</li>
+                    <li><strong>Full Functionality:</strong> All original features (search, filters, API calls) remain unchanged</li>
+                </ul>
+            </div>
+            
+            <div class="instructions">
+                <h3>🔧 Component Attributes</h3>
+                <p>The search-section-component supports the following attributes:</p>
+                <ul>
+                    <li><strong>api-base:</strong> Base URL for API endpoints (default: 'https://symbia.it:5000')</li>
+                    <li><strong>auth-token:</strong> Authentication token for API requests</li>
+                    <li><strong>placeholder-text:</strong> Custom placeholder text for the search input</li>
+                    <li><strong>button-text:</strong> Custom text for the search button</li>
+                </ul>
+            </div>
+            
+            <div class="component-demo">
+                <h3>🎯 Search Section Component Demo (Default)</h3>
+                <!-- The web component with default settings -->
+                <search-section-component>
+                    <!-- Fallback content if component doesn't load -->
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Web component not loaded</p>
+                        <p>Check console for errors</p>
+                    </div>
+                </search-section-component>
+            </div>
+            
+            <div class="component-demo">
+                <h3>🎯 Search Section Component Demo (Customized)</h3>
+                <!-- The web component with custom attributes -->
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Cerca una dispensa..."
+                    button-text="Cerca">
+                    <!-- Fallback content if component doesn't load -->
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Web component not loaded</p>
+                        <p>Check console for errors</p>
+                    </div>
+                </search-section-component>
+            </div>
+            
+            <div class="instructions">
+                <h3>💻 Usage Examples</h3>
+                <p>Here are different ways to use the component:</p>
+                <pre><code>
+<!-- Basic usage -->
+&lt;search-section-component&gt;&lt;/search-section-component&gt;
+
+<!-- With custom API base -->
+&lt;search-section-component api-base="https://your-api.com"&gt;&lt;/search-section-component&gt;
+
+<!-- With authentication token -->
+&lt;search-section-component auth-token="your-auth-token"&gt;&lt;/search-section-component&gt;
+
+<!-- With custom placeholder and button text -->
+&lt;search-section-component 
+    placeholder-text="Search documents..." 
+    button-text="Search"&gt;
+&lt;/search-section-component&gt;
+
+<!-- Complete example with all attributes -->
+&lt;search-section-component 
+    api-base="https://symbia.it:5000"
+    auth-token="your-auth-token"
+    placeholder-text="Cerca una dispensa..."
+    button-text="Cerca"&gt;
+&lt;/search-section-component&gt;
+                </code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the web component -->
+    <script src="search-section-component.js"></script>
+    
+    <script>
+        // Wait for the component to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Search Section Web Component Test Page Loaded');
+            
+            // Check if the component is defined
+            if (customElements.get('search-section-component')) {
+                console.log('✅ Search Section Component is defined');
+            } else {
+                console.error('❌ Search Section Component is NOT defined');
+            }
+            
+            // The component will automatically initialize when it's connected to the DOM
+            const component = document.querySelector('search-section-component');
+            if (component) {
+                console.log('✅ Search Section Component found and ready');
+                console.log('Component shadow root:', component.shadowRoot);
+                console.log('Component innerHTML:', component.innerHTML);
+            } else {
+                console.error('❌ Search Section Component not found in DOM');
+            }
+            
+            // Check for any script loading errors
+            const scripts = document.querySelectorAll('script');
+            scripts.forEach((script, index) => {
+                console.log(`Script ${index}:`, script.src || 'inline script');
+            });
+        });
+        
+        // Add error handling for script loading
+        window.addEventListener('error', function(e) {
+            console.error('❌ Script error:', e.error);
+            console.error('Error details:', e.filename, e.lineno, e.colno);
+        });
+    </script>
+</body>
+</html>

@@ -456,7 +456,9 @@ class SearchSectionComponent extends HTMLElement {
               
               // Use consistent gradient avatar instead of UI Avatars service
               const gradientAvatar = createGradientAvatar(fullName, user.username);
-              userAvatar.innerHTML = gradientAvatar;
+              if (userAvatar) {
+                  userAvatar.innerHTML = gradientAvatar;
+              }
               
               // Apply the same gradient to dropdown avatar
               if (dropdownAvatar) {
@@ -485,7 +487,7 @@ class SearchSectionComponent extends HTMLElement {
               // Check if device supports hover
               const supportsHover = window.matchMedia('(hover: hover)').matches;
               
-              if (supportsHover) {
+              if (supportsHover && userAvatar) {
                   // Show dropdown on hover with delay to prevent accidental closing
                   userAvatar.addEventListener('mouseenter', (event) => {
                       event.stopPropagation();
@@ -519,11 +521,13 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Redirect to profile when user clicks their avatar
-              userAvatar.addEventListener('click', (event) => {
-                  event.stopPropagation();
-                  // Redirect to profile with user info
-                  window.location.href = 'profile.html';
-              });
+              if (userAvatar) {
+                  userAvatar.addEventListener('click', (event) => {
+                      event.stopPropagation();
+                      // Redirect to profile with user info
+                      window.location.href = 'profile.html';
+                  });
+              }
       
               // Make dropdown user info clickable to redirect to profile
               const dropdownUserInfo = component.shadowRoot.querySelector('.dropdown-user-info');

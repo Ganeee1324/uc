@@ -1,3 +1,6 @@
+// API Configuration
+const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
+
 // Mobile Menu Toggle Logic
 let isMobileMenuOpen = false;
 

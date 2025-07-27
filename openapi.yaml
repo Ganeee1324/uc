@@ -409,6 +409,45 @@ paths:
                 msg: Query parameter 'q' is required
 
   /vetrine/{vetrina_id}:
+    get:
+      tags:
+        - Vetrine
+      summary: Get a vetrina by ID
+      description: |
+        Retrieve a vetrina by its ID, including its files and reviews. If the user is authenticated, the response will also include the favorite status for the vetrina and files.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: vetrina_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the vetrina to retrieve
+      responses:
+        "200":
+          description: Vetrina, files, and reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vetrina:
+                    $ref: "#/components/schemas/Vetrina"
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/File"
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+        "404":
+          description: Vetrina not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       tags:
         - Vetrine

@@ -55,6 +55,11 @@ class SearchSectionComponent extends HTMLElement {
       this.API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
       this.authToken = localStorage.getItem('authToken');
       
+      // Instance-specific data storage
+      this.facultyCoursesData = null;
+      this.allTags = [];
+      this.allFileTypes = [];
+      
       // Instance-specific DOM element cache
       this.DOM_CACHE = {
           documentsGrid: null,
@@ -90,8 +95,8 @@ class SearchSectionComponent extends HTMLElement {
       
       // Debug function to track "Pensato per chi vuole di più" text position
       const debugPensatoTextPosition = () => {
-          // Make this function globally accessible for manual debugging
-          window.debugPensatoTextPosition = debugPensatoTextPosition;
+          // Debug function for this component instance
+          component.debugPensatoTextPosition = debugPensatoTextPosition;
           console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
           
           // Find the search subtitle element
@@ -465,17 +470,17 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           renderDocuments(testData);
-      }, 100);
-      
-          // Initialize the page
-          window.onload = async function() {
+                }, 100);
+          
+          // Initialize the component
+          const initializeComponent = async function() {
               // Show loading cards immediately when page loads
               showLoadingCards();
               
               // Force clear any cached data that might be causing issues
-              if (sessionStorage.getItem('lastCacheBuster') !== CACHE_BUSTER.toString()) {
-                  sessionStorage.clear();
-                  sessionStorage.setItem('lastCacheBuster', CACHE_BUSTER.toString());
+                        if (sessionStorage.getItem('lastCacheBuster') !== component.CACHE_BUSTER.toString()) {
+              sessionStorage.clear();
+              sessionStorage.setItem('lastCacheBuster', component.CACHE_BUSTER.toString());
               }
               
               // Check authentication after showing loading state
@@ -557,15 +562,15 @@ class SearchSectionComponent extends HTMLElement {
           });
           
           // Mark when we're leaving the page
-          let isLeavingPage = false;
-          window.addEventListener('beforeunload', () => {
-              isLeavingPage = true;
+          this.isLeavingPage = false;
+                      window.addEventListener('beforeunload', () => {
+                component.isLeavingPage = true;
           });
           
           // Check if we're returning to the page
           window.addEventListener('pageshow', async (event) => {
-              if (isLeavingPage && currentFiles && currentFiles.length > 0) {
-                  isLeavingPage = false;
+              if (component.isLeavingPage && currentFiles && currentFiles.length > 0) {
+                                      component.isLeavingPage = false;
                   // Favorite status is already included in vetrine data, no need for separate refresh
               }
           });
@@ -848,8 +853,8 @@ class SearchSectionComponent extends HTMLElement {
           if (clearAllFilters) clearAllFilters.addEventListener('click', clearAllFiltersAction);
       
           // Always set priceType to 'all' as default on initialization
-          if (!filterManager.filters.priceType) {
-              filterManager.filters.priceType = 'all';
+          if (!component.filterManager.filters.priceType) {
+              component.filterManager.filters.priceType = 'all';
           }
       
           // Initialize all filter controls
@@ -876,7 +881,7 @@ class SearchSectionComponent extends HTMLElement {
           initializeOrderDropdown();
           // Ensure price range is visible for 'Tutti' after all initializations
           const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
-          if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
+          if (component.filterManager.filters.priceType === 'all' && priceRangeContainer) {
               priceRangeContainer.style.display = 'block';
           }
       }
@@ -900,14 +905,14 @@ class SearchSectionComponent extends HTMLElement {
           
           // Extract courses from hierarchy data
           function updateCourses() {
-              if (window.facultyCoursesData) {
-                  const selectedFaculty = filterManager.filters.faculty;
-                  if (selectedFaculty && window.facultyCoursesData[selectedFaculty]) {
-                      courses = window.facultyCoursesData[selectedFaculty].map(course => course[1]).sort();
+              if (component.facultyCoursesData) {
+                  const selectedFaculty = component.filterManager.filters.faculty;
+                  if (selectedFaculty && component.facultyCoursesData[selectedFaculty]) {
+                      courses = component.facultyCoursesData[selectedFaculty].map(course => course[1]).sort();
                   } else {
                       // Show all courses if no faculty selected
                       courses = [];
-                      Object.values(window.facultyCoursesData).forEach(facultyCourses => {
+                      Object.values(component.facultyCoursesData).forEach(facultyCourses => {
                           facultyCourses.forEach(course => {
                               courses.push(course[1]);
                           });
@@ -923,7 +928,7 @@ class SearchSectionComponent extends HTMLElement {
               
               if (query.length === 0) {
                   hideSuggestions();
-                  filterManager.removeFilter('course');
+                  component.filterManager.removeFilter('course');
                   return;
               }
               
@@ -1004,12 +1009,12 @@ class SearchSectionComponent extends HTMLElement {
           
           function selectCourse(course) {
               courseInput.value = course;
-              filterManager.setFilter('course', course);
+              component.filterManager.setFilter('course', course);
               hideSuggestions();
           }
           
           // Expose update function for faculty changes
-          window.updateCoursesForCourse = updateCourses;
+          component.updateCoursesForCourse = updateCourses;
       }
       
       function initializeCanaleFilter() {
@@ -1025,7 +1030,7 @@ class SearchSectionComponent extends HTMLElement {
               
               if (query.length === 0) {
                   hideSuggestions();
-                  filterManager.removeFilter('canale');
+                  component.filterManager.removeFilter('canale');
                   return;
               }
               
@@ -1108,7 +1113,7 @@ class SearchSectionComponent extends HTMLElement {
           
           function selectCanale(canale) {
               canaleInput.value = canale;
-              filterManager.setFilter('canale', canale);
+              component.filterManager.setFilter('canale', canale);
               hideSuggestions();
           }
       }
@@ -1118,7 +1123,7 @@ class SearchSectionComponent extends HTMLElement {
           const courseInput = component.shadowRoot.getElementById ('courseFilter');
           if (courseInput) {
               courseInput.value = '';
-              filterManager.removeFilter('course');
+              component.filterManager.removeFilter('course');
           }
       }
       
@@ -1164,11 +1169,11 @@ class SearchSectionComponent extends HTMLElement {
                       
                       // Clear filter if input is empty
                       if (value === '') {
-                          delete filterManager.filters[type];
+                          delete component.filterManager.filters[type];
                           if (type === 'faculty') {
                               const courseInput = component.shadowRoot.getElementById ('courseFilter');
                               courseInput.value = '';
-                              delete filterManager.filters.course;
+                              delete component.filterManager.filters.course;
                           }
                           container.classList.remove('open');
                           applyFiltersAndRender();
@@ -1315,15 +1320,15 @@ class SearchSectionComponent extends HTMLElement {
                               const isMultiSelect = multiSelectFilters.includes(type);
                               
                               if (!isMultiSelect) {
-                                  const isValidSelection = filterManager.filters[type] === currentValue;
+                                  const isValidSelection = component.filterManager.filters[type] === currentValue;
                                   
                                   if (!isValidSelection && currentValue !== '' && !currentValue.includes(' selected')) {
                                       input.value = '';
-                                      delete filterManager.filters[type];
+                                      delete component.filterManager.filters[type];
                                       if (type === 'faculty') {
                                           const courseInput = component.shadowRoot.getElementById ('courseFilter');
                                           courseInput.value = '';
-                                          delete filterManager.filters.course;
+                                          delete component.filterManager.filters.course;
                                       }
                                       applyFiltersAndRender();
                                   }
@@ -1365,11 +1370,11 @@ class SearchSectionComponent extends HTMLElement {
               // Always clear input value so all options are shown
               if (input) input.value = '';
               // Update input styling for multi-select
-              if (isMultiSelect && filterManager.filters[type] && Array.isArray(filterManager.filters[type]) && filterManager.filters[type].length > 0) {
+              if (isMultiSelect && component.filterManager.filters[type] && Array.isArray(component.filterManager.filters[type]) && component.filterManager.filters[type].length > 0) {
                   input.setAttribute('data-multi-selected', 'true');
                   const academicContextFilters = ['faculty', 'course', 'canale'];
-                  if (academicContextFilters.includes(type) && filterManager.filters[type].length > 1) {
-                      input.setAttribute('placeholder', `${filterManager.filters[type].length} selezionati - scrivi per cercarne altri...`);
+                  if (academicContextFilters.includes(type) && component.filterManager.filters[type].length > 1) {
+                      input.setAttribute('placeholder', `${component.filterManager.filters[type].length} selezionati - scrivi per cercarne altri...`);
                   }
               }
               filterDropdownOptions(type, '');
@@ -1492,14 +1497,14 @@ class SearchSectionComponent extends HTMLElement {
       // Enhanced hierarchy loading with caching
       async function loadHierarchyData() {
           // First check if we already have data in memory
-          if (window.facultyCoursesData) {
+          if (component.facultyCoursesData) {
               return;
           }
           
           // Check cache first
           const cachedData = getHierarchyCache();
           if (cachedData) {
-              window.facultyCoursesData = cachedData;
+              component.facultyCoursesData = cachedData;
               return;
           }
           
@@ -1509,22 +1514,22 @@ class SearchSectionComponent extends HTMLElement {
               
               // Validate the data structure
               if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-                  window.facultyCoursesData = data;
+                  component.facultyCoursesData = data;
                   
                   // Cache the data for future use
                   setHierarchyCache(data);
               } else {
                   console.warn('⚠️ Unexpected hierarchy data format:', data);
-                  window.facultyCoursesData = {};
+                  component.facultyCoursesData = {};
               }
           } catch (error) {
               console.error('❌ Error loading hierarchy data:', error);
-              window.facultyCoursesData = {};
+              component.facultyCoursesData = {};
               
               // If API fails, try to use any available cached data (even if expired)
               const expiredCache = getExpiredHierarchyCache();
               if (expiredCache) {
-                  window.facultyCoursesData = expiredCache;
+                  component.facultyCoursesData = expiredCache;
               }
           }
       }
@@ -1553,22 +1558,22 @@ class SearchSectionComponent extends HTMLElement {
       // Force refresh hierarchy data (for manual cache invalidation)
       async function refreshHierarchyData() {
           clearHierarchyCache();
-          window.facultyCoursesData = null;
+          component.facultyCoursesData = null;
           await loadHierarchyData();
       }
       
       
       
       function populateDropdownOptions() {
-          if (!window.facultyCoursesData) return;
+          if (!component.facultyCoursesData) return;
           
           // Faculty options
-          const faculties = Object.keys(window.facultyCoursesData).sort();
+          const faculties = Object.keys(component.facultyCoursesData).sort();
           populateOptions('faculty', faculties);
           
           // Course options (initially all courses)
           const courses = [];
-          Object.values(window.facultyCoursesData).forEach(facultyCourses => {
+          Object.values(component.facultyCoursesData).forEach(facultyCourses => {
               facultyCourses.forEach(course => courses.push(course[1]));
           });
           const uniqueCourses = [...new Set(courses)].sort();
@@ -1611,7 +1616,7 @@ class SearchSectionComponent extends HTMLElement {
           };
           
           const filterKey = filterKeyMap[type] || type;
-          const activeFilterValues = filterManager.filters[filterKey];
+          const activeFilterValues = component.filterManager.filters[filterKey];
           
           // Determine which filters support multi-selection
           const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
@@ -1705,27 +1710,27 @@ class SearchSectionComponent extends HTMLElement {
           let items = [];
           
           if (type === 'faculty') {
-              items = Object.keys(window.facultyCoursesData || {}).sort();
+              items = Object.keys(component.facultyCoursesData || {}).sort();
           } else if (type === 'course') {
-              const selectedFaculties = filterManager.filters.faculty;
-              if (selectedFaculties && window.facultyCoursesData) {
+              const selectedFaculties = component.filterManager.filters.faculty;
+              if (selectedFaculties && component.facultyCoursesData) {
                   const courses = [];
                   if (Array.isArray(selectedFaculties)) {
                       // Multiple faculties selected - show courses from all selected faculties
                       selectedFaculties.forEach(faculty => {
-                          if (window.facultyCoursesData[faculty]) {
-                              window.facultyCoursesData[faculty].forEach(course => courses.push(course[1]));
+                          if (component.facultyCoursesData[faculty]) {
+                              component.facultyCoursesData[faculty].forEach(course => courses.push(course[1]));
                           }
                       });
-                  } else if (window.facultyCoursesData[selectedFaculties]) {
+                  } else if (component.facultyCoursesData[selectedFaculties]) {
                       // Single faculty selected
-                      window.facultyCoursesData[selectedFaculties].forEach(course => courses.push(course[1]));
+                      component.facultyCoursesData[selectedFaculties].forEach(course => courses.push(course[1]));
                   }
                   items = [...new Set(courses)].sort();
-              } else if (window.facultyCoursesData) {
+              } else if (component.facultyCoursesData) {
                   // No faculties selected - show all courses
                   const courses = [];
-                  Object.values(window.facultyCoursesData).forEach(facultyCourses => {
+                  Object.values(component.facultyCoursesData).forEach(facultyCourses => {
                       facultyCourses.forEach(course => courses.push(course[1]));
                   });
                   items = [...new Set(courses)].sort();
@@ -1735,7 +1740,7 @@ class SearchSectionComponent extends HTMLElement {
           } else if (type === 'documentType') {
               // Static document types (popular ones first) plus dynamic ones from files
               const staticTypes = ['PDF', 'DOCX', 'PPTX', 'XLSX'];
-              const dynamicTypes = window.allFileTypes || [];
+              const dynamicTypes = component.allFileTypes || [];
               const allTypes = [...staticTypes];
               dynamicTypes.forEach(type => {
                   if (!allTypes.includes(type)) {
@@ -1745,7 +1750,7 @@ class SearchSectionComponent extends HTMLElement {
               items = allTypes;
           } else if (type === 'tag') {
               // Use backend tags
-              items = window.allTags || ['appunti', 'dispense', 'esercizi'];
+              items = component.allTags || ['appunti', 'dispense', 'esercizi'];
           } else if (type === 'language') {
               items = ['Italian', 'English'];
           } else if (type === 'academicYear') {
@@ -1811,13 +1816,13 @@ class SearchSectionComponent extends HTMLElement {
           
           if (isMultiSelect) {
               // Multi-select behavior
-              if (!filterManager.filters[filterKey]) {
-                  filterManager.filters[filterKey] = [];
+              if (!component.filterManager.filters[filterKey]) {
+                  component.filterManager.filters[filterKey] = [];
               }
-              if (!filterManager.filters[filterKey].includes(value)) {
-                  filterManager.filters[filterKey].push(value);
+              if (!component.filterManager.filters[filterKey].includes(value)) {
+                  component.filterManager.filters[filterKey].push(value);
               }
-              const selectedCount = filterManager.filters[filterKey].length;
+              const selectedCount = component.filterManager.filters[filterKey].length;
               const academicContextFilters = ['faculty', 'course', 'canale'];
               if (academicContextFilters.includes(type)) {
                   if (selectedCount === 1) {
@@ -1841,14 +1846,14 @@ class SearchSectionComponent extends HTMLElement {
               input.value = displayText || value;
               // Do NOT close dropdown
               if (value && value.trim()) {
-                  filterManager.filters[filterKey] = value.trim();
+                  component.filterManager.filters[filterKey] = value.trim();
               } else {
-                  delete filterManager.filters[filterKey];
+                  delete component.filterManager.filters[filterKey];
               }
               if (type === 'faculty') {
                   const courseInput = component.shadowRoot.getElementById ('courseFilter');
                   courseInput.value = '';
-                  delete filterManager.filters.course;
+                  delete component.filterManager.filters.course;
                   filterDropdownOptions('course', '');
               }
               setTimeout(() => {
@@ -1882,15 +1887,15 @@ class SearchSectionComponent extends HTMLElement {
           const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
           const isMultiSelect = multiSelectFilters.includes(type);
           
-          if (isMultiSelect && filterManager.filters[filterKey] && Array.isArray(filterManager.filters[filterKey])) {
+          if (isMultiSelect && component.filterManager.filters[filterKey] && Array.isArray(component.filterManager.filters[filterKey])) {
               // Remove specific value from array
-              filterManager.filters[filterKey] = filterManager.filters[filterKey].filter(v => v !== value);
+              component.filterManager.filters[filterKey] = component.filterManager.filters[filterKey].filter(v => v !== value);
               
               // Update input display
               const academicContextFilters = ['faculty', 'course', 'canale'];
               
-              if (filterManager.filters[filterKey].length === 0) {
-                  delete filterManager.filters[filterKey];
+              if (component.filterManager.filters[filterKey].length === 0) {
+                  delete component.filterManager.filters[filterKey];
                   input.value = '';
                   // Reset placeholder to default
                   if (academicContextFilters.includes(type)) {
@@ -1901,9 +1906,9 @@ class SearchSectionComponent extends HTMLElement {
                       };
                       input.setAttribute('placeholder', defaultPlaceholders[type] || '');
                   }
-              } else if (filterManager.filters[filterKey].length === 1) {
+              } else if (component.filterManager.filters[filterKey].length === 1) {
                   // Show the single remaining item
-                  const remainingValue = filterManager.filters[filterKey][0];
+                  const remainingValue = component.filterManager.filters[filterKey][0];
                   let displayText = remainingValue;
                   
                   // Apply display mappings
@@ -1938,10 +1943,10 @@ class SearchSectionComponent extends HTMLElement {
                   if (academicContextFilters.includes(type)) {
                       // Keep academic context filters searchable
                       input.value = '';
-                      input.setAttribute('placeholder', `${filterManager.filters[filterKey].length} selezionati - scrivi per cercarne altri...`);
+                      input.setAttribute('placeholder', `${component.filterManager.filters[filterKey].length} selezionati - scrivi per cercarne altri...`);
                   } else {
                       // For other filters, show count
-                      input.value = `${filterManager.filters[filterKey].length} selected`;
+                      input.value = `${component.filterManager.filters[filterKey].length} selected`;
                   }
               }
               
@@ -1955,7 +1960,7 @@ class SearchSectionComponent extends HTMLElement {
                   // Clear course filter since faculty selection changed
                   const courseInput = component.shadowRoot.getElementById ('courseFilter');
                   courseInput.value = '';
-                  delete filterManager.filters.course;
+                  delete component.filterManager.filters.course;
                   // Update course dropdown options based on remaining faculty selection(s)
                   setTimeout(() => {
                       filterDropdownOptions('course', '');
@@ -1964,7 +1969,7 @@ class SearchSectionComponent extends HTMLElement {
               
           } else {
               // Single-select removal (existing logic)
-              delete filterManager.filters[filterKey];
+              delete component.filterManager.filters[filterKey];
               input.value = '';
               
               // Handle dependent dropdowns
@@ -1972,7 +1977,7 @@ class SearchSectionComponent extends HTMLElement {
                   // Clear course filter since faculty selection changed
                   const courseInput = component.shadowRoot.getElementById ('courseFilter');
                   courseInput.value = '';
-                  delete filterManager.filters.course;
+                  delete component.filterManager.filters.course;
                   // Update course dropdown options based on remaining faculty selection(s)
                   filterDropdownOptions('course', '');
               }
@@ -2004,7 +2009,7 @@ class SearchSectionComponent extends HTMLElement {
               };
               
               const filterKey = filterKeyMap[type] || type;
-              const activeFilterValue = filterManager.filters[filterKey];
+              const activeFilterValue = component.filterManager.filters[filterKey];
               
               options.querySelectorAll('.dropdown-option').forEach(option => {
                   const hasActiveFilter = activeFilterValue === option.dataset.value;
@@ -2022,7 +2027,7 @@ class SearchSectionComponent extends HTMLElement {
           container.classList.remove('open');
           
           // Remove from active filters
-          delete filterManager.filters[filterKey];
+          delete component.filterManager.filters[filterKey];
           
           // Update visual selection in dropdown
           const options = component.shadowRoot.getElementById (`${type}Options`);
@@ -2036,7 +2041,7 @@ class SearchSectionComponent extends HTMLElement {
           if (type === 'faculty') {
               const courseInput = component.shadowRoot.getElementById ('courseFilter');
               courseInput.value = '';
-              delete filterManager.filters.course;
+              delete component.filterManager.filters.course;
               filterDropdownOptions('course', '');
           }
           
@@ -2054,7 +2059,7 @@ class SearchSectionComponent extends HTMLElement {
                       items = ['2024/2025', '2023/2024', '2022/2023', '2021/2022'];
                   } else if (type === 'documentType') {
                       const staticTypes = ['PDF', 'DOCX', 'PPTX', 'XLSX'];
-                      const dynamicTypes = window.allFileTypes || [];
+                      const dynamicTypes = component.allFileTypes || [];
                       const allTypes = [...staticTypes];
                       dynamicTypes.forEach(type => {
                           if (!allTypes.includes(type)) {
@@ -2133,14 +2138,14 @@ class SearchSectionComponent extends HTMLElement {
                   const rating = index + 1;
                   
                   // Check if clicking the same rating to deactivate
-                  if (filterManager.filters.minRating === rating) {
+                  if (component.filterManager.filters.minRating === rating) {
                       // Deactivate
-                      delete filterManager.filters.minRating;
+                      delete component.filterManager.filters.minRating;
                       ratingStars.forEach(s => s.classList.remove('active'));
                       ratingText.textContent = 'Qualsiasi rating';
                   } else {
                       // Activate up to clicked rating
-                      filterManager.filters.minRating = rating;
+                      component.filterManager.filters.minRating = rating;
                       ratingStars.forEach((s, i) => {
                           s.classList.toggle('active', i < rating);
                       });
@@ -2170,8 +2175,8 @@ class SearchSectionComponent extends HTMLElement {
       
       function initializeToggleFilters() {
           // Ensure priceType is always set to 'all' by default
-          if (!filterManager.filters.priceType) {
-              filterManager.filters.priceType = 'all';
+          if (!component.filterManager.filters.priceType) {
+              component.filterManager.filters.priceType = 'all';
           }
           // Price toggles
           const priceToggles = component.shadowRoot.querySelectorAll('.price-toggle');
@@ -2182,7 +2187,7 @@ class SearchSectionComponent extends HTMLElement {
           priceToggles.forEach(toggle => {
               if (toggle.dataset.price === 'all' && !initialSet) {
                   toggle.classList.add('active');
-                  filterManager.filters.priceType = 'all';
+                  component.filterManager.filters.priceType = 'all';
                   if (priceRangeContainer) priceRangeContainer.style.display = 'block';
                   initialSet = true;
               } else {
@@ -2190,7 +2195,7 @@ class SearchSectionComponent extends HTMLElement {
               }
           });
           // Always show price range for 'Tutti' (all) on initialization
-          if (priceRangeContainer && filterManager.filters.priceType === 'all') {
+          if (priceRangeContainer && component.filterManager.filters.priceType === 'all') {
               priceRangeContainer.style.display = 'block';
           }
       
@@ -2200,9 +2205,9 @@ class SearchSectionComponent extends HTMLElement {
                   toggle.classList.add('active');
                   const priceType = toggle.dataset.price;
                   if (priceType === 'all') {
-                      filterManager.filters.priceType = 'all';
-                      delete filterManager.filters.minPrice;
-                      delete filterManager.filters.maxPrice;
+                      component.filterManager.filters.priceType = 'all';
+                      delete component.filterManager.filters.minPrice;
+                      delete component.filterManager.filters.maxPrice;
                       if (priceRangeContainer) priceRangeContainer.style.display = 'block';
                       const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
                       const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
@@ -2214,12 +2219,12 @@ class SearchSectionComponent extends HTMLElement {
                       if (maxPriceValue) maxPriceValue.textContent = '€100';
                       updatePriceSliderFill();
                   } else if (priceType === 'free') {
-                      filterManager.filters.priceType = 'free';
-                      delete filterManager.filters.minPrice;
-                      delete filterManager.filters.maxPrice;
+                      component.filterManager.filters.priceType = 'free';
+                      delete component.filterManager.filters.minPrice;
+                      delete component.filterManager.filters.maxPrice;
                       if (priceRangeContainer) priceRangeContainer.style.display = 'none';
                   } else if (priceType === 'paid') {
-                      filterManager.filters.priceType = 'paid';
+                      component.filterManager.filters.priceType = 'paid';
                       if (priceRangeContainer) priceRangeContainer.style.display = 'block';
                       const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
                       const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
@@ -2227,8 +2232,8 @@ class SearchSectionComponent extends HTMLElement {
                           const minVal = parseFloat(minPriceRange.value);
                           const maxVal = parseFloat(maxPriceRange.value);
                           if (minVal !== 0 || maxVal !== 100) {
-                              filterManager.filters.minPrice = minVal;
-                              filterManager.filters.maxPrice = maxVal;
+                              component.filterManager.filters.minPrice = minVal;
+                              component.filterManager.filters.maxPrice = maxVal;
                           }
                       }
                   }
@@ -2245,9 +2250,9 @@ class SearchSectionComponent extends HTMLElement {
                   toggle.classList.add('active');
                   const vetrinaType = toggle.dataset.vetrina;
                   if (vetrinaType === 'all') {
-                      delete filterManager.filters.vetrinaType;
+                      delete component.filterManager.filters.vetrinaType;
                   } else {
-                      filterManager.filters.vetrinaType = vetrinaType;
+                      component.filterManager.filters.vetrinaType = vetrinaType;
                   }
                   applyFiltersAndRender();
                   saveFiltersToStorage();
@@ -2491,17 +2496,17 @@ class SearchSectionComponent extends HTMLElement {
       
       function applyPriceFilters(minVal, maxVal) {
           // Defensive: always delete priceRange array if present
-          if (filterManager.filters.priceRange) {
-              delete filterManager.filters.priceRange;
+          if (component.filterManager.filters.priceRange) {
+              delete component.filterManager.filters.priceRange;
           }
           // If priceType is not set, set it to 'all'
-          if (!filterManager.filters.priceType) {
-              filterManager.filters.priceType = 'all';
+          if (!component.filterManager.filters.priceType) {
+              component.filterManager.filters.priceType = 'all';
           }
           // Apply price range filter for both 'paid' and 'all' price types
-          if (filterManager.filters.priceType === 'paid' || filterManager.filters.priceType === 'all') {
-              filterManager.filters.minPrice = minVal;
-              filterManager.filters.maxPrice = maxVal;
+          if (component.filterManager.filters.priceType === 'paid' || component.filterManager.filters.priceType === 'all') {
+              component.filterManager.filters.minPrice = minVal;
+              component.filterManager.filters.maxPrice = maxVal;
           }
           
           updateBottomFilterCount();
@@ -2676,12 +2681,12 @@ class SearchSectionComponent extends HTMLElement {
           const searchInput = component.shadowRoot.getElementById ('searchInput');
           const currentQuery = searchInput?.value?.trim() || '';
           
-          const hasBackendFilters = filterManager.filters.course || filterManager.filters.faculty || filterManager.filters.canale || filterManager.filters.language || filterManager.filters.tag || filterManager.filters.documentType || filterManager.filters.academicYear || filterManager.filters.courseYear;
+          const hasBackendFilters = component.filterManager.filters.course || component.filterManager.filters.faculty || component.filterManager.filters.canale || component.filterManager.filters.language || component.filterManager.filters.tag || component.filterManager.filters.documentType || component.filterManager.filters.academicYear || component.filterManager.filters.courseYear;
           
           if (hasBackendFilters || currentQuery) {
               // Use backend search with filters
               await performSearch(currentQuery);
-          } else if (Object.keys(filterManager.filters).length === 0) {
+          } else if (Object.keys(component.filterManager.filters).length === 0) {
               // No filters active, show all original files
               renderDocuments(originalFiles);
               currentFiles = originalFiles;
@@ -2701,7 +2706,7 @@ class SearchSectionComponent extends HTMLElement {
               updateBottomFilterCount();
               
               // Show filter status
-              const filterCount = Object.keys(filterManager.filters).length;
+              const filterCount = Object.keys(component.filterManager.filters).length;
               if (filterCount > 0) {
                   if (filteredFiles.length > 0) {
                       showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtri attivi 🎯`);
@@ -2900,7 +2905,7 @@ class SearchSectionComponent extends HTMLElement {
               clearAllPill.className = 'filter-pill clear-all-filters-btn sticky-left';
               clearAllPill.innerHTML = `
                   <span class="filter-label">Rimuovi tutti</span>
-                  <button class="filter-remove" onclick="filterManager.clearAllFiltersAction()">
+                  <button class="filter-remove" onclick="component.filterManager.clearAllFiltersAction()">
                       <i class="material-symbols-outlined">close</i>
                   </button>
               `;
@@ -2916,7 +2921,7 @@ class SearchSectionComponent extends HTMLElement {
                   pill.setAttribute('data-filter-key', 'pagesRange');
                   pill.innerHTML = `
                       <span class="filter-label">Pagine: ${min}-${max}</span>
-                      <button class="filter-remove" onclick="filterManager.removeFilter('minPages');filterManager.removeFilter('maxPages')">
+                      <button class="filter-remove" onclick="component.filterManager.removeFilter('minPages');component.filterManager.removeFilter('maxPages')">
                           <i class="material-symbols-outlined">close</i>
                       </button>
                   `;
@@ -2933,7 +2938,7 @@ class SearchSectionComponent extends HTMLElement {
                   pill.setAttribute('data-filter-key', 'priceRange');
                   pill.innerHTML = `
                       <span class="filter-label">Prezzo: €${min}-€${max}</span>
-                      <button class="filter-remove" onclick="filterManager.removeFilter('minPrice');filterManager.removeFilter('maxPrice')">
+                      <button class="filter-remove" onclick="component.filterManager.removeFilter('minPrice');component.filterManager.removeFilter('maxPrice')">
                           <i class="material-symbols-outlined">close</i>
                       </button>
                   `;
@@ -2973,7 +2978,7 @@ class SearchSectionComponent extends HTMLElement {
               
               pill.innerHTML = `
                   <span class="filter-label">${key}: ${displayText}</span>
-                  <button class="filter-remove" onclick="filterManager.removeFilter('${key}')">
+                  <button class="filter-remove" onclick="component.filterManager.removeFilter('${key}')">
                       <i class="material-symbols-outlined">close</i>
                   </button>
               `;
@@ -2982,16 +2987,16 @@ class SearchSectionComponent extends HTMLElement {
           }
       }
       
-      // Initialize the filter manager
-      const filterManager = new FilterManager();
+      // Initialize the filter manager as instance property
+      this.filterManager = new FilterManager();
       
       // Replace your existing functions with calls to the filter manager
       function updateBottomFilterCount() {
-          filterManager.updateBottomFilterCount();
+          component.component.filterManager.updateBottomFilterCount();
       }
       
       function updateActiveFiltersDisplay() {
-          filterManager.updateActiveFiltersDisplay();
+          component.component.filterManager.updateActiveFiltersDisplay();
       }
       
       function closeFiltersPanel() {
@@ -3011,12 +3016,12 @@ class SearchSectionComponent extends HTMLElement {
       
       async function populateFilterOptions() {
           // Use cached hierarchy data instead of making API calls
-          if (!window.facultyCoursesData) {
+          if (!component.facultyCoursesData) {
               await loadHierarchyData();
           }
           
           // If hierarchy data is still not available, fallback to extract from files
-          if (!window.facultyCoursesData || Object.keys(window.facultyCoursesData).length === 0) {
+          if (!component.facultyCoursesData || Object.keys(component.facultyCoursesData).length === 0) {
               if (originalFiles && originalFiles.length) {
                   const faculties = [...new Set(originalFiles.map(f => 
                       f.faculty_name || f.vetrina_info?.faculty_name
@@ -3027,14 +3032,14 @@ class SearchSectionComponent extends HTMLElement {
                   ).filter(Boolean))];
                   
                   // Create a simple fallback hierarchy
-                  window.facultyCoursesData = {};
+                  component.facultyCoursesData = {};
                   faculties.forEach(faculty => {
-                      window.facultyCoursesData[faculty] = courses.map(course => ['', course]);
+                      component.facultyCoursesData[faculty] = courses.map(course => ['', course]);
                   });
               } else {
                   // Create mock data when no files or API data is available (for testing/demo)
                   console.log('🔧 No API data or files available, using mock filter data for demo');
-                  window.facultyCoursesData = {
+                  component.facultyCoursesData = {
                       'Ingegneria': [
                           ['', 'Algoritmi e Strutture Dati'],
                           ['', 'Analisi Matematica'],
@@ -3111,7 +3116,7 @@ class SearchSectionComponent extends HTMLElement {
       
           // Save current selection and input value
           const input = component.shadowRoot.getElementById (`${type}Filter`);
-          const currentValue = filterManager.filters[type] || '';
+          const currentValue = component.filterManager.filters[type] || '';
           const currentInputValue = input ? input.value : '';
       
           // Clear existing options except the first one (default "All" option)
@@ -3175,7 +3180,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function clearAllFiltersAction() {
-          filterManager.filters = {};
+          component.filterManager.filters = {};
           
           // Clear filters from localStorage
           try {
@@ -3201,40 +3206,40 @@ class SearchSectionComponent extends HTMLElement {
       
       function applyFiltersToFiles(files) {
           // If no filters are active, return all files
-          if (!filterManager.filters || Object.keys(filterManager.filters).length === 0) {
+          if (!component.filterManager.filters || Object.keys(component.filterManager.filters).length === 0) {
               return files;
           }
           
           return files.filter(file => {
               // Faculty filter - case insensitive partial match (supports multiple)
-              if (filterManager.filters.faculty) {
+              if (component.filterManager.filters.faculty) {
                   const fileFaculty = file.faculty_name || file.vetrina_info?.faculty_name || '';
-                  if (Array.isArray(filterManager.filters.faculty)) {
-                      const hasMatchingFaculty = filterManager.filters.faculty.some(selectedFaculty => 
+                  if (Array.isArray(component.filterManager.filters.faculty)) {
+                      const hasMatchingFaculty = component.filterManager.filters.faculty.some(selectedFaculty => 
                           fileFaculty.toLowerCase().includes(selectedFaculty.toLowerCase())
                       );
                       if (!hasMatchingFaculty) {
                           return false;
                       }
                   } else {
-                      if (!fileFaculty.toLowerCase().includes(filterManager.filters.faculty.toLowerCase())) {
+                      if (!fileFaculty.toLowerCase().includes(component.filterManager.filters.faculty.toLowerCase())) {
                           return false;
                       }
                   }
               }
               
               // Course filter - case insensitive partial match (supports multiple)
-              if (filterManager.filters.course) {
+              if (component.filterManager.filters.course) {
                   const fileCourse = file.course_name || file.vetrina_info?.course_name || '';
-                  if (Array.isArray(filterManager.filters.course)) {
-                      const hasMatchingCourse = filterManager.filters.course.some(selectedCourse => 
+                  if (Array.isArray(component.filterManager.filters.course)) {
+                      const hasMatchingCourse = component.filterManager.filters.course.some(selectedCourse => 
                           fileCourse.toLowerCase().includes(selectedCourse.toLowerCase())
                       );
                       if (!hasMatchingCourse) {
                           return false;
                       }
                   } else {
-                      if (!fileCourse.toLowerCase().includes(filterManager.filters.course.toLowerCase())) {
+                      if (!fileCourse.toLowerCase().includes(component.filterManager.filters.course.toLowerCase())) {
                           return false;
                       }
                   }
@@ -3243,67 +3248,67 @@ class SearchSectionComponent extends HTMLElement {
               
               
               // Document type filter - exact match (supports multiple)
-              if (filterManager.filters.documentType) {
+              if (component.filterManager.filters.documentType) {
                   const fileType = file.document_type || '';
-                  if (Array.isArray(filterManager.filters.documentType)) {
-                      if (!filterManager.filters.documentType.includes(fileType)) {
+                  if (Array.isArray(component.filterManager.filters.documentType)) {
+                      if (!component.filterManager.filters.documentType.includes(fileType)) {
                           return false;
                       }
                   } else {
-                      if (fileType !== filterManager.filters.documentType) {
+                      if (fileType !== component.filterManager.filters.documentType) {
                           return false;
                       }
                   }
               }
               
               // Language filter - exact match (supports multiple)
-              if (filterManager.filters.language) {
+              if (component.filterManager.filters.language) {
                   const fileLanguage = file.language || '';
-                  if (Array.isArray(filterManager.filters.language)) {
-                      if (!filterManager.filters.language.includes(fileLanguage)) {
+                  if (Array.isArray(component.filterManager.filters.language)) {
+                      if (!component.filterManager.filters.language.includes(fileLanguage)) {
                           return false;
                       }
                   } else {
-                      if (fileLanguage !== filterManager.filters.language) {
+                      if (fileLanguage !== component.filterManager.filters.language) {
                           return false;
                       }
                   }
               }
               
               // Canale filter - exact match (supports multiple)
-              if (filterManager.filters.canale) {
+              if (component.filterManager.filters.canale) {
                   const fileCanale = file.canale || file.vetrina_info?.canale || '';
-                  if (Array.isArray(filterManager.filters.canale)) {
-                      if (!filterManager.filters.canale.includes(fileCanale)) {
+                  if (Array.isArray(component.filterManager.filters.canale)) {
+                      if (!component.filterManager.filters.canale.includes(fileCanale)) {
                           return false;
                       }
                   } else {
-                      if (fileCanale !== filterManager.filters.canale) {
+                      if (fileCanale !== component.filterManager.filters.canale) {
                           return false;
                       }
                   }
               }
               
               // Academic year filter - exact match (supports multiple)
-              if (filterManager.filters.academicYear) {
+              if (component.filterManager.filters.academicYear) {
                   const fileYear = file.academic_year || '';
-                  if (Array.isArray(filterManager.filters.academicYear)) {
-                      if (!filterManager.filters.academicYear.includes(fileYear)) {
+                  if (Array.isArray(component.filterManager.filters.academicYear)) {
+                      if (!component.filterManager.filters.academicYear.includes(fileYear)) {
                           return false;
                       }
                   } else {
-                      if (fileYear !== filterManager.filters.academicYear) {
+                      if (fileYear !== component.filterManager.filters.academicYear) {
                           return false;
                       }
                   }
               }
               
               // Tag filter - supports multiple tags
-              if (filterManager.filters.tag) {
+              if (component.filterManager.filters.tag) {
                   const fileTags = file.tags || [];
-                  if (Array.isArray(filterManager.filters.tag)) {
+                  if (Array.isArray(component.filterManager.filters.tag)) {
                       // File must have at least one of the selected tags
-                      const hasMatchingTag = filterManager.filters.tag.some(selectedTag => 
+                      const hasMatchingTag = component.filterManager.filters.tag.some(selectedTag => 
                           fileTags.includes(selectedTag)
                       );
                       if (!hasMatchingTag) {
@@ -3311,44 +3316,44 @@ class SearchSectionComponent extends HTMLElement {
                       }
                   } else {
                       // Single tag filter (backward compatibility)
-                      if (!fileTags.includes(filterManager.filters.tag)) {
+                      if (!fileTags.includes(component.filterManager.filters.tag)) {
                           return false;
                       }
                   }
               }
               
               // Rating filter - minimum rating
-              if (filterManager.filters.minRating) {
+              if (component.filterManager.filters.minRating) {
                   const fileRating = parseFloat(file.rating) || 0;
-                  if (fileRating < filterManager.filters.minRating) {
+                  if (fileRating < component.filterManager.filters.minRating) {
                       return false;
                   }
               }
               
               // Price type filter
-              if (filterManager.filters.priceType) {
+              if (component.filterManager.filters.priceType) {
                   const filePrice = parseFloat(file.price) || 0;
                   
-                  if (filterManager.filters.priceType === 'free' && filePrice > 0) {
+                  if (component.filterManager.filters.priceType === 'free' && filePrice > 0) {
                       return false;
                   }
-                  if (filterManager.filters.priceType === 'paid' && filePrice === 0) {
+                  if (component.filterManager.filters.priceType === 'paid' && filePrice === 0) {
                       return false;
                   }
                   // For 'all', we don't filter by price type, but we may filter by range below
               }
               
               // Price range filter - works for both 'paid' and 'all' price types
-              if (filterManager.filters.minPrice !== undefined || filterManager.filters.maxPrice !== undefined) {
+              if (component.filterManager.filters.minPrice !== undefined || component.filterManager.filters.maxPrice !== undefined) {
                   const filePrice = parseFloat(file.price) || 0;
                   
                   // Apply minimum price filter
-                  if (filterManager.filters.minPrice !== undefined && filePrice < filterManager.filters.minPrice) {
+                  if (component.filterManager.filters.minPrice !== undefined && filePrice < component.filterManager.filters.minPrice) {
                       return false;
                   }
                   
                   // Apply maximum price filter
-                  if (filterManager.filters.maxPrice !== undefined && filePrice > filterManager.filters.maxPrice) {
+                  if (component.filterManager.filters.maxPrice !== undefined && filePrice > component.filterManager.filters.maxPrice) {
                       return false;
                   }
               }
@@ -3356,10 +3361,10 @@ class SearchSectionComponent extends HTMLElement {
       
               
               // Vetrina type filter - single vs multiple files
-              if (filterManager.filters.vetrinaType && filterManager.filters.vetrinaType !== 'all') {
+              if (component.filterManager.filters.vetrinaType && component.filterManager.filters.vetrinaType !== 'all') {
                   const fileCount = file.fileCount || 1;
                   
-                  switch (filterManager.filters.vetrinaType) {
+                  switch (component.filterManager.filters.vetrinaType) {
                       case 'single':
                           if (fileCount > 1) return false;
                           break;
@@ -3370,10 +3375,10 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Pages (Pagine) filter
-              if (typeof filterManager.filters.minPages === 'number' && typeof filterManager.filters.maxPages === 'number') {
+              if (typeof component.filterManager.filters.minPages === 'number' && typeof component.filterManager.filters.maxPages === 'number') {
                   const filePages = file.pages || file.vetrina_info?.pages;
                   if (typeof filePages !== 'number') return false;
-                  if (filePages < filterManager.filters.minPages || filePages > filterManager.filters.maxPages) {
+                  if (filePages < component.filterManager.filters.minPages || filePages > component.filterManager.filters.maxPages) {
                       return false;
                   }
               }
@@ -3386,7 +3391,7 @@ class SearchSectionComponent extends HTMLElement {
           const activeFiltersContainer = component.shadowRoot.getElementById ('activeFiltersDisplay');
           if (!activeFiltersContainer) return;
           
-          const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
+          const filterEntries = Object.entries(component.filterManager.filters).filter(([key, value]) => {
               return value !== null && value !== undefined && value !== '' && value !== 'all';
           });
           
@@ -3523,10 +3528,10 @@ class SearchSectionComponent extends HTMLElement {
           });
           
           // Add price range pill if min/max are set and not default values
-          if ((filterManager.filters.minPrice !== undefined || filterManager.filters.maxPrice !== undefined) &&
-              (filterManager.filters.minPrice !== 0 || filterManager.filters.maxPrice !== 100)) {
-              const minPrice = filterManager.filters.minPrice !== undefined ? filterManager.filters.minPrice : 0;
-              const maxPrice = filterManager.filters.maxPrice !== undefined ? filterManager.filters.maxPrice : 100;
+          if ((component.filterManager.filters.minPrice !== undefined || component.filterManager.filters.maxPrice !== undefined) &&
+              (component.filterManager.filters.minPrice !== 0 || component.filterManager.filters.maxPrice !== 100)) {
+              const minPrice = component.filterManager.filters.minPrice !== undefined ? component.filterManager.filters.minPrice : 0;
+              const maxPrice = component.filterManager.filters.maxPrice !== undefined ? component.filterManager.filters.maxPrice : 100;
               filterPills.push(`
                   <div class="filter-pill" data-filter-key="priceRange">
                       <span class="filter-pill-label">Prezzo:</span>
@@ -3536,10 +3541,10 @@ class SearchSectionComponent extends HTMLElement {
               `);
           }
           // Add pages range pill if min/max are set and not default values
-          if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
-              (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
-              const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
-              const maxPages = filterManager.filters.maxPages !== undefined ? filterManager.filters.maxPages : 1000;
+          if ((component.filterManager.filters.minPages !== undefined || component.filterManager.filters.maxPages !== undefined) &&
+              (component.filterManager.filters.minPages !== 1 || component.filterManager.filters.maxPages !== 1000)) {
+              const minPages = component.filterManager.filters.minPages !== undefined ? component.filterManager.filters.minPages : 1;
+              const maxPages = component.filterManager.filters.maxPages !== undefined ? component.filterManager.filters.maxPages : 1000;
               filterPills.push(`
                   <div class="filter-pill" data-filter-key="pagesRange">
                       <span class="filter-pill-label">Pagine:</span>
@@ -3602,21 +3607,21 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function removeSpecificFilterValueFromPill(filterKey, specificValue) {
-          if (filterManager.filters[filterKey] && Array.isArray(filterManager.filters[filterKey])) {
-              filterManager.filters[filterKey] = filterManager.filters[filterKey].filter(v => v !== specificValue);
+          if (component.filterManager.filters[filterKey] && Array.isArray(component.filterManager.filters[filterKey])) {
+              component.filterManager.filters[filterKey] = component.filterManager.filters[filterKey].filter(v => v !== specificValue);
               
-              if (filterManager.filters[filterKey].length === 0) {
-                  delete filterManager.filters[filterKey];
+              if (component.filterManager.filters[filterKey].length === 0) {
+                  delete component.filterManager.filters[filterKey];
               }
               
               // Update the input display
               const input = component.shadowRoot.getElementById (`${filterKey}Filter`);
               if (input) {
-                  if (!filterManager.filters[filterKey] || filterManager.filters[filterKey].length === 0) {
+                  if (!component.filterManager.filters[filterKey] || component.filterManager.filters[filterKey].length === 0) {
                       input.value = '';
-                  } else if (filterManager.filters[filterKey].length === 1) {
+                  } else if (component.filterManager.filters[filterKey].length === 1) {
                       // Apply display mappings for single remaining item
-                      const remainingValue = filterManager.filters[filterKey][0];
+                      const remainingValue = component.filterManager.filters[filterKey][0];
                       let displayText = remainingValue;
                       
                       const languageDisplayMap = {
@@ -3631,7 +3636,7 @@ class SearchSectionComponent extends HTMLElement {
                       
                       input.value = displayText;
                   } else {
-                      input.value = `${filterManager.filters[filterKey].length} selected`;
+                      input.value = `${component.filterManager.filters[filterKey].length} selected`;
                   }
               }
               
@@ -3665,8 +3670,8 @@ class SearchSectionComponent extends HTMLElement {
       function removeFilter(filterKey) {
           if (filterKey === 'priceRange') {
               // Reset price range but keep priceType
-              delete filterManager.filters.minPrice;
-              delete filterManager.filters.maxPrice;
+              delete component.filterManager.filters.minPrice;
+              delete component.filterManager.filters.maxPrice;
               
               const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
               const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
@@ -3680,7 +3685,7 @@ class SearchSectionComponent extends HTMLElement {
               updatePriceSliderFill();
               
           } else {
-              delete filterManager.filters[filterKey];
+              delete component.filterManager.filters[filterKey];
               
               // Update UI elements
               const filterMap = {
@@ -3711,8 +3716,8 @@ class SearchSectionComponent extends HTMLElement {
               
               if (filterKey === 'priceType') {
                   // Reset all price-related filters
-                  delete filterManager.filters.minPrice;
-                  delete filterManager.filters.maxPrice;
+                  delete component.filterManager.filters.minPrice;
+                  delete component.filterManager.filters.maxPrice;
                   
                   component.shadowRoot.querySelectorAll('.price-toggle').forEach(toggle => {
                       toggle.classList.remove('active');
@@ -4005,7 +4010,7 @@ class SearchSectionComponent extends HTMLElement {
           
           // Add resize listener to update loading cards when screen size changes
           if (!window.loadingCardsResizeListener) {
-              window.loadingCardsResizeListener = debounce(() => {
+              component.loadingCardsResizeListener = debounce(() => {
                   const grid = component.shadowRoot.getElementById ('documentsGrid');
                   if (grid && grid.classList.contains('loading')) {
                       console.log('📱 Screen resized, updating loading cards...');
@@ -4013,7 +4018,7 @@ class SearchSectionComponent extends HTMLElement {
                   }
               }, 250); // Debounce resize events
               
-              window.addEventListener('resize', window.loadingCardsResizeListener);
+              window.addEventListener('resize', component.loadingCardsResizeListener);
           }
       }
       
@@ -4190,7 +4195,7 @@ class SearchSectionComponent extends HTMLElement {
           try {
               const response = await makeSimpleRequest('/tags');
               if (response && response.tags) {
-                  window.allTags = response.tags;
+                  component.allTags = response.tags;
               }
           } catch (error) {
               // Keep default tags: ['appunti', 'dispense', 'esercizi']
@@ -5371,7 +5376,7 @@ class SearchSectionComponent extends HTMLElement {
           let filtered = [...files];
           
           // Apply filters that aren't handled by backend
-          Object.entries(filterManager.filters).forEach(([key, value]) => {
+          Object.entries(component.filterManager.filters).forEach(([key, value]) => {
               if (!value || key === 'course' || key === 'faculty' || key === 'canale' || key === 'language' || key === 'tag' || key === 'documentType' || key === 'academicYear' || key === 'courseYear') return; // Skip backend-handled filters
               
               filtered = filtered.filter(file => {
@@ -5416,11 +5421,11 @@ class SearchSectionComponent extends HTMLElement {
       function saveFiltersToStorage() {
           try {
               // Save all filters including tags
-              localStorage.setItem('searchFilters', JSON.stringify(filterManager.filters));
+              localStorage.setItem('searchFilters', JSON.stringify(component.filterManager.filters));
               
               // Also save tags separately for easier access
-              if (filterManager.filters.tag) {
-                  localStorage.setItem('searchTags', JSON.stringify(filterManager.filters.tag));
+              if (component.filterManager.filters.tag) {
+                  localStorage.setItem('searchTags', JSON.stringify(component.filterManager.filters.tag));
               } else {
                   localStorage.removeItem('searchTags');
               }
@@ -5439,12 +5444,12 @@ class SearchSectionComponent extends HTMLElement {
                   const parsedFilters = JSON.parse(savedFilters);
                   
                   // Restore all filters
-                  filterManager.filters = parsedFilters;
+                  component.filterManager.filters = parsedFilters;
                   
                   // Ensure tags are properly restored
                   if (savedTags) {
                       const parsedTags = JSON.parse(savedTags);
-                      filterManager.filters.tag = parsedTags;
+                      component.filterManager.filters.tag = parsedTags;
                   }
                   
                   // Update UI to reflect restored filters
@@ -5459,7 +5464,7 @@ class SearchSectionComponent extends HTMLElement {
                       renderDocuments(filteredFiles);
                       currentFiles = filteredFiles;
                       
-                      const filterCount = filterManager.getActiveFilterCount().count;
+                      const filterCount = component.filterManager.getActiveFilterCount().count;
                       if (filterCount > 0) {
                           showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
                       } else {
@@ -5468,7 +5473,7 @@ class SearchSectionComponent extends HTMLElement {
                   }
               } else {
                   // No saved filters, start fresh
-                  filterManager.filters = {};
+                  component.filterManager.filters = {};
                   updateFilterInputs();
                   updateActiveFilterIndicators();
                   updateBottomFilterCount();
@@ -5484,7 +5489,7 @@ class SearchSectionComponent extends HTMLElement {
           } catch (e) {
               console.warn('Could not restore filters from localStorage:', e);
               // Fallback to fresh start
-              filterManager.filters = {};
+              component.filterManager.filters = {};
               updateFilterInputs();
               updateActiveFilterIndicators();
               updateBottomFilterCount();
@@ -5573,18 +5578,18 @@ class SearchSectionComponent extends HTMLElement {
           dropdownTypes.forEach(type => {
               const input = component.shadowRoot.getElementById (`${type}Filter`);
               const filterKey = type;
-              if (input && filterManager.filters[filterKey]) {
-                  let displayValue = filterManager.filters[filterKey];
+              if (input && component.filterManager.filters[filterKey]) {
+                  let displayValue = component.filterManager.filters[filterKey];
                   
                   // Use display text mapping for language and tag
-                  if (type === 'language' && languageDisplayMap[filterManager.filters[filterKey]]) {
-                      displayValue = languageDisplayMap[filterManager.filters[filterKey]];
+                  if (type === 'language' && languageDisplayMap[component.filterManager.filters[filterKey]]) {
+                      displayValue = languageDisplayMap[component.filterManager.filters[filterKey]];
                   } else if (type === 'tag') {
                       // Handle multiple tags
-                      if (Array.isArray(filterManager.filters[filterKey])) {
-                          displayValue = filterManager.filters[filterKey].map(tag => getTagDisplayName(tag)).join(', ');
+                      if (Array.isArray(component.filterManager.filters[filterKey])) {
+                          displayValue = component.filterManager.filters[filterKey].map(tag => getTagDisplayName(tag)).join(', ');
                       } else {
-                          displayValue = getTagDisplayName(filterManager.filters[filterKey]);
+                          displayValue = getTagDisplayName(component.filterManager.filters[filterKey]);
                       }
                   }
                   
@@ -5606,9 +5611,9 @@ class SearchSectionComponent extends HTMLElement {
               const toggleClass = type.replace('Type', '-toggle');
               const dataAttr = type.replace('Type', '');
               
-              if (filterManager.filters[type] && filterManager.filters[type] !== 'all') {
+              if (component.filterManager.filters[type] && component.filterManager.filters[type] !== 'all') {
                   // Add active class to the correct toggle
-                  const activeToggle = component.shadowRoot.querySelector(`[data-${dataAttr}="${filterManager.filters[type]}"]`);
+                  const activeToggle = component.shadowRoot.querySelector(`[data-${dataAttr}="${component.filterManager.filters[type]}"]`);
                   if (activeToggle) {
                       activeToggle.classList.add('active');
                   }
@@ -5628,11 +5633,11 @@ class SearchSectionComponent extends HTMLElement {
           const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
           const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
           
-          if (filterManager.filters.minPrice !== undefined && filterManager.filters.maxPrice !== undefined) {
-              if (minPriceRange) minPriceRange.value = filterManager.filters.minPrice;
-              if (maxPriceRange) maxPriceRange.value = filterManager.filters.maxPrice;
-              if (minPriceValue) minPriceValue.textContent = `€${filterManager.filters.minPrice}`;
-              if (maxPriceValue) maxPriceValue.textContent = `€${filterManager.filters.maxPrice}`;
+          if (component.filterManager.filters.minPrice !== undefined && component.filterManager.filters.maxPrice !== undefined) {
+              if (minPriceRange) minPriceRange.value = component.filterManager.filters.minPrice;
+              if (maxPriceRange) maxPriceRange.value = component.filterManager.filters.maxPrice;
+              if (minPriceValue) minPriceValue.textContent = `€${component.filterManager.filters.minPrice}`;
+              if (maxPriceValue) maxPriceValue.textContent = `€${component.filterManager.filters.maxPrice}`;
           } else {
               // Default values
               if (minPriceRange) minPriceRange.value = 0;
@@ -5646,7 +5651,7 @@ class SearchSectionComponent extends HTMLElement {
           
           // Show/hide price range container based on price type
           if (priceRangeContainer) {
-              if (filterManager.filters.priceType === 'paid') {
+              if (component.filterManager.filters.priceType === 'paid') {
                   priceRangeContainer.style.display = 'block';
               } else {
                   priceRangeContainer.style.display = 'none';
@@ -5663,8 +5668,8 @@ class SearchSectionComponent extends HTMLElement {
               star.style.color = '#d1d5db';
           });
           
-          if (filterManager.filters.rating) {
-              const rating = parseInt(filterManager.filters.rating);
+          if (component.filterManager.filters.rating) {
+              const rating = parseInt(component.filterManager.filters.rating);
               for (let i = 0; i < rating; i++) {
                   if (ratingStars[i]) {
                       ratingStars[i].classList.add('active');
@@ -5689,8 +5694,8 @@ class SearchSectionComponent extends HTMLElement {
                       option.classList.remove('selected');
                   });
                   
-                  if (filterManager.filters[type]) {
-                      const selectedOptions = Array.isArray(filterManager.filters[type]) ? filterManager.filters[type] : [filterManager.filters[type]];
+                  if (component.filterManager.filters[type]) {
+                      const selectedOptions = Array.isArray(component.filterManager.filters[type]) ? component.filterManager.filters[type] : [component.filterManager.filters[type]];
                       selectedOptions.forEach(selectedValue => {
                           const selectedOption = optionsContainer.querySelector(`[data-value="${selectedValue}"]`);
                           if (selectedOption) {
@@ -5759,7 +5764,7 @@ class SearchSectionComponent extends HTMLElement {
                       
                       if (!this.value.trim()) {
                           // If search is cleared, apply current filters or show all
-                          if (Object.keys(filterManager.filters).length > 0) {
+                          if (Object.keys(component.filterManager.filters).length > 0) {
                               await applyFiltersAndRender();
                       } else {
                               await loadAllFiles();
@@ -5851,14 +5856,13 @@ class SearchSectionComponent extends HTMLElement {
               // ===========================
       
       // Make functions globally available for onclick handlers
-      window.previewDocument = previewDocument;
-      window.closePreview = closePreview;
-      window.downloadDocument = downloadDocument;
-      window.purchaseDocument = purchaseDocument;
-      window.toggleFavorite = toggleFavorite;
-      window.removeFilter = removeFilter;
-      window.clearAllFiltersAction = clearAllFiltersAction;
-      window.clearAllFiltersAction = clearAllFiltersAction;
+      component.previewDocument = previewDocument;
+      component.closePreview = closePreview;
+      component.downloadDocument = downloadDocument;
+      component.purchaseDocument = purchaseDocument;
+      component.toggleFavorite = toggleFavorite;
+      component.removeFilter = removeFilter;
+      component.clearAllFiltersAction = clearAllFiltersAction;
       
       async function openQuickLook(vetrina) {
           // Prevent multiple modals
@@ -7221,38 +7225,38 @@ class SearchSectionComponent extends HTMLElement {
               
               // Add any active filters to the search
               // Backend-supported filters: course_name, faculty, canale, language, tag, extension, date_year, course_year
-              if (filterManager.filters.course) {
-                  const courseValue = Array.isArray(filterManager.filters.course) ? filterManager.filters.course[0] : filterManager.filters.course;
+              if (component.filterManager.filters.course) {
+                  const courseValue = Array.isArray(component.filterManager.filters.course) ? component.filterManager.filters.course[0] : component.filterManager.filters.course;
                   searchParams.append('course_name', courseValue);
               }
-              if (filterManager.filters.faculty) {
-                  const facultyValue = Array.isArray(filterManager.filters.faculty) ? filterManager.filters.faculty[0] : filterManager.filters.faculty;
+              if (component.filterManager.filters.faculty) {
+                  const facultyValue = Array.isArray(component.filterManager.filters.faculty) ? component.filterManager.filters.faculty[0] : component.filterManager.filters.faculty;
                   searchParams.append('faculty', facultyValue);
               }
-              if (filterManager.filters.canale) {
-                  const canaleValue = Array.isArray(filterManager.filters.canale) ? filterManager.filters.canale[0] : filterManager.filters.canale;
+              if (component.filterManager.filters.canale) {
+                  const canaleValue = Array.isArray(component.filterManager.filters.canale) ? component.filterManager.filters.canale[0] : component.filterManager.filters.canale;
                   const backendCanaleValue = canaleValue === 'Canale Unico' ? '0' : canaleValue;
                   searchParams.append('canale', backendCanaleValue);
               }
-              if (filterManager.filters.language) {
-                  const languageValue = Array.isArray(filterManager.filters.language) ? filterManager.filters.language[0] : filterManager.filters.language;
+              if (component.filterManager.filters.language) {
+                  const languageValue = Array.isArray(component.filterManager.filters.language) ? component.filterManager.filters.language[0] : component.filterManager.filters.language;
                   searchParams.append('language', languageValue);
               }
-              if (filterManager.filters.tag) {
-                  const tagValue = Array.isArray(filterManager.filters.tag) ? filterManager.filters.tag[0] : filterManager.filters.tag;
+              if (component.filterManager.filters.tag) {
+                  const tagValue = Array.isArray(component.filterManager.filters.tag) ? component.filterManager.filters.tag[0] : component.filterManager.filters.tag;
                   searchParams.append('tag', tagValue);
               }
-              if (filterManager.filters.documentType) {
-                  const docTypeValue = Array.isArray(filterManager.filters.documentType) ? filterManager.filters.documentType[0] : filterManager.filters.documentType;
+              if (component.filterManager.filters.documentType) {
+                  const docTypeValue = Array.isArray(component.filterManager.filters.documentType) ? component.filterManager.filters.documentType[0] : component.filterManager.filters.documentType;
                   searchParams.append('extension', docTypeValue);
               }
-              if (filterManager.filters.academicYear) {
-                  const yearValue = Array.isArray(filterManager.filters.academicYear) ? filterManager.filters.academicYear[0] : filterManager.filters.academicYear;
+              if (component.filterManager.filters.academicYear) {
+                  const yearValue = Array.isArray(component.filterManager.filters.academicYear) ? component.filterManager.filters.academicYear[0] : component.filterManager.filters.academicYear;
                   const year = yearValue.split('/')[0];
                   searchParams.append('date_year', year);
               }
-              if (filterManager.filters.courseYear) {
-                  const courseYearValue = Array.isArray(filterManager.filters.courseYear) ? filterManager.filters.courseYear[0] : filterManager.filters.courseYear;
+              if (component.filterManager.filters.courseYear) {
+                  const courseYearValue = Array.isArray(component.filterManager.filters.courseYear) ? component.filterManager.filters.courseYear[0] : component.filterManager.filters.courseYear;
                   searchParams.append('course_year', courseYearValue);
               }
               
@@ -7723,8 +7727,8 @@ class SearchSectionComponent extends HTMLElement {
       
       
       function applyPagesFilters(minVal, maxVal) {
-          filterManager.filters.minPages = minVal;
-          filterManager.filters.maxPages = maxVal;
+          component.filterManager.filters.minPages = minVal;
+          component.filterManager.filters.maxPages = maxVal;
           
           updateBottomFilterCount();
           updateActiveFiltersDisplay();
@@ -7764,10 +7768,10 @@ class SearchSectionComponent extends HTMLElement {
       
       // ... existing code ...
           // Add pages range pill if min/max are set and not default values
-          if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
-              (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
-              const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
-              const maxPages = filterManager.filters.maxPages !== undefined ? filterManager.filters.maxPages : 1000;
+          if ((component.filterManager.filters.minPages !== undefined || component.filterManager.filters.maxPages !== undefined) &&
+              (component.filterManager.filters.minPages !== 1 || component.filterManager.filters.maxPages !== 1000)) {
+              const minPages = component.filterManager.filters.minPages !== undefined ? component.filterManager.filters.minPages : 1;
+              const maxPages = component.filterManager.filters.maxPages !== undefined ? component.filterManager.filters.maxPages : 1000;
               filterPills.push(`
                   <div class="filter-pill" data-filter-key="pagesRange">
                       <span class="filter-pill-label">Pagine:</span>
@@ -7783,21 +7787,21 @@ class SearchSectionComponent extends HTMLElement {
           const facultyInput = component.shadowRoot.getElementById ('facultyFilter');
           if (facultyInput) {
               facultyInput.addEventListener('change', (e) => {
-                  filterManager.setFilter('faculty', e.target.value);
+                  component.filterManager.setFilter('faculty', e.target.value);
               });
           }
           // Course filter
           const courseInput = component.shadowRoot.getElementById ('courseFilter');
           if (courseInput) {
               courseInput.addEventListener('change', (e) => {
-                  filterManager.setFilter('course', e.target.value);
+                  component.filterManager.setFilter('course', e.target.value);
               });
           }
           // Canale filter
           const canaleInput = component.shadowRoot.getElementById ('canaleFilter');
           if (canaleInput) {
               canaleInput.addEventListener('change', (e) => {
-                  filterManager.setFilter('canale', e.target.value);
+                  component.filterManager.setFilter('canale', e.target.value);
               });
           }
           // Price range sliders
@@ -7807,7 +7811,7 @@ class SearchSectionComponent extends HTMLElement {
               const updatePrice = () => {
                   const min = parseInt(minPriceRange.value, 10);
                   const max = parseInt(maxPriceRange.value, 10);
-                  filterManager.setFilter('priceRange', [min, max]);
+                  component.filterManager.setFilter('priceRange', [min, max]);
               };
               minPriceRange.addEventListener('input', updatePrice);
               maxPriceRange.addEventListener('input', updatePrice);
@@ -7819,8 +7823,8 @@ class SearchSectionComponent extends HTMLElement {
               const updatePages = () => {
                   const min = parseInt(minPagesRange.value, 10);
                   const max = parseInt(maxPagesRange.value, 10);
-                  filterManager.setFilter('minPages', min);
-                  filterManager.setFilter('maxPages', max);
+                  component.filterManager.setFilter('minPages', min);
+                  component.filterManager.setFilter('maxPages', max);
               };
               minPagesRange.addEventListener('input', updatePages);
               maxPagesRange.addEventListener('input', updatePages);
@@ -7829,25 +7833,28 @@ class SearchSectionComponent extends HTMLElement {
           component.shadowRoot.querySelectorAll('.rating-star-filter').forEach(star => {
               star.addEventListener('click', (e) => {
                   const rating = parseInt(star.getAttribute('data-rating'), 10);
-                  filterManager.setFilter('minRating', rating);
+                  component.filterManager.setFilter('minRating', rating);
               });
           });
           // Toggle groups (example for priceType)
           component.shadowRoot.querySelectorAll('.price-toggle').forEach(toggle => {
               toggle.addEventListener('click', (e) => {
-                  filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
+                  component.filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
               });
           });
           // Clear all button
           const clearAllBtn = component.shadowRoot.getElementById ('clearAllFilters');
           if (clearAllBtn) {
               clearAllBtn.addEventListener('click', () => {
-                  filterManager.filters = {};
-                  filterManager.updateActiveFiltersDisplay();
+                  component.filterManager.filters = {};
+                  component.filterManager.updateActiveFiltersDisplay();
               });
           }
           // Pills are handled by FilterManager.createFilterPill
       // ... existing code ...
+      
+      // Start the component initialization
+      initializeComponent();
     }
   
     render() {

@@ -2,3 +2,170 @@ cd frontend
 python3 -m http.server
 
 501ba03
+
+🔄 General Adaptations Needed for the Embedded JavaScript
+
+  1. DOM Element Selection Changes
+
+  What to change: All document.getElementById() and document.querySelector() calls
+  Why: The original script looks for global IDs, but our component uses unique IDs per instance
+
+  Examples:
+  // FROM:
+  document.getElementById('searchInput')
+  document.querySelector('.search-section')
+
+  // TO:
+  this.querySelector(`#searchInput-${this.componentId}`)
+  this.querySelector(`#searchSection-${this.componentId}`)
+
+  2. Global Variable Scope
+
+  What to change: All global variables need to be scoped to the component instance
+  Why: Multiple component instances would share the same variables otherwise
+
+  Examples:
+  // FROM:
+  let currentFiles = [];
+  let originalFiles = [];
+  let aiSearchEnabled = false;
+
+  // TO:
+  this.currentFiles = [];
+  this.originalFiles = [];
+  this.aiSearchEnabled = false;
+
+  3. Function Scope and Context
+
+  What to change: All standalone functions need to become component methods
+  Why: Functions need access to component instance data and methods
+
+  Examples:
+  // FROM:
+  function performSearch(query) { ... }
+  function showLoadingCards() { ... }
+
+  // TO:
+  performSearch(query) { ... }
+  showLoadingCards() { ... }
+
+  4. Event Listeners
+
+  What to change: Event listeners need to be bound to component context
+  Why: Event handlers need access to this component instance
+
+  Examples:
+  // FROM:
+  document.addEventListener('click', function(e) { ... });
+
+  // TO:
+  document.addEventListener('click', (e) => { ... });
+  // OR
+  document.addEventListener('click', this.handleClick.bind(this));
+
+  5. DOM Cache Adaptation
+
+  What to change: The DOM_CACHE object needs to use component-specific selectors
+  Why: Each component needs its own DOM references
+
+  Examples:
+  // FROM:
+  const DOM_CACHE = {
+      documentsGrid: document.getElementById('documentsGrid'),
+      // ...
+  }
+
+  // TO:
+  this.DOM_CACHE = {
+      documentsGrid: this.querySelector(`#documentsGrid-${this.componentId}`),
+      // ...
+  }
+
+  6. Initialization Flow
+
+  What to change: Remove window.onload and DOM ready events, replace with component lifecycle
+  Why: Component initializes when it's created, not when the page loads
+
+  Examples:
+  // FROM:
+  window.onload = async function() { ... }
+  document.addEventListener('DOMContentLoaded', function() { ... });
+
+  // TO:
+  // Move this code to component's init() method or connectedCallback()
+
+  7. Filter Manager Object
+
+  What to change: Make filterManager instance-specific
+  Why: Each component needs its own filter state
+
+  Examples:
+  // FROM:
+  const filterManager = { ... }
+
+  // TO:
+  this.filterManager = {
+      component: this,
+      componentId: this.componentId,
+      // ... rest of methods
+  }
+
+  8. API Calls and Configuration
+
+  What to change: Use component's config instead of global variables
+  Why: Each component can have different API endpoints and settings
+
+  Examples:
+  // FROM:
+  const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
+
+  // TO:
+  const API_BASE = this.config.apiBase;
+
+  9. CSS Class Targeting
+
+  What to change: When adding/removing CSS classes, ensure they target the right component
+  Why: CSS changes should only affect the current component instance
+
+  Examples:
+  // FROM:
+  document.querySelector('.search-section').classList.add('has-results');
+
+  // TO:
+  this.querySelector(`#searchSection-${this.componentId}`).classList.add('has-results');
+
+  10. Local Storage and Session Management
+
+  What to change: Add component ID prefix to storage keys if needed
+  Why: Prevent conflicts if multiple components save state
+
+  Examples:
+  // FROM:
+  localStorage.setItem('filters', JSON.stringify(filters));
+
+  // TO:
+  localStorage.setItem(`filters-${this.componentId}`, JSON.stringify(filters));
+  // OR keep global if you want shared state across all components
+
+  🎯 Step-by-Step Process:
+
+  1. Copy the entire embedded script into the component's loadEmbeddedScript() method
+  2. Find and replace all DOM selectors with component-specific ones
+  3. Convert all global variables to this.variableName
+  4. Convert all functions to component methods
+  5. Update DOM_CACHE to use component-specific selectors
+  6. Replace initialization events with component lifecycle calls
+  7. Update filterManager to be component-specific
+  8. Test each major function (search, filters, sorting, etc.)
+
+  🔧 Key Areas to Focus On:
+
+  - Search functionality - core feature
+  - Filter system - complex state management
+  - Document rendering - display logic
+  - AI toggle - special functionality
+  - Event handlers - user interactions
+  - API calls - backend communication
+
+  This way, every component instance will have its own complete, isolated functionality while
+  maintaining all the original features!

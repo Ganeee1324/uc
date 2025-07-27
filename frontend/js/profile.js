@@ -1092,8 +1092,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize user personalization first
     await initializeUserPersonalization();
     
-    // Main search component is now handled via HTML Web Component - will auto-initialize
-    console.log('Profile page loaded - search-section web components will handle themselves');
+    // Ensure search components have time to initialize properly
+    console.log('Profile page loaded - waiting for search components to initialize');
+    
+    // Wait for search components to be fully initialized
+    await new Promise(resolve => {
+        const checkComponents = () => {
+            const components = document.querySelectorAll('search-section-component');
+            if (components.length > 0 && components[0].shadowRoot) {
+                console.log('✅ Search components initialized successfully');
+                resolve();
+            } else {
+                setTimeout(checkComponents, 50);
+            }
+        };
+        checkComponents();
+    });
     
     // Initialize dashboard functionality
     initializeMobileMenu();

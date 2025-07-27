@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Profile - Search Component</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .debug-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .console-output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .search-test-area {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+    </style>
+    
+    <!-- Load search component first without defer to ensure proper initialization -->
+    <script src="components/search-section/search-section-component.js"></script>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔧 Debug Profile - Search Component Test</h1>
+        
+        <div class="debug-section">
+            <div class="debug-title">Test 1: Basic Search Component</div>
+            <div class="search-test-area">
+                <search-section-component 
+                    api-base="https://symbia.it:5000"
+                    placeholder-text="Test basic search..."
+                    button-text="Search">
+                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
+                        <p>⚠️ Web component not loaded</p>
+                        <p>Check console for errors</p>
+                    </div>
+                </search-section-component>
+            </div>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">Test 2: Component Registration Status</div>
+            <div id="registrationStatus" class="status info">Checking component registration...</div>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">Test 3: Component Initialization Status</div>
+            <div id="initializationStatus" class="status info">Checking component initialization...</div>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">Test 4: Shadow DOM Status</div>
+            <div id="shadowDomStatus" class="status info">Checking shadow DOM...</div>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">Test 5: Script Loading Status</div>
+            <div id="scriptLoadingStatus" class="status info">Checking script loading...</div>
+        </div>
+        
+        <div class="debug-section">
+            <div class="debug-title">Console Output</div>
+            <div class="console-output" id="consoleOutput">Waiting for console output...</div>
+        </div>
+    </div>
+
+    <!-- Professional Performance & Caching System -->
+    <script src="js/config.js" defer></script>
+    <script src="js/performance-cache.js" defer></script>
+    
+    <script>
+        // Capture console output
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const consoleOutput = document.getElementById('consoleOutput');
+        
+        function addToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : '#28a745';
+            consoleOutput.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalConsoleWarn.apply(console, args);
+            addToConsole(args.join(' '), 'warn');
+        };
+        
+        // Test functions
+        function testComponentRegistration() {
+            const status = document.getElementById('registrationStatus');
+            
+            if (customElements.get('search-section-component')) {
+                status.className = 'status success';
+                status.textContent = '✅ Search component is properly registered';
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ Search component is NOT registered';
+            }
+        }
+        
+        function testComponentInitialization() {
+            const status = document.getElementById('initializationStatus');
+            const components = document.querySelectorAll('search-section-component');
+            
+            if (components.length > 0) {
+                status.className = 'status success';
+                status.textContent = `✅ Found ${components.length} search component(s) in DOM`;
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ No search components found in DOM';
+            }
+        }
+        
+        function testShadowDOM() {
+            const status = document.getElementById('shadowDomStatus');
+            const components = document.querySelectorAll('search-section-component');
+            
+            if (components.length > 0 && components[0].shadowRoot) {
+                status.className = 'status success';
+                status.textContent = '✅ Shadow DOM is properly created';
+                
+                // Check if shadow DOM has content
+                const shadowContent = components[0].shadowRoot.innerHTML;
+                if (shadowContent.length > 100) {
+                    status.textContent += ' (with content)';
+                } else {
+                    status.textContent += ' (but appears empty)';
+                }
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ Shadow DOM is NOT created or accessible';
+            }
+        }
+        
+        function testScriptLoading() {
+            const status = document.getElementById('scriptLoadingStatus');
+            const scripts = document.querySelectorAll('script[src]');
+            const searchComponentScript = Array.from(scripts).find(script => 
+                script.src.includes('search-section-component.js')
+            );
+            
+            if (searchComponentScript) {
+                status.className = 'status success';
+                status.textContent = '✅ Search component script is loaded';
+                
+                if (searchComponentScript.hasAttribute('defer')) {
+                    status.textContent += ' (with defer)';
+                } else {
+                    status.textContent += ' (without defer)';
+                }
+            } else {
+                status.className = 'status error';
+                status.textContent = '❌ Search component script is NOT loaded';
+            }
+        }
+        
+        // Run tests
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Debug Profile Page Loaded');
+            
+            // Test 1: Immediate
+            testScriptLoading();
+            
+            // Test 2: After DOM ready
+            testComponentRegistration();
+            
+            // Test 3: After components initialize
+            setTimeout(() => {
+                testComponentInitialization();
+                testShadowDOM();
+            }, 200);
+            
+            console.log('✅ All tests initiated');
+        });
+        
+        // Monitor for errors
+        window.addEventListener('error', function(e) {
+            console.error('❌ Script error:', e.error);
+            console.error('Error details:', e.filename, e.lineno, e.colno);
+        });
+        
+        // Monitor for unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('❌ Unhandled promise rejection:', e.reason);
+        });
+    </script>
+</body>
+</html> 

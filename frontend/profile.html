@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
-    <!-- Web component will be loaded with dependencies -->
+    <!-- Load search component first without defer to ensure proper initialization -->
+    <script src="components/search-section/search-section-component.js"></script>
 </head>
 <body data-page="dashboard">
     <!-- Mobile Menu Toggle Button -->
@@ -630,9 +631,6 @@
 
     </div>
 </body>
-    <!-- Load search component first without defer to ensure proper initialization -->
-    <script src="components/search-section/search-section-component.js"></script>
-    
     <!-- Professional Performance & Caching System -->
     <script src="js/config.js" defer></script>
     <script src="js/performance-cache.js" defer></script>

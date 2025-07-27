@@ -37,6 +37,28 @@ class SearchSectionComponent extends HTMLElement {
       this.initializeComponentInstance();
     }
     
+    disconnectedCallback() {
+      // Cleanup when component is removed
+      console.log(`🔌 Component ${this.instanceId} disconnected`);
+      
+      // Clean up all event listeners
+      if (this.cleanupEventListeners) {
+          this.cleanupEventListeners();
+      }
+      
+      // Clean up instance-specific storage if needed
+      if (this.removeStorageItem) {
+          this.removeStorageItem('filters');
+          this.removeStorageItem('tags');
+          this.removeStorageItem('ai_search');
+      }
+      
+      if (this.removeSessionItem) {
+          this.removeSessionItem('favorites_changed');
+          this.removeSessionItem('navigating');
+      }
+    }
+    
     initializeComponentInstance() {
       // Store reference to component instance for use in nested functions
       const component = this;
@@ -59,6 +81,74 @@ class SearchSectionComponent extends HTMLElement {
       this.facultyCoursesData = null;
       this.allTags = [];
       this.allFileTypes = [];
+      
+      // Instance-specific storage keys to prevent conflicts
+      this.storagePrefix = `search_component_${this.instanceId}_`;
+      this.cacheBusterKey = `${this.storagePrefix}cache_buster`;
+      this.filtersKey = `${this.storagePrefix}filters`;
+      this.tagsKey = `${this.storagePrefix}tags`;
+      this.aiSearchKey = `${this.storagePrefix}ai_search`;
+      this.favoritesKey = `${this.storagePrefix}favorites_changed`;
+      this.navigationKey = `${this.storagePrefix}navigating`;
+      
+      // Instance-specific event listener tracking
+      this.eventListeners = new Map();
+      
+      // Instance-specific storage methods
+      this.setStorageItem = (key, value) => {
+          const fullKey = `${this.storagePrefix}${key}`;
+          localStorage.setItem(fullKey, JSON.stringify(value));
+      };
+      
+      this.getStorageItem = (key, defaultValue = null) => {
+          const fullKey = `${this.storagePrefix}${key}`;
+          const item = localStorage.getItem(fullKey);
+          return item ? JSON.parse(item) : defaultValue;
+      };
+      
+      this.removeStorageItem = (key) => {
+          const fullKey = `${this.storagePrefix}${key}`;
+          localStorage.removeItem(fullKey);
+      };
+      
+      this.setSessionItem = (key, value) => {
+          const fullKey = `${this.storagePrefix}${key}`;
+          sessionStorage.setItem(fullKey, JSON.stringify(value));
+      };
+      
+      this.getSessionItem = (key, defaultValue = null) => {
+          const fullKey = `${this.storagePrefix}${key}`;
+          const item = sessionStorage.getItem(fullKey);
+          return item ? JSON.parse(item) : defaultValue;
+      };
+      
+      this.removeSessionItem = (key) => {
+          const fullKey = `${this.storagePrefix}${key}`;
+          sessionStorage.removeItem(fullKey);
+      };
+      
+      // Instance-specific event listener management
+      this.addGlobalEventListener = (target, event, handler, options = {}) => {
+          const listenerId = `${event}_${Date.now()}_${Math.random()}`;
+          target.addEventListener(event, handler, options);
+          this.eventListeners.set(listenerId, { target, event, handler, options });
+          return listenerId;
+      };
+      
+      this.removeGlobalEventListener = (listenerId) => {
+          const listener = this.eventListeners.get(listenerId);
+          if (listener) {
+              listener.target.removeEventListener(listener.event, listener.handler, listener.options);
+              this.eventListeners.delete(listenerId);
+          }
+      };
+      
+      this.cleanupEventListeners = () => {
+          this.eventListeners.forEach((listener, id) => {
+              listener.target.removeEventListener(listener.event, listener.handler, listener.options);
+          });
+          this.eventListeners.clear();
+      };
       
       // Instance-specific DOM element cache
       this.DOM_CACHE = {
@@ -478,9 +568,10 @@ class SearchSectionComponent extends HTMLElement {
               showLoadingCards();
               
               // Force clear any cached data that might be causing issues
-                        if (sessionStorage.getItem('lastCacheBuster') !== component.CACHE_BUSTER.toString()) {
-              sessionStorage.clear();
-              sessionStorage.setItem('lastCacheBuster', component.CACHE_BUSTER.toString());
+                        if (component.getSessionItem('cache_buster') !== component.CACHE_BUSTER.toString()) {
+              // Only clear this component's session storage, not all
+              component.removeSessionItem('cache_buster');
+              component.setSessionItem('cache_buster', component.CACHE_BUSTER.toString());
               }
               
               // Check authentication after showing loading state
@@ -553,10 +644,10 @@ class SearchSectionComponent extends HTMLElement {
           // Add a single, reliable event listener to refresh favorites when the page is shown.
           window.addEventListener('pageshow', (event) => {
               // This event fires on initial load and when navigating back to the page.
-              const favoritesChanged = sessionStorage.getItem('favoritesChanged');
-              
-              if (favoritesChanged === 'true') {
-                  sessionStorage.removeItem('favoritesChanged'); // Clear the flag
+                        const favoritesChanged = component.getSessionItem('favorites_changed');
+          
+          if (favoritesChanged === 'true') {
+              component.removeSessionItem('favorites_changed'); // Clear the flag
                   // Favorite status is already included in vetrine data, no need for separate refresh
               }
           });
@@ -1128,8 +1219,8 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function updateCoursesForFaculty(faculty) {
-          if (window.updateCoursesForCourse) {
-              window.updateCoursesForCourse();
+          if (component.updateCoursesForCourse) {
+              component.updateCoursesForCourse();
           }
       }
       
@@ -3184,8 +3275,8 @@ class SearchSectionComponent extends HTMLElement {
           
           // Clear filters from localStorage
           try {
-              localStorage.removeItem('searchFilters');
-              localStorage.removeItem('searchTags');
+              component.removeStorageItem('filters');
+              component.removeStorageItem('tags');
           } catch (e) {
               console.warn('Could not clear filters from localStorage:', e);
           }
@@ -4569,7 +4660,7 @@ class SearchSectionComponent extends HTMLElement {
                   }
                   
                   // Mark that we're navigating to another page
-                  sessionStorage.setItem('navigatingFromSearch', 'true');
+                  component.setSessionItem('navigating', 'true');
                   
                   // Navigate to document preview page instead of opening overlay
                   window.location.href = `document-preview.html?id=${item.id}`;
@@ -4969,7 +5060,7 @@ class SearchSectionComponent extends HTMLElement {
           button.setAttribute('title', isActive ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti');
       
           // Set a flag to notify other pages
-          sessionStorage.setItem('favoritesChanged', 'true');
+          component.setSessionItem('favorites_changed', 'true');
       
           try {
               const response = await fetch(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
@@ -5018,7 +5109,7 @@ class SearchSectionComponent extends HTMLElement {
                   }
                   
                   // Mark that favorites have been changed so other pages know to refresh
-                  sessionStorage.setItem('favoritesChanged', 'true');
+                  component.setSessionItem('favorites_changed', 'true');
               }
           } catch (error) {
               console.error('Error toggling favorite:', error);
@@ -5421,14 +5512,14 @@ class SearchSectionComponent extends HTMLElement {
       function saveFiltersToStorage() {
           try {
               // Save all filters including tags
-              localStorage.setItem('searchFilters', JSON.stringify(component.filterManager.filters));
+              component.setStorageItem('filters', component.filterManager.filters);
               
-              // Also save tags separately for easier access
-              if (component.filterManager.filters.tag) {
-                  localStorage.setItem('searchTags', JSON.stringify(component.filterManager.filters.tag));
-              } else {
-                  localStorage.removeItem('searchTags');
-              }
+                              // Also save tags separately for easier access
+                if (component.filterManager.filters.tag) {
+                    component.setStorageItem('tags', component.filterManager.filters.tag);
+                } else {
+                    component.removeStorageItem('tags');
+                }
           } catch (e) {
               console.warn('Could not save filters to localStorage:', e);
           }
@@ -5437,8 +5528,8 @@ class SearchSectionComponent extends HTMLElement {
       function restoreFiltersFromStorage() {
           try {
               // Try to restore filters from localStorage
-              const savedFilters = localStorage.getItem('searchFilters');
-              const savedTags = localStorage.getItem('searchTags');
+              const savedFilters = component.getStorageItem('filters');
+              const savedTags = component.getStorageItem('tags');
               
               if (savedFilters) {
                   const parsedFilters = JSON.parse(savedFilters);
@@ -5509,7 +5600,7 @@ class SearchSectionComponent extends HTMLElement {
               if (tags && Array.isArray(tags) && tags.length > 0) {
                   localStorage.setItem('searchTags', JSON.stringify(tags));
               } else {
-                  localStorage.removeItem('searchTags');
+                  component.removeStorageItem('tags');
               }
           } catch (e) {
               console.warn('Could not save tags to localStorage:', e);
@@ -5519,7 +5610,7 @@ class SearchSectionComponent extends HTMLElement {
       // New function to get saved tags
       function getSavedTags() {
           try {
-              const savedTags = localStorage.getItem('searchTags');
+              const savedTags = component.getStorageItem('tags');
               if (savedTags) {
                   return JSON.parse(savedTags);
               }
@@ -5532,7 +5623,7 @@ class SearchSectionComponent extends HTMLElement {
       // New function to clear saved tags
       function clearSavedTags() {
           try {
-              localStorage.removeItem('searchTags');
+              component.removeStorageItem('tags');
           } catch (e) {
               console.warn('Could not clear tags from localStorage:', e);
           }
@@ -7051,7 +7142,7 @@ class SearchSectionComponent extends HTMLElement {
           console.log('✅ AI search toggle initialized');
           
           // Load saved state from localStorage
-          const savedState = localStorage.getItem('aiSearchEnabled');
+          const savedState = component.getStorageItem('ai_search');
           if (savedState === 'true') {
               aiSearchEnabled = true;
               toggleInput.checked = true;
@@ -7096,7 +7187,7 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Save state to localStorage
-              localStorage.setItem('aiSearchEnabled', aiSearchEnabled.toString());
+              component.setStorageItem('ai_search', aiSearchEnabled.toString());
               
               // If there's a current search query, re-run the search with new mode
               const currentQuery = searchInput.value.trim();
@@ -7282,7 +7373,7 @@ class SearchSectionComponent extends HTMLElement {
                       if (toggle) toggle.classList.remove('active');
                       if (searchBar) searchBar.classList.remove('ai-active');
                       updateSearchPlaceholder(false);
-                      localStorage.setItem('aiSearchEnabled', 'false');
+                      component.setStorageItem('ai_search', 'false');
                       
                       // Retry with standard search
                       await performSearch(query);

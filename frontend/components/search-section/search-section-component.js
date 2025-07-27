@@ -17,6 +17,10 @@ class SearchSectionComponent extends HTMLElement {
   
     connectedCallback() {
       this.render();
+      
+      // Store reference to component instance for use in nested functions
+      const component = this;
+      
       // Add cache-busting timestamp to force browser refresh
       const CACHE_BUSTER = Date.now();
       
@@ -34,11 +38,11 @@ class SearchSectionComponent extends HTMLElement {
           documentCount: null,
           searchInput: null,
           init() {
-              this.documentsGrid = document.getElementById('documentsGrid');
-              this.searchSection = document.querySelector('.search-section');
-              this.documentCountContainer = document.getElementById('documentCountContainer');
-              this.documentCount = document.getElementById('documentCount');
-              this.searchInput = document.getElementById('searchInput');
+              this.documentsGrid = component.shadowRoot.getElementById('documentsGrid');
+              this.searchSection = component.shadowRoot.querySelector('.search-section');
+              this.documentCountContainer = component.shadowRoot.getElementById('documentCountContainer');
+              this.documentCount = component.shadowRoot.getElementById('documentCount');
+              this.searchInput = component.shadowRoot.getElementById('searchInput');
           },
           get(elementName) {
               if (!this[elementName]) {
@@ -48,14 +52,17 @@ class SearchSectionComponent extends HTMLElement {
           }
       };
       
+      // Bind the component instance to DOM_CACHE
+      DOM_CACHE.shadowRoot = component.shadowRoot;
+      
       // Debug function to track "Pensato per chi vuole di più" text position
-      function debugPensatoTextPosition() {
+      const debugPensatoTextPosition = () => {
           // Make this function globally accessible for manual debugging
           window.debugPensatoTextPosition = debugPensatoTextPosition;
           console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
           
           // Find the search subtitle element
-          const searchSubtitle = document.querySelector('.search-subtitle');
+          const searchSubtitle = component.shadowRoot.querySelector('.search-subtitle');
           if (searchSubtitle) {
               const rect = searchSubtitle.getBoundingClientRect();
               const computedStyle = window.getComputedStyle(searchSubtitle);
@@ -87,7 +94,7 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Check search section
-          const searchSection = document.querySelector('.search-section');
+          const searchSection = component.shadowRoot.querySelector('.search-section');
           if (searchSection) {
               const rect = searchSection.getBoundingClientRect();
               const computedStyle = window.getComputedStyle(searchSection);
@@ -113,7 +120,7 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Check documents grid
-          const documentsGrid = document.getElementById('documentsGrid');
+          const documentsGrid = component.shadowRoot.getElementById('documentsGrid');
           if (documentsGrid) {
               const rect = documentsGrid.getBoundingClientRect();
               const computedStyle = window.getComputedStyle(documentsGrid);
@@ -143,7 +150,7 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Check main content
-          const mainContent = document.querySelector('.main-content');
+          const mainContent = component.shadowRoot.querySelector('.main-content');
           if (mainContent) {
               const rect = mainContent.getBoundingClientRect();
               const computedStyle = window.getComputedStyle(mainContent);
@@ -166,7 +173,7 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Check if we're in no-results state
-          const noResultsElement = document.querySelector('.no-results');
+          const noResultsElement = component.shadowRoot.querySelector('.no-results');
           if (noResultsElement) {
               const rect = noResultsElement.getBoundingClientRect();
               const computedStyle = window.getComputedStyle(noResultsElement);
@@ -359,7 +366,7 @@ class SearchSectionComponent extends HTMLElement {
                       
                       // Final safety check - if no documents are shown, show all documents
                       setTimeout(() => {
-                          const documentsGrid = document.getElementById('documentsGrid');
+                          const documentsGrid = component.shadowRoot.getElementById ('documentsGrid');
                           if (documentsGrid && documentsGrid.children.length === 0 && originalFiles && originalFiles.length > 0) {
                               renderDocuments(originalFiles);
                               currentFiles = originalFiles;
@@ -429,10 +436,10 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function updateHeaderUserInfo(user) {
-          const userAvatar = document.getElementById('userAvatar');
-          const dropdownAvatar = document.getElementById('dropdownAvatar');
-          const dropdownUserName = document.getElementById('dropdownUserName');
-          const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+          const userAvatar = component.shadowRoot.getElementById ('userAvatar');
+          const dropdownAvatar = component.shadowRoot.getElementById ('dropdownAvatar');
+          const dropdownUserName = component.shadowRoot.getElementById ('dropdownUserName');
+          const dropdownUserEmail = component.shadowRoot.getElementById ('dropdownUserEmail');
           
           if (user) {
               // Construct the user's full name for the avatar
@@ -472,7 +479,7 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Handle hover and click for user avatar
-              const userInfo = document.querySelector('.user-info');
+              const userInfo = component.shadowRoot.querySelector('.user-info');
               let hoverTimeout;
               
               // Check if device supports hover
@@ -487,7 +494,7 @@ class SearchSectionComponent extends HTMLElement {
                   });
                   
                   // Handle mouse enter on dropdown to keep it open
-                  const userDropdown = document.getElementById('userDropdown');
+                  const userDropdown = component.shadowRoot.getElementById ('userDropdown');
                   if (userDropdown) {
                       userDropdown.addEventListener('mouseenter', (event) => {
                           event.stopPropagation();
@@ -519,7 +526,7 @@ class SearchSectionComponent extends HTMLElement {
               });
       
               // Make dropdown user info clickable to redirect to profile
-              const dropdownUserInfo = document.querySelector('.dropdown-user-info');
+              const dropdownUserInfo = component.shadowRoot.querySelector('.dropdown-user-info');
               if (dropdownUserInfo) {
                   dropdownUserInfo.addEventListener('click', (event) => {
                       event.stopPropagation();
@@ -547,7 +554,7 @@ class SearchSectionComponent extends HTMLElement {
               }
       
               // Logout button
-              const logoutBtn = document.getElementById('logoutBtn');
+              const logoutBtn = component.shadowRoot.getElementById ('logoutBtn');
               if(logoutBtn) {
                   logoutBtn.addEventListener('click', (e) => {
                       e.preventDefault();
@@ -564,7 +571,7 @@ class SearchSectionComponent extends HTMLElement {
               `;
               
               // Remove dropdown functionality for non-authenticated users
-              const userInfo = document.querySelector('.user-info');
+              const userInfo = component.shadowRoot.querySelector('.user-info');
               if (userInfo) {
                   userInfo.classList.remove('open');
               }
@@ -572,7 +579,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       document.addEventListener('click', () => {
-          const userInfo = document.querySelector('.user-info');
+          const userInfo = component.shadowRoot.querySelector('.user-info');
           if (userInfo && userInfo.classList.contains('open')) {
               userInfo.classList.remove('open');
           }
@@ -581,7 +588,7 @@ class SearchSectionComponent extends HTMLElement {
       function initializeAnimations() {
           // Remove static cards initialization since we'll load dynamic data
           setTimeout(() => {
-              const cards = document.querySelectorAll('.document-card');
+              const cards = component.shadowRoot.querySelectorAll('.document-card');
               cards.forEach((card, index) => {
                   card.style.opacity = '1';
                   card.style.transform = 'translateY(0)';
@@ -594,11 +601,11 @@ class SearchSectionComponent extends HTMLElement {
       // ===========================
       
       function initializeFilters() {
-          const filtersBtn = document.getElementById('filtersBtn');
-          const filtersPanel = document.getElementById('filtersPanel');
-          const filtersOverlay = document.getElementById('filtersOverlay');
-          const filtersClose = document.getElementById('filtersClose');
-          const clearAllFilters = document.getElementById('clearAllFilters');
+          const filtersBtn = component.shadowRoot.getElementById ('filtersBtn');
+          const filtersPanel = component.shadowRoot.getElementById ('filtersPanel');
+          const filtersOverlay = component.shadowRoot.getElementById ('filtersOverlay');
+          const filtersClose = component.shadowRoot.getElementById ('filtersClose');
+          const clearAllFilters = component.shadowRoot.getElementById ('clearAllFilters');
       
           // Filter panel toggle
           if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
@@ -636,7 +643,7 @@ class SearchSectionComponent extends HTMLElement {
           // Order functionality
           initializeOrderDropdown();
           // Ensure price range is visible for 'Tutti' after all initializations
-          const priceRangeContainer = document.getElementById('priceRangeContainer');
+          const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
           if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
               priceRangeContainer.style.display = 'block';
           }
@@ -652,8 +659,8 @@ class SearchSectionComponent extends HTMLElement {
       
       
       function initializeCourseFilter() {
-          const courseInput = document.getElementById('courseFilter');
-          const suggestionsContainer = document.getElementById('courseSuggestions');
+          const courseInput = component.shadowRoot.getElementById ('courseFilter');
+          const suggestionsContainer = component.shadowRoot.getElementById ('courseSuggestions');
           let courses = [];
           let selectedIndex = -1;
           
@@ -774,8 +781,8 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function initializeCanaleFilter() {
-          const canaleInput = document.getElementById('canaleFilter');
-          const suggestionsContainer = document.getElementById('canaleSuggestions');
+          const canaleInput = component.shadowRoot.getElementById ('canaleFilter');
+          const suggestionsContainer = component.shadowRoot.getElementById ('canaleSuggestions');
           let canali = ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico'];
           let selectedIndex = -1;
           
@@ -876,7 +883,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Helper functions
       function clearCourseFilter() {
-          const courseInput = document.getElementById('courseFilter');
+          const courseInput = component.shadowRoot.getElementById ('courseFilter');
           if (courseInput) {
               courseInput.value = '';
               filterManager.removeFilter('course');
@@ -899,14 +906,14 @@ class SearchSectionComponent extends HTMLElement {
               
               // Setup searchable dropdowns (faculty, course, canale)
               searchableDropdowns.forEach(type => {
-                  const container = document.querySelector(`[data-dropdown="${type}"]`);
-                  const input = document.getElementById(`${type}Filter`);
-                  const options = document.getElementById(`${type}Options`);
+                  const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
+                  const input = component.shadowRoot.getElementById (`${type}Filter`);
+                  const options = component.shadowRoot.getElementById (`${type}Options`);
                   
                   if (!container || !input || !options) return;
                   
                   // Handle filter label click - close dropdown if open, do nothing if closed
-                  const label = document.querySelector(`label[for="${type}Filter"]`);
+                  const label = component.shadowRoot.querySelector(`label[for="${type}Filter"]`);
                   if (label) {
                       label.addEventListener('click', (e) => {
                           e.preventDefault();
@@ -927,7 +934,7 @@ class SearchSectionComponent extends HTMLElement {
                       if (value === '') {
                           delete filterManager.filters[type];
                           if (type === 'faculty') {
-                              const courseInput = document.getElementById('courseFilter');
+                              const courseInput = component.shadowRoot.getElementById ('courseFilter');
                               courseInput.value = '';
                               delete filterManager.filters.course;
                           }
@@ -997,14 +1004,14 @@ class SearchSectionComponent extends HTMLElement {
               
               // Setup static dropdowns (documentType, language, academicYear, tag) - same logic as searchable but no text input
               staticDropdowns.forEach(type => {
-                  const container = document.querySelector(`[data-dropdown="${type}"]`);
-                  const input = document.getElementById(`${type}Filter`);
-                  const options = document.getElementById(`${type}Options`);
+                  const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
+                  const input = component.shadowRoot.getElementById (`${type}Filter`);
+                  const options = component.shadowRoot.getElementById (`${type}Options`);
                   
                   if (!container || !input || !options) return;
                   
                   // Handle filter label click - close dropdown if open, do nothing if closed
-                  const label = document.querySelector(`label[for="${type}Filter"]`);
+                  const label = component.shadowRoot.querySelector(`label[for="${type}Filter"]`);
                   if (label) {
                       label.addEventListener('click', (e) => {
                           e.preventDefault();
@@ -1067,7 +1074,7 @@ class SearchSectionComponent extends HTMLElement {
                       
                       // Clear any invalid inputs consistently
                       allDropdowns.forEach(type => {
-                          const input = document.getElementById(`${type}Filter`);
+                          const input = component.shadowRoot.getElementById (`${type}Filter`);
                           if (input && !input.readOnly) {
                               const currentValue = input.value.trim();
                               
@@ -1082,7 +1089,7 @@ class SearchSectionComponent extends HTMLElement {
                                       input.value = '';
                                       delete filterManager.filters[type];
                                       if (type === 'faculty') {
-                                          const courseInput = document.getElementById('courseFilter');
+                                          const courseInput = component.shadowRoot.getElementById ('courseFilter');
                                           courseInput.value = '';
                                           delete filterManager.filters.course;
                                       }
@@ -1122,7 +1129,7 @@ class SearchSectionComponent extends HTMLElement {
           
           if (!isOpen) {
               container.classList.add('open');
-              const input = document.getElementById(`${type}Filter`);
+              const input = component.shadowRoot.getElementById (`${type}Filter`);
               // Always clear input value so all options are shown
               if (input) input.value = '';
               // Update input styling for multi-select
@@ -1163,7 +1170,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function closeAllDropdowns() {
-          document.querySelectorAll('.dropdown-container').forEach(container => {
+          component.shadowRoot.querySelectorAll('.dropdown-container').forEach(container => {
               container.classList.remove('open');
           });
       }
@@ -1171,10 +1178,10 @@ class SearchSectionComponent extends HTMLElement {
       function repositionOpenDropdowns() {
           const allDropdowns = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
           allDropdowns.forEach(type => {
-              const container = document.querySelector(`[data-dropdown="${type}"]`);
+              const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
               if (container && container.classList.contains('open')) {
-                  const input = document.getElementById(`${type}Filter`);
-                  const dropdown = document.getElementById(`${type}Dropdown`);
+                  const input = component.shadowRoot.getElementById (`${type}Filter`);
+                  const dropdown = component.shadowRoot.getElementById (`${type}Dropdown`);
                   if (input && dropdown) {
                       positionDropdown(input, dropdown);
                   }
@@ -1183,7 +1190,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function resetDropdownHighlight(type) {
-          const options = document.getElementById(`${type}Options`);
+          const options = component.shadowRoot.getElementById (`${type}Options`);
           if (options) {
               // Remove all highlights
               options.querySelectorAll('.dropdown-option.highlighted').forEach(option => {
@@ -1340,8 +1347,8 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function populateOptions(type, items) {
-          const options = document.getElementById(`${type}Options`);
-          const currentValue = document.getElementById(`${type}Filter`).value;
+          const options = component.shadowRoot.getElementById (`${type}Options`);
+          const currentValue = component.shadowRoot.getElementById (`${type}Filter`).value;
           
           if (!options) {
               return;
@@ -1550,8 +1557,8 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function selectDropdownOption(type, value, displayText = null) {
-          const input = document.getElementById(`${type}Filter`);
-          const container = document.querySelector(`[data-dropdown="${type}"]`);
+          const input = component.shadowRoot.getElementById (`${type}Filter`);
+          const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
           
           // Map dropdown types to filter keys
           const filterKeyMap = {
@@ -1607,7 +1614,7 @@ class SearchSectionComponent extends HTMLElement {
                   delete filterManager.filters[filterKey];
               }
               if (type === 'faculty') {
-                  const courseInput = document.getElementById('courseFilter');
+                  const courseInput = component.shadowRoot.getElementById ('courseFilter');
                   courseInput.value = '';
                   delete filterManager.filters.course;
                   filterDropdownOptions('course', '');
@@ -1637,7 +1644,7 @@ class SearchSectionComponent extends HTMLElement {
           };
           
           const filterKey = filterKeyMap[type] || type;
-          const input = document.getElementById(`${type}Filter`);
+          const input = component.shadowRoot.getElementById (`${type}Filter`);
           
           // Determine which filters support multi-selection
           const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
@@ -1714,7 +1721,7 @@ class SearchSectionComponent extends HTMLElement {
               // Handle dependent dropdowns for multi-select faculty changes
               if (type === 'faculty') {
                   // Clear course filter since faculty selection changed
-                  const courseInput = document.getElementById('courseFilter');
+                  const courseInput = component.shadowRoot.getElementById ('courseFilter');
                   courseInput.value = '';
                   delete filterManager.filters.course;
                   // Update course dropdown options based on remaining faculty selection(s)
@@ -1731,7 +1738,7 @@ class SearchSectionComponent extends HTMLElement {
               // Handle dependent dropdowns
               if (type === 'faculty') {
                   // Clear course filter since faculty selection changed
-                  const courseInput = document.getElementById('courseFilter');
+                  const courseInput = component.shadowRoot.getElementById ('courseFilter');
                   courseInput.value = '';
                   delete filterManager.filters.course;
                   // Update course dropdown options based on remaining faculty selection(s)
@@ -1751,7 +1758,7 @@ class SearchSectionComponent extends HTMLElement {
           const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
           
           dropdownTypes.forEach(type => {
-              const options = document.getElementById(`${type}Options`);
+              const options = component.shadowRoot.getElementById (`${type}Options`);
               if (!options) return;
               
               const filterKeyMap = {
@@ -1775,8 +1782,8 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function removeFilterFromDropdown(type, filterKey) {
-          const input = document.getElementById(`${type}Filter`);
-          const container = document.querySelector(`[data-dropdown="${type}"]`);
+          const input = component.shadowRoot.getElementById (`${type}Filter`);
+          const container = component.shadowRoot.querySelector(`[data-dropdown="${type}"]`);
           
           // Clear the input
           input.value = '';
@@ -1786,7 +1793,7 @@ class SearchSectionComponent extends HTMLElement {
           delete filterManager.filters[filterKey];
           
           // Update visual selection in dropdown
-          const options = document.getElementById(`${type}Options`);
+          const options = component.shadowRoot.getElementById (`${type}Options`);
           if (options) {
               options.querySelectorAll('.dropdown-option').forEach(option => {
                   option.classList.remove('selected');
@@ -1795,7 +1802,7 @@ class SearchSectionComponent extends HTMLElement {
           
           // Handle dependent dropdowns
           if (type === 'faculty') {
-              const courseInput = document.getElementById('courseFilter');
+              const courseInput = component.shadowRoot.getElementById ('courseFilter');
               courseInput.value = '';
               delete filterManager.filters.course;
               filterDropdownOptions('course', '');
@@ -1842,7 +1849,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function handleDropdownKeyboard(e, type) {
-          const options = document.getElementById(`${type}Options`);
+          const options = component.shadowRoot.getElementById (`${type}Options`);
           const highlighted = options.querySelector('.dropdown-option.highlighted');
           const allOptions = options.querySelectorAll('.dropdown-option');
           
@@ -1884,8 +1891,8 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function initializeRatingFilter() {
-          const ratingStars = document.querySelectorAll('.rating-star-filter');
-          const ratingText = document.getElementById('ratingText');
+          const ratingStars = component.shadowRoot.querySelectorAll('.rating-star-filter');
+          const ratingText = component.shadowRoot.getElementById ('ratingText');
           
           if (!ratingStars.length || !ratingText) return;
           
@@ -1935,8 +1942,8 @@ class SearchSectionComponent extends HTMLElement {
               filterManager.filters.priceType = 'all';
           }
           // Price toggles
-          const priceToggles = document.querySelectorAll('.price-toggle');
-          const priceRangeContainer = document.getElementById('priceRangeContainer');
+          const priceToggles = component.shadowRoot.querySelectorAll('.price-toggle');
+          const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
       
           // Ensure 'Tutti' is active and price slider is visible on initial load
           let initialSet = false;
@@ -1965,10 +1972,10 @@ class SearchSectionComponent extends HTMLElement {
                       delete filterManager.filters.minPrice;
                       delete filterManager.filters.maxPrice;
                       if (priceRangeContainer) priceRangeContainer.style.display = 'block';
-                      const minPriceRange = document.getElementById('minPriceRange');
-                      const maxPriceRange = document.getElementById('maxPriceRange');
-                      const minPriceValue = document.getElementById('minPriceValue');
-                      const maxPriceValue = document.getElementById('maxPriceValue');
+                      const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+                      const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+                      const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
+                      const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
                       if (minPriceRange) minPriceRange.value = 0;
                       if (maxPriceRange) maxPriceRange.value = 100;
                       if (minPriceValue) minPriceValue.textContent = '€0';
@@ -1982,8 +1989,8 @@ class SearchSectionComponent extends HTMLElement {
                   } else if (priceType === 'paid') {
                       filterManager.filters.priceType = 'paid';
                       if (priceRangeContainer) priceRangeContainer.style.display = 'block';
-                      const minPriceRange = document.getElementById('minPriceRange');
-                      const maxPriceRange = document.getElementById('maxPriceRange');
+                      const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+                      const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
                       if (minPriceRange && maxPriceRange) {
                           const minVal = parseFloat(minPriceRange.value);
                           const maxVal = parseFloat(maxPriceRange.value);
@@ -1999,7 +2006,7 @@ class SearchSectionComponent extends HTMLElement {
           });
       
           // Vetrina toggles
-          const vetrinaToggles = document.querySelectorAll('.vetrina-toggle');
+          const vetrinaToggles = component.shadowRoot.querySelectorAll('.vetrina-toggle');
           vetrinaToggles.forEach(toggle => {
               toggle.addEventListener('click', () => {
                   vetrinaToggles.forEach(t => t.classList.remove('active'));
@@ -2017,11 +2024,11 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function initializePriceRangeFilter() {
-          const minPriceRange = document.getElementById('minPriceRange');
-          const maxPriceRange = document.getElementById('maxPriceRange');
-          const minPriceValue = document.getElementById('minPriceValue');
-          const maxPriceValue = document.getElementById('maxPriceValue');
-          const rangeFill = document.getElementById('rangeFill');
+          const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+          const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+          const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
+          const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
+          const rangeFill = component.shadowRoot.getElementById ('rangeFill');
           
           if (minPriceRange && maxPriceRange) {
               // Initialize values but don't add to activeFilters yet
@@ -2057,10 +2064,10 @@ class SearchSectionComponent extends HTMLElement {
       const debouncedApplyFilters = debounce(applyFiltersAndRender, 200);
       
       function handlePriceRangeChange() {
-          const minPriceRange = document.getElementById('minPriceRange');
-          const maxPriceRange = document.getElementById('maxPriceRange');
-          const minPriceValue = document.getElementById('minPriceValue');
-          const maxPriceValue = document.getElementById('maxPriceValue');
+          const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+          const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+          const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
+          const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
           
           let minVal = parseFloat(minPriceRange.value);
           let maxVal = parseFloat(maxPriceRange.value);
@@ -2085,9 +2092,9 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function updatePriceSliderFill() {
-          const minPriceRange = document.getElementById('minPriceRange');
-          const maxPriceRange = document.getElementById('maxPriceRange');
-          const rangeFill = document.getElementById('rangeFill');
+          const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+          const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+          const rangeFill = component.shadowRoot.getElementById ('rangeFill');
           
           if (minPriceRange && maxPriceRange && rangeFill) {
               const min = parseFloat(minPriceRange.min);
@@ -2104,7 +2111,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function initializeEditableValues() {
-          const editableValues = document.querySelectorAll('.editable-value');
+          const editableValues = component.shadowRoot.querySelectorAll('.editable-value');
           
           editableValues.forEach(element => {
               element.addEventListener('click', handleEditableValueClick);
@@ -2199,15 +2206,15 @@ class SearchSectionComponent extends HTMLElement {
       
       function updateRangeSliderFromEditableValue(type, position, value) {
           if (type === 'price') {
-              const minPriceRange = document.getElementById('minPriceRange');
-              const maxPriceRange = document.getElementById('maxPriceRange');
+              const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+              const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
               
               if (position === 'min') {
                   minPriceRange.value = value;
                   // Ensure min doesn't exceed max
                   if (value > parseFloat(maxPriceRange.value)) {
                       maxPriceRange.value = value;
-                      const maxPriceValue = document.getElementById('maxPriceValue');
+                      const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
                       if (maxPriceValue) maxPriceValue.textContent = `€${value}`;
                   }
               } else if (position === 'max') {
@@ -2215,7 +2222,7 @@ class SearchSectionComponent extends HTMLElement {
                   // Ensure max doesn't go below min
                   if (value < parseFloat(minPriceRange.value)) {
                       minPriceRange.value = value;
-                      const minPriceValue = document.getElementById('minPriceValue');
+                      const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
                       if (minPriceValue) minPriceValue.textContent = `€${value}`;
                   }
               }
@@ -2224,15 +2231,15 @@ class SearchSectionComponent extends HTMLElement {
               applyPriceFilters(parseFloat(minPriceRange.value), parseFloat(maxPriceRange.value));
               
           } else if (type === 'pages') {
-              const minPagesRange = document.getElementById('minPagesRange');
-              const maxPagesRange = document.getElementById('maxPagesRange');
+              const minPagesRange = component.shadowRoot.getElementById ('minPagesRange');
+              const maxPagesRange = component.shadowRoot.getElementById ('maxPagesRange');
               
               if (position === 'min') {
                   minPagesRange.value = value;
                   // Ensure min doesn't exceed max
                   if (value > parseInt(maxPagesRange.value)) {
                       maxPagesRange.value = value;
-                      const maxPagesValue = document.getElementById('maxPagesValue');
+                      const maxPagesValue = component.shadowRoot.getElementById ('maxPagesValue');
                       if (maxPagesValue) maxPagesValue.textContent = value;
                   }
               } else if (position === 'max') {
@@ -2240,7 +2247,7 @@ class SearchSectionComponent extends HTMLElement {
                   // Ensure max doesn't go below min
                   if (value < parseInt(minPagesRange.value)) {
                       minPagesRange.value = value;
-                      const minPagesValue = document.getElementById('minPagesValue');
+                      const minPagesValue = component.shadowRoot.getElementById ('minPagesValue');
                       if (minPagesValue) minPagesValue.textContent = value;
                   }
               }
@@ -2275,7 +2282,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Initialize order button text on page load
       document.addEventListener('DOMContentLoaded', function() {
-          const orderBtn = document.getElementById('orderBtn');
+          const orderBtn = component.shadowRoot.getElementById ('orderBtn');
           const orderText = orderBtn?.querySelector('.order-text');
           if (orderText) {
               orderText.textContent = 'Rilevanza';
@@ -2283,9 +2290,9 @@ class SearchSectionComponent extends HTMLElement {
       });
       
       function initializeOrderDropdown() {
-          const orderBtn = document.getElementById('orderBtn');
-          const orderDropdown = document.querySelector('.order-dropdown-content');
-          const orderOptions = document.querySelectorAll('.order-option');
+          const orderBtn = component.shadowRoot.getElementById ('orderBtn');
+          const orderDropdown = component.shadowRoot.querySelector('.order-dropdown-content');
+          const orderOptions = component.shadowRoot.querySelectorAll('.order-option');
           
           if (!orderBtn || !orderDropdown) return;
           
@@ -2328,7 +2335,7 @@ class SearchSectionComponent extends HTMLElement {
           currentOrder = orderType;
           
           // Update button text based on selection
-          const orderBtn = document.getElementById('orderBtn');
+          const orderBtn = component.shadowRoot.getElementById ('orderBtn');
           const orderText = orderBtn.querySelector('.order-text');
           
           const orderLabels = {
@@ -2434,7 +2441,7 @@ class SearchSectionComponent extends HTMLElement {
           
           // Check if we have backend-searchable filters (course_name, faculty_name) 
           // or if there's an active search query
-          const searchInput = document.getElementById('searchInput');
+          const searchInput = component.shadowRoot.getElementById ('searchInput');
           const currentQuery = searchInput?.value?.trim() || '';
           
           const hasBackendFilters = filterManager.filters.course || filterManager.filters.faculty || filterManager.filters.canale || filterManager.filters.language || filterManager.filters.tag || filterManager.filters.documentType || filterManager.filters.academicYear || filterManager.filters.courseYear;
@@ -2474,10 +2481,10 @@ class SearchSectionComponent extends HTMLElement {
       
       function toggleFiltersPanel() {
           isFiltersOpen = !isFiltersOpen;
-          const filtersPanel = document.getElementById('filtersPanel');
-          const filtersOverlay = document.getElementById('filtersOverlay');
-          const mainContent = document.querySelector('.main-content');
-          const documentsGrid = document.getElementById('documentsGrid');
+          const filtersPanel = component.shadowRoot.getElementById ('filtersPanel');
+          const filtersOverlay = component.shadowRoot.getElementById ('filtersOverlay');
+          const mainContent = component.shadowRoot.querySelector('.main-content');
+          const documentsGrid = component.shadowRoot.getElementById ('documentsGrid');
           
           if (isFiltersOpen) {
               // Ensure robust positioning before showing
@@ -2509,8 +2516,8 @@ class SearchSectionComponent extends HTMLElement {
               showStatus('Panel filtri aperto 🎯');
       
               // Always show price slider if 'Tutti' is active when opening filters
-              const priceRangeContainer = document.getElementById('priceRangeContainer');
-              const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+              const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
+              const tuttiToggle = component.shadowRoot.querySelector('.price-toggle.active[data-price="all"]');
               if (tuttiToggle && priceRangeContainer) {
                   priceRangeContainer.style.display = 'block';
               }
@@ -2520,11 +2527,11 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function addBottomClearAllButton() {
-          const filtersContent = document.querySelector('.filters-content');
+          const filtersContent = component.shadowRoot.querySelector('.filters-content');
           if (!filtersContent) return;
           
           // Check if bottom clear button already exists
-          if (document.getElementById('bottomClearAllButton')) return;
+          if (component.shadowRoot.getElementById ('bottomClearAllButton')) return;
           
           // Create bottom clear all button section
           const bottomClearSection = document.createElement('div');
@@ -2626,8 +2633,8 @@ class SearchSectionComponent extends HTMLElement {
           
           // Updated count function that uses state instead of DOM counting
           updateBottomFilterCount() {
-              const bottomFilterCountElement = document.getElementById('bottomFilterCount');
-              const filterCountBadge = document.getElementById('filterCount');
+              const bottomFilterCountElement = component.shadowRoot.getElementById ('bottomFilterCount');
+              const filterCountBadge = component.shadowRoot.getElementById ('filterCount');
               const activeCountObj = this.getActiveFilterCount();
               const activeCount = activeCountObj.count;
               // Debug log
@@ -2650,7 +2657,7 @@ class SearchSectionComponent extends HTMLElement {
           
           // Enhanced display update with proper timing
           updateActiveFiltersDisplay() {
-              const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+              const activeFiltersContainer = component.shadowRoot.getElementById ('activeFiltersDisplay');
               if (!activeFiltersContainer) return;
               // Clear existing pills
               activeFiltersContainer.innerHTML = '';
@@ -2756,10 +2763,10 @@ class SearchSectionComponent extends HTMLElement {
       
       function closeFiltersPanel() {
           isFiltersOpen = false;
-          const filtersPanel = document.getElementById('filtersPanel');
-          const filtersOverlay = document.getElementById('filtersOverlay');
-          const mainContent = document.querySelector('.main-content');
-          const documentsGrid = document.getElementById('documentsGrid');
+          const filtersPanel = component.shadowRoot.getElementById ('filtersPanel');
+          const filtersOverlay = component.shadowRoot.getElementById ('filtersOverlay');
+          const mainContent = component.shadowRoot.querySelector('.main-content');
+          const documentsGrid = component.shadowRoot.getElementById ('documentsGrid');
           
           if (filtersPanel) filtersPanel.classList.remove('active');
           if (filtersOverlay) filtersOverlay.classList.remove('active');
@@ -2828,11 +2835,11 @@ class SearchSectionComponent extends HTMLElement {
       
       
       function populateDropdownFilter(type, options) {
-          const optionsContainer = document.getElementById(`${type}Options`);
+          const optionsContainer = component.shadowRoot.getElementById (`${type}Options`);
           if (!optionsContainer) return;
       
           // Save current selection and input value
-          const input = document.getElementById(`${type}Filter`);
+          const input = component.shadowRoot.getElementById (`${type}Filter`);
           const currentValue = filterManager.filters[type] || '';
           const currentInputValue = input ? input.value : '';
       
@@ -2871,7 +2878,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function populateSelect(selectId, options) {
-          const select = document.getElementById(selectId);
+          const select = component.shadowRoot.getElementById (selectId);
           if (!select) return;
       
           // Save current selection
@@ -3105,7 +3112,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function updateActiveFiltersDisplay() {
-          const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+          const activeFiltersContainer = component.shadowRoot.getElementById ('activeFiltersDisplay');
           if (!activeFiltersContainer) return;
           
           const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
@@ -3332,7 +3339,7 @@ class SearchSectionComponent extends HTMLElement {
               }
               
               // Update the input display
-              const input = document.getElementById(`${filterKey}Filter`);
+              const input = component.shadowRoot.getElementById (`${filterKey}Filter`);
               if (input) {
                   if (!filterManager.filters[filterKey] || filterManager.filters[filterKey].length === 0) {
                       input.value = '';
@@ -3366,7 +3373,7 @@ class SearchSectionComponent extends HTMLElement {
       function clearAllActiveFilters(event) {
           event?.stopPropagation();
           
-          const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+          const activeFiltersContainer = component.shadowRoot.getElementById ('activeFiltersDisplay');
           if (activeFiltersContainer) {
               // Animate all pills out
               const pills = activeFiltersContainer.querySelectorAll('.filter-pill, .clear-all-filters-btn');
@@ -3390,10 +3397,10 @@ class SearchSectionComponent extends HTMLElement {
               delete filterManager.filters.minPrice;
               delete filterManager.filters.maxPrice;
               
-              const minPriceRange = document.getElementById('minPriceRange');
-              const maxPriceRange = document.getElementById('maxPriceRange');
-              const minPriceValue = document.getElementById('minPriceValue');
-              const maxPriceValue = document.getElementById('maxPriceValue');
+              const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+              const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+              const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
+              const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
               
               if (minPriceRange) minPriceRange.value = 0;
               if (maxPriceRange) maxPriceRange.value = 100;
@@ -3417,17 +3424,17 @@ class SearchSectionComponent extends HTMLElement {
               
               const selectId = filterMap[filterKey];
               if (selectId) {
-                  const select = document.getElementById(selectId);
+                  const select = component.shadowRoot.getElementById (selectId);
                   if (select) select.selectedIndex = 0;
               }
               
               // Handle special cases
               if (filterKey === 'minRating') {
-                  document.querySelectorAll('.rating-star-filter').forEach(star => {
+                  component.shadowRoot.querySelectorAll('.rating-star-filter').forEach(star => {
                       star.classList.remove('active');
                       star.style.color = '#d1d5db';
                   });
-                  const ratingText = document.getElementById('ratingText');
+                  const ratingText = component.shadowRoot.getElementById ('ratingText');
                   if (ratingText) ratingText.textContent = 'Qualsiasi rating';
               }
               
@@ -3436,20 +3443,20 @@ class SearchSectionComponent extends HTMLElement {
                   delete filterManager.filters.minPrice;
                   delete filterManager.filters.maxPrice;
                   
-                  document.querySelectorAll('.price-toggle').forEach(toggle => {
+                  component.shadowRoot.querySelectorAll('.price-toggle').forEach(toggle => {
                       toggle.classList.remove('active');
                   });
-                  const allPriceToggle = document.querySelector('.price-toggle[data-price="all"]');
+                  const allPriceToggle = component.shadowRoot.querySelector('.price-toggle[data-price="all"]');
                   if (allPriceToggle) allPriceToggle.classList.add('active');
                   
-                  const priceRangeContainer = document.getElementById('priceRangeContainer');
+                  const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
                   if (priceRangeContainer) priceRangeContainer.style.display = 'none';
                   
                   // Reset price range sliders
-                  const minPriceRange = document.getElementById('minPriceRange');
-                  const maxPriceRange = document.getElementById('maxPriceRange');
-                  const minPriceValue = document.getElementById('minPriceValue');
-                  const maxPriceValue = document.getElementById('maxPriceValue');
+                  const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+                  const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+                  const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
+                  const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
                   
                   if (minPriceRange) minPriceRange.value = 0;
                   if (maxPriceRange) maxPriceRange.value = 100;
@@ -3461,10 +3468,10 @@ class SearchSectionComponent extends HTMLElement {
       
               
               if (filterKey === 'vetrinaType') {
-                  document.querySelectorAll('.vetrina-toggle').forEach(toggle => {
+                  component.shadowRoot.querySelectorAll('.vetrina-toggle').forEach(toggle => {
                       toggle.classList.remove('active');
                   });
-                  const allVetrinaToggle = document.querySelector('.vetrina-toggle[data-vetrina="all"]');
+                  const allVetrinaToggle = component.shadowRoot.querySelector('.vetrina-toggle[data-vetrina="all"]');
                   if (allVetrinaToggle) allVetrinaToggle.classList.add('active');
               }
           }
@@ -3643,7 +3650,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Function to create and display loading cards
       function showLoadingCards(count = null) {
-          const grid = document.getElementById('documentsGrid');
+          const grid = component.shadowRoot.getElementById ('documentsGrid');
           if (!grid) {
               console.error('❌ Grid element not found!');
               return;
@@ -3728,7 +3735,7 @@ class SearchSectionComponent extends HTMLElement {
           // Add resize listener to update loading cards when screen size changes
           if (!window.loadingCardsResizeListener) {
               window.loadingCardsResizeListener = debounce(() => {
-                  const grid = document.getElementById('documentsGrid');
+                  const grid = component.shadowRoot.getElementById ('documentsGrid');
                   if (grid && grid.classList.contains('loading')) {
                       console.log('📱 Screen resized, updating loading cards...');
                       showLoadingCards(); // Recalculate and update loading cards
@@ -3846,7 +3853,7 @@ class SearchSectionComponent extends HTMLElement {
               showStatus('Nessuna vetrina disponibile');
           } finally {
               // Ensure loading class is removed even if there's an error
-              const grid = document.getElementById('documentsGrid');
+              const grid = component.shadowRoot.getElementById ('documentsGrid');
               if (grid) {
                   grid.classList.remove('loading');
               }
@@ -3918,7 +3925,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Function to update document card tags in the UI
       function updateDocumentCardTags(vetrinaId, tags) {
-          const card = document.querySelector(`[data-vetrina-id="${vetrinaId}"]`);
+          const card = component.shadowRoot.querySelector(`[data-vetrina-id="${vetrinaId}"]`);
           if (!card) return;
           
           const badgesContainer = card.querySelector('.document-type-badges');
@@ -4451,7 +4458,7 @@ class SearchSectionComponent extends HTMLElement {
       
           // Animate document cards into view
           setTimeout(() => {
-              const cards = document.querySelectorAll('.document-card');
+              const cards = component.shadowRoot.querySelectorAll('.document-card');
               cards.forEach((card, index) => {
                   card.style.opacity = '1';
                   card.style.transform = 'translateY(0)';
@@ -4710,7 +4717,7 @@ class SearchSectionComponent extends HTMLElement {
           const price = parseFloat(file.price) || 0;
           const ownerUsername = file.vetrina_info?.owner_username || 'Unknown';
           
-          const previewTitle = document.getElementById('previewTitle');
+          const previewTitle = component.shadowRoot.getElementById ('previewTitle');
           if (previewTitle) previewTitle.textContent = documentTitle;
           
           const content = `
@@ -4781,17 +4788,17 @@ class SearchSectionComponent extends HTMLElement {
                   Chiudi
                </button>`;
           
-          const previewBody = document.getElementById('previewBody');
-          const previewActions = document.getElementById('previewActions');
-          const previewModal = document.getElementById('previewModal');
+          const previewBody = component.shadowRoot.getElementById ('previewBody');
+          const previewActions = component.shadowRoot.getElementById ('previewActions');
+          const previewModal = component.shadowRoot.getElementById ('previewModal');
           
           if (previewBody) previewBody.innerHTML = content;
           if (previewActions) previewActions.innerHTML = actions;
           if (previewModal) previewModal.classList.add('active');
           
           // Set the preview icon for the modal  
-          const modalImg = document.getElementById(`modalPreviewImg-${file.id}`);
-          const modalLoading = document.getElementById(`modalPreviewLoading-${file.id}`);
+          const modalImg = component.shadowRoot.getElementById (`modalPreviewImg-${file.id}`);
+          const modalLoading = component.shadowRoot.getElementById (`modalPreviewLoading-${file.id}`);
           
           if (modalLoading) {
               // Show loading state
@@ -4873,7 +4880,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function closePreview() {
-          const previewModal = document.getElementById('previewModal');
+          const previewModal = component.shadowRoot.getElementById ('previewModal');
           if (previewModal) previewModal.classList.remove('active');
       }
       
@@ -5164,7 +5171,7 @@ class SearchSectionComponent extends HTMLElement {
           // Clear all inputs first to ensure clean state
           const allInputs = ['facultyFilter', 'courseFilter', 'canaleFilter', 'documentTypeFilter', 'languageFilter', 'academicYearFilter', 'tagFilter'];
           allInputs.forEach(inputId => {
-              const input = document.getElementById(inputId);
+              const input = component.shadowRoot.getElementById (inputId);
               if (input) {
                   input.value = '';
               }
@@ -5179,7 +5186,7 @@ class SearchSectionComponent extends HTMLElement {
           };
           
           Object.entries(dropdownDefaults).forEach(([id, defaultValue]) => {
-              const input = document.getElementById(id);
+              const input = component.shadowRoot.getElementById (id);
               if (input) {
                   input.value = defaultValue;
               }
@@ -5190,7 +5197,7 @@ class SearchSectionComponent extends HTMLElement {
           // Update dropdown inputs
           const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
           dropdownTypes.forEach(type => {
-              const input = document.getElementById(`${type}Filter`);
+              const input = component.shadowRoot.getElementById (`${type}Filter`);
               const filterKey = type;
               if (input && filterManager.filters[filterKey]) {
                   let displayValue = filterManager.filters[filterKey];
@@ -5215,7 +5222,7 @@ class SearchSectionComponent extends HTMLElement {
           const toggleTypes = ['priceType', 'vetrinaType'];
           toggleTypes.forEach(type => {
               const toggleClass = type.replace('Type', '-toggle');
-              document.querySelectorAll(`.${toggleClass}`).forEach(toggle => {
+              component.shadowRoot.querySelectorAll(`.${toggleClass}`).forEach(toggle => {
                   toggle.classList.remove('active');
               });
           });
@@ -5227,13 +5234,13 @@ class SearchSectionComponent extends HTMLElement {
               
               if (filterManager.filters[type] && filterManager.filters[type] !== 'all') {
                   // Add active class to the correct toggle
-                  const activeToggle = document.querySelector(`[data-${dataAttr}="${filterManager.filters[type]}"]`);
+                  const activeToggle = component.shadowRoot.querySelector(`[data-${dataAttr}="${filterManager.filters[type]}"]`);
                   if (activeToggle) {
                       activeToggle.classList.add('active');
                   }
               } else {
                   // Default to "all" toggle if no filter is set
-                  const allToggle = document.querySelector(`[data-${dataAttr}="all"]`);
+                  const allToggle = component.shadowRoot.querySelector(`[data-${dataAttr}="all"]`);
                   if (allToggle) {
                       allToggle.classList.add('active');
                   }
@@ -5241,11 +5248,11 @@ class SearchSectionComponent extends HTMLElement {
           });
           
           // Restore price range values
-          const minPriceRange = document.getElementById('minPriceRange');
-          const maxPriceRange = document.getElementById('maxPriceRange');
-          const minPriceValue = document.getElementById('minPriceValue');
-          const maxPriceValue = document.getElementById('maxPriceValue');
-          const priceRangeContainer = document.getElementById('priceRangeContainer');
+          const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+          const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
+          const minPriceValue = component.shadowRoot.getElementById ('minPriceValue');
+          const maxPriceValue = component.shadowRoot.getElementById ('maxPriceValue');
+          const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
           
           if (filterManager.filters.minPrice !== undefined && filterManager.filters.maxPrice !== undefined) {
               if (minPriceRange) minPriceRange.value = filterManager.filters.minPrice;
@@ -5273,8 +5280,8 @@ class SearchSectionComponent extends HTMLElement {
           }
           
           // Restore rating filter
-          const ratingText = document.getElementById('ratingText');
-          const ratingStars = document.querySelectorAll('.rating-star-filter');
+          const ratingText = component.shadowRoot.getElementById ('ratingText');
+          const ratingStars = component.shadowRoot.querySelectorAll('.rating-star-filter');
           
           // Reset all stars first
           ratingStars.forEach(star => {
@@ -5301,7 +5308,7 @@ class SearchSectionComponent extends HTMLElement {
           
           // Update dropdown option visual states
           dropdownTypes.forEach(type => {
-              const optionsContainer = document.getElementById(`${type}Options`);
+              const optionsContainer = component.shadowRoot.getElementById (`${type}Options`);
               if (optionsContainer) {
                   const options = optionsContainer.querySelectorAll('.dropdown-option');
                   options.forEach(option => {
@@ -5322,10 +5329,10 @@ class SearchSectionComponent extends HTMLElement {
           
           // Close all dropdowns and suggestion containers
           closeAllDropdowns();
-          document.querySelectorAll('.author-suggestions, .autocomplete-suggestions').forEach(suggestions => {
+          component.shadowRoot.querySelectorAll('.author-suggestions, .autocomplete-suggestions').forEach(suggestions => {
               suggestions.classList.remove('show');
           });
-          document.querySelectorAll('.author-container').forEach(container => {
+          component.shadowRoot.querySelectorAll('.author-container').forEach(container => {
               container.classList.remove('open');
           });
       }
@@ -5344,10 +5351,10 @@ class SearchSectionComponent extends HTMLElement {
       // ===========================
       
       document.addEventListener('DOMContentLoaded', function() {
-          const searchInput = document.getElementById('searchInput');
-          const searchBtn = document.getElementById('searchBtn');
-          const uploadBtn = document.getElementById('uploadBtn');
-          const userIcon = document.getElementById('userIcon');
+          const searchInput = component.shadowRoot.getElementById ('searchInput');
+          const searchBtn = component.shadowRoot.getElementById ('searchBtn');
+          const uploadBtn = component.shadowRoot.getElementById ('uploadBtn');
+          const userIcon = component.shadowRoot.getElementById ('userIcon');
       
           if (searchBtn) {
               searchBtn.addEventListener('click', async function() {
@@ -5410,7 +5417,7 @@ class SearchSectionComponent extends HTMLElement {
           }
       
           // Close modal when clicking outside
-          const previewModal = document.getElementById('previewModal');
+          const previewModal = component.shadowRoot.getElementById ('previewModal');
           if (previewModal) {
               previewModal.addEventListener('click', function(e) {
                   if (e.target === this) {
@@ -5431,7 +5438,7 @@ class SearchSectionComponent extends HTMLElement {
               // Ctrl/Cmd + F to focus search (prevent default browser search)
               if ((e.ctrlKey || e.metaKey) && e.key === 'f' && !e.shiftKey) {
                   e.preventDefault();
-                  const searchInput = document.getElementById('searchInput');
+                  const searchInput = component.shadowRoot.getElementById ('searchInput');
                   if (searchInput) {
                       searchInput.focus();
                       searchInput.select();
@@ -5456,7 +5463,7 @@ class SearchSectionComponent extends HTMLElement {
                   if (isFiltersOpen) {
                       closeFiltersPanel();
                   } else {
-                      const previewModal = document.getElementById('previewModal');
+                      const previewModal = component.shadowRoot.getElementById ('previewModal');
                       if (previewModal && previewModal.classList.contains('active')) {
                           closePreview();
                       }
@@ -5481,7 +5488,7 @@ class SearchSectionComponent extends HTMLElement {
       
       async function openQuickLook(vetrina) {
           // Prevent multiple modals
-          if (document.getElementById('quick-look-overlay')) return;
+          if (component.shadowRoot.getElementById ('quick-look-overlay')) return;
       
           const modalHTML = `
               <div id="quick-look-overlay" class="quick-look-overlay">
@@ -5528,7 +5535,7 @@ class SearchSectionComponent extends HTMLElement {
           `;
       
           document.body.insertAdjacentHTML('beforeend', modalHTML);
-          const overlay = document.getElementById('quick-look-overlay');
+          const overlay = component.shadowRoot.getElementById ('quick-look-overlay');
           const modal = overlay.querySelector('.quick-look-modal');
           const closeButton = overlay.querySelector('.quick-look-close-button');
           const fileList = overlay.querySelector('.quick-look-file-list');
@@ -5622,7 +5629,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function closeQuickLook() {
-          const overlay = document.getElementById('quick-look-overlay');
+          const overlay = component.shadowRoot.getElementById ('quick-look-overlay');
           if (overlay) {
               // Remove keyboard event listener
               document.removeEventListener('keydown', handleQuickLookKeyboard);
@@ -5636,10 +5643,10 @@ class SearchSectionComponent extends HTMLElement {
       
       function openChunksOverlay(item) {
           // Prevent multiple modals
-          if (document.getElementById('chunks-overlay')) return;
+          if (component.shadowRoot.getElementById ('chunks-overlay')) return;
       
           // Get current search query
-          const searchInput = document.querySelector('.search-input');
+          const searchInput = component.shadowRoot.querySelector('.search-input');
           const currentQuery = searchInput?.value?.trim() || '';
       
           const modalHTML = `
@@ -5695,7 +5702,7 @@ class SearchSectionComponent extends HTMLElement {
       
           document.body.insertAdjacentHTML('beforeend', modalHTML);
           
-          const overlay = document.getElementById('chunks-overlay');
+          const overlay = component.shadowRoot.getElementById ('chunks-overlay');
           const closeButton = overlay.querySelector('.chunks-close-button');
           const viewFullBtn = overlay.querySelector('.chunks-view-full-btn');
       
@@ -5723,7 +5730,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function closeChunksOverlay() {
-          const overlay = document.getElementById('chunks-overlay');
+          const overlay = component.shadowRoot.getElementById ('chunks-overlay');
           if (overlay) {
               // Remove keyboard event listener
               document.removeEventListener('keydown', handleChunksKeyboard);
@@ -5745,8 +5752,8 @@ class SearchSectionComponent extends HTMLElement {
           const file = vetrina.files[index];
           if (!file) return;
       
-          const previewContainer = document.querySelector('.quick-look-main-preview');
-          const fileListItems = document.querySelectorAll('.quick-look-file-list .quick-look-file-item');
+          const previewContainer = component.shadowRoot.querySelector('.quick-look-main-preview');
+          const fileListItems = component.shadowRoot.querySelectorAll('.quick-look-file-list .quick-look-file-item');
       
           // Get file type and size
           const fileType = getFileTypeFromFilename(file.filename);
@@ -5777,7 +5784,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function handleQuickLookKeyboard(e) {
-          const overlay = document.getElementById('quick-look-overlay');
+          const overlay = component.shadowRoot.getElementById ('quick-look-overlay');
           if (!overlay) return;
       
           switch (e.key) {
@@ -5796,14 +5803,14 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function navigateQuickLookFile(direction) {
-          const activeItem = document.querySelector('.quick-look-file-item.active');
+          const activeItem = component.shadowRoot.querySelector('.quick-look-file-item.active');
           if (!activeItem) return;
       
           const currentIndex = parseInt(activeItem.dataset.index, 10);
-          const fileList = document.querySelectorAll('.quick-look-file-item');
+          const fileList = component.shadowRoot.querySelectorAll('.quick-look-file-item');
           const newIndex = (currentIndex + direction + fileList.length) % fileList.length;
           
-          const newItem = document.querySelector(`[data-index="${newIndex}"]`);
+          const newItem = component.shadowRoot.querySelector(`[data-index="${newIndex}"]`);
           if (newItem) {
               newItem.click();
               newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -5817,7 +5824,7 @@ class SearchSectionComponent extends HTMLElement {
       // ===========================
       
       function initializeScrollToTop() {
-          const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+          const scrollToTopBtn = component.shadowRoot.getElementById ('scrollToTopBtn');
           if (!scrollToTopBtn) return;
       
           let scrollThreshold = 300; // Show button after scrolling 300px
@@ -5922,7 +5929,7 @@ class SearchSectionComponent extends HTMLElement {
       // Preload and cache image dimensions immediately
       function preloadBackgroundImage() {
           const tempImage = new Image();
-          tempImage.src = '../../images/bg.png';
+          tempImage.src = 'images/bg.png';
           
           const storeImageDimensions = () => {
               if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
@@ -5945,9 +5952,9 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function adjustBackgroundPosition() {
-          const bgElement = document.querySelector('.background-image');
-          const title = document.querySelector('.search-title');
-          const searchContainer = document.querySelector('.search-container');
+          const bgElement = component.shadowRoot.querySelector('.background-image');
+          const title = component.shadowRoot.querySelector('.search-title');
+          const searchContainer = component.shadowRoot.querySelector('.search-container');
       
           if (!bgElement || !title || !searchContainer) {
               return;
@@ -5956,7 +5963,7 @@ class SearchSectionComponent extends HTMLElement {
           // If we don't have image dimensions yet, try to get them
           if (!bgImageDimensions) {
               const tempImage = new Image();
-              tempImage.src = '../../images/bg.png';
+              tempImage.src = 'images/bg.png';
               
               if (tempImage.complete && tempImage.naturalWidth > 0) {
                   bgImageDimensions = {
@@ -6031,7 +6038,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Simple scroll handler for sticky search bar
       function initializeStickySearch() {
-          const searchContainerWrapper = document.querySelector('.search-container-wrapper');
+          const searchContainerWrapper = component.shadowRoot.querySelector('.search-container-wrapper');
           
           if (!searchContainerWrapper) {
               return;
@@ -6054,7 +6061,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Font Loading Detection Script (moved from search.html for CSP compliance)
       function showIconsImmediately() {
-          document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
+          component.shadowRoot.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
               element.style.visibility = 'visible';
               element.style.opacity = '1';
           });
@@ -6077,7 +6084,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Add event listener for preview close button (replaces inline onclick)
       document.addEventListener('DOMContentLoaded', function() {
-          const previewCloseBtn = document.getElementById('previewCloseBtn');
+          const previewCloseBtn = component.shadowRoot.getElementById ('previewCloseBtn');
           if (previewCloseBtn) {
               previewCloseBtn.addEventListener('click', closePreview);
           }
@@ -6091,7 +6098,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Initialize reviews overlay functionality
       function initializeReviewsOverlay() {
-          const reviewsOverlay = document.getElementById('reviewsOverlay');
+          const reviewsOverlay = component.shadowRoot.getElementById ('reviewsOverlay');
           if (reviewsOverlay) {
               reviewsOverlay.addEventListener('click', (e) => {
                   if (e.target.id === 'reviewsOverlay') {
@@ -6138,7 +6145,7 @@ class SearchSectionComponent extends HTMLElement {
       // Open reviews overlay for a specific vetrina
       async function openReviewsOverlay(vetrinaId) {
           currentVetrinaForReviews = vetrinaId;
-          const overlay = document.getElementById('reviewsOverlay');
+          const overlay = component.shadowRoot.getElementById ('reviewsOverlay');
           
           if (overlay) {
               overlay.classList.add('active');
@@ -6155,16 +6162,16 @@ class SearchSectionComponent extends HTMLElement {
       
       // Show initial rating data from search results
       function showInitialRatingData(vetrinaId) {
-          const reviewsList = document.getElementById('reviewsList');
-          const bigRatingScore = document.querySelector('.big-rating-score');
-          const totalReviews = document.querySelector('.total-reviews');
-          const bigStars = document.querySelector('.big-stars');
-          const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+          const reviewsList = component.shadowRoot.getElementById ('reviewsList');
+          const bigRatingScore = component.shadowRoot.querySelector('.big-rating-score');
+          const totalReviews = component.shadowRoot.querySelector('.total-reviews');
+          const bigStars = component.shadowRoot.querySelector('.big-stars');
+          const addReviewBtn = component.shadowRoot.querySelector('[data-action="show-review-form"]');
       
           if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
       
           // Find the vetrina data from search results
-          const ratingBadge = document.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
+          const ratingBadge = component.shadowRoot.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
           if (ratingBadge) {
               // Get rating and review count from dataset attributes
               const rating = parseFloat(ratingBadge.dataset.rating) || 0;
@@ -6194,11 +6201,11 @@ class SearchSectionComponent extends HTMLElement {
       
       // Show loading state for reviews
       function showReviewsLoadingState() {
-          const reviewsList = document.getElementById('reviewsList');
-          const bigRatingScore = document.querySelector('.big-rating-score');
-          const totalReviews = document.querySelector('.total-reviews');
-          const bigStars = document.querySelector('.big-stars');
-          const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+          const reviewsList = component.shadowRoot.getElementById ('reviewsList');
+          const bigRatingScore = component.shadowRoot.querySelector('.big-rating-score');
+          const totalReviews = component.shadowRoot.querySelector('.total-reviews');
+          const bigStars = component.shadowRoot.querySelector('.big-stars');
+          const addReviewBtn = component.shadowRoot.querySelector('[data-action="show-review-form"]');
       
           if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
       
@@ -6218,7 +6225,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Close reviews overlay
       function closeReviewsOverlay() {
-          const overlay = document.getElementById('reviewsOverlay');
+          const overlay = component.shadowRoot.getElementById ('reviewsOverlay');
           if (overlay) {
               overlay.classList.remove('active');
               document.body.style.overflow = '';
@@ -6284,11 +6291,11 @@ class SearchSectionComponent extends HTMLElement {
       
       // Update the reviews overlay content
       function updateReviewsOverlay() {
-          const reviewsList = document.getElementById('reviewsList');
-          const bigRatingScore = document.querySelector('.big-rating-score');
-          const totalReviews = document.querySelector('.total-reviews');
-          const bigStars = document.querySelector('.big-stars');
-          const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+          const reviewsList = component.shadowRoot.getElementById ('reviewsList');
+          const bigRatingScore = component.shadowRoot.querySelector('.big-rating-score');
+          const totalReviews = component.shadowRoot.querySelector('.total-reviews');
+          const bigStars = component.shadowRoot.querySelector('.big-stars');
+          const addReviewBtn = component.shadowRoot.querySelector('[data-action="show-review-form"]');
       
           if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
       
@@ -6373,9 +6380,9 @@ class SearchSectionComponent extends HTMLElement {
       
       // Show add review form
       function showAddReviewForm() {
-          const form = document.getElementById('addReviewForm');
-          const reviewsList = document.getElementById('reviewsList');
-          const reviewsSummary = document.querySelector('.reviews-summary');
+          const form = component.shadowRoot.getElementById ('addReviewForm');
+          const reviewsList = component.shadowRoot.getElementById ('reviewsList');
+          const reviewsSummary = component.shadowRoot.querySelector('.reviews-summary');
           
           if (form && reviewsList) {
               form.style.display = 'block';
@@ -6383,7 +6390,7 @@ class SearchSectionComponent extends HTMLElement {
               if (reviewsSummary) reviewsSummary.style.display = 'none';
               
               // Reset form
-              document.getElementById('reviewComment').value = '';
+              component.shadowRoot.getElementById ('reviewComment').value = '';
               selectedRating = 0;
               updateStarRatingDisplay();
           }
@@ -6391,9 +6398,9 @@ class SearchSectionComponent extends HTMLElement {
       
       // Hide add review form
       function hideAddReviewForm() {
-          const form = document.getElementById('addReviewForm');
-          const reviewsList = document.getElementById('reviewsList');
-          const reviewsSummary = document.querySelector('.reviews-summary');
+          const form = component.shadowRoot.getElementById ('addReviewForm');
+          const reviewsList = component.shadowRoot.getElementById ('reviewsList');
+          const reviewsSummary = component.shadowRoot.querySelector('.reviews-summary');
           
           if (form && reviewsList) {
               form.style.display = 'none';
@@ -6401,7 +6408,7 @@ class SearchSectionComponent extends HTMLElement {
               if (reviewsSummary) reviewsSummary.style.display = 'flex';
               
               // Reset form
-              document.getElementById('reviewComment').value = '';
+              component.shadowRoot.getElementById ('reviewComment').value = '';
               selectedRating = 0;
               updateStarRatingDisplay();
           }
@@ -6409,7 +6416,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Initialize star rating functionality
       function initializeStarRating() {
-          const starInputs = document.querySelectorAll('.star-input');
+          const starInputs = component.shadowRoot.querySelectorAll('.star-input');
           
           starInputs.forEach(star => {
               star.addEventListener('click', () => {
@@ -6431,7 +6438,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Update star rating display
       function updateStarRatingDisplay() {
-          const starInputs = document.querySelectorAll('.star-input');
+          const starInputs = component.shadowRoot.querySelectorAll('.star-input');
           
           starInputs.forEach((star, index) => {
               const starRating = index + 1;
@@ -6445,7 +6452,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Highlight stars on hover
       function highlightStars(rating) {
-          const starInputs = document.querySelectorAll('.star-input');
+          const starInputs = component.shadowRoot.querySelectorAll('.star-input');
           
           starInputs.forEach((star, index) => {
               const starRating = index + 1;
@@ -6464,7 +6471,7 @@ class SearchSectionComponent extends HTMLElement {
               return;
           }
       
-          const comment = document.getElementById('reviewComment').value.trim();
+          const comment = component.shadowRoot.getElementById ('reviewComment').value.trim();
           if (!comment) {
               showError('Inserisci un commento per la tua recensione.');
               return;
@@ -6584,7 +6591,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Update vetrina rating in search results
       function updateVetrinaRatingInSearch(vetrinaId) {
-          const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
+          const ratingElements = component.shadowRoot.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
           
           ratingElements.forEach(element => {
               // Reload the rating data for this vetrina
@@ -6611,10 +6618,10 @@ class SearchSectionComponent extends HTMLElement {
       
       // Initialize AI Search Toggle
       function initializeAISearchToggle() {
-          const aiToggle = document.getElementById('aiSearchToggle');
-          const toggleInput = document.getElementById('toggle');
-          const searchBar = document.querySelector('.search-bar');
-          const searchInput = document.getElementById('searchInput');
+          const aiToggle = component.shadowRoot.getElementById ('aiSearchToggle');
+          const toggleInput = component.shadowRoot.getElementById ('toggle');
+          const searchBar = component.shadowRoot.querySelector('.search-bar');
+          const searchInput = component.shadowRoot.getElementById ('searchInput');
           
           if (!aiToggle || !toggleInput) return;
           
@@ -6624,7 +6631,7 @@ class SearchSectionComponent extends HTMLElement {
               aiSearchEnabled = true;
               toggleInput.checked = true;
               searchBar.classList.add('ai-active');
-              const searchBarBackground = document.getElementById('searchBarBackground');
+              const searchBarBackground = component.shadowRoot.getElementById ('searchBarBackground');
               if (searchBarBackground) searchBarBackground.classList.add('ai-active');
               updateSearchPlaceholder(true);
           }
@@ -6637,7 +6644,7 @@ class SearchSectionComponent extends HTMLElement {
               // Update UI with enhanced visual feedback
               if (aiSearchEnabled) {
                   searchBar.classList.add('ai-active');
-                  const searchBarBackground = document.getElementById('searchBarBackground');
+                  const searchBarBackground = component.shadowRoot.getElementById ('searchBarBackground');
                   if (searchBarBackground) searchBarBackground.classList.add('ai-active');
                   updateSearchPlaceholder(true);
                   updateTypewriterForAIMode();
@@ -6650,7 +6657,7 @@ class SearchSectionComponent extends HTMLElement {
                   showStatus('Ricerca semantica attivata! 🚀', 'success');
               } else {
                   searchBar.classList.remove('ai-active');
-                  const searchBarBackground = document.getElementById('searchBarBackground');
+                  const searchBarBackground = component.shadowRoot.getElementById ('searchBarBackground');
                   if (searchBarBackground) searchBarBackground.classList.remove('ai-active');
                   updateSearchPlaceholder(false);
                   updateTypewriterForAIMode();
@@ -6732,7 +6739,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Update search placeholder based on AI mode
       function updateSearchPlaceholder(aiEnabled) {
-          const searchInput = document.getElementById('searchInput');
+          const searchInput = component.shadowRoot.getElementById ('searchInput');
           if (!searchInput) return;
           
           if (aiEnabled) {
@@ -6761,7 +6768,7 @@ class SearchSectionComponent extends HTMLElement {
               if (aiSearchEnabled) {
                   showStatus('Ricerca semantica in corso... 🤖', 'success');
                   // Add loading animation to toggle
-                  const aiToggle = document.getElementById('aiSearchToggle');
+                  const aiToggle = component.shadowRoot.getElementById ('aiSearchToggle');
                   if (aiToggle) {
                       aiToggle.classList.add('loading');
                   }
@@ -6836,7 +6843,7 @@ class SearchSectionComponent extends HTMLElement {
                   console.warn('⚠️ Backend search failed:', error);
                   
                   // Remove loading state from toggle
-                  const aiToggle = document.getElementById('aiSearchToggle');
+                  const aiToggle = component.shadowRoot.getElementById ('aiSearchToggle');
                   if (aiToggle) {
                       aiToggle.classList.remove('loading');
                   }
@@ -6845,8 +6852,8 @@ class SearchSectionComponent extends HTMLElement {
                       showStatus('Ricerca semantica non disponibile. Passaggio a ricerca standard...', 'error');
                       // Fallback to standard search
                       aiSearchEnabled = false;
-                      const toggle = document.getElementById('aiSearchToggle');
-                      const searchBar = document.querySelector('.search-bar');
+                      const toggle = component.shadowRoot.getElementById ('aiSearchToggle');
+                      const searchBar = component.shadowRoot.querySelector('.search-bar');
                       if (toggle) toggle.classList.remove('active');
                       if (searchBar) searchBar.classList.remove('ai-active');
                       updateSearchPlaceholder(false);
@@ -6864,7 +6871,7 @@ class SearchSectionComponent extends HTMLElement {
               }
           
               // Remove loading state from toggle
-              const aiToggle = document.getElementById('aiSearchToggle');
+              const aiToggle = component.shadowRoot.getElementById ('aiSearchToggle');
               if (aiToggle) {
                   aiToggle.classList.remove('loading');
               }
@@ -6977,7 +6984,7 @@ class SearchSectionComponent extends HTMLElement {
               console.error('Search error:', error);
               
               // Remove loading state from toggle
-              const aiToggle = document.getElementById('aiSearchToggle');
+              const aiToggle = component.shadowRoot.getElementById ('aiSearchToggle');
               if (aiToggle) {
                   aiToggle.classList.remove('loading');
               }
@@ -7050,7 +7057,7 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       async function typewriterRun() {
-          const input = document.getElementById('searchInput');
+          const input = component.shadowRoot.getElementById ('searchInput');
           if (!input) return;
           setTypewriterSuggestions();
           while (typewriterActive) {
@@ -7086,7 +7093,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Hook into search input events
       window.addEventListener('DOMContentLoaded', function() {
-          const input = document.getElementById('searchInput');
+          const input = component.shadowRoot.getElementById ('searchInput');
           if (!input) return;
           // Only pause animation when user actually types, not when they just focus
           input.addEventListener('input', () => {
@@ -7196,7 +7203,7 @@ class SearchSectionComponent extends HTMLElement {
           typewriterPaused = false;
           currentTypewriterIndex = 0;
           setTypewriterSuggestions();
-          const input = document.getElementById('searchInput');
+          const input = component.shadowRoot.getElementById ('searchInput');
           if (input) startTypewriterCursor(input);
           typewriterRun();
       }
@@ -7204,19 +7211,19 @@ class SearchSectionComponent extends HTMLElement {
       // In stopTypewriter and pauseTypewriter, stop the cursor
       function stopTypewriter() {
           typewriterActive = false;
-          const input = document.getElementById('searchInput');
+          const input = component.shadowRoot.getElementById ('searchInput');
           if (input) stopTypewriterCursor(input);
       }
       
       function pauseTypewriter() {
           typewriterPaused = true;
-          const input = document.getElementById('searchInput');
+          const input = component.shadowRoot.getElementById ('searchInput');
           if (input) stopTypewriterCursor(input);
       }
       
       function resumeTypewriter() {
           typewriterPaused = false;
-          const input = document.getElementById('searchInput');
+          const input = component.shadowRoot.getElementById ('searchInput');
           if (input && input.value.length === 0) startTypewriterCursor(input);
       }
       
@@ -7226,11 +7233,11 @@ class SearchSectionComponent extends HTMLElement {
       
       // --- Pagine (Pages) Range Filter ---
       function initializePagesRangeFilter() {
-          const minPagesRange = document.getElementById('minPagesRange');
-          const maxPagesRange = document.getElementById('maxPagesRange');
-          const minPagesValue = document.getElementById('minPagesValue');
-          const maxPagesValue = document.getElementById('maxPagesValue');
-          const pagesRangeFill = document.getElementById('pagesRangeFill');
+          const minPagesRange = component.shadowRoot.getElementById ('minPagesRange');
+          const maxPagesRange = component.shadowRoot.getElementById ('maxPagesRange');
+          const minPagesValue = component.shadowRoot.getElementById ('minPagesValue');
+          const maxPagesValue = component.shadowRoot.getElementById ('maxPagesValue');
+          const pagesRangeFill = component.shadowRoot.getElementById ('pagesRangeFill');
       
           if (minPagesRange && maxPagesRange) {
               if (minPagesValue) minPagesValue.textContent = '1';
@@ -7246,10 +7253,10 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function handlePagesRangeChange() {
-          const minPagesRange = document.getElementById('minPagesRange');
-          const maxPagesRange = document.getElementById('maxPagesRange');
-          const minPagesValue = document.getElementById('minPagesValue');
-          const maxPagesValue = document.getElementById('maxPagesValue');
+          const minPagesRange = component.shadowRoot.getElementById ('minPagesRange');
+          const maxPagesRange = component.shadowRoot.getElementById ('maxPagesRange');
+          const minPagesValue = component.shadowRoot.getElementById ('minPagesValue');
+          const maxPagesValue = component.shadowRoot.getElementById ('maxPagesValue');
       
           let minVal = parseInt(minPagesRange.value);
           let maxVal = parseInt(maxPagesRange.value);
@@ -7274,9 +7281,9 @@ class SearchSectionComponent extends HTMLElement {
       }
       
       function updatePagesSliderFill() {
-          const minPagesRange = document.getElementById('minPagesRange');
-          const maxPagesRange = document.getElementById('maxPagesRange');
-          const pagesRangeFill = document.getElementById('pagesRangeFill');
+          const minPagesRange = component.shadowRoot.getElementById ('minPagesRange');
+          const maxPagesRange = component.shadowRoot.getElementById ('maxPagesRange');
+          const pagesRangeFill = component.shadowRoot.getElementById ('pagesRangeFill');
       
           if (minPagesRange && maxPagesRange && pagesRangeFill) {
               const min = parseInt(minPagesRange.min);
@@ -7315,8 +7322,8 @@ class SearchSectionComponent extends HTMLElement {
       // ... existing code ...
           // Failsafe: always show price slider if 'Tutti' is active after initialization
           window.addEventListener('DOMContentLoaded', () => {
-              const priceRangeContainer = document.getElementById('priceRangeContainer');
-              const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+              const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
+              const tuttiToggle = component.shadowRoot.querySelector('.price-toggle.active[data-price="all"]');
               if (tuttiToggle && priceRangeContainer) {
                   priceRangeContainer.style.display = 'block';
               }
@@ -7326,8 +7333,8 @@ class SearchSectionComponent extends HTMLElement {
       // ... existing code ...
           // Failsafe: always show price slider if 'Tutti' is active after restoring filters
           setTimeout(() => {
-              const priceRangeContainer = document.getElementById('priceRangeContainer');
-              const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+              const priceRangeContainer = component.shadowRoot.getElementById ('priceRangeContainer');
+              const tuttiToggle = component.shadowRoot.querySelector('.price-toggle.active[data-price="all"]');
               if (tuttiToggle && priceRangeContainer) {
                   priceRangeContainer.style.display = 'block';
               }
@@ -7352,29 +7359,29 @@ class SearchSectionComponent extends HTMLElement {
       
       // ... existing code ...
           // Faculty filter
-          const facultyInput = document.getElementById('facultyFilter');
+          const facultyInput = component.shadowRoot.getElementById ('facultyFilter');
           if (facultyInput) {
               facultyInput.addEventListener('change', (e) => {
                   filterManager.setFilter('faculty', e.target.value);
               });
           }
           // Course filter
-          const courseInput = document.getElementById('courseFilter');
+          const courseInput = component.shadowRoot.getElementById ('courseFilter');
           if (courseInput) {
               courseInput.addEventListener('change', (e) => {
                   filterManager.setFilter('course', e.target.value);
               });
           }
           // Canale filter
-          const canaleInput = document.getElementById('canaleFilter');
+          const canaleInput = component.shadowRoot.getElementById ('canaleFilter');
           if (canaleInput) {
               canaleInput.addEventListener('change', (e) => {
                   filterManager.setFilter('canale', e.target.value);
               });
           }
           // Price range sliders
-          const minPriceRange = document.getElementById('minPriceRange');
-          const maxPriceRange = document.getElementById('maxPriceRange');
+          const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
+          const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
           if (minPriceRange && maxPriceRange) {
               const updatePrice = () => {
                   const min = parseInt(minPriceRange.value, 10);
@@ -7385,8 +7392,8 @@ class SearchSectionComponent extends HTMLElement {
               maxPriceRange.addEventListener('input', updatePrice);
           }
           // Pages range sliders
-          const minPagesRange = document.getElementById('minPagesRange');
-          const maxPagesRange = document.getElementById('maxPagesRange');
+          const minPagesRange = component.shadowRoot.getElementById ('minPagesRange');
+          const maxPagesRange = component.shadowRoot.getElementById ('maxPagesRange');
           if (minPagesRange && maxPagesRange) {
               const updatePages = () => {
                   const min = parseInt(minPagesRange.value, 10);
@@ -7398,20 +7405,20 @@ class SearchSectionComponent extends HTMLElement {
               maxPagesRange.addEventListener('input', updatePages);
           }
           // Rating filter (example for stars)
-          document.querySelectorAll('.rating-star-filter').forEach(star => {
+          component.shadowRoot.querySelectorAll('.rating-star-filter').forEach(star => {
               star.addEventListener('click', (e) => {
                   const rating = parseInt(star.getAttribute('data-rating'), 10);
                   filterManager.setFilter('minRating', rating);
               });
           });
           // Toggle groups (example for priceType)
-          document.querySelectorAll('.price-toggle').forEach(toggle => {
+          component.shadowRoot.querySelectorAll('.price-toggle').forEach(toggle => {
               toggle.addEventListener('click', (e) => {
                   filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
               });
           });
           // Clear all button
-          const clearAllBtn = document.getElementById('clearAllFilters');
+          const clearAllBtn = component.shadowRoot.getElementById ('clearAllFilters');
           if (clearAllBtn) {
               clearAllBtn.addEventListener('click', () => {
                   filterManager.filters = {};
@@ -15839,7 +15846,7 @@ class SearchSectionComponent extends HTMLElement {
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             
             <!-- Preload critical assets -->
-            <link rel="preload" href="../../images/Logo.png" as="image" type="image/png">
+            <link rel="preload" href="images/Logo.png" as="image" type="image/png">
             <link rel="preload" href="search-section.css" as="style">
             <link rel="preload" href="search-section.js" as="script">
             
@@ -16574,7 +16581,7 @@ class SearchSectionComponent extends HTMLElement {
         </html>
       `;
   
-      this.shadowRoot.innerHTML = template;
+      component.shadowRoot.innerHTML = template;
     }
   
     get apiBase() {

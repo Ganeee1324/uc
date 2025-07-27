@@ -1,3 +1,5 @@
+import base64
+import json
 from datetime import timedelta
 import logging
 import time
@@ -6,6 +8,8 @@ import time
 import random
 import traceback
 
+from PIL import Image
+
 # from bge import get_document_embedding
 from chunker import process_pdf_chunks
 import werkzeug
@@ -13,8 +17,10 @@ import database
 import redact
 from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
+import requests
 from dotenv import load_dotenv
 import os
+import numpy as np
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
 import hashlib
 from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, ForbiddenError
@@ -673,6 +679,30 @@ def get_valid_tags():
     """Get the list of valid file tags."""
     return jsonify({"tags": VALID_TAGS}), 200
 
+def enrich_snippets_request(pdf_path: str, chunks: list[dict[str, str | int]]):
+    with open(pdf_path, 'rb') as pdf_file:
+        files = {'pdf': ('document.pdf', pdf_file, 'application/pdf')}
+        data = {
+            'num_windows': 8,
+            'window_height_percentage': 0.35,
+            'snippets': json.dumps(chunks)
+        }
+        
+        response = requests.post(
+            "http://lancionaco.love:8222/enrich_snippets",
+            files=files,
+            data=data,
+            timeout=300  # 5 minute timeout
+        )
+    
+    data = response.json()
+    for chunk in data["snippets"]:
+        chunk["embedding"] = np.array(chunk["embedding"])
+    for chunk in data["snippets"]:
+        chunk["image"] = Image.open(BytesIO(base64.b64decode(chunk["image"])))
+    return data["snippets"]
+
+
 
 def process_embedding_queue():
     global file_uploaded
@@ -696,6 +726,7 @@ def process_embedding_queue():
             for i, row in enumerate(rows):
                 logging.info(f"Generating embeddings for file '{row['display_name']}' (remaining: {len(rows) - i})")
                 chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], row["name"])
+                chunks = enrich_snippets_request(os.path.join(files_folder_path, row["filename"]), chunks)
                 database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
                 logging.info(f"Processed {len(chunks)} chunks for file '{row['display_name']}' in vetrina '{row['name']}'")
                 with database.connect() as conn:

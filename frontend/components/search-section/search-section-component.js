@@ -35,6 +35,7 @@ class SearchSectionComponent extends HTMLElement {
       
       // Initialize this component instance completely
       this.initializeComponentInstance();
+      this.setupInstanceEventListeners();
     }
     
     disconnectedCallback() {
@@ -96,6 +97,23 @@ class SearchSectionComponent extends HTMLElement {
       
       // Instance-specific constants
       this.HIERARCHY_CACHE_KEY = `hierarchy_data_cache_${this.instanceId}`;
+      
+      // Instance-specific typewriter suggestions
+      this.standardSuggestions = [
+          'Cerca appunti di matematica...',
+          'Trova dispense di fisica...',
+          'Esercizi di programmazione...',
+          'Appunti di economia...',
+          'Dispense di ingegneria...'
+      ];
+      
+      this.aiSuggestions = [
+          'Trova documenti simili a...',
+          'Cerca materiale correlato a...',
+          'Mostrami appunti su...',
+          'Trova esercizi simili a...',
+          'Cerca dispense correlate a...'
+      ];
       
       // Instance-specific storage methods
       this.setStorageItem = (key, value) => {
@@ -2592,7 +2610,7 @@ class SearchSectionComponent extends HTMLElement {
           }
       };
       
-      function handleEditableValueInputKeydown(event, element, type, position) {
+      this.handleEditableValueInputKeydown = function(event, element, type, position) {
           if (event.key === 'Enter') {
               event.preventDefault();
               handleEditableValueBlur(element, type, position);
@@ -2603,9 +2621,9 @@ class SearchSectionComponent extends HTMLElement {
               element.textContent = originalContent;
               element.classList.remove('editing');
           }
-      }
+      };
       
-      function handleEditableValueBlur(element, type, position) {
+      this.handleEditableValueBlur = function(element, type, position) {
           const input = element.querySelector('input');
           if (!input) return;
           
@@ -2623,10 +2641,10 @@ class SearchSectionComponent extends HTMLElement {
           element.classList.remove('editing');
           
           // Update corresponding range slider
-          updateRangeSliderFromEditableValue(type, position, newValue);
-      }
+          component.updateRangeSliderFromEditableValue(type, position, newValue);
+      };
       
-      function updateRangeSliderFromEditableValue(type, position, value) {
+      this.updateRangeSliderFromEditableValue = function(type, position, value) {
           if (type === 'price') {
               const minPriceRange = component.shadowRoot.getElementById ('minPriceRange');
               const maxPriceRange = component.shadowRoot.getElementById ('maxPriceRange');
@@ -2674,12 +2692,12 @@ class SearchSectionComponent extends HTMLElement {
                   }
               }
               
-              updatePagesSliderFill();
-              applyPagesFilters(parseInt(minPagesRange.value), parseInt(maxPagesRange.value));
+              component.updatePagesSliderFill();
+              component.applyPagesFilters(parseInt(minPagesRange.value), parseInt(maxPagesRange.value));
           }
-      }
+      };
       
-      function applyPriceFilters(minVal, maxVal) {
+      this.applyPriceFilters = function(minVal, maxVal) {
           // Defensive: always delete priceRange array if present
           if (component.filterManager.filters.priceRange) {
               delete component.filterManager.filters.priceRange;
@@ -5936,7 +5954,7 @@ class SearchSectionComponent extends HTMLElement {
       
               // Real-time search with debounce and request cancellation
               let searchTimeout;
-              let currentSearchController = null;
+              this.currentSearchController = null;
               searchInput.addEventListener('input', function() {
                   clearTimeout(searchTimeout);
                   // Cancel previous request if still pending
@@ -6431,8 +6449,8 @@ class SearchSectionComponent extends HTMLElement {
           
           console.log('✅ Scroll to top button initialized');
       
-          let scrollThreshold = 300; // Show button after scrolling 300px
-          let isScrolling = false;
+                this.scrollThreshold = 300; // Show button after scrolling 300px
+      this.isScrolling = false;
           let scrollTimeout;
       
           // Show/hide button based on scroll position
@@ -6502,7 +6520,7 @@ class SearchSectionComponent extends HTMLElement {
           window.addEventListener('resize', adjustScrollThreshold);
       
           // Performance optimization: throttle scroll events for better performance
-          let ticking = false;
+          this.ticking = false;
           
           function throttledHandleScroll() {
               if (!ticking) {
@@ -6692,10 +6710,10 @@ class SearchSectionComponent extends HTMLElement {
       });
       
       // Reviews Overlay System
-      let currentVetrinaForReviews = null;
-      let currentReviews = [];
-      let currentUserReview = null;
-      let selectedRating = 0;
+      this.currentVetrinaForReviews = null;
+      this.currentReviews = [];
+      this.currentUserReview = null;
+      this.selectedRating = 0;
       
       // Initialize reviews overlay functionality
       function initializeReviewsOverlay() {
@@ -7212,7 +7230,7 @@ class SearchSectionComponent extends HTMLElement {
       // Reviews initialization is now handled in initializeStaticComponents()
       
       // Global variable to track AI search state
-      let aiSearchEnabled = false;
+      this.aiSearchEnabled = false;
       
       // Initialize AI Search Toggle
       function initializeAISearchToggle() {
@@ -7609,234 +7627,196 @@ class SearchSectionComponent extends HTMLElement {
       // TYPEWRITER PLACEHOLDER ANIMATION
       // ===========================
       
-      const standardSuggestions = [
-          'Cerca una dispensa... (es. "Analisi 1 2023")',
-          'Dispense, esercizi, riassunti, appunti...',
-          'Cerca per corso, docente, o argomento',
-          'Esempio: "Statistica Canale B"',
-          'Esempio: "Appunti Diritto Privato"',
-      ];
-      const aiSuggestions = [
-          'Cerca con AI avanzata... (es. "concetti di fisica quantistica")',
-          'Chiedi: "Spiegami la teoria degli insiemi"',
-          'Trova documenti simili a un argomento',
-          'Esempio: "Appunti che spiegano la legge di Ohm"',
-          'Esempio: "Dispense su analisi complessa"',
-      ];
+      // Instance-specific typewriter state
+      this.typewriterActive = true;
+      this.typewriterPaused = false;
+      this.typewriterTimeout = null;
+      this.currentTypewriterIndex = 0;
+      this.currentTypewriterSuggestions = this.standardSuggestions;
       
-      let typewriterActive = true;
-      let typewriterPaused = false;
-      let typewriterTimeout = null;
-      let currentTypewriterIndex = 0;
-      let currentTypewriterSuggestions = standardSuggestions;
+      this.setTypewriterSuggestions = function() {
+          this.currentTypewriterSuggestions = this.aiSearchEnabled ? this.aiSuggestions : this.standardSuggestions;
+      };
       
-      function setTypewriterSuggestions() {
-          currentTypewriterSuggestions = aiSearchEnabled ? aiSuggestions : standardSuggestions;
-      }
-      
-      function clearTypewriterPlaceholder(input) {
+      this.clearTypewriterPlaceholder = function(input) {
           input.setAttribute('placeholder', '');
-      }
+      };
       
-      function typewriterAddLetter(letter, input) {
+      this.typewriterAddLetter = function(letter, input) {
           input.setAttribute('placeholder', input.getAttribute('placeholder') + letter);
           return new Promise(resolve => setTimeout(resolve, 60));
-      }
+      };
       
-      function typewriterDeleteLetter(input) {
+      this.typewriterDeleteLetter = function(input) {
           let current = input.getAttribute('placeholder');
           if (current.length > 0) {
               input.setAttribute('placeholder', current.slice(0, -1));
           }
           return new Promise(resolve => setTimeout(resolve, 30));
-      }
+      };
       
-      async function typewriterPrintPhrase(phrase, input) {
-          clearTypewriterPlaceholder(input);
+      this.typewriterPrintPhrase = async function(phrase, input) {
+          this.clearTypewriterPlaceholder(input);
           for (let i = 0; i < phrase.length; i++) {
-              if (!typewriterActive || typewriterPaused) return;
-              await typewriterAddLetter(phrase[i], input);
+              if (!this.typewriterActive || this.typewriterPaused) return;
+              await this.typewriterAddLetter(phrase[i], input);
           }
           // Wait before deleting
           await new Promise(resolve => setTimeout(resolve, 1200));
           // Delete letters
           for (let i = phrase.length - 1; i >= 0; i--) {
-              if (!typewriterActive || typewriterPaused) return;
-              await typewriterDeleteLetter(input);
+              if (!this.typewriterActive || this.typewriterPaused) return;
+              await this.typewriterDeleteLetter(input);
           }
           await new Promise(resolve => setTimeout(resolve, 300));
-      }
+      };
       
-      async function typewriterRun() {
-          const input = component.shadowRoot.getElementById ('searchInput');
+      this.typewriterRun = async function() {
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
           if (!input) return;
-          setTypewriterSuggestions();
-          while (typewriterActive) {
-              if (typewriterPaused) {
+          this.setTypewriterSuggestions();
+          while (this.typewriterActive) {
+              if (this.typewriterPaused) {
                   await new Promise(resolve => setTimeout(resolve, 200));
                   continue;
               }
-              const phrase = currentTypewriterSuggestions[currentTypewriterIndex];
-              await typewriterPrintPhrase(phrase, input);
-              currentTypewriterIndex = (currentTypewriterIndex + 1) % currentTypewriterSuggestions.length;
+              const phrase = this.currentTypewriterSuggestions[this.currentTypewriterIndex];
+              await this.typewriterPrintPhrase(phrase, input);
+              this.currentTypewriterIndex = (this.currentTypewriterIndex + 1) % this.currentTypewriterSuggestions.length;
           }
       }
       
-      function startTypewriter() {
-          typewriterActive = true;
-          typewriterPaused = false;
-          currentTypewriterIndex = 0;
-          setTypewriterSuggestions();
-          typewriterRun();
-      }
+      this.startTypewriter = function() {
+          this.typewriterActive = true;
+          this.typewriterPaused = false;
+          this.currentTypewriterIndex = 0;
+          this.setTypewriterSuggestions();
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input) this.startTypewriterCursor(input);
+          this.typewriterRun();
+      };
       
-      function stopTypewriter() {
-          typewriterActive = false;
-      }
+      this.stopTypewriter = function() {
+          this.typewriterActive = false;
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input) this.stopTypewriterCursor(input);
+      };
       
-      function pauseTypewriter() {
-          typewriterPaused = true;
-      }
+      this.pauseTypewriter = function() {
+          this.typewriterPaused = true;
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input) this.stopTypewriterCursor(input);
+      };
       
-      function resumeTypewriter() {
-          typewriterPaused = false;
-      }
+      this.resumeTypewriter = function() {
+          this.typewriterPaused = false;
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input && input.value.length === 0) this.startTypewriterCursor(input);
+      };
       
-      // Hook into search input events
-      window.addEventListener('DOMContentLoaded', function() {
-          const input = component.shadowRoot.getElementById ('searchInput');
-          if (!input) return;
-          // Only pause animation when user actually types, not when they just focus
-          input.addEventListener('input', () => {
-              if (input.value.length > 0) {
-                  pauseTypewriter();
-              } else {
-                  resumeTypewriter();
-              }
-          });
-          input.addEventListener('blur', () => {
-              if (input.value.length === 0) {
-                  resumeTypewriter();
-              }
-          });
-          startTypewriter();
-      });
+      // Instance-specific cursor state
+      this.typewriterCursorVisible = true;
+      this.typewriterCursorInterval = null;
       
-      // Update suggestions when AI mode changes
-      function updateTypewriterForAIMode() {
-          setTypewriterSuggestions();
-          currentTypewriterIndex = 0;
-      }
+      this.TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
       
-      // ... existing code ...
-      // In initializeAISearchToggle, after updating the mode, call updateTypewriterForAIMode and resumeTypewriter if input is empty
-      // ... existing code ...
-      // In initializeAISearchToggle, after updateSearchPlaceholder(true/false):
-      // updateTypewriterForAIMode();
-      // if (searchInput.value.length === 0) resumeTypewriter();
-      // ... existing code ...
-      
-      let typewriterCursorVisible = true;
-      let typewriterCursorInterval = null;
-      
-      const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
-      
-      function setTypewriterCursor(input, show) {
+      this.setTypewriterCursor = function(input, show) {
           let placeholder = input.getAttribute('placeholder') || '';
           if (show) {
-              if (!placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
-                  input.setAttribute('placeholder', placeholder + TYPEWRITER_CURSOR_CHAR);
+              if (!placeholder.endsWith(this.TYPEWRITER_CURSOR_CHAR)) {
+                  input.setAttribute('placeholder', placeholder + this.TYPEWRITER_CURSOR_CHAR);
               }
           } else {
-              if (placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+              if (placeholder.endsWith(this.TYPEWRITER_CURSOR_CHAR)) {
                   input.setAttribute('placeholder', placeholder.slice(0, -1));
               }
           }
-      }
+      };
       
-      function startTypewriterCursor(input) {
-          if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
-          typewriterCursorVisible = true;
-          setTypewriterCursor(input, true);
-          typewriterCursorInterval = setInterval(() => {
-              typewriterCursorVisible = !typewriterCursorVisible;
-              setTypewriterCursor(input, typewriterCursorVisible);
+      this.startTypewriterCursor = function(input) {
+          if (this.typewriterCursorInterval) clearInterval(this.typewriterCursorInterval);
+          this.typewriterCursorVisible = true;
+          this.setTypewriterCursor(input, true);
+          this.typewriterCursorInterval = setInterval(() => {
+              this.typewriterCursorVisible = !this.typewriterCursorVisible;
+              this.setTypewriterCursor(input, this.typewriterCursorVisible);
           }, 500);
-      }
+      };
       
-      function stopTypewriterCursor(input) {
-          if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
-          typewriterCursorInterval = null;
-          setTypewriterCursor(input, false);
-      }
+      this.stopTypewriterCursor = function(input) {
+          if (this.typewriterCursorInterval) clearInterval(this.typewriterCursorInterval);
+          this.typewriterCursorInterval = null;
+          this.setTypewriterCursor(input, false);
+      };
       
-      function clearTypewriterPlaceholder(input) {
+      this.clearTypewriterPlaceholderWithCursor = function(input) {
           input.setAttribute('placeholder', '');
-      }
+      };
       
-      function typewriterAddLetter(letter, input) {
+      this.typewriterAddLetterWithCursor = function(letter, input) {
           let base = input.getAttribute('placeholder') || '';
-          if (base.endsWith(TYPEWRITER_CURSOR_CHAR)) base = base.slice(0, -1);
-          input.setAttribute('placeholder', base + letter + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
+          if (base.endsWith(this.TYPEWRITER_CURSOR_CHAR)) base = base.slice(0, -1);
+          input.setAttribute('placeholder', base + letter + (this.typewriterCursorVisible ? this.TYPEWRITER_CURSOR_CHAR : ''));
           return new Promise(resolve => setTimeout(resolve, 60));
-      }
+      };
       
-      function typewriterDeleteLetter(input) {
+      this.typewriterDeleteLetterWithCursor = function(input) {
           let current = input.getAttribute('placeholder') || '';
-          if (current.endsWith(TYPEWRITER_CURSOR_CHAR)) current = current.slice(0, -1);
+          if (current.endsWith(this.TYPEWRITER_CURSOR_CHAR)) current = current.slice(0, -1);
           if (current.length > 0) {
-              input.setAttribute('placeholder', current.slice(0, -1) + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
+              input.setAttribute('placeholder', current.slice(0, -1) + (this.typewriterCursorVisible ? this.TYPEWRITER_CURSOR_CHAR : ''));
           }
           return new Promise(resolve => setTimeout(resolve, 30));
-      }
+      };
       
-      async function typewriterPrintPhrase(phrase, input) {
-          clearTypewriterPlaceholder(input);
-          startTypewriterCursor(input);
+      this.typewriterPrintPhraseWithCursor = async function(phrase, input) {
+          this.clearTypewriterPlaceholderWithCursor(input);
+          this.startTypewriterCursor(input);
           for (let i = 0; i < phrase.length; i++) {
-              if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
-              await typewriterAddLetter(phrase[i], input);
+              if (!this.typewriterActive || this.typewriterPaused) { this.stopTypewriterCursor(input); return; }
+              await this.typewriterAddLetterWithCursor(phrase[i], input);
           }
           // Wait before deleting
           await new Promise(resolve => setTimeout(resolve, 1200));
           // Delete letters
           for (let i = phrase.length - 1; i >= 0; i--) {
-              if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
-              await typewriterDeleteLetter(input);
+              if (!this.typewriterActive || this.typewriterPaused) { this.stopTypewriterCursor(input); return; }
+              await this.typewriterDeleteLetterWithCursor(input);
           }
           await new Promise(resolve => setTimeout(resolve, 300));
-          stopTypewriterCursor(input);
-      }
+          this.stopTypewriterCursor(input);
+      };
       
+      // ... existing code ...
       // In startTypewriter, after getting the input, start the cursor
-      function startTypewriter() {
-          typewriterActive = true;
-          typewriterPaused = false;
-          currentTypewriterIndex = 0;
-          setTypewriterSuggestions();
-          const input = component.shadowRoot.getElementById ('searchInput');
-          if (input) startTypewriterCursor(input);
-          typewriterRun();
-      }
+      this.startTypewriter = function() {
+          this.typewriterActive = true;
+          this.typewriterPaused = false;
+          this.currentTypewriterIndex = 0;
+          this.setTypewriterSuggestions();
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input) this.startTypewriterCursor(input);
+          this.typewriterRun();
+      };
       
       // In stopTypewriter and pauseTypewriter, stop the cursor
-      function stopTypewriter() {
-          typewriterActive = false;
-          const input = component.shadowRoot.getElementById ('searchInput');
-          if (input) stopTypewriterCursor(input);
-      }
+      this.stopTypewriter = function() {
+          this.typewriterActive = false;
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input) this.stopTypewriterCursor(input);
+      };
       
-      function pauseTypewriter() {
-          typewriterPaused = true;
-          const input = component.shadowRoot.getElementById ('searchInput');
-          if (input) stopTypewriterCursor(input);
-      }
+      this.pauseTypewriterWithCursor = function() {
+          this.typewriterPaused = true;
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input) this.stopTypewriterCursor(input);
+      };
       
-      function resumeTypewriter() {
-          typewriterPaused = false;
-          const input = component.shadowRoot.getElementById ('searchInput');
-          if (input && input.value.length === 0) startTypewriterCursor(input);
-      }
+      this.resumeTypewriterWithCursor = function() {
+          this.typewriterPaused = false;
+          const input = component.shadowRoot.getElementById(getUniqueId('searchInput'));
+          if (input && input.value.length === 0) this.startTypewriterCursor(input);
+      };
       
       // ... existing code ...
       // In input event listeners, also stop the cursor when paused, and start when resumed
@@ -12123,25 +12103,6 @@ class SearchSectionComponent extends HTMLElement {
              
              .documents-grid.no-results-state {
                  grid-template-columns: repeat(5, minmax(0, 1fr));
-                 gap: var(--space-4);
-             }
-          }
-          
-          @media (max-width: 1600px) {
-              :root {
-                  --bg-offset-top: -1100px; /* Adjust for this screen size layout */
-              }
-             .filters-panel {
-                 max-width: 480px;
-             }
-             
-             .documents-grid {
-                 grid-template-columns: repeat(4, minmax(0, 1fr));
-                 gap: var(--space-4);
-             }
-             
-             .documents-grid.no-results-state {
-                 grid-template-columns: repeat(4, minmax(0, 1fr));
                  gap: var(--space-4);
              }
              
@@ -16592,17 +16553,17 @@ class SearchSectionComponent extends HTMLElement {
                                             d="M0.96233 28.61C1.36043 29.0081 1.96007 29.1255 2.47555 28.8971L10.4256 25.3552C13.2236 24.11 16.4254 24.1425 19.2107 25.4401L27.4152 29.2747C27.476 29.3044 27.5418 29.3023 27.6047 29.32C27.6563 29.3348 27.7079 29.3497 27.761 29.3574C27.843 29.3687 27.9194 29.3758 28 29.3688C28.1273 29.3617 28.2531 29.3405 28.3726 29.2945C28.4447 29.262 28.5162 29.2287 28.5749 29.1842C28.6399 29.1446 28.6993 29.0994 28.7509 29.0477L28.9008 28.8582C28.9468 28.7995 28.9793 28.7274 29.0112 28.656C29.0599 28.5322 29.0811 28.4036 29.0882 28.2734C29.0939 28.1957 29.0868 28.1207 29.0769 28.0415C29.0705 27.9955 29.0585 27.9524 29.0472 27.9072C29.0295 27.8343 29.0302 27.7601 28.9984 27.6901L25.1638 19.4855C23.8592 16.7073 23.8273 13.5048 25.0726 10.7068L28.6145 2.75679C28.8429 2.24131 28.7318 1.63531 28.3337 1.2372C27.9165 0.820011 27.271 0.721743 26.7491 0.9961L19.8357 4.59596C16.8418 6.15442 13.2879 6.18696 10.2615 4.70062L1.80308 0.520214C1.7055 0.474959 1.60722 0.441742 1.50964 0.421943C1.44459 0.409215 1.37882 0.395769 1.3074 0.402133C1.14406 0.395769 0.981436 0.428275 0.818095 0.499692C0.77284 0.519491 0.719805 0.545671 0.67455 0.578198C0.596061 0.617088 0.524653 0.675786 0.4596 0.74084C0.394546 0.805894 0.335843 0.877306 0.296245 0.956502C0.263718 1.00176 0.237561 1.05477 0.217762 1.10003C0.152708 1.24286 0.126545 1.40058 0.120181 1.54978C0.120181 1.61483 0.126527 1.6735 0.132891 1.73219C0.15269 1.85664 0.178881 1.97332 0.237571 2.08434L4.41798 10.5427C5.91139 13.5621 5.8725 17.1238 4.3204 20.1099L0.720514 27.0233C0.440499 27.5536 0.545137 28.1928 0.96233 28.61Z"
                                           ></path>
                                         </svg>
-                                      </div>
+                                  </div>
                                     </label>
-                                </div>
-                            </div>
+                              </div>
+                              </div>
                             <button class="filters-btn" id="${getUniqueId('filtersBtn')}">
                                 <i class="material-symbols-outlined">tune</i>
                                 <span class="filters-text">Filtri</span>
                                 <span class="filter-count" id="${getUniqueId('filterCount')}">0</span>
                             </button>
         
-                        </div>
+                          </div>
                     </div>
                     
                     <!-- Document Count and Active Filters Display -->
@@ -16621,12 +16582,12 @@ class SearchSectionComponent extends HTMLElement {
                                         </g>
                                     </svg>
                                     <span class="order-text">Rilevanza</span>
-                                </button>
+                          </div>
                                 <div class="order-dropdown-content">
                                     <div class="order-option" data-order="relevance">
                                         <span class="material-symbols-outlined">auto_awesome</span>
                                         <span class="order-text">Rilevanza</span>
-                                    </div>
+                          </div>
                                     <div class="order-option" data-order="reviews">
                                         <span class="material-symbols-outlined">star</span>
                                         <span class="order-text">Recensioni</span>
@@ -16662,7 +16623,7 @@ class SearchSectionComponent extends HTMLElement {
                             <!-- Active filter pills will be dynamically added here -->
                         </div>
         
-                    </div>
+                                      </div>
         
                     <!-- Documents Grid - Will be populated dynamically -->
                     <div class="documents-grid" id="${getUniqueId('documentsGrid')}">
@@ -16672,15 +16633,15 @@ class SearchSectionComponent extends HTMLElement {
                                 <div class="skeleton-preview-circle"></div>
                                 <div class="skeleton-rating-badge"></div>
                                 <div class="skeleton-preview-bar"></div>
-                            </div>
+                                  </div>
                             <div class="skeleton-favorite-button"></div>
                             <div class="document-content">
                                 <div class="document-header">
                                     <div class="document-title-section">
                                         <div class="skeleton-title"></div>
                                         <div class="skeleton-author"></div>
-                                    </div>
-                                </div>
+                                  </div>
+                              </div>
                                 <div class="document-info">
                                     <div class="skeleton-line info-item"></div>
                                     <div class="skeleton-line info-item"></div>
@@ -16889,13 +16850,13 @@ class SearchSectionComponent extends HTMLElement {
                             </button>
                             <button class="filters-close" id="filtersClose">
                                 <i class="material-symbols-outlined">close</i>
-                            </button>
-                        </div>
-                        </div>
+                                  </button>
+                              </div>
+                          </div>
                         <div class="filters-header-bottom">
                         <div class="filters-subtitle">Trova esattamente quello che cerchi</div>
-                        </div>
-                    </div>
+                              </div>
+                          </div>
         
                     <div class="filters-grid">
                         <!-- Academic Context Section -->
@@ -16911,10 +16872,10 @@ class SearchSectionComponent extends HTMLElement {
                                         <div class="dropdown-input-wrapper">
                                             <input type="text" id="facultyFilter" class="dropdown-input" placeholder="Scrivi o scegli una facoltà...">
                                             <i class="material-symbols-outlined dropdown-arrow">expand_more</i>
-                                        </div>
+                          </div>
                                         <div class="dropdown-content" id="facultyDropdown">
                                             <div class="dropdown-options" id="facultyOptions"></div>
-                                        </div>
+                          </div>
                                     </div>
                                 </div>
                                 <div class="filter-item">

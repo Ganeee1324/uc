@@ -140,6 +140,26 @@ CREATE TABLE IF NOT EXISTS embedding_queue (
     PRIMARY KEY (file_id, vetrina_id)
 );
 
+CREATE TABLE IF NOT EXISTS forum_threads (
+    thread_id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    author_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+    tag VARCHAR(50),
+    posts_count INTEGER NOT NULL DEFAULT 0,
+    last_post_timestamp TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS forum_posts (
+    post_id SERIAL PRIMARY KEY,
+    thread_id INTEGER REFERENCES forum_threads(thread_id) ON DELETE CASCADE NOT NULL,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+    text TEXT NOT NULL,
+    edited BOOLEAN NOT NULL DEFAULT FALSE,
+    edited_at TIMESTAMP,
+    post_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 
 CREATE INDEX ON vetrina USING GIN (to_tsvector('english', description)) WHERE language = 'en';
 CREATE INDEX ON vetrina USING GIN (to_tsvector('italian', description)) WHERE language = 'it';
@@ -353,6 +373,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to update thread statistics
+CREATE OR REPLACE FUNCTION update_thread_stats()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Handle INSERT and UPDATE operations
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        UPDATE forum_threads 
+        SET 
+            posts_count = (
+                SELECT COUNT(*) 
+                FROM forum_posts 
+                WHERE thread_id = NEW.thread_id
+            ),
+            last_post_timestamp = (
+                SELECT MAX(post_timestamp) 
+                FROM forum_posts 
+                WHERE thread_id = NEW.thread_id
+            )
+        WHERE thread_id = NEW.thread_id;
+        RETURN NEW;
+    END IF;
+    
+    -- Handle DELETE operation
+    IF TG_OP = 'DELETE' THEN
+        UPDATE forum_threads 
+        SET 
+            posts_count = (
+                SELECT COUNT(*) 
+                FROM forum_posts 
+                WHERE thread_id = OLD.thread_id
+            ),
+            last_post_timestamp = (
+                SELECT MAX(post_timestamp) 
+                FROM forum_posts 
+                WHERE thread_id = OLD.thread_id
+            )
+        WHERE thread_id = OLD.thread_id;
+        RETURN OLD;
+    END IF;
+    
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create triggers for review table
 DROP TRIGGER IF EXISTS trigger_update_vetrina_stats_insert ON review;
 DROP TRIGGER IF EXISTS trigger_update_vetrina_stats_update ON review;
@@ -430,5 +494,25 @@ CREATE TRIGGER trigger_update_user_document_count_delete
     AFTER DELETE ON files
     FOR EACH ROW
     EXECUTE FUNCTION update_user_document_count();
+
+-- Create triggers for messages table to update thread statistics
+DROP TRIGGER IF EXISTS trigger_update_thread_stats_insert ON forum_posts;
+DROP TRIGGER IF EXISTS trigger_update_thread_stats_update ON forum_posts;
+DROP TRIGGER IF EXISTS trigger_update_thread_stats_delete ON forum_posts;
+
+CREATE TRIGGER trigger_update_thread_stats_insert
+    AFTER INSERT ON forum_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_thread_stats();
+
+CREATE TRIGGER trigger_update_thread_stats_update
+    AFTER UPDATE ON forum_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_thread_stats();
+
+CREATE TRIGGER trigger_update_thread_stats_delete
+    AFTER DELETE ON forum_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_thread_stats();
 
 INSERT INTO users (username, first_name, last_name, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');

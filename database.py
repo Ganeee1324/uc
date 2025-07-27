@@ -6,7 +6,7 @@ from pgvector.psycopg import register_vector
 
 # from bge import get_document_embedding
 from bge import get_sentence_embedding
-from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina
+from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina, ForumThread, ForumPost
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
@@ -507,11 +507,11 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
         with conn.cursor() as cursor:
             favorite_select = ""
             params = [vetrina_id]
-            
+
             if user_id is not None:
                 favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS favorite"
                 params.insert(0, user_id)
-            
+
             cursor.execute(
                 f"""
                 SELECT v.*, u.*, ci.*{favorite_select}
@@ -527,7 +527,7 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
             if not vetrina_data:
                 raise NotFoundException("Vetrina not found")
             vetrina = Vetrina.from_dict(vetrina_data)
-            
+
             cursor.execute("SELECT * FROM files WHERE vetrina_id = %s", (vetrina_id,))
             files_data = cursor.fetchall()
             files = [File.from_dict(file_data) for file_data in files_data]
@@ -537,7 +537,8 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
             reviews = [Review.from_dict(review_data) for review_data in reviews_data]
 
             return vetrina, files, reviews
-            
+
+
 # ---------------------------------------------
 # Course management
 # ---------------------------------------------
@@ -1397,3 +1398,241 @@ def get_user_following(user_id: int) -> List[User]:
             logging.info(f"Found {len(following_data)} users that user {user_id} is following")
 
             return [User.from_dict(following_row) for following_row in following_data]
+
+
+# ---------------------------------------------
+# Forum management
+# ---------------------------------------------
+
+
+def forum_create_thread(user_id: int, title: str, tag: str | None = None) -> ForumThread:
+    """
+    Create a new forum thread.
+
+    Args:
+        user_id: ID of the user creating the thread
+        title: Title of the thread
+        tag: Optional tag for the thread
+
+    Returns:
+        ForumThread: The newly created thread object
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH new_thread AS (
+                    INSERT INTO forum_threads (author_id, title, tag) 
+                    VALUES (%s, %s, %s) 
+                    RETURNING *
+                )
+                SELECT t.*, u.*
+                FROM new_thread t
+                JOIN users u ON t.author_id = u.user_id
+                """,
+                (user_id, title, tag),
+            )
+            thread_data = cursor.fetchone()
+            conn.commit()
+            logging.info(f"Thread {thread_data['thread_id']} created by user {user_id}")
+
+            return ForumThread.from_dict(thread_data)
+
+
+def forum_get_all_threads() -> List[ForumThread]:
+    """
+    Get all threads ordered by last message timestamp (most recent first).
+
+    Returns:
+        List[ForumThread]: List of all threads
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT t.*, u.*
+                FROM forum_threads t
+                JOIN users u ON t.author_id = u.user_id
+                ORDER BY COALESCE(t.last_post_timestamp, t.created_at) DESC
+                """
+            )
+            threads_data = cursor.fetchall()
+            return [ForumThread.from_dict(thread_data) for thread_data in threads_data]
+
+
+def forum_edit_thread(user_id: int, thread_id: int, title: str, tag: str | None = None) -> None:
+    """
+    Update a thread (only the author can update it).
+
+    Args:
+        user_id: ID of the user updating the thread
+        thread_id: ID of the thread to update
+        title: New title for the thread
+        tag: New tag for the thread
+
+    Returns:
+        Thread: The updated thread object
+
+    Raises:
+        NotFoundException: If the thread is not found
+        ForbiddenError: If the user is not the author of the thread
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE forum_threads 
+                SET title = %s, tag = %s
+                WHERE thread_id = %s AND author_id = %s
+                RETURNING *
+                """,
+                (title, tag, thread_id, user_id),
+            )
+            if cursor.rowcount == 0:
+                raise NotFoundException("Thread not found")
+
+            conn.commit()
+            logging.info(f"Thread {thread_id} updated by user {user_id}")
+
+
+def forum_delete_thread(user_id: int, thread_id: int) -> None:
+    """
+    Delete a thread (only the author can delete it).
+
+    Args:
+        user_id: ID of the user deleting the thread
+        thread_id: ID of the thread to delete
+
+    Raises:
+        NotFoundException: If the thread is not found
+        ForbiddenError: If the user is not the author of the thread
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM forum_threads WHERE thread_id = %s AND author_id = %s",
+                (thread_id, user_id),
+            )
+            
+            conn.commit()
+            logging.info(f"Thread {thread_id} deleted by user {user_id}")
+
+
+def forum_create_post(user_id: int, thread_id: int, text: str) -> ForumPost:
+    """
+    Create a new message in a thread.
+
+    Args:
+        user_id: ID of the user creating the message
+        thread_id: ID of the thread to post in
+        text: Text content of the message
+
+    Returns:
+        ForumPost: The newly created message object
+
+    Raises:
+        NotFoundException: If the thread is not found
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH new_message AS (
+                    INSERT INTO forum_posts (thread_id, user_id, text) 
+                    VALUES (%s, %s, %s) 
+                    RETURNING *
+                )
+                SELECT m.*, u.*
+                FROM new_message m
+                JOIN users u ON m.user_id = u.user_id
+                """,
+                (thread_id, user_id, text),
+            )
+            message_data = cursor.fetchone()
+            conn.commit()
+            logging.info(f"Message {message_data['post_id']} created by user {user_id} in thread {thread_id}")
+
+            return ForumPost.from_dict(message_data)
+
+
+def forum_get_thread_posts(thread_id: int) -> List[ForumPost]:
+    """
+    Get all messages in a thread ordered by timestamp (oldest first).
+
+    Args:
+        thread_id: ID of the thread
+
+    Returns:
+        List[ForumPost]: List of messages in the thread
+
+    Raises:
+        NotFoundException: If the thread is not found
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT m.*, u.*
+                FROM forum_posts m
+                JOIN users u ON m.user_id = u.user_id
+                WHERE m.thread_id = %s
+                ORDER BY m.post_timestamp ASC
+                """,
+                (thread_id,),
+            )
+            messages_data = cursor.fetchall()
+            return [ForumPost.from_dict(message_data) for message_data in messages_data]
+
+
+def forum_edit_post(user_id: int, post_id: int, text: str) -> None:
+    """
+    Update a message (only the author can update it).
+
+    Args:
+        user_id: ID of the user updating the message
+        post_id: ID of the message to update
+        text: New text content for the message
+
+    Raises:
+        NotFoundException: If the message is not found
+        ForbiddenError: If the user is not the author of the message
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE forum_posts 
+                SET text = %s, edited = TRUE, edited_at = CURRENT_TIMESTAMP
+                WHERE post_id = %s AND user_id = %s
+                RETURNING *
+                """,
+                (text, post_id, user_id),
+            )
+            if cursor.rowcount == 0:
+                raise NotFoundException("Message not found")
+
+            conn.commit()
+            logging.info(f"Message {post_id} updated by user {user_id}")
+
+
+def forum_delete_post(user_id: int, post_id: int) -> None:
+    """
+    Delete a message (only the author can delete it).
+
+    Args:
+        user_id: ID of the user deleting the message
+        post_id: ID of the message to delete
+
+    Raises:
+        NotFoundException: If the message is not found
+        ForbiddenError: If the user is not the author of the message
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM forum_posts WHERE post_id = %s AND user_id = %s",
+                (post_id, user_id),
+            )
+            
+            conn.commit()
+            logging.info(f"Message {post_id} deleted by user {user_id}")

@@ -95,6 +95,192 @@ class SearchSectionComponent extends HTMLElement {
       // Instance-specific event listener tracking
       this.eventListeners = new Map();
       
+      // Setup instance-specific event listeners
+      this.setupInstanceEventListeners = function() {
+          // Click handler for actions inside this component only
+          this.addGlobalEventListener(document, 'click', (e) => {
+              if (!this.shadowRoot.contains(e.target)) return;
+              
+              // Handle filter actions
+              if (e.target.closest('[data-action="clear-all-filters"]')) {
+                  this.clearAllFiltersAction();
+              }
+              
+              if (e.target.closest('[data-action="remove-filter"]')) {
+                  const element = e.target.closest('[data-action="remove-filter"]');
+                  const filterKey = element.getAttribute('data-filter-key');
+                  const specificValue = element.getAttribute('data-specific-value');
+                  if (filterKey) {
+                      this.removeActiveFilter(filterKey, e, specificValue);
+                  }
+              }
+              
+              if (e.target.closest('[data-action="toggle-favorite"]')) {
+                  const element = e.target.closest('[data-action="toggle-favorite"]');
+                  this.toggleFavorite(element, e);
+              }
+              
+              if (e.target.closest('[data-action="navigate"]')) {
+                  const element = e.target.closest('[data-action="navigate"]');
+                  const url = element.getAttribute('data-url');
+                  if (url) {
+                      window.location.href = url;
+                  }
+              }
+              
+              if (e.target.closest('[data-action="download-document"]')) {
+                  const element = e.target.closest('[data-action="download-document"]');
+                  const fileId = element.getAttribute('data-file-id');
+                  if (fileId) {
+                      this.downloadDocument(fileId);
+                      this.closePreview();
+                  }
+              }
+              
+              if (e.target.closest('[data-action="purchase-document"]')) {
+                  const element = e.target.closest('[data-action="purchase-document"]');
+                  const fileId = element.getAttribute('data-file-id');
+                  if (fileId) {
+                      this.purchaseDocument(fileId);
+                      this.closePreview();
+                  }
+              }
+              
+              if (e.target.closest('[data-action="close-preview"]')) {
+                  this.closePreview();
+              }
+              
+              if (e.target.closest('[data-action="view-full-document"]')) {
+                  const element = e.target.closest('[data-action="view-full-document"]');
+                  const docId = element.getAttribute('data-doc-id');
+                  if (docId) {
+                      window.location.href = `document-preview.html?id=${docId}`;
+                  }
+              }
+              
+              if (e.target.closest('[data-action="add-to-cart"]')) {
+                  const element = e.target.closest('[data-action="add-to-cart"]');
+                  const docId = element.getAttribute('data-doc-id');
+                  if (docId) {
+                      this.addToCart(docId, e);
+                  }
+              }
+          });
+          
+          // Keydown handler for shortcuts and Escape
+          this.addGlobalEventListener(document, 'keydown', (e) => {
+              // Only handle if focus is inside this component
+              if (!this.shadowRoot.contains(document.activeElement)) return;
+              
+              if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'c') {
+                  e.preventDefault();
+                  this.clearAllFiltersAction();
+              }
+              
+              if (e.key === 'Escape' && this.componentState.isFiltersOpen) {
+                  this.closeFiltersPanel();
+              }
+          });
+          
+          // Window navigation events (these are global, but we still clean them up per instance)
+          this.addGlobalEventListener(window, 'pageshow', (event) => {
+              const favoritesChanged = this.getSessionItem('favorites_changed');
+              if (favoritesChanged === 'true') {
+                  this.removeSessionItem('favorites_changed');
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'beforeunload', () => {
+              this.isLeavingPage = true;
+          });
+          
+          this.addGlobalEventListener(window, 'pageshow', async (event) => {
+              if (this.isLeavingPage && this.componentState.currentFiles && this.componentState.currentFiles.length > 0) {
+                  this.isLeavingPage = false;
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'popstate', async (event) => {
+              if (this.componentState.currentFiles && this.componentState.currentFiles.length > 0) {
+                  // No-op, but reserved for future instance logic
+              }
+          });
+          
+          // Window resize and scroll events
+          this.addGlobalEventListener(window, 'resize', () => {
+              this.repositionOpenDropdowns();
+          });
+          
+          this.addGlobalEventListener(window, 'scroll', () => {
+              this.repositionOpenDropdowns();
+          });
+          
+          this.addGlobalEventListener(window, 'resize', () => {
+              if (this.loadingCardsResizeListener) {
+                  this.loadingCardsResizeListener();
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'scroll', (e) => {
+              if (this.handleScroll) {
+                  this.handleScroll(e);
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'resize', () => {
+              if (this.adjustScrollThreshold) {
+                  this.adjustScrollThreshold();
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'scroll', (e) => {
+              if (this.throttledHandleScroll) {
+                  this.throttledHandleScroll(e);
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'load', () => {
+              if (this.adjustBackgroundPosition) {
+                  this.adjustBackgroundPosition();
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'resize', () => {
+              if (this.adjustBackgroundPosition) {
+                  this.debounce(this.adjustBackgroundPosition, 50)();
+              }
+          });
+          
+          this.addGlobalEventListener(window, 'scroll', () => {
+              const searchContainerWrapper = this.shadowRoot.querySelector('.search-container-wrapper');
+              if (searchContainerWrapper) {
+                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                  if (scrollTop > 100) {
+                      searchContainerWrapper.classList.add('is-stuck');
+                  } else {
+                      searchContainerWrapper.classList.remove('is-stuck');
+                  }
+              }
+          });
+          
+          // DOMContentLoaded events
+          this.addGlobalEventListener(document, 'DOMContentLoaded', () => {
+              if (this.adjustBackgroundPosition) {
+                  this.adjustBackgroundPosition();
+              }
+          });
+          
+          this.addGlobalEventListener(document, 'DOMContentLoaded', () => {
+              this.showIconsImmediately();
+          });
+          
+          this.addGlobalEventListener(document, 'DOMContentLoaded', () => {
+              if (this.initializePagesRangeFilter) {
+                  this.initializePagesRangeFilter();
+              }
+          });
+      };
+      
       // Instance-specific constants
       this.HIERARCHY_CACHE_KEY = `hierarchy_data_cache_${this.instanceId}`;
       
@@ -381,74 +567,10 @@ class SearchSectionComponent extends HTMLElement {
           console.log('🔍 === END DEBUGGING ===\n');
       }
       
-      // Handle CSP-compliant event handlers
+      // Handle CSP-compliant event handlers - now handled in setupInstanceEventListeners
       this.handleCSPEventHandlers = function() {
-          document.addEventListener('click', function(e) {
-              // Handle filter actions
-              if (e.target.closest('[data-action="clear-all-filters"]')) {
-                  component.clearAllFiltersAction();
-              }
-              
-              if (e.target.closest('[data-action="remove-filter"]')) {
-                  const element = e.target.closest('[data-action="remove-filter"]');
-                  const filterKey = element.getAttribute('data-filter-key');
-                  const specificValue = element.getAttribute('data-specific-value');
-                  if (filterKey) {
-                      component.removeActiveFilter(filterKey, e, specificValue);
-                  }
-              }
-              
-              if (e.target.closest('[data-action="toggle-favorite"]')) {
-                  const element = e.target.closest('[data-action="toggle-favorite"]');
-                  component.toggleFavorite(element, e);
-              }
-              
-              if (e.target.closest('[data-action="navigate"]')) {
-                  const element = e.target.closest('[data-action="navigate"]');
-                  const url = element.getAttribute('data-url');
-                  if (url) {
-                      window.location.href = url;
-                  }
-              }
-              
-              if (e.target.closest('[data-action="download-document"]')) {
-                  const element = e.target.closest('[data-action="download-document"]');
-                  const fileId = element.getAttribute('data-file-id');
-                  if (fileId) {
-                      component.downloadDocument(fileId);
-                      component.closePreview();
-                  }
-              }
-              
-              if (e.target.closest('[data-action="purchase-document"]')) {
-                  const element = e.target.closest('[data-action="purchase-document"]');
-                  const fileId = element.getAttribute('data-file-id');
-                  if (fileId) {
-                      component.purchaseDocument(fileId);
-                      component.closePreview();
-                  }
-              }
-              
-              if (e.target.closest('[data-action="close-preview"]')) {
-                  component.closePreview();
-              }
-              
-              if (e.target.closest('[data-action="view-full-document"]')) {
-                  const element = e.target.closest('[data-action="view-full-document"]');
-                  const docId = element.getAttribute('data-doc-id');
-                  if (docId) {
-                      window.location.href = `document-preview.html?id=${docId}`;
-                  }
-              }
-              
-              if (e.target.closest('[data-action="add-to-cart"]')) {
-                  const element = e.target.closest('[data-action="add-to-cart"]');
-                  const docId = element.getAttribute('data-doc-id');
-                  if (docId) {
-                      component.addToCart(docId, e);
-                  }
-              }
-          });
+          // This method is now deprecated - all event handling is done in setupInstanceEventListeners
+          console.log('handleCSPEventHandlers is deprecated - use setupInstanceEventListeners');
       };
       
       // Check if user is authenticated, but don't redirect - just return status
@@ -745,45 +867,9 @@ class SearchSectionComponent extends HTMLElement {
               // Favorite status is already loaded from the backend in loadAllFiles()
               // No need to refresh on page load since the data is already correct
           
-          // Add keyboard shortcut to clear all filters (Ctrl/Cmd + Alt + C)
-          document.addEventListener('keydown', function(e) {
-              if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'c') {
-                  e.preventDefault();
-                  clearAllFiltersAction();
-              }
-          });
-          
-          // Add a single, reliable event listener to refresh favorites when the page is shown.
-          window.addEventListener('pageshow', (event) => {
-              // This event fires on initial load and when navigating back to the page.
-                        const favoritesChanged = component.getSessionItem('favorites_changed');
-          
-          if (favoritesChanged === 'true') {
-              component.removeSessionItem('favorites_changed'); // Clear the flag
-                  // Favorite status is already included in vetrine data, no need for separate refresh
-              }
-          });
-          
+          // Keyboard shortcuts and navigation events are now handled in setupInstanceEventListeners
           // Mark when we're leaving the page
           this.isLeavingPage = false;
-                      window.addEventListener('beforeunload', () => {
-                component.isLeavingPage = true;
-          });
-          
-          // Check if we're returning to the page
-          window.addEventListener('pageshow', async (event) => {
-              if (component.isLeavingPage && currentFiles && currentFiles.length > 0) {
-                                      component.isLeavingPage = false;
-                  // Favorite status is already included in vetrine data, no need for separate refresh
-              }
-          });
-          
-          // Handle browser back/forward navigation
-          window.addEventListener('popstate', async (event) => {
-              if (currentFiles && currentFiles.length > 0) {
-                  // Favorite status is already included in vetrine data, no need for separate refresh
-              }
-          });
       };
       
       this.initializeUserInfo = async function() {
@@ -948,12 +1034,7 @@ class SearchSectionComponent extends HTMLElement {
           }
       };
       
-      document.addEventListener('click', () => {
-          const userInfo = component.shadowRoot.querySelector('.user-info');
-          if (userInfo && userInfo.classList.contains('open')) {
-              userInfo.classList.remove('open');
-          }
-      });
+      // User info click handling is now done in setupInstanceEventListeners
       
       // ===========================
       // ROBUST INITIALIZATION SYSTEM
@@ -1063,12 +1144,7 @@ class SearchSectionComponent extends HTMLElement {
           // Initialize all filter controls
           component.initializeFilterControls();
       
-          // Close on escape key
-          document.addEventListener('keydown', (e) => {
-              if (e.key === 'Escape' && isFiltersOpen) {
-                  component.closeFiltersPanel();
-              }
-          });
+          // Escape key handling is now done in setupInstanceEventListeners
       };
       
       this.initializeFilterControls = function() {

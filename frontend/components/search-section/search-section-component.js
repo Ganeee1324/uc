@@ -1629,7 +1629,7 @@ class SearchSectionComponent extends HTMLElement {
       const HIERARCHY_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       
       // Cache management functions
-      function getHierarchyCache() {
+      this.getHierarchyCache = function() {
           try {
               const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
               if (!cached) return null;
@@ -1652,12 +1652,12 @@ class SearchSectionComponent extends HTMLElement {
               return cacheData.data;
           } catch (error) {
               console.warn('⚠️ Error reading hierarchy cache:', error);
-              clearHierarchyCache();
+              component.clearHierarchyCache();
               return null;
           }
-      }
+      };
       
-      function setHierarchyCache(data) {
+      this.setHierarchyCache = function(data) {
           try {
               const cacheData = {
                   version: HIERARCHY_CACHE_VERSION,
@@ -1669,18 +1669,18 @@ class SearchSectionComponent extends HTMLElement {
               console.warn('⚠️ Error caching hierarchy data:', error);
               // Don't throw error - caching failure shouldn't break the app
           }
-      }
+      };
       
-      function clearHierarchyCache() {
+      this.clearHierarchyCache = function() {
           try {
               localStorage.removeItem(HIERARCHY_CACHE_KEY);
           } catch (error) {
               console.warn('⚠️ Error clearing hierarchy cache:', error);
           }
-      }
+      };
       
       // Enhanced hierarchy loading with caching
-      async function loadHierarchyData() {
+      this.loadHierarchyData = async function() {
           // First check if we already have data in memory
           if (component.facultyCoursesData) {
               return;
@@ -1712,15 +1712,15 @@ class SearchSectionComponent extends HTMLElement {
               component.facultyCoursesData = {};
               
               // If API fails, try to use any available cached data (even if expired)
-              const expiredCache = getExpiredHierarchyCache();
+              const expiredCache = component.getExpiredHierarchyCache();
               if (expiredCache) {
                   component.facultyCoursesData = expiredCache;
               }
           }
-      }
+      };
       
       // Fallback function to get expired cache data
-      function getExpiredHierarchyCache() {
+      this.getExpiredHierarchyCache = function() {
           try {
               const cached = localStorage.getItem(HIERARCHY_CACHE_KEY);
               if (!cached) return null;
@@ -1738,18 +1738,18 @@ class SearchSectionComponent extends HTMLElement {
               console.warn('⚠️ Error reading expired hierarchy cache:', error);
               return null;
           }
-      }
+      };
       
       // Force refresh hierarchy data (for manual cache invalidation)
-      async function refreshHierarchyData() {
-          clearHierarchyCache();
+      this.refreshHierarchyData = async function() {
+          component.clearHierarchyCache();
           component.facultyCoursesData = null;
-          await loadHierarchyData();
-      }
+          await component.loadHierarchyData();
+      };
       
       
       
-      function populateDropdownOptions() {
+      this.populateDropdownOptions = function() {
           if (!component.facultyCoursesData) return;
           
           // Faculty options
@@ -1765,10 +1765,10 @@ class SearchSectionComponent extends HTMLElement {
           populateOptions('course', uniqueCourses);
           
           // Canale options
-          populateOptions('canale', ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico']);
-      }
+          component.populateOptions('canale', ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico']);
+      };
       
-      function populateOptions(type, items) {
+      this.populateOptions = function(type, items) {
           const options = component.shadowRoot.getElementById (`${type}Options`);
           const currentValue = component.shadowRoot.getElementById (`${type}Filter`).value;
           
@@ -1882,16 +1882,16 @@ class SearchSectionComponent extends HTMLElement {
                   
                   if (option.classList.contains('has-active-filter')) {
                       // Remove this filter value
-                      removeSpecificFilterValue(type, value);
+                      component.removeSpecificFilterValue(type, value);
                   } else {
                       // Add this filter value
-                      selectDropdownOption(type, value, displayText);
+                      component.selectDropdownOption(type, value, displayText);
                   }
               });
           });
-      }
+      };
       
-      function filterDropdownOptions(type, searchTerm) {
+      this.filterDropdownOptions = function(type, searchTerm) {
           let items = [];
           
           if (type === 'faculty') {
@@ -1975,8 +1975,8 @@ class SearchSectionComponent extends HTMLElement {
               return a.localeCompare(b);
           });
           
-          populateOptions(type, sortedItems);
-      }
+          component.populateOptions(type, sortedItems);
+      };
       
       function selectDropdownOption(type, value, displayText = null) {
           const input = component.shadowRoot.getElementById (`${type}Filter`);

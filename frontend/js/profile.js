@@ -121,11 +121,11 @@ async function switchTab(tabName) {
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
-            documentsSearchContainer.innerHTML = '';
+            // Don't clear innerHTML to preserve search components
         }
         if (favoritesSearchContainer) {
             favoritesSearchContainer.style.display = 'none';
-            favoritesSearchContainer.innerHTML = '';
+            // Don't clear innerHTML to preserve search components
         }
         
         currentTab = 'stats';
@@ -138,7 +138,7 @@ async function switchTab(tabName) {
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (favoritesSearchContainer) {
             favoritesSearchContainer.style.display = 'none';
-            favoritesSearchContainer.innerHTML = '';
+            // Don't clear innerHTML to preserve search components
         }
         
         // Show documents dashboard
@@ -149,6 +149,19 @@ async function switchTab(tabName) {
         
         // Documents search component is now handled via HTML Web Component - will auto-initialize
         console.log('Documents dashboard activated - search-section web component will handle itself');
+        
+        // Ensure search components are properly initialized when container becomes visible
+        setTimeout(() => {
+            const searchComponents = documentsSearchContainer.querySelectorAll('search-section-component');
+            searchComponents.forEach(component => {
+                if (component.shadowRoot) {
+                    console.log('✅ Documents search component already initialized');
+                } else {
+                    console.log('🔄 Re-initializing documents search component');
+                    component.connectedCallback();
+                }
+            });
+        }, 100);
     } else if (tabName === 'favorites') {
         // Show favorites dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
@@ -172,6 +185,19 @@ async function switchTab(tabName) {
         
         // Favorites search component is now handled via HTML Web Component - will auto-initialize
         console.log('Favorites dashboard activated - search-section web component will handle itself');
+        
+        // Ensure search components are properly initialized when container becomes visible
+        setTimeout(() => {
+            const searchComponents = favoritesSearchContainer.querySelectorAll('search-section-component');
+            searchComponents.forEach(component => {
+                if (component.shadowRoot) {
+                    console.log('✅ Favorites search component already initialized');
+                } else {
+                    console.log('🔄 Re-initializing favorites search component');
+                    component.connectedCallback();
+                }
+            });
+        }, 100);
     } else {
         // Show profile/dashboard content, hide stats, documents, and favorites
         if (profileSection) profileSection.style.display = 'block';
@@ -185,17 +211,28 @@ async function switchTab(tabName) {
         }
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
-            // Clear documents search container
-            documentsSearchContainer.innerHTML = '';
+            // Don't clear innerHTML to preserve search components
         }
         if (favoritesSearchContainer) {
             favoritesSearchContainer.style.display = 'none';
-            // Clear favorites search container
-            favoritesSearchContainer.innerHTML = '';
+            // Don't clear innerHTML to preserve search components
         }
         
         // Main search component is now handled via HTML Web Component - will auto-initialize
         console.log('Profile tab switched - search-section web component will handle itself');
+        
+        // Ensure search components are properly initialized when container becomes visible
+        setTimeout(() => {
+            const searchComponents = mainSearchContainer.querySelectorAll('search-section-component');
+            searchComponents.forEach(component => {
+                if (component.shadowRoot) {
+                    console.log('✅ Main search component already initialized');
+                } else {
+                    console.log('🔄 Re-initializing main search component');
+                    component.connectedCallback();
+                }
+            });
+        }, 100);
         
         currentTab = 'profile';
     }
@@ -1107,6 +1144,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         };
         checkComponents();
+    });
+    
+    // Ensure all search components are properly initialized regardless of tab state
+    const allSearchContainers = [
+        document.getElementById('searchSectionContainer'),
+        document.getElementById('documentsSearchSectionContainer'),
+        document.getElementById('favoritesSearchSectionContainer')
+    ];
+    
+    allSearchContainers.forEach(container => {
+        if (container) {
+            const searchComponents = container.querySelectorAll('search-section-component');
+            searchComponents.forEach(component => {
+                if (!component.shadowRoot) {
+                    console.log('🔄 Initializing search component in container:', container.id);
+                    component.connectedCallback();
+                }
+            });
+        }
     });
     
     // Initialize dashboard functionality

@@ -2894,54 +2894,29 @@ async function handleFavorite() {
         return;
     }
 
-    // Optimistically update UI
+    // Toggle the favorite state locally since it's already provided in the vetrina data
     const isActive = favoriteBtn.classList.toggle('active');
     favoriteBtn.setAttribute('title', isActive ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti');
 
-    // Set a flag to notify the search page
+    // Update the vetrina's favorite status locally
+    currentVetrina.favorite = isActive;
+    
+    // Update the current document's favorite status for consistency
+    currentDocument.favorite = isActive;
+    
+    // Show appropriate notification
+    if (isActive) {
+        favoriteBtn.classList.add('active');
+        favoriteBtn.title = 'Rimuovi dai Preferiti';
+        showNotification('Aggiunto ai preferiti! ❤️', 'success');
+    } else {
+        favoriteBtn.classList.remove('active');
+        favoriteBtn.title = 'Aggiungi ai Preferiti';
+        showNotification('Rimosso dai preferiti 💔', 'success');
+    }
+    
+    // Mark that favorites have been changed so search page knows to refresh
     sessionStorage.setItem('favoritesChanged', 'true');
-
-    try {
-        const response = await makeRequest(`${API_BASE}/user/favorites/vetrine/${vetrinaId}`, {
-            method: isActive ? 'POST' : 'DELETE'
-            });
-
-        if (response) {
-            // Update the favorite state in the UI based on the action
-            if (isActive) {
-                // We just added a favorite, so keep button active
-                favoriteBtn.classList.add('active');
-                favoriteBtn.title = 'Rimuovi dai Preferiti';
-                showNotification('Aggiunto ai preferiti! ❤️', 'success');
-            } else {
-                // We just removed a favorite, so keep button inactive
-                favoriteBtn.classList.remove('active');
-                favoriteBtn.title = 'Aggiungi ai Preferiti';
-                showNotification('Rimosso dai preferiti 💔', 'success');
-            }
-            
-            // Update the current document's favorite status
-            currentDocument.favorite = isActive; // isActive is the new state
-            
-            // Mark that favorites have been changed so search page knows to refresh
-            sessionStorage.setItem('favoritesChanged', 'true');
-        }
-    } catch (error) {
-        console.error('Error toggling favorite:', error);
-        
-        // Revert the optimistic UI update
-        favoriteBtn.classList.toggle('active'); // Toggle back to original state
-        favoriteBtn.setAttribute('title', isActive ? 'Aggiungi ai preferiti' : 'Rimuovi dai preferiti');
-        
-        // Show specific error message based on error type
-        if (error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
-            showNotification('Errore di connessione al server. Verifica la tua connessione e riprova.', 'error');
-        } else if (error.message.includes('500')) {
-            showNotification('Errore del server. Il servizio preferiti è temporaneamente non disponibile. Riprova più tardi.', 'error');
-        } else {
-        showNotification('Errore durante l\'aggiornamento dei preferiti. Riprova più tardi.', 'error');
-    }
-    }
 }
 
 async function handleAddToCart() {

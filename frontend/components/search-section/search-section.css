@@ -7952,7 +7952,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .stars-outer::before {
     content: "★★★★★";
-    color: var(--gray-300);
+    color: #d1d5db;
 }
 
 .stars-inner::before {

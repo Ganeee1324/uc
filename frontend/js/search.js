@@ -96,14 +96,7 @@ const URL_FILTER_MANAGER = {
             'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
         ];
         
-        const hasFilters = filterKeys.some(key => url.searchParams.has(key));
-        console.log('🔧 hasUrlFilters check:', {
-            url: url.toString(),
-            searchParams: Object.fromEntries(url.searchParams.entries()),
-            filterKeys: filterKeys,
-            hasFilters: hasFilters
-        });
-        return hasFilters;
+        return filterKeys.some(key => url.searchParams.has(key));
     }
 };
 
@@ -3341,19 +3334,14 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
-    console.log('🔧 updateActiveFiltersDisplay called');
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-    console.log('🔧 activeFiltersContainer found:', !!activeFiltersContainer);
     if (!activeFiltersContainer) return;
     
-    console.log('🔧 filterManager.filters:', filterManager.filters);
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
-    console.log('🔧 filterEntries after filtering:', filterEntries);
     
     if (filterEntries.length === 0) {
-        console.log('🔧 No filter entries, hiding container');
         activeFiltersContainer.classList.remove('visible');
         setTimeout(() => {
             activeFiltersContainer.innerHTML = '';
@@ -3362,18 +3350,14 @@ function updateActiveFiltersDisplay() {
     }
     
     const filterPills = [];
-    console.log('🔧 Starting to create filter pills for entries:', filterEntries);
     
     filterEntries.forEach(([key, value]) => {
-        console.log('🔧 Processing filter entry:', key, value);
         let label = '';
         let displayValue = '';
         
         // Handle arrays for multi-select filters
         if (Array.isArray(value)) {
-            console.log('🔧 Processing array value for key:', key);
             value.forEach(item => {
-                console.log('🔧 Processing array item:', item);
                 let itemLabel = '';
                 let itemValue = '';
                 
@@ -3408,7 +3392,6 @@ function updateActiveFiltersDisplay() {
                         break;
                 }
                 
-                console.log('🔧 Created itemLabel:', itemLabel, 'itemValue:', itemValue);
                 if (itemLabel && itemValue) {
                     const pillHtml = `
                         <div class="filter-pill" data-filter="${key}" data-value="${item}">
@@ -3418,7 +3401,6 @@ function updateActiveFiltersDisplay() {
                         </div>
                     `;
                     filterPills.push(pillHtml);
-                    console.log('🔧 Added filter pill:', pillHtml);
                 }
             });
             return; // Skip the single-value processing below
@@ -3528,17 +3510,12 @@ function updateActiveFiltersDisplay() {
         `);
     }
     
-    console.log('🔧 Final filterPills array:', filterPills);
-    console.log('🔧 About to set innerHTML with pills');
     activeFiltersContainer.innerHTML = filterPills.join('');
-    console.log('🔧 innerHTML set, container now contains:', activeFiltersContainer.innerHTML);
     
     // Trigger animation
     setTimeout(() => {
-        console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
         updateBottomFilterCount();
-        console.log('🔧 Filter pills should now be visible');
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)
@@ -5309,11 +5286,7 @@ function restoreFiltersFromStorage() {
         filterManager.isRestoring = true;
         
         // Priority 1: Check URL parameters first
-        console.log('🔧 Checking for URL filters...');
-        const hasUrlFilters = URL_FILTER_MANAGER.hasUrlFilters();
-        console.log('🔧 URL_FILTER_MANAGER.hasUrlFilters():', hasUrlFilters);
-        
-        if (hasUrlFilters) {
+        if (URL_FILTER_MANAGER.hasUrlFilters()) {
             const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
             filterManager.filters = urlFilters;
             
@@ -5344,11 +5317,9 @@ function restoreFiltersFromStorage() {
         }
         
         // Update UI to reflect restored filters (but don't trigger URL update during restoration)
-        console.log('🔧 About to update UI after filter restoration');
         updateFilterInputs();
         updateActiveFilterIndicators();
         updateBottomFilterCount();
-        console.log('🔧 About to call updateActiveFiltersDisplay');
         updateActiveFiltersDisplay();
         
         // Update URL with restored filters after UI is updated

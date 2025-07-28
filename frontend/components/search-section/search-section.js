@@ -4633,7 +4633,7 @@ function renderDocuments(files) {
         const description = item.description || 'Nessuna descrizione disponibile';
         const price = parseFloat(item.price) || 0;
         
-        const stars = generateFractionalStars(rating);
+        const stars = generateStars(rating);
         const documentCategory = getDocumentCategory(documentTitle, description);
         
         // Determine if this is a multi-file vetrina and if files have been loaded
@@ -4894,11 +4894,20 @@ function renderDocuments(files) {
 
 function generateStars(rating) {
     let stars = '';
+    const fullStars = Math.floor(rating);
+    const hasPartialStar = rating % 1 !== 0;
+    const partialStarPercentage = hasPartialStar ? (rating % 1) * 100 : 0;
+    
     for (let i = 1; i <= 5; i++) {
-        if (i <= rating) {
+        if (i <= fullStars) {
+            // Full star
             stars += '<span class="rating-star filled">★</span>';
+        } else if (i === fullStars + 1 && hasPartialStar) {
+            // Partial star
+            stars += `<span class="rating-star partial" style="background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 ${partialStarPercentage}%, #d1d5db ${partialStarPercentage}%, #d1d5db 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">★</span>`;
         } else {
-            stars += '<span class="rating-star">★</span>';
+            // Empty star
+            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
         }
     }
     return stars;

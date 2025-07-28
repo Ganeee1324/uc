@@ -3331,14 +3331,19 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
+    console.log('🔧 updateActiveFiltersDisplay called');
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+    console.log('🔧 activeFiltersContainer found:', !!activeFiltersContainer);
     if (!activeFiltersContainer) return;
     
+    console.log('🔧 filterManager.filters:', filterManager.filters);
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
+    console.log('🔧 filterEntries after filtering:', filterEntries);
     
     if (filterEntries.length === 0) {
+        console.log('🔧 No filter entries, hiding container');
         activeFiltersContainer.classList.remove('visible');
         setTimeout(() => {
             activeFiltersContainer.innerHTML = '';
@@ -5314,9 +5319,11 @@ function restoreFiltersFromStorage() {
         }
         
         // Update UI to reflect restored filters (but don't trigger URL update during restoration)
+        console.log('🔧 About to update UI after filter restoration');
         updateFilterInputs();
         updateActiveFilterIndicators();
         updateBottomFilterCount();
+        console.log('🔧 About to call updateActiveFiltersDisplay');
         updateActiveFiltersDisplay();
         
         // Update URL with restored filters after UI is updated

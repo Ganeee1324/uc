@@ -1075,9 +1075,31 @@ function updateTooltipPosition(event, element = null) {
     const targetElement = element || event.target;
     const elementRect = targetElement.getBoundingClientRect();
     
-    // Position tooltip centered above the element
-    let x = elementRect.left + (elementRect.width / 2) - (tooltipRect.width / 2);
-    let y = elementRect.top - tooltipRect.height - 10;
+    // For SVG elements, we need to account for the SVG viewBox scaling
+    let x, y;
+    
+    if (targetElement.tagName === 'circle') {
+        // For SVG circles, use the cx and cy attributes for more precise positioning
+        const cx = parseFloat(targetElement.getAttribute('cx'));
+        const cy = parseFloat(targetElement.getAttribute('cy'));
+        const r = parseFloat(targetElement.getAttribute('r'));
+        
+        // Get the SVG element to calculate the scaling
+        const svg = targetElement.closest('svg');
+        const svgRect = svg.getBoundingClientRect();
+        const viewBox = svg.viewBox.baseVal;
+        
+        // Calculate the actual position in screen coordinates
+        const scaleX = svgRect.width / viewBox.width;
+        const scaleY = svgRect.height / viewBox.height;
+        
+        x = svgRect.left + (cx * scaleX) - (tooltipRect.width / 2);
+        y = svgRect.top + (cy * scaleY) - tooltipRect.height - 10;
+    } else {
+        // For regular elements, use the standard positioning
+        x = elementRect.left + (elementRect.width / 2) - (tooltipRect.width / 2);
+        y = elementRect.top - tooltipRect.height - 10;
+    }
     
     // Adjust if tooltip would go off screen horizontally
     if (x < 10) {
@@ -1088,7 +1110,18 @@ function updateTooltipPosition(event, element = null) {
     
     // Adjust if tooltip would go off screen vertically
     if (y < 10) {
-        y = elementRect.bottom + 10; // Show below the element instead
+        if (targetElement.tagName === 'circle') {
+            // For circles, show below
+            const svg = targetElement.closest('svg');
+            const svgRect = svg.getBoundingClientRect();
+            const viewBox = svg.viewBox.baseVal;
+            const scaleY = svgRect.height / viewBox.height;
+            const cy = parseFloat(targetElement.getAttribute('cy'));
+            const r = parseFloat(targetElement.getAttribute('r'));
+            y = svgRect.top + (cy * scaleY) + (r * scaleY) + 10;
+        } else {
+            y = elementRect.bottom + 10;
+        }
     }
     
     tooltip.style.left = x + 'px';

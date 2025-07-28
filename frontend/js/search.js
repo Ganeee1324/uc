@@ -48,8 +48,12 @@ const URL_FILTER_MANAGER = {
     
     // Update URL with current filters
     updateUrl(filters) {
+        console.log('🔗 URL_FILTER_MANAGER.updateUrl called with filters:', filters);
+        
         const url = new URL(window.location);
         const params = this.filtersToUrlParams(filters);
+        
+        console.log('🔗 Generated URL params:', params.toString());
         
         // Clear existing filter parameters
         const filterKeys = [
@@ -65,8 +69,12 @@ const URL_FILTER_MANAGER = {
             url.searchParams.set(key, value);
         }
         
+        console.log('🔗 New URL will be:', url.toString());
+        
         // Update URL without reloading the page
         window.history.replaceState({}, '', url);
+        
+        console.log('🔗 URL updated successfully');
     },
     
     // Get filters from URL
@@ -2655,12 +2663,17 @@ class FilterManager {
     
     // Add or update a filter
     setFilter(key, value) {
+        console.log('🔧 FilterManager.setFilter called with:', key, value);
+        
         if (value === null || value === '' || value === undefined || 
             (Array.isArray(value) && value.length === 0)) {
             delete this.filters[key];
         } else {
             this.filters[key] = value;
         }
+        
+        console.log('🔧 Current filters after setFilter:', this.filters);
+        
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
         

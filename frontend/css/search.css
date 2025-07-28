@@ -1128,7 +1128,7 @@ html {
     z-index: 9997; /* High z-index for search container */
 }
 
-/* Animated Border Search Bar Container */
+/* Animated Border Search Bar Container - Allow glow to extend */
 .search-bar-container {
     position: relative;
     display: flex;
@@ -1138,11 +1138,11 @@ html {
     max-width: 410px;
     height: 100%;
     width: 100%;
-    overflow: hidden;
+    overflow: visible; /* Allow glow effects to extend beyond container boundaries */
     border-radius: 12px;
 }
 
-/* Border Animation Layers */
+/* Border Animation Layers - Allow glow to extend */
 .search-bar-container .glow,
 .search-bar-container .darkBorderBg,
 .search-bar-container .white,
@@ -1152,7 +1152,7 @@ html {
     height: 100%;
     width: 100%;
     position: absolute;
-    overflow: hidden;
+    overflow: visible; /* Allow glow effects to extend beyond layer boundaries */
     z-index: -1;
     border-radius: 12px;
     top: 0;

@@ -48,33 +48,37 @@ const URL_FILTER_MANAGER = {
     
     // Update URL with current filters
     updateUrl(filters) {
-        console.log('🔗 URL_FILTER_MANAGER.updateUrl called with filters:', filters);
-        
-        const url = new URL(window.location);
-        const params = this.filtersToUrlParams(filters);
-        
-        console.log('🔗 Generated URL params:', params.toString());
-        
-        // Clear existing filter parameters
-        const filterKeys = [
-            'faculty', 'course', 'canale', 'tag', 'documentType', 'language', 
-            'academicYear', 'courseYear', 'minPrice', 'maxPrice', 'minPages', 
-            'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
-        ];
-        
-        filterKeys.forEach(key => url.searchParams.delete(key));
-        
-        // Add new filter parameters
-        for (const [key, value] of params.entries()) {
-            url.searchParams.set(key, value);
+        try {
+            console.log('🔗 URL_FILTER_MANAGER.updateUrl called with filters:', filters);
+            
+            const url = new URL(window.location);
+            const params = this.filtersToUrlParams(filters);
+            
+            console.log('🔗 Generated URL params:', params.toString());
+            
+            // Clear existing filter parameters
+            const filterKeys = [
+                'faculty', 'course', 'canale', 'tag', 'documentType', 'language', 
+                'academicYear', 'courseYear', 'minPrice', 'maxPrice', 'minPages', 
+                'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
+            ];
+            
+            filterKeys.forEach(key => url.searchParams.delete(key));
+            
+            // Add new filter parameters
+            for (const [key, value] of params.entries()) {
+                url.searchParams.set(key, value);
+            }
+            
+            console.log('🔗 New URL will be:', url.toString());
+            
+            // Update URL without reloading the page
+            window.history.replaceState({}, '', url);
+            
+            console.log('🔗 URL updated successfully');
+        } catch (error) {
+            console.error('❌ Error updating URL:', error);
         }
-        
-        console.log('🔗 New URL will be:', url.toString());
-        
-        // Update URL without reloading the page
-        window.history.replaceState({}, '', url);
-        
-        console.log('🔗 URL updated successfully');
     },
     
     // Get filters from URL
@@ -2861,6 +2865,16 @@ class FilterManager {
 
 // Initialize the filter manager
 const filterManager = new FilterManager();
+
+// Test URL_FILTER_MANAGER accessibility
+console.log('🔧 Testing URL_FILTER_MANAGER accessibility:', typeof URL_FILTER_MANAGER);
+if (typeof URL_FILTER_MANAGER !== 'undefined') {
+    console.log('🔧 URL_FILTER_MANAGER methods:', Object.keys(URL_FILTER_MANAGER));
+    // Test the updateUrl method
+    URL_FILTER_MANAGER.updateUrl({test: 'value'});
+} else {
+    console.error('❌ URL_FILTER_MANAGER is not defined!');
+}
 
 // Replace your existing functions with calls to the filter manager
 function updateBottomFilterCount() {

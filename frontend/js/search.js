@@ -2669,6 +2669,7 @@ class FilterManager {
     // Add or update a filter
     setFilter(key, value) {
         console.log('🔧 FilterManager.setFilter called with:', key, value);
+        console.log('🔧 FilterManager.setFilter - isRestoring:', this.isRestoring);
         console.log('🔧 FilterManager.setFilter - URL_FILTER_MANAGER type:', typeof URL_FILTER_MANAGER);
         
         if (value === null || value === '' || value === undefined || 

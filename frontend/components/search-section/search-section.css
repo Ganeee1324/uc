@@ -144,7 +144,7 @@ body::before {
     left: -9999px;
     width: 1px;
     height: 1px;
-    background-image: url('../images/bg.png');
+    background-image: var(--bg-image-url, none);
     opacity: 0;
     pointer-events: none;
     z-index: -9999;
@@ -289,7 +289,7 @@ iframe html {
     left: 0; /* Remove the negative offset that was causing centering issues */
     width: 100%; /* Use 100% instead of viewport width to respect iframe boundaries */
     /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
-    background-image: url('../images/bg.png');
+    background-image: var(--bg-image-url, none);
     background-size: cover; /* Use cover instead of 100% 100% for better scaling */
     background-position: center; /* Center the background image */
     background-repeat: no-repeat;

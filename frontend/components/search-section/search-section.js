@@ -6357,6 +6357,9 @@ function preloadBackgroundImage() {
         return;
     }
     
+    // Set CSS custom property to load the background image
+    document.documentElement.style.setProperty('--bg-image-url', 'url(../images/bg.png)');
+    
     const tempImage = new Image();
     tempImage.src = 'images/bg.png';
     

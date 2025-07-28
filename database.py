@@ -6,7 +6,6 @@ import os
 from pgvector.psycopg import register_vector
 
 # from bge import get_document_embedding
-from bge import get_sentence_embedding
 from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
@@ -283,7 +282,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
+def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
             try:
@@ -341,8 +340,6 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
 
             where_clause = " AND ".join(filter_conditions)
 
-            # --- 2. Prepare Embeddings and Parameters ---
-            embedding = get_sentence_embedding(query).squeeze()
             k = 60  # Reciprocal rank constant
 
             # --- 3. Construct the Main SQL Query (No changes here) ---
@@ -414,7 +411,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             """
 
             # --- 4. Assemble Parameters and Execute ---
-            semantic_params = [k, embedding] + filter_params + [embedding]
+            semantic_params = [k, query_embedding] + filter_params + [query_embedding]
             keyword_params = [k, query] + filter_params + [query]
             all_params = semantic_params + keyword_params
 

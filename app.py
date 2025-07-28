@@ -9,6 +9,7 @@ import traceback
 
 from PIL import Image
 
+from bge import get_sentence_embedding
 from chunker import process_pdf_chunks
 import werkzeug
 import database
@@ -31,7 +32,6 @@ from io import BytesIO
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", force=True)
 
 load_dotenv()
-
 
 
 # Check if JWT secret key exists in environment
@@ -189,11 +189,7 @@ def delete_vetrina(vetrina_id):
 def get_vetrina(vetrina_id):
     user_id = get_jwt_identity()
     vetrina, files, reviews = database.get_vetrina_by_id(vetrina_id, user_id)
-    return jsonify({
-        "vetrina": vetrina.to_dict(),
-        "files": [f.to_dict() for f in files],
-        "reviews": [r.to_dict() for r in reviews]
-    }), 200
+    return jsonify({"vetrina": vetrina.to_dict(), "files": [f.to_dict() for f in files], "reviews": [r.to_dict() for r in reviews]}), 200
 
 
 @app.route("/vetrine", methods=["GET"])
@@ -229,10 +225,12 @@ def new_search():
         if value:
             filter_params[key] = value
 
+    query_embedding = get_sentence_embedding(query).squeeze()
+
     # Get current user ID if authenticated
     current_user_id = get_jwt_identity()
 
-    vetrine, chunks = database.new_search(query, filter_params, current_user_id)
+    vetrine, chunks = database.new_search(query, query_embedding, filter_params, current_user_id)
     return (
         jsonify(
             {
@@ -347,7 +345,9 @@ def upload_file(vetrina_id):
     # Process embeddings directly in the upload endpoint
     try:
         logging.info(f"Generating embeddings for file '{display_name}'")
-        chunks = process_pdf_chunks(os.path.join(files_folder_path, new_file_name), display_name, database.get_vetrina_by_id(vetrina_id, requester_id)[0].name)
+        chunks = process_pdf_chunks(
+            os.path.join(files_folder_path, new_file_name), display_name, database.get_vetrina_by_id(vetrina_id, requester_id)[0].name
+        )
         chunks = enrich_snippets_request(os.path.join(files_folder_path, new_file_name), chunks)
         database.insert_chunk_embeddings(vetrina_id, db_file.file_id, chunks)
         logging.info(f"Processed {len(chunks)} chunks for file '{display_name}'")
@@ -683,32 +683,20 @@ def get_valid_tags():
     """Get the list of valid file tags."""
     return jsonify({"tags": VALID_TAGS}), 200
 
+
 def enrich_snippets_request(pdf_path: str, chunks: list[dict[str, str | int]]):
-    with open(pdf_path, 'rb') as pdf_file:
-        files = {'pdf': ('document.pdf', pdf_file, 'application/pdf')}
-        data = {
-            'num_windows': 8,
-            'window_height_percentage': 0.35,
-            'snippets': json.dumps(chunks)
-        }
-        
-        response = requests.post(
-            "http://lancionaco.love:8222/enrich_snippets",
-            files=files,
-            data=data,
-            timeout=300  # 5 minute timeout
-        )
-    
+    with open(pdf_path, "rb") as pdf_file:
+        files = {"pdf": ("document.pdf", pdf_file, "application/pdf")}
+        data = {"num_windows": 8, "window_height_percentage": 0.35, "snippets": json.dumps(chunks)}
+
+        response = requests.post("http://lancionaco.love:8222/enrich_snippets", files=files, data=data, timeout=300)  # 5 minute timeout
+
     data = response.json()
     for chunk in data["snippets"]:
         chunk["embedding"] = np.array(chunk["embedding"])
     for chunk in data["snippets"]:
         chunk["image"] = Image.open(BytesIO(base64.b64decode(chunk["image"])))
     return data["snippets"]
-
-
-
-
 
 
 if __name__ == "__main__":

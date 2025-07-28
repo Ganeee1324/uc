@@ -730,9 +730,9 @@
                         <span class="settings-nav-icon material-symbols-outlined">person</span>
                         <span class="settings-nav-text">Account</span>
                     </button>
-                    <button class="settings-nav-item" data-section="privacy" onclick="switchSettingsSection('privacy')">
+                    <button class="settings-nav-item" data-section="privacySecurity" onclick="switchSettingsSection('privacySecurity')">
                         <span class="settings-nav-icon material-symbols-outlined">security</span>
-                        <span class="settings-nav-text">Privacy</span>
+                        <span class="settings-nav-text">Privacy & Sicurezza</span>
                     </button>
                     <button class="settings-nav-item" data-section="notifications" onclick="switchSettingsSection('notifications')">
                         <span class="settings-nav-icon material-symbols-outlined">notifications</span>
@@ -745,10 +745,6 @@
                     <button class="settings-nav-item" data-section="billing" onclick="switchSettingsSection('billing')">
                         <span class="settings-nav-icon material-symbols-outlined">payment</span>
                         <span class="settings-nav-text">Fatturazione</span>
-                    </button>
-                    <button class="settings-nav-item" data-section="security" onclick="switchSettingsSection('security')">
-                        <span class="settings-nav-icon material-symbols-outlined">shield</span>
-                        <span class="settings-nav-text">Sicurezza</span>
                     </button>
                 </nav>
             </div>
@@ -832,14 +828,15 @@
                     </div>
                 </div>
 
-                <!-- Privacy Settings Section -->
-                <div class="settings-section" id="privacySection">
+                <!-- Privacy & Security Section -->
+                <div class="settings-section" id="privacySecuritySection">
                     <div class="settings-section-header">
-                        <h2 class="settings-section-title">Impostazioni Privacy</h2>
-                        <p class="settings-section-description">Controlla chi può vedere le tue informazioni e contenuti</p>
+                        <h2 class="settings-section-title">Privacy & Sicurezza</h2>
+                        <p class="settings-section-description">Gestisci la privacy, la sicurezza e le azioni sensibili del tuo account</p>
                     </div>
 
                     <div class="settings-cards-grid">
+                        <!-- Privacy Cards (from privacySection) -->
                         <div class="settings-card">
                             <div class="settings-card-header">
                                 <h3 class="settings-card-title">Visibilità Profilo</h3>
@@ -857,7 +854,6 @@
                                             <span class="settings-toggle-slider"></span>
                                         </label>
                                     </div>
-                                    
                                     <div class="settings-toggle-item">
                                         <div class="settings-toggle-info">
                                             <h4>Mostra Email</h4>
@@ -868,7 +864,6 @@
                                             <span class="settings-toggle-slider"></span>
                                         </label>
                                     </div>
-
                                     <div class="settings-toggle-item">
                                         <div class="settings-toggle-info">
                                             <h4>Mostra Statistiche</h4>
@@ -882,7 +877,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="settings-card">
                             <div class="settings-card-header">
                                 <h3 class="settings-card-title">Contenuti e Documenti</h3>
@@ -900,7 +894,6 @@
                                             <span class="settings-toggle-slider"></span>
                                         </label>
                                     </div>
-
                                     <div class="settings-toggle-item">
                                         <div class="settings-toggle-info">
                                             <h4>Consenti Download</h4>
@@ -910,6 +903,123 @@
                                             <input type="checkbox" id="allowDownloads" checked>
                                             <span class="settings-toggle-slider"></span>
                                         </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Security Cards (from securitySection) -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Password</h3>
+                                <p class="settings-card-description">Aggiorna la tua password per mantenere sicuro l'account</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Password Attuale</label>
+                                    <input type="password" class="settings-input" id="currentPassword">
+                                </div>
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Nuova Password</label>
+                                    <input type="password" class="settings-input" id="newPassword">
+                                </div>
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Conferma Nuova Password</label>
+                                    <input type="password" class="settings-input" id="confirmPassword">
+                                </div>
+                                <div class="password-strength">
+                                    <div class="password-strength-bar">
+                                        <div class="password-strength-fill"></div>
+                                    </div>
+                                    <p class="password-strength-text">Forza password: <span id="passwordStrengthText">-</span></p>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="changePassword()">
+                                    <span class="material-symbols-outlined">lock</span>
+                                    Aggiorna Password
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Autenticazione a Due Fattori</h3>
+                                <p class="settings-card-description">Aggiungi un livello extra di sicurezza</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="two-factor-status">
+                                    <div class="security-status disabled">
+                                        <span class="material-symbols-outlined">security</span>
+                                        <div>
+                                            <h4>2FA Disabilitata</h4>
+                                            <p>La tua autenticazione a due fattori è attualmente disabilitata</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="enable2FA()">
+                                    <span class="material-symbols-outlined">verified_user</span>
+                                    Abilita 2FA
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Sessioni Attive</h3>
+                                <p class="settings-card-description">Monitora e gestisci i tuoi accessi</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="active-sessions">
+                                    <div class="session-item current">
+                                        <div class="session-info">
+                                            <span class="material-symbols-outlined">computer</span>
+                                            <div>
+                                                <h4>Sessione Corrente</h4>
+                                                <p>Chrome su MacOS • Ultimo accesso: Ora</p>
+                                                <p class="session-location">Milano, Italia</p>
+                                            </div>
+                                        </div>
+                                        <div class="session-status current-badge">Corrente</div>
+                                    </div>
+                                    <div class="session-item">
+                                        <div class="session-info">
+                                            <span class="material-symbols-outlined">smartphone</span>
+                                            <div>
+                                                <h4>iPhone</h4>
+                                                <p>Safari su iOS • Ultimo accesso: 2 ore fa</p>
+                                                <p class="session-location">Milano, Italia</p>
+                                            </div>
+                                        </div>
+                                        <button class="settings-btn-icon session-revoke" title="Termina sessione">
+                                            <span class="material-symbols-outlined">logout</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-outline" onclick="revokeAllSessions()">
+                                    <span class="material-symbols-outlined">logout</span>
+                                    Termina Tutte le Altre Sessioni
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Delete Account Card (last, renamed) -->
+                        <div class="settings-card delete-account">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Gestione Account</h3>
+                                <p class="settings-card-description">Elimina definitivamente il tuo account e tutti i dati associati</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="danger-actions">
+                                    <div class="danger-action">
+                                        <div class="danger-action-info">
+                                            <h4>Elimina Account</h4>
+                                            <p>Questa azione è irreversibile. Procedi solo se sei sicuro.</p>
+                                        </div>
+                                        <button class="settings-btn settings-btn-danger" onclick="deleteAccount()">
+                                            <span class="material-symbols-outlined">delete_forever</span>
+                                            Elimina Account
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1167,139 +1277,6 @@
                                     <span class="material-symbols-outlined">save</span>
                                     Salva Info Fatturazione
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Security Section -->
-                <div class="settings-section" id="securitySection">
-                    <div class="settings-section-header">
-                        <h2 class="settings-section-title">Sicurezza Account</h2>
-                        <p class="settings-section-description">Proteggi il tuo account con impostazioni di sicurezza avanzate</p>
-                    </div>
-
-                    <div class="settings-cards-grid">
-                        <div class="settings-card">
-                            <div class="settings-card-header">
-                                <h3 class="settings-card-title">Password</h3>
-                                <p class="settings-card-description">Aggiorna la tua password per mantenere sicuro l'account</p>
-                            </div>
-                            <div class="settings-card-content">
-                                <div class="settings-form-group">
-                                    <label class="settings-label">Password Attuale</label>
-                                    <input type="password" class="settings-input" id="currentPassword">
-                                </div>
-                                
-                                <div class="settings-form-group">
-                                    <label class="settings-label">Nuova Password</label>
-                                    <input type="password" class="settings-input" id="newPassword">
-                                </div>
-
-                                <div class="settings-form-group">
-                                    <label class="settings-label">Conferma Nuova Password</label>
-                                    <input type="password" class="settings-input" id="confirmPassword">
-                                </div>
-
-                                <div class="password-strength">
-                                    <div class="password-strength-bar">
-                                        <div class="password-strength-fill"></div>
-                                    </div>
-                                    <p class="password-strength-text">Forza password: <span id="passwordStrengthText">-</span></p>
-                                </div>
-                            </div>
-                            <div class="settings-card-actions">
-                                <button class="settings-btn settings-btn-primary" onclick="changePassword()">
-                                    <span class="material-symbols-outlined">lock</span>
-                                    Aggiorna Password
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="settings-card">
-                            <div class="settings-card-header">
-                                <h3 class="settings-card-title">Autenticazione a Due Fattori</h3>
-                                <p class="settings-card-description">Aggiungi un livello extra di sicurezza</p>
-                            </div>
-                            <div class="settings-card-content">
-                                <div class="two-factor-status">
-                                    <div class="security-status disabled">
-                                        <span class="material-symbols-outlined">security</span>
-                                        <div>
-                                            <h4>2FA Disabilitata</h4>
-                                            <p>La tua autenticazione a due fattori è attualmente disabilitata</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="settings-card-actions">
-                                <button class="settings-btn settings-btn-primary" onclick="enable2FA()">
-                                    <span class="material-symbols-outlined">verified_user</span>
-                                    Abilita 2FA
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="settings-card">
-                            <div class="settings-card-header">
-                                <h3 class="settings-card-title">Sessioni Attive</h3>
-                                <p class="settings-card-description">Monitora e gestisci i tuoi accessi</p>
-                            </div>
-                            <div class="settings-card-content">
-                                <div class="active-sessions">
-                                    <div class="session-item current">
-                                        <div class="session-info">
-                                            <span class="material-symbols-outlined">computer</span>
-                                            <div>
-                                                <h4>Sessione Corrente</h4>
-                                                <p>Chrome su MacOS • Ultimo accesso: Ora</p>
-                                                <p class="session-location">Milano, Italia</p>
-                                            </div>
-                                        </div>
-                                        <div class="session-status current-badge">Corrente</div>
-                                    </div>
-
-                                    <div class="session-item">
-                                        <div class="session-info">
-                                            <span class="material-symbols-outlined">smartphone</span>
-                                            <div>
-                                                <h4>iPhone</h4>
-                                                <p>Safari su iOS • Ultimo accesso: 2 ore fa</p>
-                                                <p class="session-location">Milano, Italia</p>
-                                            </div>
-                                        </div>
-                                        <button class="settings-btn-icon session-revoke" title="Termina sessione">
-                                            <span class="material-symbols-outlined">logout</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="settings-card-actions">
-                                <button class="settings-btn settings-btn-outline" onclick="revokeAllSessions()">
-                                    <span class="material-symbols-outlined">logout</span>
-                                    Termina Tutte le Altre Sessioni
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="settings-card danger-zone">
-                            <div class="settings-card-header">
-                                <h3 class="settings-card-title">Zona di Pericolo</h3>
-                                <p class="settings-card-description">Azioni irreversibili per il tuo account</p>
-                            </div>
-                            <div class="settings-card-content">
-                                <div class="danger-actions">
-                                    <div class="danger-action">
-                                        <div class="danger-action-info">
-                                            <h4>Elimina Account</h4>
-                                            <p>Elimina permanentemente il tuo account e tutti i dati associati</p>
-                                        </div>
-                                        <button class="settings-btn settings-btn-danger" onclick="deleteAccount()">
-                                            <span class="material-symbols-outlined">delete_forever</span>
-                                            Elimina Account
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

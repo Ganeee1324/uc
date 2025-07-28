@@ -53,6 +53,12 @@ function initializeWithConfig(config) {
     // Load data based on context
     loadDataForContext(context, config);
     
+    // Preload background image only if this is the main search interface
+    // (not used in profile pages or other embedded contexts)
+    if (context === 'default' && !config.hideBackground) {
+        preloadBackgroundImage();
+    }
+    
     // Notify parent that we're ready
     sendToParent({
         type: 'READY',
@@ -6368,17 +6374,23 @@ function adjustBackgroundPosition() {
 
     // If we don't have image dimensions yet, try to get them
     if (!bgImageDimensions) {
-        const tempImage = new Image();
-        tempImage.src = 'images/bg.png';
-        
-        if (tempImage.complete && tempImage.naturalWidth > 0) {
-            bgImageDimensions = {
-                width: tempImage.naturalWidth,
-                height: tempImage.naturalHeight,
-                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
-            };
+        // Only try to load background image if this is the main search interface
+        if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+            const tempImage = new Image();
+            tempImage.src = 'images/bg.png';
+            
+            if (tempImage.complete && tempImage.naturalWidth > 0) {
+                bgImageDimensions = {
+                    width: tempImage.naturalWidth,
+                    height: tempImage.naturalHeight,
+                    aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
+                };
+            } else {
+                // Image not ready yet, will be called again when it loads
+                return;
+            }
         } else {
-            // Image not ready yet, will be called again when it loads
+            // Not on search page, don't try to load background image
             return;
         }
     }
@@ -6425,20 +6437,33 @@ function debounce(func, wait) {
     };
 }
 
-// Start preloading image immediately - even before DOM is ready
-preloadBackgroundImage();
+// Only preload background image if this is the main search interface
+// This prevents the 404 error when the iframe is used on other pages
+if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+    preloadBackgroundImage();
+}
 
 // Initialize background positioning immediately when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Position immediately when DOM is ready
-    adjustBackgroundPosition();
+    // Only position background if this is the main search interface
+    if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+        adjustBackgroundPosition();
+    }
 });
 
 // Also run on window load to ensure everything is fully loaded
-window.addEventListener('load', adjustBackgroundPosition);
+window.addEventListener('load', () => {
+    if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+        adjustBackgroundPosition();
+    }
+});
 
 // Add event listeners for dynamic background
-window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
+window.addEventListener('resize', debounce(() => {
+    if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+        adjustBackgroundPosition();
+    }
+}, 50));
 
 
 

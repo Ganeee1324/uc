@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -12,6 +11,7 @@ body {
     display: flex;
     min-height: 100vh;
     overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* Search Section Component Styles */
@@ -27,6 +27,7 @@ search-section {
 /* Search Section Container Styles */
 .search-section-container {
     width: 100%;
+    max-width: 100vw; /* Ensure it doesn't exceed viewport width */
     min-height: 200px;
     display: flex;
     flex-direction: column;
@@ -35,6 +36,17 @@ search-section {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     background: #ffffff;
     border: 1px solid #e5e7eb;
+    box-sizing: border-box; /* Include padding and border in width calculation */
+    position: relative; /* Ensure proper positioning context */
+}
+
+.search-section-container iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    border: none;
+    display: block;
+    box-sizing: border-box;
 }
 
 .search-section-container.loading {
@@ -2590,4 +2602,43 @@ search-section {
     margin-bottom: 20px;
     padding-left: 4px;
 }
+
+/* Responsive adjustments for search section container */
+@media (max-width: 768px) {
+    .search-section-container {
+        width: 100%;
+        max-width: 100vw;
+        margin: 0;
+        border-radius: 8px;
+    }
+    
+    .search-section-container iframe {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-section-container {
+        width: 100%;
+        max-width: 100vw;
+        border-radius: 6px;
+        margin: 0;
+    }
+    
+    .search-section-container iframe {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto;
+    }
+}
+
+/* Ensure the container doesn't cause horizontal scrolling */
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Dashboard section headers */
 

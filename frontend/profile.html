@@ -8,9 +8,42 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
-    <!-- Load search component first without defer to ensure proper initialization -->
-    <script src="components/search-section/search-section.js"></script>
-    <link rel="stylesheet" href="components/search-section/search-section.css">
+    <!-- Iframe Search Section Styles -->
+    <style>
+        .search-section-container {
+            width: 100%;
+            min-height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .search-section-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 12px;
+        }
+        
+        /* Loading state for iframe containers */
+        .search-section-container.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .search-section-container.loading::after {
+            content: "Caricamento sezione di ricerca...";
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+    
+    <!-- Load iframe wrapper for search sections -->
+    <script src="components/search-section/iframe-search-wrapper.js"></script>
 </head>
 <body data-page="dashboard">
     <!-- Mobile Menu Toggle Button -->
@@ -616,77 +649,110 @@
     <script src="js/performance-cache.js" defer></script>
     <script src="js/profile.js" defer></script>
 
-<!-- Initialize SearchSectionComponent instances -->
+<!-- Initialize IframeSearchWrapper instances -->
 <script>
-    // Global variables to store component instances
-    let mainSearchComponent = null;
-    let documentsSearchComponent = null;
-    let favoritesSearchComponent = null;
+    // Global variables to store iframe wrapper instances
+    let mainSearchWrapper = null;
+    let documentsSearchWrapper = null;
+    let favoritesSearchWrapper = null;
 
     // Wait for the page to be ready
     document.addEventListener('DOMContentLoaded', async function() {
         console.log('🚀 Profile Page Loaded');
         
         try {
-            // Check if SearchSectionComponent class is available
-            if (typeof SearchSectionComponent === 'undefined') {
-                console.error('❌ SearchSectionComponent class is not defined');
-                console.error('Make sure search-section-component.js is loaded properly');
+            // Check if IframeSearchWrapper class is available
+            if (typeof IframeSearchWrapper === 'undefined') {
+                console.error('❌ IframeSearchWrapper class is not defined');
+                console.error('Make sure iframe-search-wrapper.js is loaded properly');
                 return;
             }
             
-            console.log('✅ SearchSectionComponent class is available');
+            console.log('✅ IframeSearchWrapper class is available');
             
-            // Initialize Main Search Component (visible on profile page)
+            // Initialize Main Search Wrapper (visible on profile page)
             const mainContainer = document.getElementById('main-search-container');
             if (mainContainer) {
-                mainSearchComponent = new SearchSectionComponent(mainContainer, {
-                    apiBase: 'https://symbia.it:5000',
-                    placeholderText: 'Cerca una dispensa...',
-                    buttonText: 'Cerca',
-                    instanceId: 'main-search',
-                    devMode: false
+                mainSearchWrapper = new IframeSearchWrapper('main-search-container', {
+                    context: 'default',
+                    title: 'Cerca Documenti',
+                    searchPlaceholder: 'Cerca una dispensa...',
+                    height: '600px',
+                    theme: 'default',
+                    apiEndpoint: 'https://symbia.it:5000'
                 });
                 
-                await mainSearchComponent.init();
-                console.log('✅ Main Search Component initialized');
+                // Set up event handlers for main search
+                mainSearchWrapper.onMessage('SEARCH_RESULTS', (data) => {
+                    console.log('Main search results:', data);
+                });
+                
+                mainSearchWrapper.onMessage('DOCUMENT_CLICKED', (data) => {
+                    console.log('Main search document clicked:', data);
+                });
+                
+                console.log('✅ Main Search Wrapper initialized');
             }
             
-            // Initialize Documents Search Component
+            // Initialize Documents Search Wrapper
             const documentsContainer = document.getElementById('documents-search-container');
             if (documentsContainer) {
-                documentsSearchComponent = new SearchSectionComponent(documentsContainer, {
-                    apiBase: 'https://symbia.it:5000',
-                    placeholderText: 'Cerca i tuoi documenti...',
-                    buttonText: 'Cerca',
-                    instanceId: 'documents-search',
-                    devMode: false
+                documentsSearchWrapper = new IframeSearchWrapper('documents-search-container', {
+                    context: 'user-documents',
+                    title: 'I Miei Documenti',
+                    searchPlaceholder: 'Cerca i tuoi documenti...',
+                    height: '500px',
+                    theme: 'default',
+                    apiEndpoint: 'https://symbia.it:5000',
+                    filters: {
+                        owned: true
+                    }
                 });
                 
-                await documentsSearchComponent.init();
-                console.log('✅ Documents Search Component initialized');
+                // Set up event handlers for documents search
+                documentsSearchWrapper.onMessage('SEARCH_RESULTS', (data) => {
+                    console.log('Documents search results:', data);
+                });
+                
+                documentsSearchWrapper.onMessage('DOCUMENT_CLICKED', (data) => {
+                    console.log('Documents search document clicked:', data);
+                });
+                
+                console.log('✅ Documents Search Wrapper initialized');
             }
             
-            // Initialize Favorites Search Component
+            // Initialize Favorites Search Wrapper
             const favoritesContainer = document.getElementById('favorites-search-container');
             if (favoritesContainer) {
-                favoritesSearchComponent = new SearchSectionComponent(favoritesContainer, {
-                    apiBase: 'https://symbia.it:5000',
-                    placeholderText: 'Cerca una dispensa...',
-                    buttonText: 'Cerca',
-                    instanceId: 'favorites-search',
-                    devMode: false
+                favoritesSearchWrapper = new IframeSearchWrapper('favorites-search-container', {
+                    context: 'favorites',
+                    title: 'Documenti Preferiti',
+                    searchPlaceholder: 'Cerca nei preferiti...',
+                    height: '500px',
+                    theme: 'default',
+                    apiEndpoint: 'https://symbia.it:5000',
+                    filters: {
+                        favorite: true
+                    }
                 });
                 
-                await favoritesSearchComponent.init();
-                console.log('✅ Favorites Search Component initialized');
+                // Set up event handlers for favorites search
+                favoritesSearchWrapper.onMessage('SEARCH_RESULTS', (data) => {
+                    console.log('Favorites search results:', data);
+                });
+                
+                favoritesSearchWrapper.onMessage('DOCUMENT_CLICKED', (data) => {
+                    console.log('Favorites search document clicked:', data);
+                });
+                
+                console.log('✅ Favorites Search Wrapper initialized');
             }
             
-            console.log('🎉 All SearchSectionComponent instances initialized successfully');
-            console.log('Main search should now be visible on the profile page');
+            console.log('🎉 All IframeSearchWrapper instances initialized successfully');
+            console.log('Search sections should now be visible on the profile page');
             
         } catch (error) {
-            console.error('❌ Error initializing SearchSectionComponent instances:', error);
+            console.error('❌ Error initializing IframeSearchWrapper instances:', error);
         }
     });
     

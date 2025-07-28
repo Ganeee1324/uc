@@ -123,19 +123,39 @@
     --space-16: 4rem;
     --space-20: 5rem;
     
-    /* Background removed for component version */
+    /* Background Image Responsive Positioning */
+    --bg-position-x: center;
+    --bg-position-y: center;
+    --bg-size: 100vw auto;
+    --bg-offset-top: -900px; /* Move image up so 790px point aligns with subtitle area */
+    --bg-offset-left: 0px;
+    --bg-reference-point: 50% 50%; /* Center the image, then use offset for precise positioning */
     
     /* Search Bar Toggle Switch :after Pseudo-element */
     --search-bar-toggle-after: '';
 
 }
 
-/* Background preload removed for component version */
+/* Preload background image for immediate display */
+body::before {
+    content: '';
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    background-image: url('../images/bg.png');
+    opacity: 0;
+    pointer-events: none;
+    z-index: -9999;
+}
 
 /* Base Styles */
 html {
     scroll-behavior: smooth;
     font-size: 16px;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 body {
@@ -151,6 +171,9 @@ body {
     letter-spacing: -0.011em;
     overflow-x: hidden;
     position: relative;
+    max-width: 100vw;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Ensure filters panel is never affected by parent container issues */
@@ -172,21 +195,409 @@ html {
     scrollbar-width: none;
 }
 
-/* Background image element removed for component version */
+/* Background Image as Element */
+.background-image {
+    position: absolute;
+    left: -1px; /* Offset left by 1px to center the extra 2px width */
+    width: calc(100vw + 2px); /* Span the full viewport width plus 2px */
+    /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
+    background-image: url('../images/bg.png');
+    background-size: 100% 100%; /* Stretch to fill the element */
+    background-repeat: no-repeat;
+    z-index: -1;
+    pointer-events: none;
+    /* Ensure immediate visibility */
+    opacity: 1;
+    visibility: visible;
+    /* Optimize image loading */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    /* No transitions - we want instant positioning */
+}
 
-/* Header removed for component version */
+/* Header - New Layout to Match Image */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid #e9ecef;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-8);
+    transition: all 0.3s var(--ease-2);
+}
 
-/* Logo styles removed for component version */
+.logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.3s var(--ease-spring);
+}
 
-/* Navigation menu styles removed for component version */
+.logo:hover {
+    transform: scale(1.05);
+}
 
-/* Auth buttons and user info styles removed for component version */
+.logo img {
+    height: 40px;
+    width: auto;
+}
 
-/* Header user avatar styles removed for component version */
+/* Navigation Menu */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
-/* Login button styles removed for component version */
+.nav-link {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-700);
+    text-decoration: none;
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s var(--ease-2);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    min-height: 48px;
+}
 
-/* Responsive login button styles and user/logout styles removed for component version */
+.nav-link svg {
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+}
+
+.nav-link:hover {
+    color: var(--gray-900);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.nav-link.active {
+    color: var(--blue-600);
+    background: var(--blue-50);
+}
+
+/* Auth Buttons & User Info */
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.divider {
+    height: 24px;
+    width: 1px;
+    background-color: var(--gray-300);
+    margin: 0 var(--space-2);
+}
+
+.user-info {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gray-100);
+    transition: background-color 0.2s var(--ease-2);
+}
+
+/* Header user avatar styles */
+.header-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar svg {
+    width: 28px;
+    height: 28px;
+    fill: var(--gray-600);
+    transition: fill 0.2s var(--ease-2);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-avatar:hover {
+    background-color: var(--gray-200);
+}
+
+.user-avatar:hover svg {
+    fill: var(--gray-800);
+}
+
+/* Login Button Styles */
+.login-btn {
+    background: linear-gradient(135deg, #49c5eb 0%, #3b82f6 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(73, 197, 235, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    height: 36px;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.login-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(73, 197, 235, 0.4);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(73, 197, 235, 0.3);
+}
+
+.login-btn-text {
+    white-space: nowrap;
+    letter-spacing: 0.025em;
+}
+
+/* Responsive Login Button Styles */
+@media (max-width: 1200px) {
+    .login-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        min-width: 75px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 900px) {
+    .login-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+        min-width: 70px;
+        height: 32px;
+        border-radius: 18px;
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.02em;
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-buttons {
+        gap: var(--space-3);
+    }
+    
+    .login-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-width: 65px;
+        height: 30px;
+        border-radius: 16px;
+        box-shadow: 0 1px 6px rgba(73, 197, 235, 0.25);
+    }
+    
+    .login-btn:hover {
+        transform: translateY(-0.5px);
+        box-shadow: 0 2px 8px rgba(73, 197, 235, 0.35);
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.015em;
+    }
+}
+
+@media (max-width: 600px) {
+    .auth-buttons {
+        gap: var(--space-2);
+    }
+    
+    .login-btn {
+        padding: 5px 8px;
+        font-size: 10px;
+        min-width: 60px;
+        height: 28px;
+        border-radius: 14px;
+        font-weight: 500;
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.01em;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-buttons {
+        gap: var(--space-1);
+    }
+    
+    .login-btn {
+        padding: 4px 6px;
+        font-size: 9px;
+        min-width: 55px;
+        height: 26px;
+        border-radius: 13px;
+        font-weight: 500;
+    }
+    
+    .login-btn:hover {
+        transform: none;
+        box-shadow: 0 1px 4px rgba(73, 197, 235, 0.3);
+    }
+    
+    .login-btn:active {
+        transform: scale(0.98);
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0.005em;
+    }
+}
+
+@media (max-width: 360px) {
+    .login-btn {
+        padding: 3px 5px;
+        font-size: 8px;
+        min-width: 50px;
+        height: 24px;
+        border-radius: 12px;
+    }
+    
+    .login-btn-text {
+        letter-spacing: 0;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .login-btn:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(73, 197, 235, 0.3);
+    }
+    
+    .login-btn:active {
+        transform: scale(0.96);
+        box-shadow: 0 1px 4px rgba(73, 197, 235, 0.4);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .login-btn {
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    
+    .login-btn:hover {
+        border-color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .login-btn {
+        transition: none;
+    }
+    
+    .login-btn:hover {
+        transform: none;
+    }
+    
+    .login-btn:active {
+        transform: none;
+    }
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--gray-800);
+    font-size: 0.9375rem;
+    margin-right: var(--space-3);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-2);
+}
+
+.logout-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--gray-900);
+}
+
+.logout-btn .material-symbols-outlined {
+    font-size: 22px;
+    transition: transform 0.2s var(--ease-2);
+}
 
 .main-content {
     /* --sticky-top-offset is set by JavaScript */
@@ -203,7 +614,9 @@ html {
     min-height: calc(100vh - 120px);
     position: relative;
     width: 100%;
-    max-width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Initial Search Section - Centered Layout */
@@ -217,7 +630,9 @@ html {
     text-align: center;
     position: relative;
     width: 100%;
-    max-width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Loading state - remove excess height */
@@ -246,7 +661,7 @@ html {
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: var(--space-5);
-    max-width: 2400px; /* Increased max-width for 8 cards */
+    max-width: min(2400px, 100vw); /* Responsive max-width that doesn't exceed viewport */
     position: relative;
     z-index: 2;
     transform: translate3d(0, 0, 0);
@@ -254,6 +669,8 @@ html {
     contain: layout;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Loading state - remove min-height to prevent excess space */
@@ -592,7 +1009,10 @@ html {
         min-height: auto; /* Let natural height prevail */
     }
     
-    /* Search title and subtitle styles removed for component version */
+    .search-section.no-results-state .search-title,
+    .search-section.no-results-state .search-subtitle {
+        margin-bottom: var(--space-4);
+    }
     
     .search-section.no-results-state .search-container {
         margin-bottom: var(--space-4);
@@ -661,7 +1081,23 @@ html {
     }
 }
 
-/* Search title and subtitle removed for component version */
+.search-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: -10px;
+    letter-spacing: -0.02em;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.search-subtitle {
+    font-size: 36px;
+    color: #4d4d4d;
+    font-weight: 500;
+    margin-bottom: var(--space-12);
+    letter-spacing: -0.01em;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
 
 .search-container-wrapper {
     /* The wrapper is now back inside search-section. */
@@ -4189,7 +4625,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        /* No changes - documents stay exactly as they are */
    }
    
-   /* Header styles removed for component version */
+   .header {
+       padding: var(--space-5) var(--space-8);
+   }
    
    .search-container {
        max-width: 550px;
@@ -4205,7 +4643,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    
    /* Search bar maintains default size at 1200px */
    
-   /* Search title and subtitle styles removed for component version */
+   .search-title {
+       font-size: 56px;
+   }
+   
+   .search-subtitle {
+       font-size: 22px;
+   }
    
    .document-card {
        height: 480px;
@@ -4260,7 +4704,90 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        /* No changes - documents stay exactly as they are */
    }
    
-   /* Professional Mobile Header styles removed for component version */
+   /* Professional Mobile Header */
+   .header {
+       padding: var(--space-4) var(--space-5);
+       flex-direction: row;
+       justify-content: space-between;
+       align-items: center;
+       gap: var(--space-3);
+       min-height: 70px;
+       background: rgba(255, 255, 255, 0.95);
+       backdrop-filter: blur(20px);
+       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+   }
+   
+   .logo {
+       order: 1;
+       flex-shrink: 0;
+   }
+   
+   .logo img {
+       height: 32px;
+       width: auto;
+   }
+   
+   /* Mobile Navigation Menu */
+   .nav-menu {
+       display: none;
+       position: fixed;
+       top: 70px;
+       left: 0;
+       right: 0;
+       background: rgba(255, 255, 255, 0.98);
+       backdrop-filter: blur(20px);
+       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+       padding: var(--space-4) var(--space-5);
+       gap: var(--space-3);
+       flex-direction: column;
+       z-index: 1000;
+       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+   }
+   
+   .nav-menu.active {
+       display: flex;
+   }
+   
+   .nav-link {
+       padding: var(--space-3) 0;
+       font-size: 16px;
+       font-weight: 500;
+       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+   }
+   
+   .nav-link:last-child {
+       border-bottom: none;
+   }
+   
+   .auth-buttons {
+       order: 3;
+       gap: var(--space-2);
+       flex-shrink: 0;
+   }
+   
+   /* Mobile Menu Toggle */
+   .mobile-menu-toggle {
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       width: 44px;
+       height: 44px;
+       background: transparent;
+       border: none;
+       border-radius: var(--radius-lg);
+       cursor: pointer;
+       transition: all 0.2s ease;
+       order: 2;
+   }
+   
+   .mobile-menu-toggle:hover {
+       background: rgba(0, 0, 0, 0.05);
+   }
+   
+   .mobile-menu-toggle .material-symbols-outlined {
+       font-size: 24px;
+       color: var(--gray-700);
+   }
    
    /* Professional Mobile Search Section */
    .search-section {
@@ -4276,7 +4803,21 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        transform: translateY(15px); /* Adjust for mobile layout */
    }
    
-   /* Search title and subtitle styles removed for component version */
+   .search-title {
+       font-size: 42px;
+       font-weight: 800;
+       letter-spacing: -0.03em;
+       line-height: 1.1;
+       margin-bottom: var(--space-2);
+   }
+   
+   .search-subtitle {
+       font-size: 18px;
+       font-weight: 500;
+       color: rgba(77, 77, 77, 0.8);
+       margin-bottom: var(--space-8);
+       line-height: 1.4;
+   }
    
    .search-container {
        max-width: 500px;
@@ -4497,7 +5038,23 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        --bg-offset-top: -2470px; /* Adjust for small mobile layout */
    }
 
-   /* Header styles removed for component version */
+   .header {
+       padding: var(--space-4);
+       min-height: 64px;
+   }
+   
+   .mobile-menu-toggle .material-symbols-outlined {
+       font-size: 20px;
+   }
+   
+   .auth-buttons {
+       gap: var(--space-1);
+   }
+   
+   .user-avatar {
+       width: 36px;
+       height: 36px;
+   }
    
    .search-section {
        padding: var(--space-6) var(--space-4) var(--space-8) var(--space-4);
@@ -4513,7 +5070,18 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-4) var(--space-4) var(--space-16) var(--space-4);
    }
    
-   /* Search title and subtitle styles removed for component version */
+   .search-title {
+       font-size: 32px;
+       font-weight: 900;
+       letter-spacing: -0.04em;
+       line-height: 1.05;
+   }
+   
+   .search-subtitle {
+       font-size: 16px;
+       font-weight: 500;
+       margin-bottom: var(--space-6);
+   }
    
    .search-container {
        max-width: 350px;
@@ -4903,7 +5471,14 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        --bg-offset-top: -1300px; /* Adjust for tablet layout */
    }
 
-   /* Search title and subtitle styles removed for component version */
+   .search-title {
+       font-size: 38px;
+       font-weight: 800;
+   }
+   
+   .search-subtitle {
+       font-size: 17px;
+   }
    
    .documents-grid {
        grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4957,7 +5532,19 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        transform: scale(0.95);
    }
    
-   /* Header-related styles removed for component version */
+   /* Improve tap targets */
+   .nav-link {
+       min-height: 48px; /* iOS recommended minimum */
+   }
+   
+   .mobile-menu-toggle {
+       min-width: 48px;
+       min-height: 48px;
+   }
+   
+   .user-info {
+       min-height: 48px;
+   }
 }
 
 /* Utility Classes */
@@ -5055,7 +5642,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Print styles */
 @media print {
-   /* Header styles removed for component version */
+   .header,
    .filters-panel,
    .filters-overlay,
    .preview-modal {
@@ -6864,7 +7451,239 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
 
-/* User dropdown and user info styles removed for component version */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    background-color: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--gray-200);
+    width: 280px;
+    padding: var(--space-2) 0;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s var(--ease-out);
+    overflow: hidden;
+}
+
+/* Add invisible bridge to prevent gap between avatar and dropdown */
+.user-info::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 280px;
+    height: 12px;
+    background: transparent;
+    pointer-events: none;
+}
+
+/* When dropdown is open, make the bridge interactive */
+.user-info.open::after {
+    pointer-events: auto;
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .user-info::after {
+        display: none;
+    }
+    
+    .user-info.open::after {
+        display: none;
+    }
+}
+
+/* Dropdown toggle arrow styles */
+.dropdown-toggle {
+    position: absolute;
+    top: 50%;
+    right: -8px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 1002;
+    font-size: 12px;
+    color: var(--gray-600);
+    transition: all 0.2s ease;
+    border: 1px solid var(--gray-200);
+}
+
+.dropdown-toggle:hover {
+    background: var(--gray-50);
+    color: var(--gray-800);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.dropdown-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.dropdown-toggle .material-symbols-outlined {
+    font-size: 12px;
+    line-height: 1;
+}
+
+/* Ensure user-info container is positioned relatively */
+.user-info {
+    position: relative;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .dropdown-toggle {
+        width: 18px;
+        height: 18px;
+        right: -6px;
+        font-size: 14px;
+    }
+    
+    .dropdown-toggle .material-symbols-outlined {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dropdown-toggle {
+        width: 20px;
+        height: 20px;
+        right: -4px;
+        font-size: 16px;
+    }
+    
+    .dropdown-toggle .material-symbols-outlined {
+        font-size: 16px;
+    }
+}
+
+.user-info.open .user-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-user-info {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: var(--radius-md);
+    margin: 0 var(--space-2);
+    position: relative;
+}
+
+.dropdown-user-info:hover {
+    background-color: var(--gray-50);
+}
+
+.dropdown-user-info:active {
+    background-color: var(--gray-100);
+}
+
+/* Add a subtle visual indicator that the user info is clickable */
+.dropdown-user-info::after {
+    content: '';
+    position: absolute;
+    right: var(--space-4);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid var(--gray-400);
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    transition: border-left-color 0.2s ease;
+}
+
+.dropdown-user-info:hover::after {
+    border-left-color: var(--gray-600);
+}
+
+.dropdown-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: var(--space-3);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dropdown-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-user-details {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+    overflow: hidden;
+}
+
+.dropdown-user-name {
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.dropdown-user-name:hover {
+    color: var(--primary-600);
+}
+
+.dropdown-user-email {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--gray-150);
+    margin: var(--space-2) 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.9375rem;
+    color: var(--gray-700);
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--gray-50);
+    color: var(--gray-900);
+}
+
+.dropdown-item i {
+    font-size: 22px;
+    color: var(--gray-500);
+}
 
 /* Force circular shape in document cards */
 .document-footer-left .owner-avatar {

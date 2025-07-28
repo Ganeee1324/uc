@@ -750,6 +750,79 @@ function initializeFilterControls() {
     if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
         priceRangeContainer.style.display = 'block';
     }
+    
+    // Set up event listeners for filter inputs
+    // Faculty filter
+    const facultyInput = document.getElementById('facultyFilter');
+    console.log('🔧 Faculty input element found:', !!facultyInput);
+    if (facultyInput) {
+        facultyInput.addEventListener('change', (e) => {
+            console.log('🔧 Faculty input change event triggered:', e.target.value);
+            filterManager.setFilter('faculty', e.target.value);
+        });
+    }
+    // Course filter
+    const courseInput = document.getElementById('courseFilter');
+    console.log('🔧 Course input element found:', !!courseInput);
+    if (courseInput) {
+        courseInput.addEventListener('change', (e) => {
+            console.log('🔧 Course input change event triggered:', e.target.value);
+            filterManager.setFilter('course', e.target.value);
+        });
+    }
+    // Canale filter
+    const canaleInput = document.getElementById('canaleFilter');
+    if (canaleInput) {
+        canaleInput.addEventListener('change', (e) => {
+            filterManager.setFilter('canale', e.target.value);
+        });
+    }
+    // Price range sliders
+    const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    if (minPriceRange && maxPriceRange) {
+        const updatePrice = () => {
+            const min = parseInt(minPriceRange.value, 10);
+            const max = parseInt(maxPriceRange.value, 10);
+            filterManager.setFilter('priceRange', [min, max]);
+        };
+        minPriceRange.addEventListener('input', updatePrice);
+        maxPriceRange.addEventListener('input', updatePrice);
+    }
+    // Pages range sliders
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    if (minPagesRange && maxPagesRange) {
+        const updatePages = () => {
+            const min = parseInt(minPagesRange.value, 10);
+            const max = parseInt(maxPagesRange.value, 10);
+            filterManager.setFilter('minPages', min);
+            filterManager.setFilter('maxPages', max);
+        };
+        minPagesRange.addEventListener('input', updatePages);
+        maxPagesRange.addEventListener('input', updatePages);
+    }
+    // Rating filter (example for stars)
+    document.querySelectorAll('.rating-star-filter').forEach(star => {
+        star.addEventListener('click', (e) => {
+            const rating = parseInt(star.getAttribute('data-rating'), 10);
+            filterManager.setFilter('minRating', rating);
+        });
+    });
+    // Toggle groups (example for priceType)
+    document.querySelectorAll('.price-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
+        });
+    });
+    // Clear all button
+    const clearAllBtn = document.getElementById('clearAllFilters');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            filterManager.filters = {};
+            filterManager.updateActiveFiltersDisplay();
+        });
+    }
 }
 
 function handleFilterChangeImmediate(e) {
@@ -7492,103 +7565,5 @@ document.addEventListener('DOMContentLoaded', function() {
 // ... existing code ...
 
 // ... existing code ...
-    // Failsafe: always show price slider if 'Tutti' is active after restoring filters
-    setTimeout(() => {
-        const priceRangeContainer = document.getElementById('priceRangeContainer');
-        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
-        if (tuttiToggle && priceRangeContainer) {
-            priceRangeContainer.style.display = 'block';
-        }
-    }, 0);
-// ... existing code ...
 
-// ... existing code ...
-    // Add pages range pill if min/max are set and not default values
-    if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
-        (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
-        const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
-        const maxPages = filterManager.filters.maxPages !== undefined ? filterManager.filters.maxPages : 1000;
-        filterPills.push(`
-            <div class="filter-pill" data-filter-key="pagesRange">
-                <span class="filter-pill-label">Pagine:</span>
-                <span class="filter-pill-value">${minPages}-${maxPages}</span>
-                <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="pagesRange"></span>
-            </div>
-        `);
-    }
-// ... existing code ...
-
-// ... existing code ...
-    // Faculty filter
-    const facultyInput = document.getElementById('facultyFilter');
-    console.log('🔧 Faculty input element found:', !!facultyInput);
-    if (facultyInput) {
-        facultyInput.addEventListener('change', (e) => {
-            console.log('🔧 Faculty input change event triggered:', e.target.value);
-            filterManager.setFilter('faculty', e.target.value);
-        });
-    }
-    // Course filter
-    const courseInput = document.getElementById('courseFilter');
-    console.log('🔧 Course input element found:', !!courseInput);
-    if (courseInput) {
-        courseInput.addEventListener('change', (e) => {
-            console.log('🔧 Course input change event triggered:', e.target.value);
-            filterManager.setFilter('course', e.target.value);
-        });
-    }
-    // Canale filter
-    const canaleInput = document.getElementById('canaleFilter');
-    if (canaleInput) {
-        canaleInput.addEventListener('change', (e) => {
-            filterManager.setFilter('canale', e.target.value);
-        });
-    }
-    // Price range sliders
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
-    if (minPriceRange && maxPriceRange) {
-        const updatePrice = () => {
-            const min = parseInt(minPriceRange.value, 10);
-            const max = parseInt(maxPriceRange.value, 10);
-            filterManager.setFilter('priceRange', [min, max]);
-        };
-        minPriceRange.addEventListener('input', updatePrice);
-        maxPriceRange.addEventListener('input', updatePrice);
-    }
-    // Pages range sliders
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
-    if (minPagesRange && maxPagesRange) {
-        const updatePages = () => {
-            const min = parseInt(minPagesRange.value, 10);
-            const max = parseInt(maxPagesRange.value, 10);
-            filterManager.setFilter('minPages', min);
-            filterManager.setFilter('maxPages', max);
-        };
-        minPagesRange.addEventListener('input', updatePages);
-        maxPagesRange.addEventListener('input', updatePages);
-    }
-    // Rating filter (example for stars)
-    document.querySelectorAll('.rating-star-filter').forEach(star => {
-        star.addEventListener('click', (e) => {
-            const rating = parseInt(star.getAttribute('data-rating'), 10);
-            filterManager.setFilter('minRating', rating);
-        });
-    });
-    // Toggle groups (example for priceType)
-    document.querySelectorAll('.price-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
-        });
-    });
-    // Clear all button
-    const clearAllBtn = document.getElementById('clearAllFilters');
-    if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', () => {
-            filterManager.filters = {};
-            filterManager.updateActiveFiltersDisplay();
-        });
-    }
-    // Pills are handled by FilterManager.createFilterPill
 // ... existing code ...

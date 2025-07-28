@@ -1223,12 +1223,16 @@ search-section {
     margin-top: auto;
     padding-top: 16px;
     border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: center;
 }
 
 .logout-btn {
-    width: 100%;
+    width: auto;
+    min-width: 120px;
     display: flex;
     align-items: center;
+    justify-content: center;
     padding: 12px 20px;
     background: none;
     border: none;
@@ -1237,7 +1241,7 @@ search-section {
     font-weight: 500;
     cursor: pointer;
     /* Removed transition and border-radius for no animation */
-    margin: 0 8px;
+    margin: 0;
 }
 
 .logout-btn:hover {

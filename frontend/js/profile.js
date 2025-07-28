@@ -1063,7 +1063,7 @@ function hideChartTooltip() {
     }
 }
 
-function updateTooltipPosition(event) {
+function updateTooltipPosition(event, element = null) {
     if (!chartTooltip) return;
     
     const tooltip = chartTooltip;
@@ -1071,8 +1071,8 @@ function updateTooltipPosition(event) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    // Get the target element (chart circle or histogram bar)
-    const targetElement = event.target;
+    // Use the provided element or fall back to event.target
+    const targetElement = element || event.target;
     const elementRect = targetElement.getBoundingClientRect();
     
     // Position tooltip centered above the element
@@ -1147,7 +1147,7 @@ window.showTooltip = function(event, element) {
     chartTooltip.style.pointerEvents = 'none';
     
     // Position tooltip first, then show it
-    updateTooltipPosition(event);
+    updateTooltipPosition(event, element);
     chartTooltip.classList.add('show');
 };
 
@@ -1170,7 +1170,7 @@ window.showHistogramTooltip = function(event, element) {
     chartTooltip.style.pointerEvents = 'none';
     
     // Position tooltip first, then show it
-    updateTooltipPosition(event);
+    updateTooltipPosition(event, element);
     chartTooltip.classList.add('show');
 };
 

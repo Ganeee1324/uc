@@ -3156,6 +3156,13 @@ function updateActiveFiltersDisplay() {
     console.log('🔧 Container found, current innerHTML length:', activeFiltersContainer.innerHTML.length);
     console.log('🔧 Container classes:', activeFiltersContainer.className);
     
+    // Clear any existing timeout to prevent clearing pills that are about to be created
+    if (activeFiltersContainer._clearTimeout) {
+        console.log('🔧 Clearing existing timeout');
+        clearTimeout(activeFiltersContainer._clearTimeout);
+        activeFiltersContainer._clearTimeout = null;
+    }
+    
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
@@ -3165,9 +3172,10 @@ function updateActiveFiltersDisplay() {
         console.log('🔧 No filter entries, hiding container');
         console.log('🔧 Removing visible class and clearing innerHTML in 400ms');
         activeFiltersContainer.classList.remove('visible');
-        setTimeout(() => {
+        activeFiltersContainer._clearTimeout = setTimeout(() => {
             console.log('🔧 Clearing innerHTML after timeout');
             activeFiltersContainer.innerHTML = '';
+            activeFiltersContainer._clearTimeout = null;
         }, 400);
         return;
     }

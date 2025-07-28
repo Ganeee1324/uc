@@ -219,9 +219,9 @@ html {
     scrollbar-width: none;
 }
 
-/* Make iframe completely invisible and seamless */
+/* Make iframe completely invisible and seamless - Allow glow to extend */
 iframe {
-    overflow: hidden !important;
+    overflow: visible !important; /* Allow glow effects to extend beyond iframe boundaries */
     scrolling: no !important;
     border: none !important;
     margin: 0 !important;
@@ -245,7 +245,7 @@ iframe {
     appearance: none !important;
 }
 
-/* Make iframe container divs invisible */
+/* Make iframe container divs invisible - Allow glow to extend */
 [id*="search-container"],
 [id*="main-search-container"],
 .iframe-container,
@@ -257,13 +257,13 @@ iframe {
     outline: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: visible !important;
+    overflow: visible !important; /* Allow glow effects to extend beyond container boundaries */
 }
 
-/* Ensure iframe content doesn't create scroll bars */
+/* Ensure iframe content allows glow effects to extend */
 iframe body {
-    overflow: hidden !important;
-    overflow-x: hidden !important;
+    overflow: visible !important; /* Allow glow effects to extend beyond body boundaries */
+    overflow-x: visible !important;
     overflow-y: visible !important;
     height: auto !important;
     min-height: auto !important;
@@ -273,8 +273,8 @@ iframe body {
 }
 
 iframe html {
-    overflow: hidden !important;
-    overflow-x: hidden !important;
+    overflow: visible !important; /* Allow glow effects to extend beyond html boundaries */
+    overflow-x: visible !important;
     overflow-y: visible !important;
     height: auto !important;
     min-height: auto !important;
@@ -688,13 +688,13 @@ iframe html {
     transition: transform 0.2s var(--ease-2);
 }
 
-/* Main Content - Dual Layout System */
+/* Main Content - Dual Layout System - Allow glow to extend */
 .main-content {
     min-height: auto; /* Remove fixed height constraint */
     position: relative;
     width: 100%;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: visible; /* Allow glow effects to extend horizontally */
     overflow-y: visible; /* Allow natural vertical scrolling */
     box-sizing: border-box;
     /* Ensure proper centering */
@@ -703,7 +703,7 @@ iframe html {
     height: auto; /* Allow natural height */
 }
 
-/* Initial Search Section - Centered Layout */
+/* Initial Search Section - Centered Layout - Allow glow to extend */
 .search-section {
     display: flex;
     flex-direction: column;
@@ -715,7 +715,7 @@ iframe html {
     position: relative;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: visible; /* Allow glow effects to extend horizontally */
     overflow-y: visible; /* Allow natural vertical scrolling */
     box-sizing: border-box;
     /* Ensure proper centering within iframe context */

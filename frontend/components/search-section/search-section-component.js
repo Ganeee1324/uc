@@ -2824,12 +2824,20 @@ Adapted from search-section.css for instance-based usage
      */
     async loadAllFiles() {
         try {
+            console.log(`Loading files for instance ${this.instanceId}...`);
+            
             if (this.options.devMode && this.options.devModeNoResults) {
                 this.handleNoResults();
                 return;
             }
 
+            // Show loading cards first
+            this.showLoadingCards();
+            console.log(`Showing loading cards for instance ${this.instanceId}`);
+
             const url = `${this.options.apiBase}/vetrine`;
+            console.log(`Making API request to: ${url}`);
+            
             const headers = {};
             
             if (this.state.authToken) {
@@ -2837,21 +2845,25 @@ Adapted from search-section.css for instance-based usage
             }
 
             const response = await fetch(url, { headers });
+            console.log(`API response status: ${response.status}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log(`API response data:`, data);
             
             if (data.vetrine) {
                 this.state.currentVetrine = data.vetrine || [];
                 this.state.originalFiles = this.extractAllFiles(data.vetrine);
                 this.state.currentFiles = [...this.state.originalFiles];
                 
+                console.log(`Loaded ${this.state.currentFiles.length} files for instance ${this.instanceId}`);
                 await this.renderDocuments(this.state.currentFiles);
             } else {
-                throw new Error(data.message || 'Failed to load files');
+                console.log(`No vetrine data found, showing no results`);
+                this.handleNoResults();
             }
         } catch (error) {
             console.error(`Error loading files for instance ${this.instanceId}:`, error);
@@ -3436,8 +3448,16 @@ Adapted from search-section.css for instance-based usage
     }
 
     updateScrollToTopButton() {
-        // Placeholder for updating scroll-to-top button
-        console.log(`Updating scroll-to-top button for instance ${this.instanceId}`);
+        // Only update if scroll-to-top button exists
+        const scrollToTopBtn = this.querySelector('.scroll-to-top-btn');
+        if (!scrollToTopBtn) return;
+        
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > 300) {
+            scrollToTopBtn.classList.add('visible');
+        } else {
+            scrollToTopBtn.classList.remove('visible');
+        }
     }
 
     resetAllFilterControls() {

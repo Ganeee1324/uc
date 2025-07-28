@@ -77,23 +77,43 @@ class IframeSearchWrapper {
         // Create iframe element
         this.iframe = document.createElement('iframe');
         this.iframe.src = 'components/search-section/search-section.html';
-        this.iframe.style.width = '100%';
-        this.iframe.style.maxWidth = '100vw'; // Ensure it doesn't exceed viewport width
-        this.iframe.style.minHeight = this.config.height || '600px'; // Use config height as minimum
-        this.iframe.style.height = 'auto'; // Allow iframe to expand naturally
-        this.iframe.style.border = 'none';
-        this.iframe.style.borderRadius = '12px';
-        this.iframe.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
-        this.iframe.style.backgroundColor = 'transparent';
-        this.iframe.style.boxSizing = 'border-box'; // Include padding and border in width calculation
-        this.iframe.style.display = 'block'; // Ensure proper block display
-        this.iframe.style.scrolling = 'no'; // Disable scrolling within iframe
-        this.iframe.style.resize = 'none'; // Prevent iframe resizing
-        this.iframe.style.margin = '0'; // Remove any margins
-        this.iframe.style.padding = '0'; // Remove any padding
-        this.iframe.style.position = 'relative'; // Use relative positioning for natural flow
-        this.iframe.style.zIndex = '1'; // Ensure proper stacking
-        this.iframe.style.verticalAlign = 'top'; // Align to top for proper flow
+        
+        // Apply comprehensive styling to make iframe invisible and seamless
+        Object.assign(this.iframe.style, {
+            width: '100%',
+            maxWidth: '100vw',
+            height: 'auto',
+            minHeight: this.config.height || '600px',
+            border: 'none',
+            borderRadius: '0',
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
+            boxSizing: 'border-box',
+            display: 'block',
+            overflow: 'hidden',
+            scrolling: 'no',
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+            resize: 'none',
+            margin: '0',
+            padding: '0',
+            position: 'relative',
+            zIndex: '1',
+            verticalAlign: 'top',
+            // Make iframe completely invisible
+            outline: 'none',
+            background: 'transparent',
+            // Additional properties to ensure no scroll bars
+            frameBorder: '0',
+            allowTransparency: 'true',
+            seamless: 'seamless'
+        });
+
+        // Set iframe attributes to prevent scrolling
+        this.iframe.setAttribute('scrolling', 'no');
+        this.iframe.setAttribute('frameborder', '0');
+        this.iframe.setAttribute('allowtransparency', 'true');
+        this.iframe.setAttribute('seamless', 'seamless');
 
         // Add iframe to container
         container.appendChild(this.iframe);
@@ -116,11 +136,12 @@ class IframeSearchWrapper {
             this.isLoading = false;
             container.classList.remove('loading');
             this.iframe.classList.add('loaded'); // Add loaded class for smooth transition
+            
+            // Inject CSS to prevent scroll bars in iframe content
+            this.injectNoScrollCSS();
+            
             this.passConfiguration();
             this.setupMessageHandling();
-            
-            // Remove scroll bars from iframe content after load
-            this.removeIframeScrollBars();
             
             // Adjust height to content after a short delay to ensure content is fully loaded
             setTimeout(() => {
@@ -129,9 +150,6 @@ class IframeSearchWrapper {
             
             // Set up a ResizeObserver to automatically adjust height when content changes
             this.setupHeightObserver();
-            
-            // Set up window resize listener
-            this.setupWindowResizeListener();
             
             console.log(`Iframe ${this.containerId} is ready`);
         };
@@ -286,51 +304,105 @@ class IframeSearchWrapper {
                 iframeHtml.offsetHeight
             );
             
-            // Add some padding to ensure content is fully visible
-            const adjustedHeight = contentHeight + 20;
-            
             // Set the iframe height to match content
-            this.iframe.style.height = `${adjustedHeight}px`;
-            this.iframe.style.minHeight = `${adjustedHeight}px`;
+            this.iframe.style.height = `${contentHeight}px`;
+            this.iframe.style.minHeight = `${contentHeight}px`;
             
-            // Ensure scroll bars are removed after height adjustment
-            this.removeIframeScrollBars();
-            
-            console.log(`Iframe height adjusted to ${adjustedHeight}px`);
+            console.log(`Iframe height adjusted to ${contentHeight}px`);
         } catch (error) {
             console.warn('Could not adjust iframe height:', error);
         }
     }
 
     /**
-     * Remove scroll bars from iframe content
+     * Inject CSS to prevent scroll bars in iframe content
      */
-    removeIframeScrollBars() {
+    injectNoScrollCSS() {
         if (!this.iframe || !this.isLoaded) {
             return;
         }
 
         try {
             const iframeDoc = this.iframe.contentDocument || this.iframe.contentWindow.document;
-            const iframeBody = iframeDoc.body;
-            const iframeHtml = iframeDoc.documentElement;
+            const iframeHead = iframeDoc.head;
             
-            // Remove scroll bars from iframe content
-            if (iframeBody) {
-                iframeBody.style.overflow = 'visible';
-                iframeBody.style.overflowX = 'hidden';
-                iframeBody.style.overflowY = 'visible';
-            }
+            // Create style element with comprehensive no-scroll CSS
+            const style = iframeDoc.createElement('style');
+            style.textContent = `
+                /* Force remove all scroll bars and make background transparent */
+                html, body {
+                    overflow: hidden !important;
+                    overflow-x: hidden !important;
+                    overflow-y: hidden !important;
+                    scrollbar-width: none !important;
+                    -ms-overflow-style: none !important;
+                    height: auto !important;
+                    min-height: auto !important;
+                    max-height: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    background: transparent !important;
+                }
+                
+                /* Hide scrollbars for webkit browsers */
+                html::-webkit-scrollbar,
+                body::-webkit-scrollbar,
+                *::-webkit-scrollbar {
+                    display: none !important;
+                    width: 0 !important;
+                    height: 0 !important;
+                }
+                
+                /* Ensure all elements don't create scroll bars */
+                * {
+                    overflow: visible !important;
+                    overflow-x: visible !important;
+                    overflow-y: visible !important;
+                }
+                
+                /* Specific elements that might cause scroll bars */
+                .main-content,
+                .search-section,
+                .documents-grid,
+                .filters-panel,
+                .preview-modal,
+                .reviews-overlay {
+                    overflow: visible !important;
+                    overflow-x: visible !important;
+                    overflow-y: visible !important;
+                    height: auto !important;
+                    min-height: auto !important;
+                    max-height: none !important;
+                    background: transparent !important;
+                }
+                
+                /* Ensure iframe content flows naturally */
+                body {
+                    position: relative !important;
+                    display: block !important;
+                    width: 100% !important;
+                    height: auto !important;
+                    background: transparent !important;
+                }
+                
+                /* Make all containers transparent */
+                .main-content,
+                .search-section,
+                .search-container-wrapper,
+                .search-container {
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+            `;
             
-            if (iframeHtml) {
-                iframeHtml.style.overflow = 'visible';
-                iframeHtml.style.overflowX = 'hidden';
-                iframeHtml.style.overflowY = 'visible';
-            }
+            // Inject the style into iframe head
+            iframeHead.appendChild(style);
             
-            console.log('Scroll bars removed from iframe content');
+            console.log('No-scroll CSS injected into iframe');
         } catch (error) {
-            console.warn('Could not remove iframe scroll bars:', error);
+            console.warn('Could not inject no-scroll CSS:', error);
         }
     }
 
@@ -362,26 +434,6 @@ class IframeSearchWrapper {
         } catch (error) {
             console.warn('Could not set up height observer:', error);
         }
-    }
-
-    /**
-     * Setup window resize listener
-     */
-    setupWindowResizeListener() {
-        if (!this.iframe || !this.isLoaded) {
-            return;
-        }
-
-        // Debounced resize handler
-        this.windowResizeHandler = () => {
-            clearTimeout(this.windowResizeTimeout);
-            this.windowResizeTimeout = setTimeout(() => {
-                this.adjustHeightToContent();
-            }, 150);
-        };
-
-        window.addEventListener('resize', this.windowResizeHandler);
-        console.log('Window resize listener set up for iframe');
     }
 
     /**
@@ -463,18 +515,6 @@ class IframeSearchWrapper {
         if (this.resizeTimeout) {
             clearTimeout(this.resizeTimeout);
             this.resizeTimeout = null;
-        }
-        
-        // Clean up window resize listener
-        if (this.windowResizeHandler) {
-            window.removeEventListener('resize', this.windowResizeHandler);
-            this.windowResizeHandler = null;
-        }
-        
-        // Clear window resize timeout
-        if (this.windowResizeTimeout) {
-            clearTimeout(this.windowResizeTimeout);
-            this.windowResizeTimeout = null;
         }
         
         if (this.iframe && this.iframe.parentNode) {

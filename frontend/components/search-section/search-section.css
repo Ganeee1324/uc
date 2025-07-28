@@ -193,7 +193,6 @@ body {
     font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
     letter-spacing: -0.011em;
     overflow-x: hidden;
-    overflow-y: visible; /* Allow natural vertical scrolling */
     position: relative;
     max-width: 100vw;
     width: 100%;
@@ -220,8 +219,9 @@ html {
     scrollbar-width: none;
 }
 
-/* Ensure iframe content flows naturally without scroll bars */
+/* Make iframe completely invisible and seamless */
 iframe {
+    overflow: hidden !important;
     scrolling: no !important;
     border: none !important;
     margin: 0 !important;
@@ -235,10 +235,34 @@ iframe {
     position: relative !important;
     z-index: 1 !important;
     vertical-align: top !important;
+    /* Make iframe invisible */
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    /* Remove any visual indicators */
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Make iframe container divs invisible */
+[id*="search-container"],
+[id*="main-search-container"],
+.iframe-container,
+.iframe-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
 }
 
 /* Ensure iframe content doesn't create scroll bars */
 iframe body {
+    overflow: hidden !important;
     overflow-x: hidden !important;
     overflow-y: visible !important;
     height: auto !important;
@@ -249,6 +273,7 @@ iframe body {
 }
 
 iframe html {
+    overflow: hidden !important;
     overflow-x: hidden !important;
     overflow-y: visible !important;
     height: auto !important;

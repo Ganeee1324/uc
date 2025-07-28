@@ -713,6 +713,625 @@
             </div>
         </div>
 
+        <!-- Professional Settings Dashboard -->
+        <div class="settings-dashboard" id="settingsDashboard" style="display: none;">
+            <!-- Settings Header -->
+            <div class="settings-header">
+                <div class="settings-title-section">
+                    <h1 class="settings-main-title">Impostazioni Account</h1>
+                    <p class="settings-subtitle">Gestisci le tue preferenze, privacy e impostazioni del tuo profilo</p>
+                </div>
+            </div>
+
+            <!-- Settings Navigation -->
+            <div class="settings-nav-container">
+                <nav class="settings-nav">
+                    <button class="settings-nav-item active" data-section="account" onclick="switchSettingsSection('account')">
+                        <span class="settings-nav-icon material-symbols-outlined">person</span>
+                        <span class="settings-nav-text">Account</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="privacy" onclick="switchSettingsSection('privacy')">
+                        <span class="settings-nav-icon material-symbols-outlined">security</span>
+                        <span class="settings-nav-text">Privacy</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="notifications" onclick="switchSettingsSection('notifications')">
+                        <span class="settings-nav-icon material-symbols-outlined">notifications</span>
+                        <span class="settings-nav-text">Notifiche</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="preferences" onclick="switchSettingsSection('preferences')">
+                        <span class="settings-nav-icon material-symbols-outlined">tune</span>
+                        <span class="settings-nav-text">Preferenze</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="billing" onclick="switchSettingsSection('billing')">
+                        <span class="settings-nav-icon material-symbols-outlined">payment</span>
+                        <span class="settings-nav-text">Fatturazione</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="security" onclick="switchSettingsSection('security')">
+                        <span class="settings-nav-icon material-symbols-outlined">shield</span>
+                        <span class="settings-nav-text">Sicurezza</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Settings Content Container -->
+            <div class="settings-content">
+                <!-- Account Settings Section -->
+                <div class="settings-section active" id="accountSection">
+                    <div class="settings-section-header">
+                        <h2 class="settings-section-title">Informazioni Account</h2>
+                        <p class="settings-section-description">Gestisci i tuoi dati personali e le informazioni del profilo</p>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <!-- Profile Information Card -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Informazioni Profilo</h3>
+                                <p class="settings-card-description">Aggiorna i tuoi dati personali</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Nome utente</label>
+                                    <div class="settings-input-group">
+                                        <input type="text" class="settings-input" id="usernameInput" placeholder="Il tuo nome utente">
+                                        <button class="settings-input-action" onclick="editField('username')">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Email</label>
+                                    <div class="settings-input-group">
+                                        <input type="email" class="settings-input" id="emailInput" placeholder="la.tua.email@esempio.com">
+                                        <button class="settings-input-action" onclick="editField('email')">
+                                            <span class="material-symbols-outlined">edit</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Facoltà</label>
+                                    <div class="settings-input-group">
+                                        <select class="settings-select" id="facultySelect">
+                                            <option value="">Seleziona la tua facoltà</option>
+                                            <option value="Ingegneria">Ingegneria</option>
+                                            <option value="Medicina">Medicina</option>
+                                            <option value="Economia">Economia</option>
+                                            <option value="Giurisprudenza">Giurisprudenza</option>
+                                            <option value="Lettere e Filosofia">Lettere e Filosofia</option>
+                                            <option value="Scienze">Scienze</option>
+                                            <option value="Psicologia">Psicologia</option>
+                                            <option value="Architettura">Architettura</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Canale</label>
+                                    <div class="settings-input-group">
+                                        <input type="text" class="settings-input" id="canaleInput" placeholder="A-L, M-Z, ecc.">
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Bio</label>
+                                    <textarea class="settings-textarea" id="bioTextarea" placeholder="Racconta qualcosa di te (max 200 caratteri)" maxlength="200"></textarea>
+                                    <div class="settings-char-count">
+                                        <span id="bioCharCount">0</span>/200 caratteri
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="saveProfileSettings()">
+                                    <span class="material-symbols-outlined">save</span>
+                                    Salva Modifiche
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Profile Picture Card -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Immagine Profilo</h3>
+                                <p class="settings-card-description">Aggiorna la tua foto profilo</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="profile-picture-section">
+                                    <div class="current-profile-picture">
+                                        <div class="settings-avatar" id="settingsAvatar">UN</div>
+                                    </div>
+                                    <div class="profile-picture-actions">
+                                        <button class="settings-btn settings-btn-secondary" onclick="uploadProfilePicture()">
+                                            <span class="material-symbols-outlined">photo_camera</span>
+                                            Carica Nuova Foto
+                                        </button>
+                                        <button class="settings-btn settings-btn-outline" onclick="removeProfilePicture()">
+                                            <span class="material-symbols-outlined">delete</span>
+                                            Rimuovi Foto
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings Section -->
+                <div class="settings-section" id="privacySection">
+                    <div class="settings-section-header">
+                        <h2 class="settings-section-title">Impostazioni Privacy</h2>
+                        <p class="settings-section-description">Controlla chi può vedere le tue informazioni e contenuti</p>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Visibilità Profilo</h3>
+                                <p class="settings-card-description">Gestisci chi può vedere il tuo profilo</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Profilo Pubblico</h4>
+                                            <p>Permetti a tutti di vedere il tuo profilo</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="publicProfile" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Mostra Email</h4>
+                                            <p>Rendi visibile la tua email agli altri utenti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="showEmail">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Mostra Statistiche</h4>
+                                            <p>Permetti agli altri di vedere le tue statistiche di vendita</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="showStats" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Contenuti e Documenti</h3>
+                                <p class="settings-card-description">Controlla la visibilità dei tuoi contenuti</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Documenti Privati di Default</h4>
+                                            <p>I nuovi documenti saranno privati finché non li rendi pubblici</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="privateByDefault">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Consenti Download</h4>
+                                            <p>Permetti agli utenti di scaricare i tuoi documenti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="allowDownloads" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="settings-section" id="notificationsSection">
+                    <div class="settings-section-header">
+                        <h2 class="settings-section-title">Preferenze Notifiche</h2>
+                        <p class="settings-section-description">Scegli quando e come ricevere le notifiche</p>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Notifiche Email</h3>
+                                <p class="settings-card-description">Gestisci le notifiche via email</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Nuovi Acquisti</h4>
+                                            <p>Ricevi email quando qualcuno acquista i tuoi documenti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="emailPurchases" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Nuove Recensioni</h4>
+                                            <p>Ricevi email quando ricevi nuove recensioni</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="emailReviews" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Newsletter</h4>
+                                            <p>Ricevi aggiornamenti su nuove funzionalità e novità</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="emailNewsletter">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Notifiche Push</h3>
+                                <p class="settings-card-description">Gestisci le notifiche del browser</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Abilita Notifiche Push</h4>
+                                            <p>Ricevi notifiche istantanee nel browser</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="pushNotifications">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Eventi Importanti</h4>
+                                            <p>Solo per vendite, recensioni importanti e aggiornamenti critici</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="importantOnly" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div class="settings-section" id="preferencesSection">
+                    <div class="settings-section-header">
+                        <h2 class="settings-section-title">Preferenze Generali</h2>
+                        <p class="settings-section-description">Personalizza la tua esperienza sulla piattaforma</p>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Interfaccia</h3>
+                                <p class="settings-card-description">Personalizza l'aspetto della piattaforma</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Tema</label>
+                                    <select class="settings-select" id="themeSelect">
+                                        <option value="light">Chiaro</option>
+                                        <option value="dark">Scuro</option>
+                                        <option value="auto">Automatico</option>
+                                    </select>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Lingua</label>
+                                    <select class="settings-select" id="languageSelect">
+                                        <option value="it">Italiano</option>
+                                        <option value="en">English</option>
+                                        <option value="es">Español</option>
+                                        <option value="fr">Français</option>
+                                    </select>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Formato Data</label>
+                                    <select class="settings-select" id="dateFormatSelect">
+                                        <option value="dd/mm/yyyy">GG/MM/AAAA</option>
+                                        <option value="mm/dd/yyyy">MM/GG/AAAA</option>
+                                        <option value="yyyy-mm-dd">AAAA-MM-GG</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Comportamento</h3>
+                                <p class="settings-card-description">Configura il comportamento della piattaforma</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Auto-salvataggio</h4>
+                                            <p>Salva automaticamente le modifiche mentre scrivi</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="autoSave" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Conferme Eliminazione</h4>
+                                            <p>Chiedi conferma prima di eliminare contenuti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="confirmDelete" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Section -->
+                <div class="settings-section" id="billingSection">
+                    <div class="settings-section-header">
+                        <h2 class="settings-section-title">Fatturazione e Pagamenti</h2>
+                        <p class="settings-section-description">Gestisci i tuoi metodi di pagamento e fatturazione</p>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Piano Attuale</h3>
+                                <p class="settings-card-description">Il tuo piano di abbonamento attuale</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="current-plan">
+                                    <div class="plan-info">
+                                        <div class="plan-badge premium">Premium</div>
+                                        <h4 class="plan-name">Piano Premium</h4>
+                                        <p class="plan-description">Accesso completo a tutte le funzionalità</p>
+                                        <div class="plan-price">€9.99/mese</div>
+                                    </div>
+                                    <div class="plan-actions">
+                                        <button class="settings-btn settings-btn-outline">Cambia Piano</button>
+                                        <button class="settings-btn settings-btn-secondary">Gestisci Abbonamento</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Metodi di Pagamento</h3>
+                                <p class="settings-card-description">Gestisci le tue carte e metodi di pagamento</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="payment-methods">
+                                    <div class="payment-method">
+                                        <div class="payment-method-info">
+                                            <span class="material-symbols-outlined">credit_card</span>
+                                            <div>
+                                                <h4>•••• •••• •••• 1234</h4>
+                                                <p>Visa • Scade 12/25</p>
+                                            </div>
+                                        </div>
+                                        <div class="payment-method-actions">
+                                            <button class="settings-btn-icon" title="Modifica">
+                                                <span class="material-symbols-outlined">edit</span>
+                                            </button>
+                                            <button class="settings-btn-icon" title="Elimina">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="settings-btn settings-btn-outline add-payment-method">
+                                    <span class="material-symbols-outlined">add</span>
+                                    Aggiungi Metodo di Pagamento
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Fatturazione</h3>
+                                <p class="settings-card-description">Gestisci le informazioni di fatturazione</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Intestatario Fattura</label>
+                                    <input type="text" class="settings-input" placeholder="Nome e Cognome o Ragione Sociale">
+                                </div>
+                                
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Codice Fiscale / P.IVA</label>
+                                    <input type="text" class="settings-input" placeholder="Codice Fiscale o Partita IVA">
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Indirizzo</label>
+                                    <textarea class="settings-textarea" placeholder="Via, Città, CAP, Provincia"></textarea>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary">
+                                    <span class="material-symbols-outlined">save</span>
+                                    Salva Info Fatturazione
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Section -->
+                <div class="settings-section" id="securitySection">
+                    <div class="settings-section-header">
+                        <h2 class="settings-section-title">Sicurezza Account</h2>
+                        <p class="settings-section-description">Proteggi il tuo account con impostazioni di sicurezza avanzate</p>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Password</h3>
+                                <p class="settings-card-description">Aggiorna la tua password per mantenere sicuro l'account</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Password Attuale</label>
+                                    <input type="password" class="settings-input" id="currentPassword">
+                                </div>
+                                
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Nuova Password</label>
+                                    <input type="password" class="settings-input" id="newPassword">
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Conferma Nuova Password</label>
+                                    <input type="password" class="settings-input" id="confirmPassword">
+                                </div>
+
+                                <div class="password-strength">
+                                    <div class="password-strength-bar">
+                                        <div class="password-strength-fill"></div>
+                                    </div>
+                                    <p class="password-strength-text">Forza password: <span id="passwordStrengthText">-</span></p>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="changePassword()">
+                                    <span class="material-symbols-outlined">lock</span>
+                                    Aggiorna Password
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Autenticazione a Due Fattori</h3>
+                                <p class="settings-card-description">Aggiungi un livello extra di sicurezza</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="two-factor-status">
+                                    <div class="security-status disabled">
+                                        <span class="material-symbols-outlined">security</span>
+                                        <div>
+                                            <h4>2FA Disabilitata</h4>
+                                            <p>La tua autenticazione a due fattori è attualmente disabilitata</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="enable2FA()">
+                                    <span class="material-symbols-outlined">verified_user</span>
+                                    Abilita 2FA
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Sessioni Attive</h3>
+                                <p class="settings-card-description">Monitora e gestisci i tuoi accessi</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="active-sessions">
+                                    <div class="session-item current">
+                                        <div class="session-info">
+                                            <span class="material-symbols-outlined">computer</span>
+                                            <div>
+                                                <h4>Sessione Corrente</h4>
+                                                <p>Chrome su MacOS • Ultimo accesso: Ora</p>
+                                                <p class="session-location">Milano, Italia</p>
+                                            </div>
+                                        </div>
+                                        <div class="session-status current-badge">Corrente</div>
+                                    </div>
+
+                                    <div class="session-item">
+                                        <div class="session-info">
+                                            <span class="material-symbols-outlined">smartphone</span>
+                                            <div>
+                                                <h4>iPhone</h4>
+                                                <p>Safari su iOS • Ultimo accesso: 2 ore fa</p>
+                                                <p class="session-location">Milano, Italia</p>
+                                            </div>
+                                        </div>
+                                        <button class="settings-btn-icon session-revoke" title="Termina sessione">
+                                            <span class="material-symbols-outlined">logout</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-outline" onclick="revokeAllSessions()">
+                                    <span class="material-symbols-outlined">logout</span>
+                                    Termina Tutte le Altre Sessioni
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card danger-zone">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Zona di Pericolo</h3>
+                                <p class="settings-card-description">Azioni irreversibili per il tuo account</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="danger-actions">
+                                    <div class="danger-action">
+                                        <div class="danger-action-info">
+                                            <h4>Elimina Account</h4>
+                                            <p>Elimina permanentemente il tuo account e tutti i dati associati</p>
+                                        </div>
+                                        <button class="settings-btn settings-btn-danger" onclick="deleteAccount()">
+                                            <span class="material-symbols-outlined">delete_forever</span>
+                                            Elimina Account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </body>
     <!-- Professional Performance & Caching System -->
@@ -863,6 +1482,13 @@
         
         // Initialize iframe wrappers immediately for faster loading
         initializeIframeWrappers();
+        
+        // Initialize sidebar tab switching (fix for Impostazioni tab)
+        if (typeof initializeTabSwitching === 'function') {
+            initializeTabSwitching();
+        } else {
+            console.error('initializeTabSwitching is not defined');
+        }
     });
     
     // Add error handling for script loading

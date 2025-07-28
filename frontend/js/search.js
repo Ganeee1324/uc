@@ -7521,15 +7521,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // ... existing code ...
     // Faculty filter
     const facultyInput = document.getElementById('facultyFilter');
+    console.log('🔧 Faculty input element found:', !!facultyInput);
     if (facultyInput) {
         facultyInput.addEventListener('change', (e) => {
+            console.log('🔧 Faculty input change event triggered:', e.target.value);
             filterManager.setFilter('faculty', e.target.value);
         });
     }
     // Course filter
     const courseInput = document.getElementById('courseFilter');
+    console.log('🔧 Course input element found:', !!courseInput);
     if (courseInput) {
         courseInput.addEventListener('change', (e) => {
+            console.log('🔧 Course input change event triggered:', e.target.value);
             filterManager.setFilter('course', e.target.value);
         });
     }

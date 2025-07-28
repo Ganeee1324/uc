@@ -4907,7 +4907,7 @@ function generateStars(rating) {
             stars += `<span class="rating-star partial" style="background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 ${partialStarPercentage}%, #d1d5db ${partialStarPercentage}%, #d1d5db 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">★</span>`;
         } else {
             // Empty star
-            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
+            stars += '<span class="rating-star">★</span>';
         }
     }
     return stars;
@@ -4928,7 +4928,7 @@ function generateReviewStars(rating) {
             stars += `<span class="rating-star partial" style="background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 ${partialStarPercentage}%, #d1d5db ${partialStarPercentage}%, #d1d5db 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">★</span>`;
         } else {
             // Empty star
-            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
+            stars += '<span class="rating-star">★</span>';
         }
     }
     return stars;

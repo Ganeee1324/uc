@@ -96,7 +96,14 @@ const URL_FILTER_MANAGER = {
             'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
         ];
         
-        return filterKeys.some(key => url.searchParams.has(key));
+        const hasFilters = filterKeys.some(key => url.searchParams.has(key));
+        console.log('🔧 hasUrlFilters check:', {
+            url: url.toString(),
+            searchParams: Object.fromEntries(url.searchParams.entries()),
+            filterKeys: filterKeys,
+            hasFilters: hasFilters
+        });
+        return hasFilters;
     }
 };
 
@@ -5288,7 +5295,11 @@ function restoreFiltersFromStorage() {
         filterManager.isRestoring = true;
         
         // Priority 1: Check URL parameters first
-        if (URL_FILTER_MANAGER.hasUrlFilters()) {
+        console.log('🔧 Checking for URL filters...');
+        const hasUrlFilters = URL_FILTER_MANAGER.hasUrlFilters();
+        console.log('🔧 URL_FILTER_MANAGER.hasUrlFilters():', hasUrlFilters);
+        
+        if (hasUrlFilters) {
             const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
             filterManager.filters = urlFilters;
             

@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
     <!-- Load search component first without defer to ensure proper initialization -->
-    <script src="components/search-section/search-section-component.js"></script>
+    <script src="components/search-section/search-section.js"></script>
+    <link rel="stylesheet" href="components/search-section/search-section.css">
 </head>
 <body data-page="dashboard">
     <!-- Mobile Menu Toggle Button -->
@@ -240,18 +241,10 @@
 
         <!-- Search Section Component - Integrated under My space and Overview sections -->
         <div id="searchSectionContainer" style="margin-top: 20px; width: 100%; display: block;">
-            <!-- User's uploaded documents search -->
-            <search-section-component 
-            api-base="https://symbia.it:5000"
-            placeholder-text="Cerca una dispensa..."
-            button-text="Cerca"
-            instance-id="main-search">
-            <!-- Fallback content if component doesn't load -->
-            <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
-                <p>⚠️ Web component not loaded</p>
-                <p>Check console for errors</p>
+            <!-- Main search component container -->
+            <div id="main-search-container" class="search-section-container">
+                <!-- SearchSectionComponent will be initialized here -->
             </div>
-        </search-section-component>
         </div>
 
 
@@ -626,6 +619,7 @@
 <!-- Initialize SearchSectionComponent instances -->
 <script>
     // Global variables to store component instances
+    let mainSearchComponent = null;
     let documentsSearchComponent = null;
     let favoritesSearchComponent = null;
 
@@ -642,6 +636,21 @@
             }
             
             console.log('✅ SearchSectionComponent class is available');
+            
+            // Initialize Main Search Component (visible on profile page)
+            const mainContainer = document.getElementById('main-search-container');
+            if (mainContainer) {
+                mainSearchComponent = new SearchSectionComponent(mainContainer, {
+                    apiBase: 'https://symbia.it:5000',
+                    placeholderText: 'Cerca una dispensa...',
+                    buttonText: 'Cerca',
+                    instanceId: 'main-search',
+                    devMode: false
+                });
+                
+                await mainSearchComponent.init();
+                console.log('✅ Main Search Component initialized');
+            }
             
             // Initialize Documents Search Component
             const documentsContainer = document.getElementById('documents-search-container');
@@ -674,6 +683,7 @@
             }
             
             console.log('🎉 All SearchSectionComponent instances initialized successfully');
+            console.log('Main search should now be visible on the profile page');
             
         } catch (error) {
             console.error('❌ Error initializing SearchSectionComponent instances:', error);

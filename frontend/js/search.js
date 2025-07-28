@@ -2668,6 +2668,7 @@ class FilterManager {
     // Add or update a filter
     setFilter(key, value) {
         console.log('🔧 FilterManager.setFilter called with:', key, value);
+        console.log('🔧 FilterManager.setFilter - URL_FILTER_MANAGER type:', typeof URL_FILTER_MANAGER);
         
         if (value === null || value === '' || value === undefined || 
             (Array.isArray(value) && value.length === 0)) {
@@ -2682,7 +2683,13 @@ class FilterManager {
         this.updateActiveFiltersDisplay();
         
         // Update URL with current filters
-        URL_FILTER_MANAGER.updateUrl(this.filters);
+        console.log('🔧 About to call URL_FILTER_MANAGER.updateUrl with:', this.filters);
+        try {
+            URL_FILTER_MANAGER.updateUrl(this.filters);
+            console.log('🔧 URL_FILTER_MANAGER.updateUrl called successfully');
+        } catch (error) {
+            console.error('❌ Error calling URL_FILTER_MANAGER.updateUrl:', error);
+        }
         
         // Save to localStorage whenever a filter is set
         saveFiltersToStorage();
@@ -2867,13 +2874,21 @@ class FilterManager {
 const filterManager = new FilterManager();
 
 // Test URL_FILTER_MANAGER accessibility
-console.log('🔧 Testing URL_FILTER_MANAGER accessibility:', typeof URL_FILTER_MANAGER);
-if (typeof URL_FILTER_MANAGER !== 'undefined') {
-    console.log('🔧 URL_FILTER_MANAGER methods:', Object.keys(URL_FILTER_MANAGER));
-    // Test the updateUrl method
-    URL_FILTER_MANAGER.updateUrl({test: 'value'});
+console.log('🔧 TEST: FilterManager created successfully');
+console.log('🔧 TEST: URL_FILTER_MANAGER type:', typeof URL_FILTER_MANAGER);
+console.log('🔧 TEST: URL_FILTER_MANAGER exists:', !!URL_FILTER_MANAGER);
+
+if (typeof URL_FILTER_MANAGER !== 'undefined' && URL_FILTER_MANAGER) {
+    console.log('🔧 TEST: URL_FILTER_MANAGER methods:', Object.keys(URL_FILTER_MANAGER));
+    try {
+        console.log('🔧 TEST: Calling URL_FILTER_MANAGER.updateUrl...');
+        URL_FILTER_MANAGER.updateUrl({test: 'value'});
+        console.log('🔧 TEST: URL_FILTER_MANAGER.updateUrl called successfully');
+    } catch (error) {
+        console.error('❌ TEST: Error calling URL_FILTER_MANAGER.updateUrl:', error);
+    }
 } else {
-    console.error('❌ URL_FILTER_MANAGER is not defined!');
+    console.error('❌ TEST: URL_FILTER_MANAGER is not defined or falsy!');
 }
 
 // Replace your existing functions with calls to the filter manager

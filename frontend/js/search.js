@@ -3146,19 +3146,13 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
-    console.log('🔧 updateActiveFiltersDisplay called - filters:', filterManager.filters);
-    console.log('🔧 Call stack:', new Error().stack);
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
     if (!activeFiltersContainer) {
-        console.log('🔧 activeFiltersContainer not found');
         return;
     }
-    console.log('🔧 Container found, current innerHTML length:', activeFiltersContainer.innerHTML.length);
-    console.log('🔧 Container classes:', activeFiltersContainer.className);
     
     // Clear any existing timeout to prevent clearing pills that are about to be created
     if (activeFiltersContainer._clearTimeout) {
-        console.log('🔧 Clearing existing timeout');
         clearTimeout(activeFiltersContainer._clearTimeout);
         activeFiltersContainer._clearTimeout = null;
     }
@@ -3166,14 +3160,10 @@ function updateActiveFiltersDisplay() {
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
-    console.log('🔧 filterEntries after filtering:', filterEntries);
     
     if (filterEntries.length === 0) {
-        console.log('🔧 No filter entries, hiding container');
-        console.log('🔧 Removing visible class and clearing innerHTML in 400ms');
         activeFiltersContainer.classList.remove('visible');
         activeFiltersContainer._clearTimeout = setTimeout(() => {
-            console.log('🔧 Clearing innerHTML after timeout');
             activeFiltersContainer.innerHTML = '';
             activeFiltersContainer._clearTimeout = null;
         }, 400);
@@ -3181,10 +3171,8 @@ function updateActiveFiltersDisplay() {
     }
     
     const filterPills = [];
-    console.log('🔧 Starting to create filter pills for entries:', filterEntries);
     
     filterEntries.forEach(([key, value]) => {
-        console.log('🔧 Processing filter entry:', key, value);
         let label = '';
         let displayValue = '';
         
@@ -3294,15 +3282,12 @@ function updateActiveFiltersDisplay() {
                 displayValue = getTagDisplayName(value);
                 break;
             default:
-                console.log('🔧 No case found for filter key:', key, 'value:', value);
                 // Remove invalid filter types from the filterManager
                 delete filterManager.filters[key];
-                console.log('🔧 Removed invalid filter:', key);
                 return;
         }
         
         if (label && displayValue) {
-            console.log('🔧 Creating pill for:', key, 'with label:', label, 'displayValue:', displayValue);
             filterPills.push(`
                 <div class="filter-pill" data-filter-key="${key}" data-action="remove-filter">
                     <span class="filter-pill-label">${label}:</span>
@@ -3310,8 +3295,6 @@ function updateActiveFiltersDisplay() {
                     <div class="filter-pill-remove"></div>
                 </div>
             `);
-        } else {
-            console.log('🔧 Skipping pill creation for:', key, 'label:', label, 'displayValue:', displayValue);
         }
     });
     
@@ -3342,8 +3325,6 @@ function updateActiveFiltersDisplay() {
         `);
     }
     
-    console.log('🔧 Final filterPills array:', filterPills);
-    
     // Update URL to remove any invalid filters that were cleaned up
     URL_FILTER_MANAGER.updateUrl(filterManager.filters);
     
@@ -3357,24 +3338,12 @@ function updateActiveFiltersDisplay() {
         `);
     }
     
-    console.log('🔧 Setting innerHTML with pills:', filterPills.join(''));
     activeFiltersContainer.innerHTML = filterPills.join('');
-    console.log('🔧 Container innerHTML length after setting:', activeFiltersContainer.innerHTML.length);
     
     // Trigger animation
     setTimeout(() => {
-        console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
-        console.log('🔧 Container classes after adding visible:', activeFiltersContainer.className);
-        console.log('🔧 Container innerHTML length after adding visible:', activeFiltersContainer.innerHTML.length);
         updateBottomFilterCount();
-        console.log('🔧 Filter pills should now be visible');
-        
-        // Check if container is still intact after a short delay
-        setTimeout(() => {
-            console.log('🔧 Container check after 100ms - innerHTML length:', activeFiltersContainer.innerHTML.length);
-            console.log('🔧 Container check after 100ms - classes:', activeFiltersContainer.className);
-        }, 100);
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)
@@ -5137,16 +5106,13 @@ function saveFiltersToStorage() {
 }
 
 function restoreFiltersFromStorage() {
-    console.log('🔧 restoreFiltersFromStorage called');
     try {
         // Set restoration flag to prevent premature UI updates
         filterManager.isRestoring = true;
-        console.log('🔧 Setting isRestoring to true');
         
         // First, try to restore filters from URL parameters
         const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
         if (urlFilters && Object.keys(urlFilters).length > 0) {
-            console.log('🔧 Restoring filters from URL:', urlFilters);
             filterManager.filters = urlFilters;
         } else {
             // Fallback to localStorage
@@ -5155,7 +5121,6 @@ function restoreFiltersFromStorage() {
             
             if (savedFilters) {
                 const parsedFilters = JSON.parse(savedFilters);
-                console.log('🔧 Restoring filters from localStorage:', parsedFilters);
                 
                 // Restore all filters
                 filterManager.filters = parsedFilters;
@@ -5167,7 +5132,6 @@ function restoreFiltersFromStorage() {
                 }
             } else {
                 // No saved filters, start fresh
-                console.log('🔧 No saved filters, starting fresh');
                 filterManager.filters = {};
             }
         }
@@ -5197,7 +5161,6 @@ function restoreFiltersFromStorage() {
         
         // Reset restoration flag
         filterManager.isRestoring = false;
-        console.log('🔧 Setting isRestoring to false after successful restoration');
         
     } catch (e) {
         console.warn('Could not restore filters from localStorage:', e);
@@ -5216,7 +5179,6 @@ function restoreFiltersFromStorage() {
         
         // Reset restoration flag even on error
         filterManager.isRestoring = false;
-        console.log('🔧 Setting isRestoring to false after fallback');
     }
 }
 

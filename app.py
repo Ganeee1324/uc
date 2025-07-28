@@ -689,7 +689,7 @@ def enrich_snippets_request(pdf_path: str, chunks: list[dict[str, str | int]]):
         files = {"pdf": ("document.pdf", pdf_file, "application/pdf")}
         data = {"num_windows": 8, "window_height_percentage": 0.35, "snippets": json.dumps(chunks)}
 
-        response = requests.post("http://lancionaco.love:8222/enrich_snippets", files=files, data=data, timeout=300)  # 5 minute timeout
+        response = requests.post("http://lancionaco.love:8222/enrich_snippets", files=files, data=data, timeout=(60, 2000))  # 5 minute timeout
 
     data = response.json()
     for chunk in data["snippets"]:

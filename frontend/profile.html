@@ -8,15 +8,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
-    <!-- Iframe Search Section Styles - Integrated with page scrolling -->
+    <!-- Iframe Search Section Styles - Made completely invisible -->
     <style>
         .search-section-container {
             width: 100%;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
             margin-bottom: 20px;
             position: relative;
+            border: none;
             /* Remove overflow hidden and height constraints for natural page flow */
         }
         
@@ -25,11 +26,14 @@
             min-height: 600px; /* Minimum height instead of fixed */
             height: auto; /* Allow iframe to expand naturally */
             border: none;
-            border-radius: 12px;
+            border-radius: 0;
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
             overflow: visible !important; /* Force visible overflow to prevent scrollbars */
             scrolling: no; /* Disable scrolling within iframe */
+            background: transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
             /* Remove height: 100% to allow natural expansion */
         }
         
@@ -42,7 +46,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: transparent;
             min-height: 400px;
         }
         
@@ -77,11 +81,12 @@
             -webkit-backface-visibility: hidden;
         }
         
-        /* Optimize main search container for immediate loading */
+        /* Optimize main search container for immediate loading - Made invisible */
         #main-search-container {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
         }
         
         #main-search-container.loading::after {

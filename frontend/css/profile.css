@@ -24,18 +24,18 @@ search-section {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Search Section Container Styles */
+/* Search Section Container Styles - Made invisible */
 .search-section-container {
     width: 100%;
     max-width: 100vw; /* Ensure it doesn't exceed viewport width */
     min-height: 200px;
     display: flex;
     flex-direction: column;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
+    background: transparent;
+    border: none;
     box-sizing: border-box; /* Include padding and border in width calculation */
     position: relative; /* Ensure proper positioning context */
 }
@@ -47,13 +47,17 @@ search-section {
     border: none;
     display: block;
     box-sizing: border-box;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
 }
 
 .search-section-container.loading {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f9fafb;
+    background: transparent;
 }
 
 .search-section-container.loading::after {
@@ -2833,19 +2837,25 @@ search-section {
     padding-left: 4px;
 }
 
-/* Responsive adjustments for search section container */
+/* Responsive adjustments for search section container - Made invisible */
 @media (max-width: 768px) {
     .search-section-container {
         width: 100%;
         max-width: 100vw;
         margin: 0;
-        border-radius: 8px;
+        border-radius: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
     }
     
     .search-section-container iframe {
         width: 100% !important;
         max-width: 100% !important;
         height: auto;
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
     }
 }
 
@@ -2853,14 +2863,20 @@ search-section {
     .search-section-container {
         width: 100%;
         max-width: 100vw;
-        border-radius: 6px;
+        border-radius: 0;
         margin: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
     }
     
     .search-section-container iframe {
         width: 100% !important;
         max-width: 100% !important;
         height: auto;
+        background: transparent !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
     }
 }
 

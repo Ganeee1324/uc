@@ -1781,20 +1781,54 @@ window.toggleDropdown = function() {
         const isOpen = dropdownMenu.classList.contains('show');
         
         if (isOpen) {
-            dropdownMenu.classList.remove('show');
-            const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
-            if (arrow) {
-                arrow.style.transform = 'rotate(0deg)';
-            }
+            closeDropdown();
         } else {
-            dropdownMenu.classList.add('show');
-            const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
-            if (arrow) {
-                arrow.style.transform = 'rotate(180deg)';
-            }
+            openDropdown();
         }
     }
 };
+
+function openDropdown() {
+    const dropdownMenu = document.getElementById('chartDropdownMenu');
+    const dropdownBtn = document.getElementById('chartDropdownBtn');
+    
+    if (dropdownMenu && dropdownBtn) {
+        dropdownMenu.classList.add('show');
+        const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
+        if (arrow) {
+            arrow.style.transform = 'rotate(180deg)';
+        }
+    }
+}
+
+function closeDropdown() {
+    const dropdownMenu = document.getElementById('chartDropdownMenu');
+    const dropdownBtn = document.getElementById('chartDropdownBtn');
+    
+    if (dropdownMenu && dropdownBtn) {
+        dropdownMenu.classList.remove('show');
+        const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
+        if (arrow) {
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+}
+
+// Add click outside listener to close dropdown
+document.addEventListener('click', function(event) {
+    const dropdownMenu = document.getElementById('chartDropdownMenu');
+    const dropdownBtn = document.getElementById('chartDropdownBtn');
+    
+    if (dropdownMenu && dropdownBtn) {
+        const isDropdownOpen = dropdownMenu.classList.contains('show');
+        const clickedInsideDropdown = dropdownMenu.contains(event.target);
+        const clickedOnButton = dropdownBtn.contains(event.target);
+        
+        if (isDropdownOpen && !clickedInsideDropdown && !clickedOnButton) {
+            closeDropdown();
+        }
+    }
+});
 
 window.selectChartType = function(option, type, label) {
     console.log('selectChartType called', type, label);
@@ -1818,14 +1852,7 @@ window.selectChartType = function(option, type, label) {
     updateChart(type);
     
     // Close dropdown
-    const dropdownMenu = document.getElementById('chartDropdownMenu');
-    if (dropdownMenu) {
-        dropdownMenu.classList.remove('show');
-        const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
-        if (arrow) {
-            arrow.style.transform = 'rotate(0deg)';
-        }
-    }
+    closeDropdown();
 };
 
 // ===========================

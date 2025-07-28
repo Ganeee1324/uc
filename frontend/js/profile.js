@@ -3,7 +3,8 @@ const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 
 // Global variables for chart functionality
 let currentChartType = 'revenue'; // Track current chart type
-let currentTimePeriod = '7d'; // Track current time period
+let mainChartTimePeriod = '7d'; // Track main chart time period
+let histogramTimePeriod = '7d'; // Track histogram time period
 let chartTooltip = null; // Global tooltip element
 
 // Dynamic chart data - placeholder for backend integration
@@ -972,12 +973,14 @@ function generateChart(chartType, timePeriod) {
             <line x1="50" y1="240" x2="750" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
     `;
     
-    // Generate Y-axis labels
+    // Generate Y-axis labels with round values
     const ySteps = 6; // Number of Y-axis labels
     for (let i = 0; i <= ySteps; i++) {
-        const value = Math.round((maxValue / ySteps) * (ySteps - i));
+        const rawValue = (maxValue / ySteps) * (ySteps - i);
+        // Round to nearest nice number (10, 50, 100, 500, 1000, etc.)
+        const value = Math.round(rawValue);
         const y = 40 + (i * (200 / ySteps)) + 5;
-        const format = chartType === 'revenue' ? `€${value}` : value;
+        const format = chartType === 'revenue' ? `€${value.toLocaleString()}` : value.toLocaleString();
         svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${format}</text>`;
     }
     
@@ -1075,12 +1078,13 @@ function generateHistogram(timePeriod) {
             <line x1="50" y1="240" x2="750" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
     `;
     
-    // Generate Y-axis labels
+    // Generate Y-axis labels with round values
     const ySteps = 4;
     for (let i = 0; i <= ySteps; i++) {
-        const value = Math.round((maxCount / ySteps) * (ySteps - i));
+        const rawValue = (maxCount / ySteps) * (ySteps - i);
+        const value = Math.round(rawValue);
         const y = 40 + (i * (200 / ySteps)) + 5;
-        svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${value}</text>`;
+        svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${value.toLocaleString()}</text>`;
     }
     
     // Generate X-axis labels
@@ -1098,27 +1102,37 @@ function generateHistogram(timePeriod) {
 
 function updateChart(chartType) {
     currentChartType = chartType;
-    generateChart(chartType, currentTimePeriod);
+    generateChart(chartType, mainChartTimePeriod);
 }
 
-function updateChartPeriod(period) {
-    console.log('Updating chart period to:', period);
+function updateChartPeriod(period, chartType = 'main') {
+    console.log('Updating chart period to:', period, 'for chart:', chartType);
     
-    currentTimePeriod = period;
-    
-    // Update main chart
-    generateChart(currentChartType, period);
-    
-    // Update histogram  
-    generateHistogram(period);
-    
-    // Update active button styling
-    document.querySelectorAll('.time-filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-period') === period) {
-            btn.classList.add('active');
-        }
-    });
+    if (chartType === 'main') {
+        mainChartTimePeriod = period;
+        // Update main chart
+        generateChart(currentChartType, period);
+        
+        // Update only main chart time filter buttons
+        document.querySelectorAll('.left-chart .time-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-period') === period) {
+                btn.classList.add('active');
+            }
+        });
+    } else if (chartType === 'histogram') {
+        histogramTimePeriod = period;
+        // Update histogram
+        generateHistogram(period);
+        
+        // Update only histogram time filter buttons
+        document.querySelectorAll('.right-chart .time-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-period') === period) {
+                btn.classList.add('active');
+            }
+        });
+    }
 }
 
 function initializeDonutChart() {
@@ -1560,15 +1574,24 @@ function initializeDynamicCharts() {
     console.log('Initializing dynamic charts...');
     
     // Generate initial charts
-    generateChart(currentChartType, currentTimePeriod);
-    generateHistogram(currentTimePeriod);
+    generateChart(currentChartType, mainChartTimePeriod);
+    generateHistogram(histogramTimePeriod);
     
-    // Update time filter buttons for both charts to work together
-    document.querySelectorAll('.time-filter-btn').forEach(btn => {
+    // Update time filter buttons for each chart separately
+    document.querySelectorAll('.left-chart .time-filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const period = this.getAttribute('data-period');
             if (period) {
-                updateChartPeriod(period);
+                updateChartPeriod(period, 'main');
+            }
+        });
+    });
+    
+    document.querySelectorAll('.right-chart .time-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const period = this.getAttribute('data-period');
+            if (period) {
+                updateChartPeriod(period, 'histogram');
             }
         });
     });

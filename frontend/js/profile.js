@@ -315,6 +315,12 @@ window.switchTab = async function switchTab(tabName) {
         }
         
         currentTab = 'stats';
+        
+        // Initialize charts when stats tab is shown
+        setTimeout(() => {
+            console.log('Initializing charts for stats tab...');
+            initializeDynamicCharts();
+        }, 100);
     } else if (tabName === 'documents') {
         // Show documents dashboard, hide others
         if (profileSection) profileSection.style.display = 'none';
@@ -885,10 +891,16 @@ function generateChart(chartType, timePeriod) {
     console.log('Generating chart:', chartType, timePeriod);
     
     const chartContainer = document.getElementById('mainChart');
-    if (!chartContainer) return;
+    console.log('Chart container found:', chartContainer);
+    if (!chartContainer) {
+        console.error('Chart container not found!');
+        return;
+    }
     
     const data = chartData[timePeriod]?.[chartType] || chartData['7d'][chartType];
+    console.log('Chart data found:', data);
     const maxValue = Math.max(...data.map(d => d.value));
+    console.log('Max value:', maxValue);
     
     // Chart configuration
     const chartConfig = {
@@ -977,17 +989,25 @@ function generateChart(chartType, timePeriod) {
     
     svg += '</svg>';
     
+    console.log('Generated SVG length:', svg.length);
     chartContainer.innerHTML = svg;
+    console.log('Chart container innerHTML set');
 }
 
 function generateHistogram(timePeriod) {
     console.log('Generating histogram:', timePeriod);
     
     const histogramContainer = document.getElementById('histogramChart');
-    if (!histogramContainer) return;
+    console.log('Histogram container found:', histogramContainer);
+    if (!histogramContainer) {
+        console.error('Histogram container not found!');
+        return;
+    }
     
     const data = histogramData[timePeriod] || histogramData['7d'];
+    console.log('Histogram data found:', data);
     const maxCount = Math.max(...data.map(d => d.count));
+    console.log('Max count:', maxCount);
     
     // Chart configuration
     const chartConfig = {
@@ -1071,7 +1091,9 @@ function generateHistogram(timePeriod) {
     
     svg += '</svg>';
     
+    console.log('Generated histogram SVG length:', svg.length);
     histogramContainer.innerHTML = svg;
+    console.log('Histogram container innerHTML set');
 }
 
 function updateChart(chartType) {
@@ -1997,8 +2019,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeDocumentPerformanceItems(); // Add document performance interactivity
     initializeLogout(); // Add logout functionality
     
-    // Initialize dynamic charts
-    initializeDynamicCharts();
+    // Charts will be initialized when stats tab is shown
     
     // Set initial tab state to ensure proper display
     await switchTab('profile');
@@ -2017,7 +2038,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                         initializeStatsDropdown();
                         initializeTimeFilters();
                         initializeDocumentsPeriodFilter();
-                        initializeInteractiveCharts();
                         setTimeout(() => {
                             initializeDocumentPerformanceItems();
                         }, 300);

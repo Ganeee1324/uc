@@ -3147,11 +3147,14 @@ function applyFiltersToFiles(files) {
 
 function updateActiveFiltersDisplay() {
     console.log('🔧 updateActiveFiltersDisplay called - filters:', filterManager.filters);
+    console.log('🔧 Call stack:', new Error().stack);
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
     if (!activeFiltersContainer) {
         console.log('🔧 activeFiltersContainer not found');
         return;
     }
+    console.log('🔧 Container found, current innerHTML length:', activeFiltersContainer.innerHTML.length);
+    console.log('🔧 Container classes:', activeFiltersContainer.className);
     
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
@@ -3160,8 +3163,10 @@ function updateActiveFiltersDisplay() {
     
     if (filterEntries.length === 0) {
         console.log('🔧 No filter entries, hiding container');
+        console.log('🔧 Removing visible class and clearing innerHTML in 400ms');
         activeFiltersContainer.classList.remove('visible');
         setTimeout(() => {
+            console.log('🔧 Clearing innerHTML after timeout');
             activeFiltersContainer.innerHTML = '';
         }, 400);
         return;
@@ -3346,13 +3351,22 @@ function updateActiveFiltersDisplay() {
     
     console.log('🔧 Setting innerHTML with pills:', filterPills.join(''));
     activeFiltersContainer.innerHTML = filterPills.join('');
+    console.log('🔧 Container innerHTML length after setting:', activeFiltersContainer.innerHTML.length);
     
     // Trigger animation
     setTimeout(() => {
         console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
+        console.log('🔧 Container classes after adding visible:', activeFiltersContainer.className);
+        console.log('🔧 Container innerHTML length after adding visible:', activeFiltersContainer.innerHTML.length);
         updateBottomFilterCount();
         console.log('🔧 Filter pills should now be visible');
+        
+        // Check if container is still intact after a short delay
+        setTimeout(() => {
+            console.log('🔧 Container check after 100ms - innerHTML length:', activeFiltersContainer.innerHTML.length);
+            console.log('🔧 Container check after 100ms - classes:', activeFiltersContainer.className);
+        }, 100);
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)

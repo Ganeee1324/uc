@@ -3282,7 +3282,9 @@ function updateActiveFiltersDisplay() {
                 break;
             default:
                 console.log('🔧 No case found for filter key:', key, 'value:', value);
-                // Skip unknown filter types
+                // Remove invalid filter types from the filterManager
+                delete filterManager.filters[key];
+                console.log('🔧 Removed invalid filter:', key);
                 return;
         }
         
@@ -3328,6 +3330,9 @@ function updateActiveFiltersDisplay() {
     }
     
     console.log('🔧 Final filterPills array:', filterPills);
+    
+    // Update URL to remove any invalid filters that were cleaned up
+    URL_FILTER_MANAGER.updateUrl(filterManager.filters);
     
     // Add clear all button if there are filters
     if (filterPills.length > 0) {

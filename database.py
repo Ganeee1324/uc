@@ -353,6 +353,7 @@ def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] =
                         ce.file_id,
                         ce.page_number,
                         ce.description, -- Pass description through for grouping
+                        ce.image_path,
                         1.0 / (%s::integer + RANK() OVER (ORDER BY ce.embedding <#> %s)) AS semantic_score,
                         0.0 AS keyword_score
                     {base_from_clause}
@@ -370,6 +371,7 @@ def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] =
                         ce.file_id,
                         ce.page_number,
                         ce.description, -- Pass description through for grouping
+                        ce.image_path,
                         0.0 AS semantic_score,
                         1.0 / (%s::integer + RANK() OVER (ORDER BY ts_rank_cd(
                             CASE WHEN v.language = 'en' THEN to_tsvector('english', ce.description) ELSE to_tsvector('italian', ce.description) END,
@@ -388,6 +390,7 @@ def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] =
                     file_id,
                     page_number,
                     description, -- Keep description for the final join/select
+                    image_path,
                     SUM(semantic_score) as semantic_score,
                     SUM(keyword_score) as keyword_score,
                     (SUM(semantic_score) + SUM(keyword_score)) as score
@@ -400,6 +403,7 @@ def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] =
                 r.semantic_score,
                 r.keyword_score,
                 r.description as chunk_description, -- Get description from our ranked results
+                r.image_path,
                 r.page_number,
                 v.*, u.*, f.*, ci.*
             FROM ranked_results r

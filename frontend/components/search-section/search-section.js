@@ -53,10 +53,14 @@ function initializeWithConfig(config) {
     // Load data based on context
     loadDataForContext(context, config);
     
-    // Preload background image only if this is the main search interface
+    // Preload background image and position it only if this is the main search interface
     // (not used in profile pages or other embedded contexts)
     if (context === 'default' && !config.hideBackground) {
         preloadBackgroundImage();
+        // Also position the background after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            adjustBackgroundPosition();
+        }, 100);
     }
     
     // Notify parent that we're ready
@@ -350,6 +354,14 @@ function applyFiltersFromParent(filters) {
 function updateConfigFromParent(newConfig) {
     window.SEARCH_CONFIG = { ...window.SEARCH_CONFIG, ...newConfig };
     applyConfigurationToUI(window.SEARCH_CONFIG);
+    
+    // Handle background positioning if configuration changes affect it
+    const context = window.SEARCH_CONFIG.context || 'default';
+    if (context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+        setTimeout(() => {
+            adjustBackgroundPosition();
+        }, 100);
+    }
 }
 
 // Add cache-busting timestamp to force browser refresh
@@ -6437,13 +6449,10 @@ function debounce(func, wait) {
     };
 }
 
-// Only preload background image if this is the main search interface
-// This prevents the 404 error when the iframe is used on other pages
-if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
-    preloadBackgroundImage();
-}
+// Background image preloading is now handled in initializeWithConfig function
+// to ensure it only happens after configuration is received
 
-// Initialize background positioning immediately when DOM is ready
+// Initialize background positioning when DOM is ready and configuration is available
 document.addEventListener('DOMContentLoaded', () => {
     // Only position background if this is the main search interface
     if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {

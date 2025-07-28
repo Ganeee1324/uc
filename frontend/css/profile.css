@@ -51,6 +51,8 @@ search-section {
     box-shadow: none !important;
     border-radius: 0 !important;
     outline: none !important;
+    overflow: visible !important; /* Allow glow effects to extend beyond iframe boundaries */
+    scrolling: no !important;
 }
 
 .search-section-container.loading {
@@ -2847,6 +2849,7 @@ search-section {
         background: transparent;
         border: none;
         box-shadow: none;
+        overflow: visible;
     }
     
     .search-section-container iframe {
@@ -2856,6 +2859,8 @@ search-section {
         background: transparent !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        overflow: visible !important; /* Allow glow effects to extend beyond iframe boundaries */
+        scrolling: no !important;
     }
 }
 
@@ -2868,6 +2873,7 @@ search-section {
         background: transparent;
         border: none;
         box-shadow: none;
+        overflow: visible;
     }
     
     .search-section-container iframe {
@@ -2877,6 +2883,8 @@ search-section {
         background: transparent !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        overflow: visible !important; /* Allow glow effects to extend beyond iframe boundaries */
+        scrolling: no !important;
     }
 }
 

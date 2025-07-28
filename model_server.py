@@ -35,7 +35,6 @@ def unload_reranker():
     global reranker, reranker_processor
     reranker = None
     reranker_processor = None
-    torch.cuda.empty_cache()
 
 
 def compute_similarity_score(query: str, image: Image.Image) -> float:

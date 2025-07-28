@@ -29,6 +29,62 @@ const DOM_CACHE = {
     }
 };
 
+// URL Filter Manager for handling URL parameters
+const URL_FILTER_MANAGER = {
+    filtersToUrlParams(filters) {
+        const params = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '' && value !== 'all') {
+                if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        params.append(key, encodeURIComponent(item));
+                    });
+                } else {
+                    params.set(key, encodeURIComponent(value));
+                }
+            }
+        });
+        
+        return params.toString();
+    },
+    
+    urlParamsToFilters(urlParams) {
+        const filters = {};
+        const params = new URLSearchParams(urlParams);
+        
+        for (const [key, value] of params.entries()) {
+            const decodedValue = decodeURIComponent(value);
+            
+            if (filters[key]) {
+                if (!Array.isArray(filters[key])) {
+                    filters[key] = [filters[key]];
+                }
+                filters[key].push(decodedValue);
+            } else {
+                filters[key] = decodedValue;
+            }
+        }
+        
+        return filters;
+    },
+    
+    updateUrl(filters) {
+        const params = this.filtersToUrlParams(filters);
+        const newUrl = params ? `${window.location.pathname}?${params}` : window.location.pathname;
+        
+        window.history.replaceState({}, '', newUrl);
+    },
+    
+    getFiltersFromUrl() {
+        return this.urlParamsToFilters(window.location.search);
+    },
+    
+    hasUrlFilters() {
+        return window.location.search.length > 0;
+    }
+};
+
 // Debug function to track "Pensato per chi vuole di più" text position
 function debugPensatoTextPosition() {
     // Make this function globally accessible for manual debugging

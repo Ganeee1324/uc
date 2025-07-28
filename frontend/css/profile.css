@@ -22,6 +22,8 @@ search-section {
     border-radius: 12px;
     overflow: visible; /* Allow glow effects to extend beyond search section boundaries */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10; /* Ensure search section appears above dashboard-row */
 }
 
 /* Search Section Container Styles - Made invisible */
@@ -38,6 +40,7 @@ search-section {
     border: none;
     box-sizing: border-box; /* Include padding and border in width calculation */
     position: relative; /* Ensure proper positioning context */
+    z-index: 15; /* Ensure search container appears above all other elements */
 }
 
 .search-section-container iframe {

@@ -40,7 +40,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
     except Exception as e:
         pass
 
-    model = lms.llm("google/gemma-3-12b", config={"contextLength": 10000, "gpu": {"ratio": 0.625}})
+    model = lms.llm("google/gemma-3-12b", config={"contextLength": 6000, "gpu": {"ratio": 0.59}})
     chat = lms.Chat()
 
     schema = {

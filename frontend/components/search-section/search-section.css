@@ -8059,9 +8059,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     margin-left: -2px;
 }
 
-.review-rating-overlay .star {
+.review-rating-overlay .rating-star {
     font-size: 16px;
-    color: #fbbf24;
 }
 
 .review-rating-overlay .rating-star.filled {
@@ -8070,6 +8069,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .review-rating-overlay .rating-star:not(.filled) {
     color: #d1d5db;
+}
+
+.review-rating-overlay .rating-star.partial {
+    /* Partial stars will use inline styles from JavaScript */
 }
 
 .review-date-overlay {

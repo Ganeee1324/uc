@@ -1241,9 +1241,9 @@ search-section {
 }
 
 .logout-btn:hover {
-    background-color: #fef2f2;
-    color: #dc2626;
-    /* Removed transform for no animation */
+    background: none;
+    color: #ef4444;
+    /* No background or color change on hover */
 }
 
 .logout-btn:active {

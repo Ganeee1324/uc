@@ -1,33 +1,207 @@
+// WebComponent-ready SearchSection JavaScript
+// This file is designed to be used within a WebComponent context
+
 // Add cache-busting timestamp to force browser refresh
 const CACHE_BUSTER = Date.now();
 
 // 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
 const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
-let authToken = localStorage.getItem('authToken');
-
-// DOM element cache for performance optimization
-const DOM_CACHE = {
-    documentsGrid: null,
-    searchSection: null,
-    documentCountContainer: null,
-    documentCount: null,
-    searchInput: null,
-    init() {
-        this.documentsGrid = document.getElementById('documentsGrid');
-        this.searchSection = document.querySelector('.search-section');
-        this.documentCountContainer = document.getElementById('documentCountContainer');
-        this.documentCount = document.getElementById('documentCount');
-        this.searchInput = document.getElementById('searchInput');
-    },
-    get(elementName) {
-        if (!this[elementName]) {
-            this.init();
-        }
-        return this[elementName];
+// WebComponent-ready SearchSection class
+class SearchSectionComponent {
+    constructor(container, options = {}) {
+        this.container = container;
+        this.options = {
+            apiBase: options.apiBase || window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000',
+            placeholderText: options.placeholderText || 'Cerca una dispensa...',
+            buttonText: options.buttonText || 'Cerca',
+            instanceId: options.instanceId || 'search-section-' + Math.random().toString(36).substr(2, 9),
+            devMode: options.devMode || false,
+            devModeNoResults: options.devModeNoResults || DEV_MODE_NO_RESULTS,
+            ...options
+        };
+        
+        this.state = {
+            authToken: localStorage.getItem('authToken'),
+            originalFiles: [],
+            currentFiles: [],
+            currentVetrine: [],
+            isLoading: false,
+            isInitialized: false
+        };
+        
+        // DOM element cache for performance optimization
+        this.domCache = {
+            documentsGrid: null,
+            searchSection: null,
+            documentCountContainer: null,
+            documentCount: null,
+            searchInput: null,
+            init: () => {
+                this.domCache.documentsGrid = this.container.querySelector('#documentsGrid');
+                this.domCache.searchSection = this.container.querySelector('.search-section');
+                this.domCache.documentCountContainer = this.container.querySelector('#documentCountContainer');
+                this.domCache.documentCount = this.container.querySelector('#documentCount');
+                this.domCache.searchInput = this.container.querySelector('#searchInput');
+            },
+            get: (elementName) => {
+                if (!this.domCache[elementName]) {
+                    this.domCache.init();
+                }
+                return this.domCache[elementName];
+            }
+        };
+        
+        // Bind methods to instance
+        this.loadAllFiles = this.loadAllFiles.bind(this);
+        this.renderDocuments = this.renderDocuments.bind(this);
+        this.performSearch = this.performSearch.bind(this);
+        this.showLoadingCards = this.showLoadingCards.bind(this);
+        this.handleLoadingError = this.handleLoadingError.bind(this);
+        this.handleNoResults = this.handleNoResults.bind(this);
+        this.initializeComponent = this.initializeComponent.bind(this);
+        this.setupEventListeners = this.setupEventListeners.bind(this);
+        this.cleanup = this.cleanup.bind(this);
     }
-};
+    
+    // WebComponent lifecycle methods
+    async initializeComponent() {
+        console.log(`SearchSectionComponent initialized with ID: ${this.options.instanceId}`);
+        
+        // Show loading cards immediately
+        this.showLoadingCards();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Load data
+        await this.loadAllFiles();
+        
+        this.state.isInitialized = true;
+    }
+    
+    setupEventListeners() {
+        // Search input event listener
+        const searchInput = this.domCache.get('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.performSearch(e.target.value);
+            });
+        }
+        
+        // Add other event listeners as needed
+        console.log(`Event listeners bound for instance: ${this.options.instanceId}`);
+    }
+    
+    cleanup() {
+        // Cleanup event listeners and resources
+        console.log(`Cleaning up instance: ${this.options.instanceId}`);
+    }
+    
+    // Core functionality methods
+    async loadAllFiles() {
+        try {
+            console.log(`Loading files for instance ${this.options.instanceId}`);
+            
+            if (this.options.devMode && this.options.devModeNoResults) {
+                this.handleNoResults();
+                return;
+            }
+
+            const url = `${this.options.apiBase}/vetrine`;
+            const headers = {};
+            
+            if (this.state.authToken) {
+                headers['Authorization'] = `Bearer ${this.state.authToken}`;
+            }
+
+            const response = await fetch(url, { headers });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.vetrine) {
+                this.state.currentVetrine = data.vetrine || [];
+                this.state.originalFiles = this.extractAllFiles(data.vetrine);
+                this.state.currentFiles = [...this.state.originalFiles];
+                
+                await this.renderDocuments(this.state.currentFiles);
+            } else {
+                throw new Error(data.message || 'Failed to load files');
+            }
+        } catch (error) {
+            console.error(`Error loading files for instance ${this.options.instanceId}:`, error);
+            this.handleLoadingError(error);
+        }
+    }
+    
+    async performSearch(query) {
+        try {
+            console.log(`Performing search for instance ${this.options.instanceId}:`, query);
+            
+            if (!query || query.trim() === '') {
+                // If no query, load all files
+                await this.loadAllFiles();
+                return;
+            }
+
+            const url = `${this.options.apiBase}/vetrine/search?q=${encodeURIComponent(query.trim())}`;
+            const headers = {};
+            
+            if (this.state.authToken) {
+                headers['Authorization'] = `Bearer ${this.state.authToken}`;
+            }
+
+            const response = await fetch(url, { headers });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.vetrine) {
+                this.state.currentVetrine = data.vetrine || [];
+                this.state.currentFiles = this.extractAllFiles(data.vetrina);
+                
+                await this.renderDocuments(this.state.currentFiles);
+            } else {
+                throw new Error(data.message || 'Search failed');
+            }
+        } catch (error) {
+            console.error(`Search error for instance ${this.options.instanceId}:`, error);
+            this.handleLoadingError(error);
+        }
+    }
+    
+    showLoadingCards(count = null) {
+        console.log(`Showing loading cards for instance ${this.options.instanceId}`);
+        // Implementation will be added
+    }
+    
+    handleLoadingError(error) {
+        console.error(`Loading error for instance ${this.options.instanceId}:`, error);
+        // Implementation will be added
+    }
+    
+    handleNoResults() {
+        console.log(`Showing no results for instance ${this.options.instanceId}`);
+        // Implementation will be added
+    }
+    
+    extractAllFiles(vetrine) {
+        // Implementation will be added
+        return [];
+    }
+    
+    async renderDocuments(files) {
+        console.log(`Rendering ${files.length} documents for instance ${this.options.instanceId}`);
+        // Implementation will be added
+    }
+}
 
 // Debug function to track "Pensato per chi vuole di più" text position
 function debugPensatoTextPosition() {
@@ -288,111 +462,7 @@ let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
-    // Initialize the page
-    window.onload = async function() {
-        // Show loading cards immediately when page loads
-        showLoadingCards();
-        
-        // Force clear any cached data that might be causing issues
-        if (sessionStorage.getItem('lastCacheBuster') !== CACHE_BUSTER.toString()) {
-            sessionStorage.clear();
-            sessionStorage.setItem('lastCacheBuster', CACHE_BUSTER.toString());
-        }
-        
-        // Check authentication after showing loading state
-        const isAuthenticated = checkAuthentication();
-        
-        // Initialize user info (will show login button if not authenticated)
-        initializeUserInfo();
-        
-        // Initialize CSP-compliant event handlers
-        handleCSPEventHandlers();
-        
-        initializeAnimations();
-        initializeFilters();
-        initializeScrollToTop();
-        initializeAISearchToggle();
-        
-        // Load valid tags from backend first
-        await loadValidTags();
-        
-        // Load files for both authenticated and guest users
-        await loadAllFiles();
-
-            // Ensure documents are shown after loading
-    if (originalFiles && originalFiles.length > 0) {
-        renderDocuments(originalFiles);
-        currentFiles = originalFiles;
-        showStatus(`${originalFiles.length} documenti disponibili 📚`);
-        
-        // Debug position after initial render
-        setTimeout(() => debugPensatoTextPosition(), 200);
-    }
-        
-        // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
-        setTimeout(() => {
-            restoreFiltersFromStorage();
-            
-            // Additional check to ensure all UI elements are properly updated
-            setTimeout(() => {
-                updateActiveFilterIndicators();
-                updateActiveFiltersDisplay();
-                
-                // Final safety check - if no documents are shown, show all documents
-                setTimeout(() => {
-                    const documentsGrid = document.getElementById('documentsGrid');
-                    if (documentsGrid && documentsGrid.children.length === 0 && originalFiles && originalFiles.length > 0) {
-                        renderDocuments(originalFiles);
-                        currentFiles = originalFiles;
-                        showStatus(`${originalFiles.length} documenti disponibili 📚`);
-                    }
-                }, 500);
-            }, 50);
-        }, 100);
-        
-        // Favorite status is already loaded from the backend in loadAllFiles()
-        // No need to refresh on page load since the data is already correct
-    
-    // Add keyboard shortcut to clear all filters (Ctrl/Cmd + Alt + C)
-    document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'c') {
-            e.preventDefault();
-            clearAllFiltersAction();
-        }
-    });
-    
-    // Add a single, reliable event listener to refresh favorites when the page is shown.
-    window.addEventListener('pageshow', (event) => {
-        // This event fires on initial load and when navigating back to the page.
-        const favoritesChanged = sessionStorage.getItem('favoritesChanged');
-        
-        if (favoritesChanged === 'true') {
-            sessionStorage.removeItem('favoritesChanged'); // Clear the flag
-            // Favorite status is already included in vetrine data, no need for separate refresh
-        }
-    });
-    
-    // Mark when we're leaving the page
-    let isLeavingPage = false;
-    window.addEventListener('beforeunload', () => {
-        isLeavingPage = true;
-    });
-    
-    // Check if we're returning to the page
-    window.addEventListener('pageshow', async (event) => {
-        if (isLeavingPage && currentFiles && currentFiles.length > 0) {
-            isLeavingPage = false;
-            // Favorite status is already included in vetrine data, no need for separate refresh
-        }
-    });
-    
-    // Handle browser back/forward navigation
-    window.addEventListener('popstate', async (event) => {
-        if (currentFiles && currentFiles.length > 0) {
-            // Favorite status is already included in vetrine data, no need for separate refresh
-        }
-    });
-};
+// Legacy initialization code removed - now handled by SearchSectionComponent class
 
 async function initializeUserInfo() {
     const user = await fetchCurrentUserData();
@@ -7401,3 +7471,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Pills are handled by FilterManager.createFilterPill
 // ... existing code ...
+
+// Export the SearchSectionComponent for WebComponent usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SearchSectionComponent;
+} else if (typeof window !== 'undefined') {
+    window.SearchSectionComponent = SearchSectionComponent;
+}

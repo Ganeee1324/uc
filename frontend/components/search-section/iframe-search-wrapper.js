@@ -87,6 +87,8 @@ class IframeSearchWrapper {
         this.iframe.style.backgroundColor = 'transparent';
         this.iframe.style.boxSizing = 'border-box'; // Include padding and border in width calculation
         this.iframe.style.display = 'block'; // Ensure proper block display
+        this.iframe.style.overflow = 'visible'; // Force visible overflow to prevent scrollbars
+        this.iframe.style.scrolling = 'no'; // Disable scrolling within iframe
         // Remove overflow: hidden to allow natural page scrolling
 
         // Add iframe to container

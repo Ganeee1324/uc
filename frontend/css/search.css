@@ -161,8 +161,8 @@ body {
     background: linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd);
     color: var(--gray-900);
     line-height: 1.6;
-    min-height: 100vh;
-    height: 100%;
+    min-height: auto; /* Remove fixed height constraint */
+    height: auto; /* Allow natural height */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
@@ -177,7 +177,7 @@ body.filters-open {
 }
 
 html {
-    height: 100%;
+    height: auto; /* Allow natural height */
 }
 
 /* Hide scrollbar for webkit browsers */
@@ -606,7 +606,7 @@ html {
 
 /* Main Content - Dual Layout System */
 .main-content {
-    min-height: calc(100vh - 120px);
+    min-height: auto; /* Remove fixed height constraint */
     position: relative;
     width: 100%;
     max-width: 100%;

@@ -152,36 +152,36 @@ const chartData = {
 // Histogram data - placeholder for backend integration
 const histogramData = {
     '7d': [
-        { type: 'Appunti', count: 45, revenue: 1350 },
-        { type: 'Esami', count: 67, revenue: 2010 },
-        { type: 'Libri', count: 32, revenue: 960 },
-        { type: 'Progetti', count: 58, revenue: 1740 },
-        { type: 'Tesi', count: 18, revenue: 540 },
-        { type: 'Altri', count: 25, revenue: 750 }
+        { type: 'Appunti', count: 15, revenue: 450 },
+        { type: 'Esami', count: 45, revenue: 1350 },
+        { type: 'Libri', count: 8, revenue: 240 },
+        { type: 'Progetti', count: 25, revenue: 750 },
+        { type: 'Tesi', count: 5, revenue: 150 },
+        { type: 'Altri', count: 12, revenue: 360 }
     ],
     '30d': [
-        { type: 'Appunti', count: 180, revenue: 5400 },
-        { type: 'Esami', count: 268, revenue: 8040 },
-        { type: 'Libri', count: 128, revenue: 3840 },
-        { type: 'Progetti', count: 232, revenue: 6960 },
-        { type: 'Tesi', count: 72, revenue: 2160 },
-        { type: 'Altri', count: 100, revenue: 3000 }
+        { type: 'Appunti', count: 85, revenue: 2550 },
+        { type: 'Esami', count: 120, revenue: 3600 },
+        { type: 'Libri', count: 45, revenue: 1350 },
+        { type: 'Progetti', count: 95, revenue: 2850 },
+        { type: 'Tesi', count: 25, revenue: 750 },
+        { type: 'Altri', count: 35, revenue: 1050 }
     ],
     '90d': [
-        { type: 'Appunti', count: 540, revenue: 16200 },
-        { type: 'Esami', count: 804, revenue: 24120 },
-        { type: 'Libri', count: 384, revenue: 11520 },
-        { type: 'Progetti', count: 696, revenue: 20880 },
-        { type: 'Tesi', count: 216, revenue: 6480 },
-        { type: 'Altri', count: 300, revenue: 9000 }
+        { type: 'Appunti', count: 180, revenue: 5400 },
+        { type: 'Esami', count: 320, revenue: 9600 },
+        { type: 'Libri', count: 95, revenue: 2850 },
+        { type: 'Progetti', count: 220, revenue: 6600 },
+        { type: 'Tesi', count: 65, revenue: 1950 },
+        { type: 'Altri', count: 85, revenue: 2550 }
     ],
     '1y': [
-        { type: 'Appunti', count: 2160, revenue: 64800 },
-        { type: 'Esami', count: 3216, revenue: 96480 },
-        { type: 'Libri', count: 1536, revenue: 46080 },
-        { type: 'Progetti', count: 2784, revenue: 83520 },
-        { type: 'Tesi', count: 864, revenue: 25920 },
-        { type: 'Altri', count: 1200, revenue: 36000 }
+        { type: 'Appunti', count: 450, revenue: 13500 },
+        { type: 'Esami', count: 680, revenue: 20400 },
+        { type: 'Libri', count: 220, revenue: 6600 },
+        { type: 'Progetti', count: 520, revenue: 15600 },
+        { type: 'Tesi', count: 180, revenue: 5400 },
+        { type: 'Altri', count: 250, revenue: 7500 }
     ]
 };
 
@@ -1008,11 +1008,13 @@ function generateHistogram(timePeriod) {
     }
     
     const data = histogramData[timePeriod] || histogramData['7d'];
-    console.log('Histogram data found:', data);
+    console.log('=== HISTOGRAM UPDATE ===');
     console.log('Time period:', timePeriod);
+    console.log('Histogram data found:', data);
     const maxCount = Math.max(...data.map(d => d.count));
     console.log('Max count:', maxCount);
     console.log('Data range:', data.map(d => ({ type: d.type, count: d.count })));
+    console.log('=======================');
     
     // Chart configuration
     const chartConfig = {
@@ -1057,7 +1059,7 @@ function generateHistogram(timePeriod) {
         const y = 240 - height;
         const colorIndex = i % colors.length;
         
-        console.log(`Bar ${i}: ${d.type} - count: ${d.count}, height: ${height}, y: ${y}`);
+        console.log(`Bar ${i}: ${d.type} - count: ${d.count}, height: ${height.toFixed(1)}, y: ${y.toFixed(1)}, x: ${x.toFixed(1)}`);
         
         svg += `
             <rect x="${x}" y="${y}" width="${barWidth}" height="${height}" 

@@ -68,11 +68,7 @@ def fill_courses(debug: bool = False) -> None:
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
 
 
-def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
-    with connect(vector=True) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
-            conn.commit()
+
 
 
 # ---------------------------------------------

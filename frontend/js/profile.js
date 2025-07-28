@@ -3,7 +3,186 @@ const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 
 // Global variables for chart functionality
 let currentChartType = 'revenue'; // Track current chart type
+let currentTimePeriod = '7d'; // Track current time period
 let chartTooltip = null; // Global tooltip element
+
+// Dynamic chart data - placeholder for backend integration
+const chartData = {
+    '7d': {
+        revenue: [
+            { day: 'Lun', value: 1250, label: 'Lunedì' },
+            { day: 'Mar', value: 1580, label: 'Martedì' },
+            { day: 'Mer', value: 1920, label: 'Mercoledì' },
+            { day: 'Gio', value: 2340, label: 'Giovedì' },
+            { day: 'Ven', value: 2680, label: 'Venerdì' },
+            { day: 'Sab', value: 2890, label: 'Sabato' },
+            { day: 'Dom', value: 3100, label: 'Domenica' }
+        ],
+        sales: [
+            { day: 'Lun', value: 28, label: 'Lunedì' },
+            { day: 'Mar', value: 35, label: 'Martedì' },
+            { day: 'Mer', value: 42, label: 'Mercoledì' },
+            { day: 'Gio', value: 51, label: 'Giovedì' },
+            { day: 'Ven', value: 58, label: 'Venerdì' },
+            { day: 'Sab', value: 63, label: 'Sabato' },
+            { day: 'Dom', value: 67, label: 'Domenica' }
+        ],
+        downloads: [
+            { day: 'Lun', value: 156, label: 'Lunedì' },
+            { day: 'Mar', value: 203, label: 'Martedì' },
+            { day: 'Mer', value: 267, label: 'Mercoledì' },
+            { day: 'Gio', value: 321, label: 'Giovedì' },
+            { day: 'Ven', value: 389, label: 'Venerdì' },
+            { day: 'Sab', value: 445, label: 'Sabato' },
+            { day: 'Dom', value: 512, label: 'Domenica' }
+        ],
+        views: [
+            { day: 'Lun', value: 890, label: 'Lunedì' },
+            { day: 'Mar', value: 1240, label: 'Martedì' },
+            { day: 'Mer', value: 1456, label: 'Mercoledì' },
+            { day: 'Gio', value: 1789, label: 'Giovedì' },
+            { day: 'Ven', value: 2103, label: 'Venerdì' },
+            { day: 'Sab', value: 2456, label: 'Sabato' },
+            { day: 'Dom', value: 2789, label: 'Domenica' }
+        ],
+        conversion: [
+            { day: 'Lun', value: 3.1, label: 'Lunedì' },
+            { day: 'Mar', value: 2.8, label: 'Martedì' },
+            { day: 'Mer', value: 2.9, label: 'Mercoledì' },
+            { day: 'Gio', value: 2.9, label: 'Giovedì' },
+            { day: 'Ven', value: 2.8, label: 'Venerdì' },
+            { day: 'Sab', value: 2.6, label: 'Sabato' },
+            { day: 'Dom', value: 2.4, label: 'Domenica' }
+        ]
+    },
+    '30d': {
+        revenue: [
+            { day: 'Sett 1', value: 8500, label: 'Settimana 1' },
+            { day: 'Sett 2', value: 9200, label: 'Settimana 2' },
+            { day: 'Sett 3', value: 11400, label: 'Settimana 3' },
+            { day: 'Sett 4', value: 13200, label: 'Settimana 4' }
+        ],
+        sales: [
+            { day: 'Sett 1', value: 185, label: 'Settimana 1' },
+            { day: 'Sett 2', value: 221, label: 'Settimana 2' },
+            { day: 'Sett 3', value: 267, label: 'Settimana 3' },
+            { day: 'Sett 4', value: 298, label: 'Settimana 4' }
+        ],
+        downloads: [
+            { day: 'Sett 1', value: 1250, label: 'Settimana 1' },
+            { day: 'Sett 2', value: 1456, label: 'Settimana 2' },
+            { day: 'Sett 3', value: 1789, label: 'Settimana 3' },
+            { day: 'Sett 4', value: 2103, label: 'Settimana 4' }
+        ],
+        views: [
+            { day: 'Sett 1', value: 6200, label: 'Settimana 1' },
+            { day: 'Sett 2', value: 7350, label: 'Settimana 2' },
+            { day: 'Sett 3', value: 8900, label: 'Settimana 3' },
+            { day: 'Sett 4', value: 10200, label: 'Settimana 4' }
+        ],
+        conversion: [
+            { day: 'Sett 1', value: 2.98, label: 'Settimana 1' },
+            { day: 'Sett 2', value: 3.01, label: 'Settimana 2' },
+            { day: 'Sett 3', value: 3.00, label: 'Settimana 3' },
+            { day: 'Sett 4', value: 2.92, label: 'Settimana 4' }
+        ]
+    },
+    '90d': {
+        revenue: [
+            { day: 'Gen', value: 25000, label: 'Gennaio' },
+            { day: 'Feb', value: 28500, label: 'Febbraio' },
+            { day: 'Mar', value: 31200, label: 'Marzo' }
+        ],
+        sales: [
+            { day: 'Gen', value: 650, label: 'Gennaio' },
+            { day: 'Feb', value: 720, label: 'Febbraio' },
+            { day: 'Mar', value: 890, label: 'Marzo' }
+        ],
+        downloads: [
+            { day: 'Gen', value: 4200, label: 'Gennaio' },
+            { day: 'Feb', value: 4850, label: 'Febbraio' },
+            { day: 'Mar', value: 5600, label: 'Marzo' }
+        ],
+        views: [
+            { day: 'Gen', value: 18500, label: 'Gennaio' },
+            { day: 'Feb', value: 21200, label: 'Febbraio' },
+            { day: 'Mar', value: 24800, label: 'Marzo' }
+        ],
+        conversion: [
+            { day: 'Gen', value: 3.51, label: 'Gennaio' },
+            { day: 'Feb', value: 3.40, label: 'Febbraio' },
+            { day: 'Mar', value: 3.59, label: 'Marzo' }
+        ]
+    },
+    '1y': {
+        revenue: [
+            { day: 'Q1', value: 84700, label: '1° Trimestre' },
+            { day: 'Q2', value: 92400, label: '2° Trimestre' },
+            { day: 'Q3', value: 98600, label: '3° Trimestre' },
+            { day: 'Q4', value: 105200, label: '4° Trimestre' }
+        ],
+        sales: [
+            { day: 'Q1', value: 2260, label: '1° Trimestre' },
+            { day: 'Q2', value: 2485, label: '2° Trimestre' },
+            { day: 'Q3', value: 2690, label: '3° Trimestre' },
+            { day: 'Q4', value: 2890, label: '4° Trimestre' }
+        ],
+        downloads: [
+            { day: 'Q1', value: 14650, label: '1° Trimestre' },
+            { day: 'Q2', value: 16200, label: '2° Trimestre' },
+            { day: 'Q3', value: 17850, label: '3° Trimestre' },
+            { day: 'Q4', value: 19500, label: '4° Trimestre' }
+        ],
+        views: [
+            { day: 'Q1', value: 64500, label: '1° Trimestre' },
+            { day: 'Q2', value: 71200, label: '2° Trimestre' },
+            { day: 'Q3', value: 78900, label: '3° Trimestre' },
+            { day: 'Q4', value: 85600, label: '4° Trimestre' }
+        ],
+        conversion: [
+            { day: 'Q1', value: 3.50, label: '1° Trimestre' },
+            { day: 'Q2', value: 3.49, label: '2° Trimestre' },
+            { day: 'Q3', value: 3.41, label: '3° Trimestre' },
+            { day: 'Q4', value: 3.38, label: '4° Trimestre' }
+        ]
+    }
+};
+
+// Histogram data - placeholder for backend integration
+const histogramData = {
+    '7d': [
+        { type: 'Appunti', count: 45, revenue: 1350 },
+        { type: 'Esami', count: 67, revenue: 2010 },
+        { type: 'Libri', count: 32, revenue: 960 },
+        { type: 'Progetti', count: 58, revenue: 1740 },
+        { type: 'Tesi', count: 18, revenue: 540 },
+        { type: 'Altri', count: 25, revenue: 750 }
+    ],
+    '30d': [
+        { type: 'Appunti', count: 180, revenue: 5400 },
+        { type: 'Esami', count: 268, revenue: 8040 },
+        { type: 'Libri', count: 128, revenue: 3840 },
+        { type: 'Progetti', count: 232, revenue: 6960 },
+        { type: 'Tesi', count: 72, revenue: 2160 },
+        { type: 'Altri', count: 100, revenue: 3000 }
+    ],
+    '90d': [
+        { type: 'Appunti', count: 540, revenue: 16200 },
+        { type: 'Esami', count: 804, revenue: 24120 },
+        { type: 'Libri', count: 384, revenue: 11520 },
+        { type: 'Progetti', count: 696, revenue: 20880 },
+        { type: 'Tesi', count: 216, revenue: 6480 },
+        { type: 'Altri', count: 300, revenue: 9000 }
+    ],
+    '1y': [
+        { type: 'Appunti', count: 2160, revenue: 64800 },
+        { type: 'Esami', count: 3216, revenue: 96480 },
+        { type: 'Libri', count: 1536, revenue: 46080 },
+        { type: 'Progetti', count: 2784, revenue: 83520 },
+        { type: 'Tesi', count: 864, revenue: 25920 },
+        { type: 'Altri', count: 1200, revenue: 36000 }
+    ]
+};
 
 // Mobile Menu Toggle Logic
 let isMobileMenuOpen = false;
@@ -701,19 +880,27 @@ function updateDocumentsPeriod(period) {
     // For example: fetchDocumentsData(period);
 }
 
-function updateChart(chartType) {
-    console.log('Updating chart to show:', chartType);
+// Dynamic chart generation functions
+function generateChart(chartType, timePeriod) {
+    console.log('Generating chart:', chartType, timePeriod);
     
-    // Here you would typically update the chart with real data
-    // For now, we'll just update the mock chart with different colors
-    const chartLine = document.querySelector('.chart-line');
-    const chartPoints = document.querySelectorAll('.chart-point');
+    const chartContainer = document.getElementById('mainChart');
+    if (!chartContainer) return;
     
-    if (!chartLine) return;
+    const data = chartData[timePeriod]?.[chartType] || chartData['7d'][chartType];
+    const maxValue = Math.max(...data.map(d => d.value));
+    
+    // Chart configuration
+    const chartConfig = {
+        width: 800,
+        height: 320,
+        margin: { top: 40, right: 50, bottom: 80, left: 50 },
+        chartArea: { width: 700, height: 200 }
+    };
     
     const colors = {
         revenue: '#3b82f6',
-        sales: '#10b981',
+        sales: '#10b981', 
         downloads: '#f59e0b',
         views: '#8b5cf6',
         conversion: '#ef4444'
@@ -721,40 +908,195 @@ function updateChart(chartType) {
     
     const color = colors[chartType] || '#3b82f6';
     
-    // Update chart colors
-    chartLine.setAttribute('stroke', color);
-    chartPoints.forEach(point => {
-        point.setAttribute('fill', color);
+    // Generate SVG
+    let svg = `
+        <svg viewBox="0 0 ${chartConfig.width} ${chartConfig.height}" class="chart-svg" style="height: 320px;">
+            <defs>
+                <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:${color};stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:${color};stop-opacity:0" />
+                </linearGradient>
+                <pattern id="grid" width="100" height="50" patternUnits="userSpaceOnUse">
+                    <path d="M 100 0 L 0 0 0 50" fill="none" stroke="rgba(226, 232, 240, 0.4)" stroke-width="0.5"/>
+                </pattern>
+            </defs>
+            <rect width="700" height="200" x="50" y="40" fill="url(#grid)" opacity="0.5"/>
+    `;
+    
+    // Generate chart path and area
+    const pathPoints = data.map((d, i) => {
+        const x = 50 + (i * (700 / (data.length - 1)));
+        const y = 240 - (d.value / maxValue * 200);
+        return `${x},${y}`;
+    }).join(' L');
+    
+    const areaPath = `M50,240 L${pathPoints} L${50 + (data.length - 1) * (700 / (data.length - 1))},240 L50,240 Z`;
+    const linePath = `M${pathPoints.replace(/ L/g, ' L')}`;
+    
+    svg += `
+            <!-- Chart area with gradient -->
+            <path d="${areaPath}" fill="url(#chartGradient)" class="chart-area"/>
+            
+            <!-- Main chart line -->
+            <path d="${linePath}" stroke="${color}" stroke-width="3" fill="none" class="chart-line"/>
+    `;
+    
+    // Generate data points
+    data.forEach((d, i) => {
+        const x = 50 + (i * (700 / (data.length - 1)));
+        const y = 240 - (d.value / maxValue * 200);
+        
+        svg += `
+            <circle cx="${x}" cy="${y}" r="5" fill="#ffffff" stroke="${color}" stroke-width="3" class="chart-point" 
+                    data-day="${d.label}" data-${chartType}="${d.value}"
+                    onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+        `;
     });
     
-    // Update gradient
-    const gradient = document.querySelector('#chartGradient stop:first-child');
-    if (gradient) {
-        gradient.style.stopColor = color;
+    // Add axes
+    svg += `
+            <!-- Axis lines -->
+            <line x1="50" y1="40" x2="50" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+            <line x1="50" y1="240" x2="750" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+    `;
+    
+    // Generate Y-axis labels
+    const ySteps = 6; // Number of Y-axis labels
+    for (let i = 0; i <= ySteps; i++) {
+        const value = Math.round((maxValue / ySteps) * (ySteps - i));
+        const y = 40 + (i * (200 / ySteps)) + 5;
+        const format = chartType === 'revenue' ? `€${value}` : value;
+        svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${format}</text>`;
     }
     
-    // Add animation
-    chartLine.style.transition = 'stroke 0.3s ease';
-    chartPoints.forEach(point => {
-        point.style.transition = 'fill 0.3s ease';
+    // Generate X-axis labels
+    data.forEach((d, i) => {
+        const x = 50 + (i * (700 / (data.length - 1)));
+        svg += `<text x="${x}" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">${d.day}</text>`;
     });
+    
+    svg += '</svg>';
+    
+    chartContainer.innerHTML = svg;
+}
+
+function generateHistogram(timePeriod) {
+    console.log('Generating histogram:', timePeriod);
+    
+    const histogramContainer = document.getElementById('histogramChart');
+    if (!histogramContainer) return;
+    
+    const data = histogramData[timePeriod] || histogramData['7d'];
+    const maxCount = Math.max(...data.map(d => d.count));
+    
+    // Chart configuration
+    const chartConfig = {
+        width: 800,
+        height: 320,
+        margin: { top: 40, right: 50, bottom: 80, left: 50 },
+        chartArea: { width: 700, height: 200 }
+    };
+    
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+    
+    let svg = `
+        <svg viewBox="0 0 ${chartConfig.width} ${chartConfig.height}" class="chart-svg" style="height: 320px;">
+            <defs>
+    `;
+    
+    // Generate gradients for each bar
+    colors.forEach((color, i) => {
+        svg += `
+                <linearGradient id="histogramGradient${i + 1}" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:${color};stop-opacity:0.9" />
+                    <stop offset="100%" style="stop-color:${color};stop-opacity:0.7" />
+                </linearGradient>
+        `;
+    });
+    
+    svg += `
+                <pattern id="histogramGrid" width="100" height="50" patternUnits="userSpaceOnUse">
+                    <path d="M 100 0 L 0 0 0 50" fill="none" stroke="rgba(226, 232, 240, 0.3)" stroke-width="0.5"/>
+                </pattern>
+            </defs>
+            <rect width="700" height="200" x="50" y="40" fill="url(#histogramGrid)" opacity="0.4"/>
+    `;
+    
+    // Generate histogram bars
+    const barWidth = 80;
+    const barSpacing = 700 / data.length;
+    
+    data.forEach((d, i) => {
+        const x = 50 + (i * barSpacing) + (barSpacing - barWidth) / 2;
+        const height = (d.count / maxCount) * 200;
+        const y = 240 - height;
+        const colorIndex = i % colors.length;
+        
+        svg += `
+            <rect x="${x}" y="${y}" width="${barWidth}" height="${height}" 
+                  fill="url(#histogramGradient${colorIndex + 1})" rx="6" 
+                  class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.1))"
+                  data-type="${d.type}" data-count="${d.count}" data-revenue="€${d.revenue.toLocaleString()}"
+                  onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+        `;
+        
+        // Add value label on top of bar
+        const labelY = y - 10;
+        svg += `
+            <rect x="${x + barWidth/2 - 10}" y="${labelY - 8}" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+            <text x="${x + barWidth/2}" y="${labelY + 4}" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">${d.count}</text>
+        `;
+    });
+    
+    // Add axes
+    svg += `
+            <!-- Professional axis lines -->
+            <line x1="50" y1="40" x2="50" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+            <line x1="50" y1="240" x2="750" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+    `;
+    
+    // Generate Y-axis labels
+    const ySteps = 4;
+    for (let i = 0; i <= ySteps; i++) {
+        const value = Math.round((maxCount / ySteps) * (ySteps - i));
+        const y = 40 + (i * (200 / ySteps)) + 5;
+        svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${value}</text>`;
+    }
+    
+    // Generate X-axis labels
+    data.forEach((d, i) => {
+        const x = 50 + (i * barSpacing) + barSpacing/2;
+        svg += `<text x="${x}" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">${d.type}</text>`;
+    });
+    
+    svg += '</svg>';
+    
+    histogramContainer.innerHTML = svg;
+}
+
+function updateChart(chartType) {
+    currentChartType = chartType;
+    generateChart(chartType, currentTimePeriod);
 }
 
 function updateChartPeriod(period) {
     console.log('Updating chart period to:', period);
     
-    // Here you would typically fetch new data based on the period
-    // For now, we'll just log the change
+    currentTimePeriod = period;
     
-    // You could animate the chart here or fetch new data
-    const chartLine = document.querySelector('.chart-line');
-    if (chartLine) {
-        // Add a subtle animation to indicate data change
-        chartLine.style.opacity = '0.5';
-        setTimeout(() => {
-            chartLine.style.opacity = '1';
-        }, 300);
-    }
+    // Update main chart
+    generateChart(currentChartType, period);
+    
+    // Update histogram  
+    generateHistogram(period);
+    
+    // Update active button styling
+    document.querySelectorAll('.time-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-period') === period) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 function initializeDonutChart() {
@@ -1067,49 +1409,118 @@ function updateTooltipPosition(event, element = null) {
     if (!chartTooltip) return;
     
     const tooltip = chartTooltip;
-    const tooltipRect = tooltip.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
     
     // Use the provided element or fall back to event.target
     const targetElement = element || event.target;
     
+    // Get target element position
+    const targetRect = targetElement.getBoundingClientRect();
+    
+    // Get tooltip dimensions
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const tooltipWidth = tooltipRect.width;
+    const tooltipHeight = tooltipRect.height;
+    
     let x, y;
+    let arrowPosition = 'bottom'; // Default: tooltip above, arrow pointing down
     
-    if (targetElement.tagName === 'circle') {
-        // For SVG circles, use a more reliable method
-        // Get the actual screen position of the circle using getBoundingClientRect
-        const circleRect = targetElement.getBoundingClientRect();
+    // Calculate center point of target element  
+    const targetCenterX = targetRect.left + (targetRect.width / 2);
+    const targetCenterY = targetRect.top + (targetRect.height / 2);
+    
+    // Try to position tooltip above the element, centered
+    x = targetCenterX - (tooltipWidth / 2);
+    y = targetRect.top - tooltipHeight - 12; // 12px gap for arrow
+    
+    const margin = 10;
+    
+    // Adjust if tooltip goes off screen
+    if (y < margin) {
+        // Not enough space above, try below
+        y = targetRect.bottom + 12;
+        arrowPosition = 'top';
         
-        // Position tooltip centered above the circle
-        x = circleRect.left + (circleRect.width / 2) - (tooltipRect.width / 2);
-        y = circleRect.top - tooltipRect.height - 10;
-        
-        // If tooltip would go off screen vertically, show it below
-        if (y < 10) {
-            y = circleRect.bottom + 10;
-        }
-    } else {
-        // For regular elements (like histogram bars), use standard positioning
-        const elementRect = targetElement.getBoundingClientRect();
-        x = elementRect.left + (elementRect.width / 2) - (tooltipRect.width / 2);
-        y = elementRect.top - tooltipRect.height - 10;
-        
-        // If tooltip would go off screen vertically, show it below
-        if (y < 10) {
-            y = elementRect.bottom + 10;
+        if (y + tooltipHeight > viewportHeight - margin) {
+            // Not enough space below either, try to the right
+            y = targetCenterY - (tooltipHeight / 2);
+            x = targetRect.right + 12;
+            arrowPosition = 'left';
+            
+            if (x + tooltipWidth > viewportWidth - margin) {
+                // Not enough space on right, try left
+                x = targetRect.left - tooltipWidth - 12;
+                arrowPosition = 'right';
+                
+                if (x < margin) {
+                    // Force it above and clamp horizontally
+                    x = targetCenterX - (tooltipWidth / 2);
+                    y = Math.max(margin, targetRect.top - tooltipHeight - 12);
+                    arrowPosition = 'bottom';
+                }
+            }
         }
     }
     
-    // Adjust if tooltip would go off screen horizontally
-    if (x < 10) {
-        x = 10;
-    } else if (x + tooltipRect.width > viewportWidth - 10) {
-        x = viewportWidth - tooltipRect.width - 10;
+    // Horizontal bounds checking for top/bottom positions
+    if (arrowPosition === 'top' || arrowPosition === 'bottom') {
+        if (x < margin) {
+            x = margin;
+        } else if (x + tooltipWidth > viewportWidth - margin) {
+            x = viewportWidth - tooltipWidth - margin;
+        }
     }
     
-    tooltip.style.left = x + 'px';
-    tooltip.style.top = y + 'px';
+    // Vertical bounds checking for left/right positions  
+    if (arrowPosition === 'left' || arrowPosition === 'right') {
+        if (y < margin) {
+            y = margin;
+        } else if (y + tooltipHeight > viewportHeight - margin) {
+            y = viewportHeight - tooltipHeight - margin;
+        }
+    }
+    
+    // Apply positioning with scroll offset
+    tooltip.style.left = (x + scrollX) + 'px';
+    tooltip.style.top = (y + scrollY) + 'px';
+    
+    // Update arrow position
+    updateTooltipArrow(tooltip, arrowPosition, targetRect, x, y, tooltipWidth);
+}
+
+function updateTooltipArrow(tooltip, position, targetRect, tooltipX, tooltipY, tooltipWidth) {
+    try {
+        // Remove existing arrow positioning classes
+        tooltip.classList.remove('arrow-top', 'arrow-bottom', 'arrow-left', 'arrow-right');
+        
+        // Calculate arrow offset for horizontal positioning
+        let arrowOffset = '50%'; // Default center
+        
+        if ((position === 'top' || position === 'bottom') && tooltipWidth > 0) {
+            const targetCenterX = targetRect.left + (targetRect.width / 2);
+            const arrowX = targetCenterX - tooltipX;
+            
+            // Ensure arrow stays within reasonable bounds (8% to 92% of tooltip width)
+            const minOffset = tooltipWidth * 0.08;
+            const maxOffset = tooltipWidth * 0.92;
+            const clampedArrowX = Math.max(minOffset, Math.min(maxOffset, arrowX));
+            const arrowPercentage = (clampedArrowX / tooltipWidth) * 100;
+            
+            arrowOffset = Math.round(arrowPercentage * 10) / 10 + '%'; // Round to 1 decimal place
+        }
+        
+        // Add appropriate arrow class and set position
+        tooltip.classList.add('arrow-' + position);
+        tooltip.style.setProperty('--arrow-offset', arrowOffset);
+    } catch (error) {
+        console.warn('Error updating tooltip arrow:', error);
+        // Fallback to default positioning
+        tooltip.classList.add('arrow-bottom');
+        tooltip.style.setProperty('--arrow-offset', '50%');
+    }
 }
 
 // Update chart type when dropdown changes
@@ -1122,58 +1533,93 @@ function updateChartType(newType) {
 // INLINE EVENT HANDLER FUNCTIONS FOR VENDOR DASHBOARD
 // ===========================
 
+// Initialize dynamic charts
+function initializeDynamicCharts() {
+    console.log('Initializing dynamic charts...');
+    
+    // Generate initial charts
+    generateChart(currentChartType, currentTimePeriod);
+    generateHistogram(currentTimePeriod);
+    
+    // Update time filter buttons for both charts to work together
+    document.querySelectorAll('.time-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const period = this.getAttribute('data-period');
+            if (period) {
+                updateChartPeriod(period);
+            }
+        });
+    });
+    
+    console.log('✅ Dynamic charts initialized successfully');
+}
+
 // Functions for tooltip functionality
 window.showTooltip = function(event, element) {
     console.log('showTooltip called', element);
     
+    // Create tooltip if it doesn't exist
     if (!chartTooltip) {
         chartTooltip = document.createElement('div');
         chartTooltip.className = 'chart-tooltip';
+        chartTooltip.style.display = 'none';
         document.body.appendChild(chartTooltip);
     }
     
     const day = element.getAttribute('data-day');
-    const revenue = element.getAttribute('data-revenue');
-    const sales = element.getAttribute('data-sales');
-    const downloads = element.getAttribute('data-downloads');
-    const views = element.getAttribute('data-views');
-    const conversion = element.getAttribute('data-conversion');
+    const value = element.getAttribute(`data-${currentChartType}`);
     
     let content = '';
+    let format = '';
+    
     switch (currentChartType) {
         case 'revenue':
-            content = `<strong>${day}</strong><br>Ricavi: €${revenue}`;
+            format = `€${parseInt(value).toLocaleString()}`;
+            content = `<strong>${day}</strong><br>Ricavi: ${format}`;
             break;
         case 'sales':
-            content = `<strong>${day}</strong><br>Vendite: ${sales}`;
+            content = `<strong>${day}</strong><br>Vendite: ${value}`;
             break;
         case 'downloads':
-            content = `<strong>${day}</strong><br>Download: ${downloads}`;
+            content = `<strong>${day}</strong><br>Download: ${value}`;
             break;
         case 'views':
-            content = `<strong>${day}</strong><br>Visualizzazioni: ${views}`;
+            content = `<strong>${day}</strong><br>Visualizzazioni: ${parseInt(value).toLocaleString()}`;
             break;
         case 'conversion':
-            content = `<strong>${day}</strong><br>Conversione: ${conversion}%`;
+            content = `<strong>${day}</strong><br>Conversione: ${value}%`;
             break;
         default:
-            content = `<strong>${day}</strong><br>Ricavi: €${revenue}`;
+            format = `€${parseInt(value).toLocaleString()}`;
+            content = `<strong>${day}</strong><br>Ricavi: ${format}`;
     }
     
+    // Set content and basic styles
     chartTooltip.innerHTML = content;
     chartTooltip.style.pointerEvents = 'none';
+    chartTooltip.style.position = 'absolute';
+    chartTooltip.style.display = 'block';
     
-    // Position tooltip first, then show it
+    // Clear any existing arrow classes
+    chartTooltip.classList.remove('arrow-top', 'arrow-bottom', 'arrow-left', 'arrow-right');
+    
+    // Position tooltip and then show it
     updateTooltipPosition(event, element);
-    chartTooltip.classList.add('show');
+    
+    // Add show class last to trigger opacity transition
+    setTimeout(() => {
+        chartTooltip.classList.add('show');
+    }, 10);
 };
 
 window.showHistogramTooltip = function(event, element) {
     console.log('showHistogramTooltip called', element);
     
+    // Create tooltip if it doesn't exist
     if (!chartTooltip) {
         chartTooltip = document.createElement('div');
         chartTooltip.className = 'chart-tooltip';
+        chartTooltip.style.display = 'none';
         document.body.appendChild(chartTooltip);
     }
     
@@ -1183,22 +1629,48 @@ window.showHistogramTooltip = function(event, element) {
     
     const content = `<strong>${type}</strong><br>Venduti: ${count}<br>Ricavi: ${revenue}`;
     
+    // Set content and basic styles
     chartTooltip.innerHTML = content;
     chartTooltip.style.pointerEvents = 'none';
+    chartTooltip.style.position = 'absolute';
+    chartTooltip.style.display = 'block';
     
-    // Position tooltip first, then show it
+    // Clear any existing arrow classes
+    chartTooltip.classList.remove('arrow-top', 'arrow-bottom', 'arrow-left', 'arrow-right');
+    
+    // Position tooltip and then show it
     updateTooltipPosition(event, element);
-    chartTooltip.classList.add('show');
+    
+    // Add show class last to trigger opacity transition
+    setTimeout(() => {
+        chartTooltip.classList.add('show');
+    }, 10);
 };
 
 window.hideTooltip = function() {
     if (chartTooltip) {
         chartTooltip.classList.remove('show');
+        // Hide after transition completes
+        setTimeout(() => {
+            if (chartTooltip && !chartTooltip.classList.contains('show')) {
+                chartTooltip.style.display = 'none';
+            }
+        }, 200);
     }
 };
 
+// Debounce function for smooth tooltip movement
+let tooltipMoveTimeout;
 window.moveTooltip = function(event) {
-    updateTooltipPosition(event);
+    // Clear previous timeout
+    if (tooltipMoveTimeout) {
+        clearTimeout(tooltipMoveTimeout);
+    }
+    
+    // Set new timeout for smoother performance
+    tooltipMoveTimeout = setTimeout(() => {
+        updateTooltipPosition(event);
+    }, 10); // 10ms debounce for smooth movement
 };
 
 // Functions for time period selection
@@ -1524,6 +1996,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeDocumentsPeriodFilter(); // Add documents period filter functionality
     initializeDocumentPerformanceItems(); // Add document performance interactivity
     initializeLogout(); // Add logout functionality
+    
+    // Initialize dynamic charts
+    initializeDynamicCharts();
     
     // Set initial tab state to ensure proper display
     await switchTab('profile');

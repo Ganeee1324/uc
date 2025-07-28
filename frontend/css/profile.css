@@ -56,6 +56,8 @@ search-section {
     outline: none !important;
     overflow: visible !important; /* Allow glow effects to extend beyond iframe boundaries */
     scrolling: no !important;
+    position: relative;
+    z-index: 20 !important; /* Ensure iframe appears above all other elements */
 }
 
 .search-section-container.loading {
@@ -341,6 +343,7 @@ search-section {
     margin-left: 280px;
     min-height: 100vh;
     background-color: #ffffff;
+    overflow: visible; /* Allow search section glow to extend beyond main content boundaries */
 }
 
 .profile-section {
@@ -353,6 +356,7 @@ search-section {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     position: relative;
     top:0;
+    overflow: visible; /* Allow search section glow to extend beyond profile section boundaries */
 }
 
 .profile-header {

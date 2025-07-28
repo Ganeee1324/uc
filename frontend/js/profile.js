@@ -1,6 +1,10 @@
 // API Configuration
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 
+// Global variables for chart functionality
+let currentChartType = 'revenue'; // Track current chart type
+let chartTooltip = null; // Global tooltip element
+
 // Mobile Menu Toggle Logic
 let isMobileMenuOpen = false;
 
@@ -101,7 +105,7 @@ function initializeMobileMenu() {
 
 let currentTab = 'profile'; // Default tab
 
-async function switchTab(tabName) {
+window.switchTab = async function switchTab(tabName) {
     console.log('Switching to tab:', tabName);
     
     // Hide all content sections
@@ -510,7 +514,12 @@ function initializeStatsDropdown() {
     const dropdownMenu = document.getElementById('chartDropdownMenu');
     const dropdownOptions = document.querySelectorAll('.chart-dropdown-option');
     
-    if (!dropdownBtn || !dropdownMenu) return;
+    if (!dropdownBtn || !dropdownMenu) {
+        console.log('Dropdown elements not found');
+        return;
+    }
+    
+    console.log('Initializing stats dropdown...');
     
     // Toggle dropdown on button click
     dropdownBtn.addEventListener('click', (e) => {
@@ -545,6 +554,7 @@ function initializeStatsDropdown() {
             // Get chart type and update chart
             const chartType = option.getAttribute('data-chart');
             updateChart(chartType);
+            updateChartType(chartType);
             
             // Close dropdown
             dropdownMenu.classList.remove('show');
@@ -570,9 +580,14 @@ function initializeStatsDropdown() {
 function initializeTimeFilters() {
     const timeFilterBtns = document.querySelectorAll('.time-filter-btn');
     
-    timeFilterBtns.forEach(btn => {
+    console.log('Initializing time filters, found:', timeFilterBtns.length, 'buttons');
+    
+    timeFilterBtns.forEach((btn, index) => {
+        console.log(`Adding event listener to button ${index}:`, btn.textContent);
+        
         btn.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log('Time filter button clicked:', btn.textContent);
             
             // Remove active class from all buttons
             timeFilterBtns.forEach(b => b.classList.remove('active'));
@@ -582,6 +597,7 @@ function initializeTimeFilters() {
             
             // Get period and update chart
             const period = btn.getAttribute('data-period');
+            console.log('Updating chart period to:', period);
             updateChartPeriod(period);
         });
     });
@@ -938,6 +954,300 @@ function animateStatsCards() {
 }
 
 // ===========================
+// INTERACTIVE CHARTS FUNCTIONALITY
+// ===========================
+
+function initializeInteractiveCharts() {
+    console.log('Initializing interactive charts...');
+    
+    // Create tooltip element
+    if (!chartTooltip) {
+        chartTooltip = document.createElement('div');
+        chartTooltip.className = 'chart-tooltip';
+        document.body.appendChild(chartTooltip);
+    }
+    
+    // Initialize line chart interactivity
+    initializeLineChartInteractivity();
+    
+    // Initialize histogram interactivity
+    initializeHistogramInteractivity();
+}
+
+function initializeLineChartInteractivity() {
+    const chartPoints = document.querySelectorAll('#mainChart .chart-point');
+    
+    chartPoints.forEach(point => {
+        point.addEventListener('mouseenter', (e) => {
+            showChartTooltip(e, point, 'line');
+        });
+        
+        point.addEventListener('mouseleave', () => {
+            hideChartTooltip();
+        });
+        
+        point.addEventListener('mousemove', (e) => {
+            updateTooltipPosition(e);
+        });
+    });
+}
+
+function initializeHistogramInteractivity() {
+    const histogramBars = document.querySelectorAll('#histogramChart .histogram-bar');
+    
+    histogramBars.forEach(bar => {
+        bar.addEventListener('mouseenter', (e) => {
+            showChartTooltip(e, bar, 'histogram');
+        });
+        
+        bar.addEventListener('mouseleave', () => {
+            hideChartTooltip();
+        });
+        
+        bar.addEventListener('mousemove', (e) => {
+            updateTooltipPosition(e);
+        });
+    });
+}
+
+function showChartTooltip(event, element, chartType) {
+    if (!chartTooltip) return;
+    
+    let content = '';
+    
+    if (chartType === 'line') {
+        const day = element.getAttribute('data-day');
+        const revenue = element.getAttribute('data-revenue');
+        const sales = element.getAttribute('data-sales');
+        const downloads = element.getAttribute('data-downloads');
+        const views = element.getAttribute('data-views');
+        const conversion = element.getAttribute('data-conversion');
+        
+        // Show data based on current chart type
+        switch (currentChartType) {
+            case 'revenue':
+                content = `<strong>${day}</strong><br>Ricavi: €${revenue}`;
+                break;
+            case 'sales':
+                content = `<strong>${day}</strong><br>Vendite: ${sales}`;
+                break;
+            case 'downloads':
+                content = `<strong>${day}</strong><br>Download: ${downloads}`;
+                break;
+            case 'views':
+                content = `<strong>${day}</strong><br>Visualizzazioni: ${views}`;
+                break;
+            case 'conversion':
+                content = `<strong>${day}</strong><br>Conversione: ${conversion}%`;
+                break;
+            default:
+                content = `<strong>${day}</strong><br>Ricavi: €${revenue}`;
+        }
+    } else if (chartType === 'histogram') {
+        const type = element.getAttribute('data-type');
+        const count = element.getAttribute('data-count');
+        const revenue = element.getAttribute('data-revenue');
+        
+        content = `<strong>${type}</strong><br>Venduti: ${count}<br>Ricavi: ${revenue}`;
+    }
+    
+    chartTooltip.innerHTML = content;
+    chartTooltip.classList.add('show');
+    
+    updateTooltipPosition(event);
+}
+
+function hideChartTooltip() {
+    if (chartTooltip) {
+        chartTooltip.classList.remove('show');
+    }
+}
+
+function updateTooltipPosition(event) {
+    if (!chartTooltip) return;
+    
+    const tooltip = chartTooltip;
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let x = event.clientX + 10;
+    let y = event.clientY - tooltip.offsetHeight - 10;
+    
+    // Adjust if tooltip would go off screen
+    if (x + tooltipRect.width > viewportWidth) {
+        x = event.clientX - tooltipRect.width - 10;
+    }
+    
+    if (y < 0) {
+        y = event.clientY + 10;
+    }
+    
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+}
+
+// Update chart type when dropdown changes
+function updateChartType(newType) {
+    currentChartType = newType;
+    console.log('Chart type updated to:', newType);
+}
+
+// ===========================
+// INLINE EVENT HANDLER FUNCTIONS FOR VENDOR DASHBOARD
+// ===========================
+
+// Functions for tooltip functionality
+window.showTooltip = function(event, element) {
+    console.log('showTooltip called', element);
+    
+    if (!chartTooltip) {
+        chartTooltip = document.createElement('div');
+        chartTooltip.className = 'chart-tooltip';
+        document.body.appendChild(chartTooltip);
+    }
+    
+    const day = element.getAttribute('data-day');
+    const revenue = element.getAttribute('data-revenue');
+    const sales = element.getAttribute('data-sales');
+    const downloads = element.getAttribute('data-downloads');
+    const views = element.getAttribute('data-views');
+    const conversion = element.getAttribute('data-conversion');
+    
+    let content = '';
+    switch (currentChartType) {
+        case 'revenue':
+            content = `<strong>${day}</strong><br>Ricavi: €${revenue}`;
+            break;
+        case 'sales':
+            content = `<strong>${day}</strong><br>Vendite: ${sales}`;
+            break;
+        case 'downloads':
+            content = `<strong>${day}</strong><br>Download: ${downloads}`;
+            break;
+        case 'views':
+            content = `<strong>${day}</strong><br>Visualizzazioni: ${views}`;
+            break;
+        case 'conversion':
+            content = `<strong>${day}</strong><br>Conversione: ${conversion}%`;
+            break;
+        default:
+            content = `<strong>${day}</strong><br>Ricavi: €${revenue}`;
+    }
+    
+    chartTooltip.innerHTML = content;
+    chartTooltip.classList.add('show');
+    chartTooltip.style.pointerEvents = 'none';
+    
+    updateTooltipPosition(event);
+};
+
+window.showHistogramTooltip = function(event, element) {
+    console.log('showHistogramTooltip called', element);
+    
+    if (!chartTooltip) {
+        chartTooltip = document.createElement('div');
+        chartTooltip.className = 'chart-tooltip';
+        document.body.appendChild(chartTooltip);
+    }
+    
+    const type = element.getAttribute('data-type');
+    const count = element.getAttribute('data-count');
+    const revenue = element.getAttribute('data-revenue');
+    
+    const content = `<strong>${type}</strong><br>Venduti: ${count}<br>Ricavi: ${revenue}`;
+    
+    chartTooltip.innerHTML = content;
+    chartTooltip.classList.add('show');
+    chartTooltip.style.pointerEvents = 'none';
+    
+    updateTooltipPosition(event);
+};
+
+window.hideTooltip = function() {
+    if (chartTooltip) {
+        chartTooltip.classList.remove('show');
+    }
+};
+
+window.moveTooltip = function(event) {
+    updateTooltipPosition(event);
+};
+
+// Functions for time period selection
+window.selectTimePeriod = function(button, period) {
+    console.log('selectTimePeriod called', period);
+    
+    // Remove active class from all time period buttons
+    const timeButtons = document.querySelectorAll('.time-filter-btn');
+    timeButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked button
+    button.classList.add('active');
+    
+    // Update chart period
+    updateChartPeriod(period);
+};
+
+// Functions for dropdown functionality
+window.toggleDropdown = function() {
+    console.log('toggleDropdown called');
+    
+    const dropdownMenu = document.getElementById('chartDropdownMenu');
+    const dropdownBtn = document.getElementById('chartDropdownBtn');
+    
+    if (dropdownMenu && dropdownBtn) {
+        const isOpen = dropdownMenu.classList.contains('show');
+        
+        if (isOpen) {
+            dropdownMenu.classList.remove('show');
+            const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
+            if (arrow) {
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        } else {
+            dropdownMenu.classList.add('show');
+            const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
+            if (arrow) {
+                arrow.style.transform = 'rotate(180deg)';
+            }
+        }
+    }
+};
+
+window.selectChartType = function(option, type, label) {
+    console.log('selectChartType called', type, label);
+    
+    // Remove active class from all options
+    const options = document.querySelectorAll('.chart-dropdown-option');
+    options.forEach(opt => opt.classList.remove('active'));
+    
+    // Add active class to selected option
+    option.classList.add('active');
+    
+    // Update button text
+    const dropdownBtn = document.getElementById('chartDropdownBtn');
+    const dropdownText = dropdownBtn.querySelector('.dropdown-text');
+    if (dropdownText) {
+        dropdownText.textContent = label;
+    }
+    
+    // Update chart type and chart display
+    updateChartType(type);
+    updateChart(type);
+    
+    // Close dropdown
+    const dropdownMenu = document.getElementById('chartDropdownMenu');
+    if (dropdownMenu) {
+        dropdownMenu.classList.remove('show');
+        const arrow = dropdownBtn.querySelector('.material-symbols-outlined');
+        if (arrow) {
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+// ===========================
 // USER PERSONALIZATION FUNCTIONALITY
 // ===========================
 
@@ -1201,7 +1511,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (tabName === 'stats') {
                     setTimeout(() => {
                         animateStatsCards();
-                        // Re-initialize document items after tab switch
+                        // Re-initialize all stats dashboard components
+                        initializeStatsDropdown();
+                        initializeTimeFilters();
+                        initializeDocumentsPeriodFilter();
+                        initializeInteractiveCharts();
                         setTimeout(() => {
                             initializeDocumentPerformanceItems();
                         }, 300);

@@ -19,28 +19,23 @@ model_path = r"C:\Users\fdimo\Downloads\Visualized_m3.pth" if os.name == "nt" el
 
 reranker = None
 reranker_processor = None
-embedder = None
+embedder = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path, device="cpu")
 
 
-def load_models():
-    global reranker, reranker_processor, embedder
+def load_reranker():
+    global reranker, reranker_processor
     reranker_processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
     reranker = Qwen2VLForConditionalGeneration.from_pretrained(
         "lightonai/MonoQwen2-VL-v0.1",
         device_map="auto",
     )
-    embedder = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path, device="cpu")
 
 
-def unload_models():
-    global reranker, reranker_processor, embedder
+def unload_reranker():
+    global reranker, reranker_processor
     reranker = None
     reranker_processor = None
-    embedder = None
     torch.cuda.empty_cache()
-
-
-load_models()
 
 
 def compute_similarity_score(query: str, image: Image.Image) -> float:
@@ -183,7 +178,7 @@ def enrich_snippets():
         snippets = json.loads(snippets_json)
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid snippets JSON"}), 400
-    
+
     if not snippets:
         return jsonify({"error": "No snippets provided"}), 400
 
@@ -194,7 +189,9 @@ def enrich_snippets():
     num_windows = request.form.get("num_windows", 8, type=int)
     window_height_percentage = request.form.get("window_height_percentage", 0.35, type=float)
 
+    load_reranker()
     snippets = retrieve_snippet_images(temp_pdf_path, snippets, num_windows, window_height_percentage)
+    unload_reranker()
 
     return jsonify({"success": True, "snippets": snippets})
 

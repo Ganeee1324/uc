@@ -3090,14 +3090,20 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
+    console.log('🔧 updateActiveFiltersDisplay called - filters:', filterManager.filters);
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-    if (!activeFiltersContainer) return;
+    if (!activeFiltersContainer) {
+        console.log('🔧 activeFiltersContainer not found');
+        return;
+    }
     
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
+    console.log('🔧 filterEntries after filtering:', filterEntries);
     
     if (filterEntries.length === 0) {
+        console.log('🔧 No filter entries, hiding container');
         activeFiltersContainer.classList.remove('visible');
         setTimeout(() => {
             activeFiltersContainer.innerHTML = '';
@@ -3270,8 +3276,10 @@ function updateActiveFiltersDisplay() {
     
     // Trigger animation
     setTimeout(() => {
+        console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
         updateBottomFilterCount();
+        console.log('🔧 Filter pills should now be visible');
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)
@@ -5034,57 +5042,68 @@ function saveFiltersToStorage() {
 }
 
 function restoreFiltersFromStorage() {
+    console.log('🔧 restoreFiltersFromStorage called');
     try {
-        // Try to restore filters from localStorage
-        const savedFilters = localStorage.getItem('searchFilters');
-        const savedTags = localStorage.getItem('searchTags');
+        // Set restoration flag to prevent premature UI updates
+        filterManager.isRestoring = true;
+        console.log('🔧 Setting isRestoring to true');
         
-        if (savedFilters) {
-            const parsedFilters = JSON.parse(savedFilters);
-            
-            // Restore all filters
-            filterManager.filters = parsedFilters;
-            
-            // Ensure tags are properly restored
-            if (savedTags) {
-                const parsedTags = JSON.parse(savedTags);
-                filterManager.filters.tag = parsedTags;
-            }
-            
-            // Update UI to reflect restored filters
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
-            
-            // Apply filters to current documents
-            if (originalFiles && originalFiles.length > 0) {
-                const filteredFiles = applyClientSideFilters(originalFiles);
-                renderDocuments(filteredFiles);
-                currentFiles = filteredFiles;
-                
-                const filterCount = filterManager.getActiveFilterCount().count;
-                if (filterCount > 0) {
-                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
-                } else {
-                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
-                }
-            }
+        // First, try to restore filters from URL parameters
+        const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
+        if (urlFilters && Object.keys(urlFilters).length > 0) {
+            console.log('🔧 Restoring filters from URL:', urlFilters);
+            filterManager.filters = urlFilters;
         } else {
-            // No saved filters, start fresh
-            filterManager.filters = {};
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
+            // Fallback to localStorage
+            const savedFilters = localStorage.getItem('searchFilters');
+            const savedTags = localStorage.getItem('searchTags');
             
-            // Show all documents
-            if (originalFiles && originalFiles.length > 0) {
-                renderDocuments(originalFiles);
-                currentFiles = originalFiles;
-                showStatus(`${originalFiles.length} documenti disponibili 📚`);
+            if (savedFilters) {
+                const parsedFilters = JSON.parse(savedFilters);
+                console.log('🔧 Restoring filters from localStorage:', parsedFilters);
+                
+                // Restore all filters
+                filterManager.filters = parsedFilters;
+                
+                // Ensure tags are properly restored
+                if (savedTags) {
+                    const parsedTags = JSON.parse(savedTags);
+                    filterManager.filters.tag = parsedTags;
+                }
+            } else {
+                // No saved filters, start fresh
+                console.log('🔧 No saved filters, starting fresh');
+                filterManager.filters = {};
             }
         }
+        
+        // Update UI to reflect restored filters
+        updateFilterInputs();
+        updateActiveFilterIndicators();
+        updateBottomFilterCount();
+        updateActiveFiltersDisplay();
+        
+        // Apply filters to current documents
+        if (originalFiles && originalFiles.length > 0) {
+            const filteredFiles = applyClientSideFilters(originalFiles);
+            renderDocuments(filteredFiles);
+            currentFiles = filteredFiles;
+            
+            const filterCount = filterManager.getActiveFilterCount().count;
+            if (filterCount > 0) {
+                showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
+            } else {
+                showStatus(`${filteredFiles.length} documenti disponibili 📚`);
+            }
+        }
+        
+        // Update URL with restored filters
+        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
+        
+        // Reset restoration flag
+        filterManager.isRestoring = false;
+        console.log('🔧 Setting isRestoring to false after successful restoration');
+        
     } catch (e) {
         console.warn('Could not restore filters from localStorage:', e);
         // Fallback to fresh start
@@ -5099,6 +5118,10 @@ function restoreFiltersFromStorage() {
             currentFiles = originalFiles;
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
+        
+        // Reset restoration flag even on error
+        filterManager.isRestoring = false;
+        console.log('🔧 Setting isRestoring to false after fallback');
     }
 }
 

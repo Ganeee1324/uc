@@ -1240,7 +1240,7 @@ iframe html {
     max-width: 410px;
     height: 100%;
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
     border-radius: 12px;
 }
 
@@ -1254,7 +1254,7 @@ iframe html {
     height: 100%;
     width: 100%;
     position: absolute;
-    overflow: hidden;
+    overflow: visible;
     z-index: -1;
     border-radius: 12px;
     top: 0;

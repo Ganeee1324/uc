@@ -69,13 +69,13 @@ class SearchSectionComponent {
         console.log(`SearchSectionComponent initialized with ID: ${this.options.instanceId}`);
         
         // Show loading cards immediately
-        this.showLoadingCards();
+        this.this.showLoadingCards();
         
         // Setup event listeners
         this.setupEventListeners();
         
         // Load data
-        await this.loadAllFiles();
+        await this.this.loadAllFiles();
         
         this.state.isInitialized = true;
     }
@@ -85,7 +85,7 @@ class SearchSectionComponent {
         const searchInput = this.domCache.get('searchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                this.performSearch(e.target.value);
+                this.this.performSearch(e.target.value);
             });
         }
         
@@ -99,7 +99,7 @@ class SearchSectionComponent {
     }
     
     // Core functionality methods
-    async loadAllFiles() {
+    async this.loadAllFiles() {
         try {
             console.log(`Loading files for instance ${this.options.instanceId}`);
             
@@ -128,7 +128,7 @@ class SearchSectionComponent {
                 this.state.originalFiles = this.extractAllFiles(data.vetrine);
                 this.state.currentFiles = [...this.state.originalFiles];
                 
-                await this.renderDocuments(this.state.currentFiles);
+                await this.this.renderDocuments(this.state.currentFiles);
             } else {
                 throw new Error(data.message || 'Failed to load files');
             }
@@ -138,13 +138,13 @@ class SearchSectionComponent {
         }
     }
     
-    async performSearch(query) {
+    async this.performSearch(query) {
         try {
             console.log(`Performing search for instance ${this.options.instanceId}:`, query);
             
             if (!query || query.trim() === '') {
                 // If no query, load all files
-                await this.loadAllFiles();
+                await this.this.loadAllFiles();
                 return;
             }
 
@@ -167,7 +167,7 @@ class SearchSectionComponent {
                 this.state.currentVetrine = data.vetrine || [];
                 this.state.currentFiles = this.extractAllFiles(data.vetrina);
                 
-                await this.renderDocuments(this.state.currentFiles);
+                await this.this.renderDocuments(this.state.currentFiles);
             } else {
                 throw new Error(data.message || 'Search failed');
             }
@@ -177,7 +177,7 @@ class SearchSectionComponent {
         }
     }
     
-    showLoadingCards(count = null) {
+    this.showLoadingCards(count = null) {
         console.log(`Showing loading cards for instance ${this.options.instanceId}`);
         // Implementation will be added
     }
@@ -197,7 +197,7 @@ class SearchSectionComponent {
         return [];
     }
     
-    async renderDocuments(files) {
+    async this.renderDocuments(files) {
         console.log(`Rendering ${files.length} documents for instance ${this.options.instanceId}`);
         // Implementation will be added
     }
@@ -210,7 +210,7 @@ function debugPensatoTextPosition() {
     console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
     
     // Find the search subtitle element
-    const searchSubtitle = document.querySelector('.search-subtitle');
+    const searchSubtitle = this.container.querySelector('.search-subtitle');
     if (searchSubtitle) {
         const rect = searchSubtitle.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(searchSubtitle);
@@ -242,7 +242,7 @@ function debugPensatoTextPosition() {
     }
     
     // Check search section
-    const searchSection = document.querySelector('.search-section');
+    const searchSection = this.container.querySelector('.search-section');
     if (searchSection) {
         const rect = searchSection.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(searchSection);
@@ -268,7 +268,7 @@ function debugPensatoTextPosition() {
     }
     
     // Check documents grid
-    const documentsGrid = document.getElementById('documentsGrid');
+    const documentsGrid = this.container.querySelector('documentsGrid');
     if (documentsGrid) {
         const rect = documentsGrid.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(documentsGrid);
@@ -298,7 +298,7 @@ function debugPensatoTextPosition() {
     }
     
     // Check main content
-    const mainContent = document.querySelector('.main-content');
+    const mainContent = this.container.querySelector('.main-content');
     if (mainContent) {
         const rect = mainContent.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(mainContent);
@@ -321,7 +321,7 @@ function debugPensatoTextPosition() {
     }
     
     // Check if we're in no-results state
-    const noResultsElement = document.querySelector('.no-results');
+    const noResultsElement = this.container.querySelector('.no-results');
     if (noResultsElement) {
         const rect = noResultsElement.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(noResultsElement);
@@ -455,10 +455,10 @@ function checkAuthentication() {
     return !!authToken;
 }
 
-let currentVetrine = [];
-let currentFiles = [];
-let originalFiles = []; // Keep original unfiltered data
-let isFiltersOpen = false;
+this.state.currentVetrine = [];
+this.state.currentFiles = [];
+this.state.originalFiles = []; // Keep original unfiltered data
+this.state.this.state.isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
@@ -480,10 +480,10 @@ async function fetchCurrentUserData() {
 }
 
 function updateHeaderUserInfo(user) {
-    const userAvatar = document.getElementById('userAvatar');
-    const dropdownAvatar = document.getElementById('dropdownAvatar');
-    const dropdownUserName = document.getElementById('dropdownUserName');
-    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    const userAvatar = this.container.querySelector('userAvatar');
+    const dropdownAvatar = this.container.querySelector('dropdownAvatar');
+    const dropdownUserName = this.container.querySelector('dropdownUserName');
+    const dropdownUserEmail = this.container.querySelector('dropdownUserEmail');
     
     if (user) {
         // Construct the user's full name for the avatar
@@ -523,7 +523,7 @@ function updateHeaderUserInfo(user) {
         }
         
         // Handle hover and click for user avatar
-        const userInfo = document.querySelector('.user-info');
+        const userInfo = this.container.querySelector('.user-info');
         let hoverTimeout;
         
         // Check if device supports hover
@@ -538,7 +538,7 @@ function updateHeaderUserInfo(user) {
             });
             
             // Handle mouse enter on dropdown to keep it open
-            const userDropdown = document.getElementById('userDropdown');
+            const userDropdown = this.container.querySelector('userDropdown');
             if (userDropdown) {
                 userDropdown.addEventListener('mouseenter', (event) => {
                     event.stopPropagation();
@@ -570,7 +570,7 @@ function updateHeaderUserInfo(user) {
         });
 
         // Make dropdown user info clickable to redirect to profile
-        const dropdownUserInfo = document.querySelector('.dropdown-user-info');
+        const dropdownUserInfo = this.container.querySelector('.dropdown-user-info');
         if (dropdownUserInfo) {
             dropdownUserInfo.addEventListener('click', (event) => {
                 event.stopPropagation();
@@ -598,7 +598,7 @@ function updateHeaderUserInfo(user) {
         }
 
         // Logout button
-        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutBtn = this.container.querySelector('logoutBtn');
         if(logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -615,7 +615,7 @@ function updateHeaderUserInfo(user) {
         `;
         
         // Remove dropdown functionality for non-authenticated users
-        const userInfo = document.querySelector('.user-info');
+        const userInfo = this.container.querySelector('.user-info');
         if (userInfo) {
             userInfo.classList.remove('open');
         }
@@ -623,7 +623,7 @@ function updateHeaderUserInfo(user) {
 }
 
 document.addEventListener('click', () => {
-    const userInfo = document.querySelector('.user-info');
+    const userInfo = this.container.querySelector('.user-info');
     if (userInfo && userInfo.classList.contains('open')) {
         userInfo.classList.remove('open');
     }
@@ -632,7 +632,7 @@ document.addEventListener('click', () => {
 function initializeAnimations() {
     // Remove static cards initialization since we'll load dynamic data
     setTimeout(() => {
-        const cards = document.querySelectorAll('.document-card');
+        const cards = this.container.querySelectorAll('.document-card');
         cards.forEach((card, index) => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
@@ -645,11 +645,11 @@ function initializeAnimations() {
 // ===========================
 
 function initializeFilters() {
-    const filtersBtn = document.getElementById('filtersBtn');
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const filtersClose = document.getElementById('filtersClose');
-    const clearAllFilters = document.getElementById('clearAllFilters');
+    const filtersBtn = this.container.querySelector('filtersBtn');
+    const filtersPanel = this.container.querySelector('filtersPanel');
+    const filtersOverlay = this.container.querySelector('filtersOverlay');
+    const filtersClose = this.container.querySelector('filtersClose');
+    const clearAllFilters = this.container.querySelector('clearAllFilters');
 
     // Filter panel toggle
     if (filtersBtn) filtersBtn.addEventListener('click', toggleFiltersPanel);
@@ -669,7 +669,7 @@ function initializeFilters() {
 
     // Close on escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isFiltersOpen) {
+        if (e.key === 'Escape' && this.state.isFiltersOpen) {
             closeFiltersPanel();
         }
     });
@@ -687,7 +687,7 @@ function initializeFilterControls() {
     // Order functionality
     initializeOrderDropdown();
     // Ensure price range is visible for 'Tutti' after all initializations
-    const priceRangeContainer = document.getElementById('priceRangeContainer');
+    const priceRangeContainer = this.container.querySelector('priceRangeContainer');
     if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
         priceRangeContainer.style.display = 'block';
     }
@@ -703,8 +703,8 @@ function handleFilterChangeImmediate(e) {
 
 
 function initializeCourseFilter() {
-    const courseInput = document.getElementById('courseFilter');
-    const suggestionsContainer = document.getElementById('courseSuggestions');
+    const courseInput = this.container.querySelector('courseFilter');
+    const suggestionsContainer = this.container.querySelector('courseSuggestions');
     let courses = [];
     let selectedIndex = -1;
     
@@ -825,8 +825,8 @@ function initializeCourseFilter() {
 }
 
 function initializeCanaleFilter() {
-    const canaleInput = document.getElementById('canaleFilter');
-    const suggestionsContainer = document.getElementById('canaleSuggestions');
+    const canaleInput = this.container.querySelector('canaleFilter');
+    const suggestionsContainer = this.container.querySelector('canaleSuggestions');
     let canali = ['A', 'B', 'C', 'D', 'E', 'F', 'Canale Unico'];
     let selectedIndex = -1;
     
@@ -927,7 +927,7 @@ function initializeCanaleFilter() {
 
 // Helper functions
 function clearCourseFilter() {
-    const courseInput = document.getElementById('courseFilter');
+    const courseInput = this.container.querySelector('courseFilter');
     if (courseInput) {
         courseInput.value = '';
         filterManager.removeFilter('course');
@@ -950,14 +950,14 @@ function setupDropdowns() {
         
         // Setup searchable dropdowns (faculty, course, canale)
         searchableDropdowns.forEach(type => {
-            const container = document.querySelector(`[data-dropdown="${type}"]`);
-            const input = document.getElementById(`${type}Filter`);
-            const options = document.getElementById(`${type}Options`);
+            const container = this.container.querySelector(`[data-dropdown="${type}"]`);
+            const input = this.container.querySelector(`${type}Filter`);
+            const options = this.container.querySelector(`${type}Options`);
             
             if (!container || !input || !options) return;
             
             // Handle filter label click - close dropdown if open, do nothing if closed
-            const label = document.querySelector(`label[for="${type}Filter"]`);
+            const label = this.container.querySelector(`label[for="${type}Filter"]`);
             if (label) {
                 label.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -978,7 +978,7 @@ function setupDropdowns() {
                 if (value === '') {
                     delete filterManager.filters[type];
                     if (type === 'faculty') {
-                        const courseInput = document.getElementById('courseFilter');
+                        const courseInput = this.container.querySelector('courseFilter');
                         courseInput.value = '';
                         delete filterManager.filters.course;
                     }
@@ -1048,14 +1048,14 @@ function setupDropdowns() {
         
         // Setup static dropdowns (documentType, language, academicYear, tag) - same logic as searchable but no text input
         staticDropdowns.forEach(type => {
-            const container = document.querySelector(`[data-dropdown="${type}"]`);
-            const input = document.getElementById(`${type}Filter`);
-            const options = document.getElementById(`${type}Options`);
+            const container = this.container.querySelector(`[data-dropdown="${type}"]`);
+            const input = this.container.querySelector(`${type}Filter`);
+            const options = this.container.querySelector(`${type}Options`);
             
             if (!container || !input || !options) return;
             
             // Handle filter label click - close dropdown if open, do nothing if closed
-            const label = document.querySelector(`label[for="${type}Filter"]`);
+            const label = this.container.querySelector(`label[for="${type}Filter"]`);
             if (label) {
                 label.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1118,7 +1118,7 @@ function setupDropdowns() {
                 
                 // Clear any invalid inputs consistently
                 allDropdowns.forEach(type => {
-                    const input = document.getElementById(`${type}Filter`);
+                    const input = this.container.querySelector(`${type}Filter`);
                     if (input && !input.readOnly) {
                         const currentValue = input.value.trim();
                         
@@ -1133,7 +1133,7 @@ function setupDropdowns() {
                                 input.value = '';
                                 delete filterManager.filters[type];
                                 if (type === 'faculty') {
-                                    const courseInput = document.getElementById('courseFilter');
+                                    const courseInput = this.container.querySelector('courseFilter');
                                     courseInput.value = '';
                                     delete filterManager.filters.course;
                                 }
@@ -1173,7 +1173,7 @@ function toggleDropdown(container, type) {
     
     if (!isOpen) {
         container.classList.add('open');
-        const input = document.getElementById(`${type}Filter`);
+        const input = this.container.querySelector(`${type}Filter`);
         // Always clear input value so all options are shown
         if (input) input.value = '';
         // Update input styling for multi-select
@@ -1214,7 +1214,7 @@ function positionDropdown(input, dropdown) {
 }
 
 function closeAllDropdowns() {
-    document.querySelectorAll('.dropdown-container').forEach(container => {
+    this.container.querySelectorAll('.dropdown-container').forEach(container => {
         container.classList.remove('open');
     });
 }
@@ -1222,10 +1222,10 @@ function closeAllDropdowns() {
 function repositionOpenDropdowns() {
     const allDropdowns = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear'];
     allDropdowns.forEach(type => {
-        const container = document.querySelector(`[data-dropdown="${type}"]`);
+        const container = this.container.querySelector(`[data-dropdown="${type}"]`);
         if (container && container.classList.contains('open')) {
-            const input = document.getElementById(`${type}Filter`);
-            const dropdown = document.getElementById(`${type}Dropdown`);
+            const input = this.container.querySelector(`${type}Filter`);
+            const dropdown = this.container.querySelector(`${type}Dropdown`);
             if (input && dropdown) {
                 positionDropdown(input, dropdown);
             }
@@ -1234,7 +1234,7 @@ function repositionOpenDropdowns() {
 }
 
 function resetDropdownHighlight(type) {
-    const options = document.getElementById(`${type}Options`);
+    const options = this.container.querySelector(`${type}Options`);
     if (options) {
         // Remove all highlights
         options.querySelectorAll('.dropdown-option.highlighted').forEach(option => {
@@ -1391,8 +1391,8 @@ function populateDropdownOptions() {
 }
 
 function populateOptions(type, items) {
-    const options = document.getElementById(`${type}Options`);
-    const currentValue = document.getElementById(`${type}Filter`).value;
+    const options = this.container.querySelector(`${type}Options`);
+    const currentValue = this.container.querySelector(`${type}Filter`).value;
     
     if (!options) {
         return;
@@ -1601,8 +1601,8 @@ function filterDropdownOptions(type, searchTerm) {
 }
 
 function selectDropdownOption(type, value, displayText = null) {
-    const input = document.getElementById(`${type}Filter`);
-    const container = document.querySelector(`[data-dropdown="${type}"]`);
+    const input = this.container.querySelector(`${type}Filter`);
+    const container = this.container.querySelector(`[data-dropdown="${type}"]`);
     
     // Map dropdown types to filter keys
     const filterKeyMap = {
@@ -1658,7 +1658,7 @@ function selectDropdownOption(type, value, displayText = null) {
             delete filterManager.filters[filterKey];
         }
         if (type === 'faculty') {
-            const courseInput = document.getElementById('courseFilter');
+            const courseInput = this.container.querySelector('courseFilter');
             courseInput.value = '';
             delete filterManager.filters.course;
             filterDropdownOptions('course', '');
@@ -1688,7 +1688,7 @@ function removeSpecificFilterValue(type, value) {
     };
     
     const filterKey = filterKeyMap[type] || type;
-    const input = document.getElementById(`${type}Filter`);
+    const input = this.container.querySelector(`${type}Filter`);
     
     // Determine which filters support multi-selection
     const multiSelectFilters = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
@@ -1765,7 +1765,7 @@ function removeSpecificFilterValue(type, value) {
         // Handle dependent dropdowns for multi-select faculty changes
         if (type === 'faculty') {
             // Clear course filter since faculty selection changed
-            const courseInput = document.getElementById('courseFilter');
+            const courseInput = this.container.querySelector('courseFilter');
             courseInput.value = '';
             delete filterManager.filters.course;
             // Update course dropdown options based on remaining faculty selection(s)
@@ -1782,7 +1782,7 @@ function removeSpecificFilterValue(type, value) {
         // Handle dependent dropdowns
         if (type === 'faculty') {
             // Clear course filter since faculty selection changed
-            const courseInput = document.getElementById('courseFilter');
+            const courseInput = this.container.querySelector('courseFilter');
             courseInput.value = '';
             delete filterManager.filters.course;
             // Update course dropdown options based on remaining faculty selection(s)
@@ -1802,7 +1802,7 @@ function updateActiveFilterIndicators() {
     const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     
     dropdownTypes.forEach(type => {
-        const options = document.getElementById(`${type}Options`);
+        const options = this.container.querySelector(`${type}Options`);
         if (!options) return;
         
         const filterKeyMap = {
@@ -1826,8 +1826,8 @@ function updateActiveFilterIndicators() {
 }
 
 function removeFilterFromDropdown(type, filterKey) {
-    const input = document.getElementById(`${type}Filter`);
-    const container = document.querySelector(`[data-dropdown="${type}"]`);
+    const input = this.container.querySelector(`${type}Filter`);
+    const container = this.container.querySelector(`[data-dropdown="${type}"]`);
     
     // Clear the input
     input.value = '';
@@ -1837,7 +1837,7 @@ function removeFilterFromDropdown(type, filterKey) {
     delete filterManager.filters[filterKey];
     
     // Update visual selection in dropdown
-    const options = document.getElementById(`${type}Options`);
+    const options = this.container.querySelector(`${type}Options`);
     if (options) {
         options.querySelectorAll('.dropdown-option').forEach(option => {
             option.classList.remove('selected');
@@ -1846,7 +1846,7 @@ function removeFilterFromDropdown(type, filterKey) {
     
     // Handle dependent dropdowns
     if (type === 'faculty') {
-        const courseInput = document.getElementById('courseFilter');
+        const courseInput = this.container.querySelector('courseFilter');
         courseInput.value = '';
         delete filterManager.filters.course;
         filterDropdownOptions('course', '');
@@ -1893,7 +1893,7 @@ function removeFilterFromDropdown(type, filterKey) {
 }
 
 function handleDropdownKeyboard(e, type) {
-    const options = document.getElementById(`${type}Options`);
+    const options = this.container.querySelector(`${type}Options`);
     const highlighted = options.querySelector('.dropdown-option.highlighted');
     const allOptions = options.querySelectorAll('.dropdown-option');
     
@@ -1935,8 +1935,8 @@ function handleDropdownKeyboard(e, type) {
 }
 
 function initializeRatingFilter() {
-    const ratingStars = document.querySelectorAll('.rating-star-filter');
-    const ratingText = document.getElementById('ratingText');
+    const ratingStars = this.container.querySelectorAll('.rating-star-filter');
+    const ratingText = this.container.querySelector('ratingText');
     
     if (!ratingStars.length || !ratingText) return;
     
@@ -1986,8 +1986,8 @@ function initializeToggleFilters() {
         filterManager.filters.priceType = 'all';
     }
     // Price toggles
-    const priceToggles = document.querySelectorAll('.price-toggle');
-    const priceRangeContainer = document.getElementById('priceRangeContainer');
+    const priceToggles = this.container.querySelectorAll('.price-toggle');
+    const priceRangeContainer = this.container.querySelector('priceRangeContainer');
 
     // Ensure 'Tutti' is active and price slider is visible on initial load
     let initialSet = false;
@@ -2016,10 +2016,10 @@ function initializeToggleFilters() {
                 delete filterManager.filters.minPrice;
                 delete filterManager.filters.maxPrice;
                 if (priceRangeContainer) priceRangeContainer.style.display = 'block';
-                const minPriceRange = document.getElementById('minPriceRange');
-                const maxPriceRange = document.getElementById('maxPriceRange');
-                const minPriceValue = document.getElementById('minPriceValue');
-                const maxPriceValue = document.getElementById('maxPriceValue');
+                const minPriceRange = this.container.querySelector('minPriceRange');
+                const maxPriceRange = this.container.querySelector('maxPriceRange');
+                const minPriceValue = this.container.querySelector('minPriceValue');
+                const maxPriceValue = this.container.querySelector('maxPriceValue');
                 if (minPriceRange) minPriceRange.value = 0;
                 if (maxPriceRange) maxPriceRange.value = 100;
                 if (minPriceValue) minPriceValue.textContent = '€0';
@@ -2033,8 +2033,8 @@ function initializeToggleFilters() {
             } else if (priceType === 'paid') {
                 filterManager.filters.priceType = 'paid';
                 if (priceRangeContainer) priceRangeContainer.style.display = 'block';
-                const minPriceRange = document.getElementById('minPriceRange');
-                const maxPriceRange = document.getElementById('maxPriceRange');
+                const minPriceRange = this.container.querySelector('minPriceRange');
+                const maxPriceRange = this.container.querySelector('maxPriceRange');
                 if (minPriceRange && maxPriceRange) {
                     const minVal = parseFloat(minPriceRange.value);
                     const maxVal = parseFloat(maxPriceRange.value);
@@ -2050,7 +2050,7 @@ function initializeToggleFilters() {
     });
 
     // Vetrina toggles
-    const vetrinaToggles = document.querySelectorAll('.vetrina-toggle');
+    const vetrinaToggles = this.container.querySelectorAll('.vetrina-toggle');
     vetrinaToggles.forEach(toggle => {
         toggle.addEventListener('click', () => {
             vetrinaToggles.forEach(t => t.classList.remove('active'));
@@ -2068,11 +2068,11 @@ function initializeToggleFilters() {
 }
 
 function initializePriceRangeFilter() {
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
-    const minPriceValue = document.getElementById('minPriceValue');
-    const maxPriceValue = document.getElementById('maxPriceValue');
-    const rangeFill = document.getElementById('rangeFill');
+    const minPriceRange = this.container.querySelector('minPriceRange');
+    const maxPriceRange = this.container.querySelector('maxPriceRange');
+    const minPriceValue = this.container.querySelector('minPriceValue');
+    const maxPriceValue = this.container.querySelector('maxPriceValue');
+    const rangeFill = this.container.querySelector('rangeFill');
     
     if (minPriceRange && maxPriceRange) {
         // Initialize values but don't add to activeFilters yet
@@ -2108,10 +2108,10 @@ function debounce(func, wait) {
 const debouncedApplyFilters = debounce(applyFiltersAndRender, 200);
 
 function handlePriceRangeChange() {
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
-    const minPriceValue = document.getElementById('minPriceValue');
-    const maxPriceValue = document.getElementById('maxPriceValue');
+    const minPriceRange = this.container.querySelector('minPriceRange');
+    const maxPriceRange = this.container.querySelector('maxPriceRange');
+    const minPriceValue = this.container.querySelector('minPriceValue');
+    const maxPriceValue = this.container.querySelector('maxPriceValue');
     
     let minVal = parseFloat(minPriceRange.value);
     let maxVal = parseFloat(maxPriceRange.value);
@@ -2136,9 +2136,9 @@ function handlePriceRangeChange() {
 }
 
 function updatePriceSliderFill() {
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
-    const rangeFill = document.getElementById('rangeFill');
+    const minPriceRange = this.container.querySelector('minPriceRange');
+    const maxPriceRange = this.container.querySelector('maxPriceRange');
+    const rangeFill = this.container.querySelector('rangeFill');
     
     if (minPriceRange && maxPriceRange && rangeFill) {
         const min = parseFloat(minPriceRange.min);
@@ -2155,7 +2155,7 @@ function updatePriceSliderFill() {
 }
 
 function initializeEditableValues() {
-    const editableValues = document.querySelectorAll('.editable-value');
+    const editableValues = this.container.querySelectorAll('.editable-value');
     
     editableValues.forEach(element => {
         element.addEventListener('click', handleEditableValueClick);
@@ -2250,15 +2250,15 @@ function handleEditableValueBlur(element, type, position) {
 
 function updateRangeSliderFromEditableValue(type, position, value) {
     if (type === 'price') {
-        const minPriceRange = document.getElementById('minPriceRange');
-        const maxPriceRange = document.getElementById('maxPriceRange');
+        const minPriceRange = this.container.querySelector('minPriceRange');
+        const maxPriceRange = this.container.querySelector('maxPriceRange');
         
         if (position === 'min') {
             minPriceRange.value = value;
             // Ensure min doesn't exceed max
             if (value > parseFloat(maxPriceRange.value)) {
                 maxPriceRange.value = value;
-                const maxPriceValue = document.getElementById('maxPriceValue');
+                const maxPriceValue = this.container.querySelector('maxPriceValue');
                 if (maxPriceValue) maxPriceValue.textContent = `€${value}`;
             }
         } else if (position === 'max') {
@@ -2266,7 +2266,7 @@ function updateRangeSliderFromEditableValue(type, position, value) {
             // Ensure max doesn't go below min
             if (value < parseFloat(minPriceRange.value)) {
                 minPriceRange.value = value;
-                const minPriceValue = document.getElementById('minPriceValue');
+                const minPriceValue = this.container.querySelector('minPriceValue');
                 if (minPriceValue) minPriceValue.textContent = `€${value}`;
             }
         }
@@ -2275,15 +2275,15 @@ function updateRangeSliderFromEditableValue(type, position, value) {
         applyPriceFilters(parseFloat(minPriceRange.value), parseFloat(maxPriceRange.value));
         
     } else if (type === 'pages') {
-        const minPagesRange = document.getElementById('minPagesRange');
-        const maxPagesRange = document.getElementById('maxPagesRange');
+        const minPagesRange = this.container.querySelector('minPagesRange');
+        const maxPagesRange = this.container.querySelector('maxPagesRange');
         
         if (position === 'min') {
             minPagesRange.value = value;
             // Ensure min doesn't exceed max
             if (value > parseInt(maxPagesRange.value)) {
                 maxPagesRange.value = value;
-                const maxPagesValue = document.getElementById('maxPagesValue');
+                const maxPagesValue = this.container.querySelector('maxPagesValue');
                 if (maxPagesValue) maxPagesValue.textContent = value;
             }
         } else if (position === 'max') {
@@ -2291,7 +2291,7 @@ function updateRangeSliderFromEditableValue(type, position, value) {
             // Ensure max doesn't go below min
             if (value < parseInt(minPagesRange.value)) {
                 minPagesRange.value = value;
-                const minPagesValue = document.getElementById('minPagesValue');
+                const minPagesValue = this.container.querySelector('minPagesValue');
                 if (minPagesValue) minPagesValue.textContent = value;
             }
         }
@@ -2326,7 +2326,7 @@ let currentOrder = 'relevance';
 
 // Initialize order button text on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const orderBtn = document.getElementById('orderBtn');
+    const orderBtn = this.container.querySelector('orderBtn');
     const orderText = orderBtn?.querySelector('.order-text');
     if (orderText) {
         orderText.textContent = 'Rilevanza';
@@ -2334,9 +2334,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeOrderDropdown() {
-    const orderBtn = document.getElementById('orderBtn');
-    const orderDropdown = document.querySelector('.order-dropdown-content');
-    const orderOptions = document.querySelectorAll('.order-option');
+    const orderBtn = this.container.querySelector('orderBtn');
+    const orderDropdown = this.container.querySelector('.order-dropdown-content');
+    const orderOptions = this.container.querySelectorAll('.order-option');
     
     if (!orderBtn || !orderDropdown) return;
     
@@ -2379,7 +2379,7 @@ function selectOrderOption(orderType) {
     currentOrder = orderType;
     
     // Update button text based on selection
-    const orderBtn = document.getElementById('orderBtn');
+    const orderBtn = this.container.querySelector('orderBtn');
     const orderText = orderBtn.querySelector('.order-text');
     
     const orderLabels = {
@@ -2411,7 +2411,7 @@ function applyOrderToResults() {
     const sortedResults = sortDocuments(currentResults, currentOrder);
     
     // Re-render the documents with new order
-    renderDocuments(sortedResults);
+    this.renderDocuments(sortedResults);
 }
 
 function sortDocuments(documents, orderType) {
@@ -2479,35 +2479,35 @@ function sortDocuments(documents, orderType) {
 async function applyFiltersAndRender() {
     // Check if we have data loaded
     if (!originalFiles || originalFiles.length === 0) {
-        await loadAllFiles();
+        await this.loadAllFiles();
         return;
     }
     
     // Check if we have backend-searchable filters (course_name, faculty_name) 
     // or if there's an active search query
-    const searchInput = document.getElementById('searchInput');
+    const searchInput = this.container.querySelector('searchInput');
     const currentQuery = searchInput?.value?.trim() || '';
     
     const hasBackendFilters = filterManager.filters.course || filterManager.filters.faculty || filterManager.filters.canale || filterManager.filters.language || filterManager.filters.tag || filterManager.filters.documentType || filterManager.filters.academicYear || filterManager.filters.courseYear;
     
     if (hasBackendFilters || currentQuery) {
         // Use backend search with filters
-        await performSearch(currentQuery);
+        await this.performSearch(currentQuery);
     } else if (Object.keys(filterManager.filters).length === 0) {
         // No filters active, show all original files
-        renderDocuments(originalFiles);
+        this.renderDocuments(originalFiles);
         currentFiles = originalFiles;
         updateActiveFiltersDisplay();
         updateBottomFilterCount();
         showStatus(`${originalFiles.length} documenti disponibili 📚`);
     } else {
         // Show loading cards for client-side filtering
-        showLoadingCards();
+        this.showLoadingCards();
         
         // Apply only client-side filters to original data
         const filteredFiles = applyFiltersToFiles(originalFiles);
         currentFiles = filteredFiles;
-        renderDocuments(filteredFiles);
+        this.renderDocuments(filteredFiles);
         updateActiveFiltersDisplay();
         updateBottomFilterCount();
         
@@ -2524,13 +2524,13 @@ async function applyFiltersAndRender() {
 }
 
 function toggleFiltersPanel() {
-    isFiltersOpen = !isFiltersOpen;
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const mainContent = document.querySelector('.main-content');
-    const documentsGrid = document.getElementById('documentsGrid');
+    this.state.isFiltersOpen = !this.state.isFiltersOpen;
+    const filtersPanel = this.container.querySelector('filtersPanel');
+    const filtersOverlay = this.container.querySelector('filtersOverlay');
+    const mainContent = this.container.querySelector('.main-content');
+    const documentsGrid = this.container.querySelector('documentsGrid');
     
-    if (isFiltersOpen) {
+    if (this.state.isFiltersOpen) {
         // Ensure robust positioning before showing
         if (filtersPanel) {
             filtersPanel.style.position = 'fixed';
@@ -2560,8 +2560,8 @@ function toggleFiltersPanel() {
         showStatus('Panel filtri aperto 🎯');
 
         // Always show price slider if 'Tutti' is active when opening filters
-        const priceRangeContainer = document.getElementById('priceRangeContainer');
-        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        const priceRangeContainer = this.container.querySelector('priceRangeContainer');
+        const tuttiToggle = this.container.querySelector('.price-toggle.active[data-price="all"]');
         if (tuttiToggle && priceRangeContainer) {
             priceRangeContainer.style.display = 'block';
         }
@@ -2571,11 +2571,11 @@ function toggleFiltersPanel() {
 }
 
 function addBottomClearAllButton() {
-    const filtersContent = document.querySelector('.filters-content');
+    const filtersContent = this.container.querySelector('.filters-content');
     if (!filtersContent) return;
     
     // Check if bottom clear button already exists
-    if (document.getElementById('bottomClearAllButton')) return;
+    if (this.container.querySelector('bottomClearAllButton')) return;
     
     // Create bottom clear all button section
     const bottomClearSection = document.createElement('div');
@@ -2677,8 +2677,8 @@ class FilterManager {
     
     // Updated count function that uses state instead of DOM counting
     updateBottomFilterCount() {
-        const bottomFilterCountElement = document.getElementById('bottomFilterCount');
-        const filterCountBadge = document.getElementById('filterCount');
+        const bottomFilterCountElement = this.container.querySelector('bottomFilterCount');
+        const filterCountBadge = this.container.querySelector('filterCount');
         const activeCountObj = this.getActiveFilterCount();
         const activeCount = activeCountObj.count;
         // Debug log
@@ -2701,7 +2701,7 @@ class FilterManager {
     
     // Enhanced display update with proper timing
     updateActiveFiltersDisplay() {
-        const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+        const activeFiltersContainer = this.container.querySelector('activeFiltersDisplay');
         if (!activeFiltersContainer) return;
         // Clear existing pills
         activeFiltersContainer.innerHTML = '';
@@ -2806,11 +2806,11 @@ function updateActiveFiltersDisplay() {
 }
 
 function closeFiltersPanel() {
-    isFiltersOpen = false;
-    const filtersPanel = document.getElementById('filtersPanel');
-    const filtersOverlay = document.getElementById('filtersOverlay');
-    const mainContent = document.querySelector('.main-content');
-    const documentsGrid = document.getElementById('documentsGrid');
+    this.state.isFiltersOpen = false;
+    const filtersPanel = this.container.querySelector('filtersPanel');
+    const filtersOverlay = this.container.querySelector('filtersOverlay');
+    const mainContent = this.container.querySelector('.main-content');
+    const documentsGrid = this.container.querySelector('documentsGrid');
     
     if (filtersPanel) filtersPanel.classList.remove('active');
     if (filtersOverlay) filtersOverlay.classList.remove('active');
@@ -2879,11 +2879,11 @@ async function populateFilterOptions() {
 
 
 function populateDropdownFilter(type, options) {
-    const optionsContainer = document.getElementById(`${type}Options`);
+    const optionsContainer = this.container.querySelector(`${type}Options`);
     if (!optionsContainer) return;
 
     // Save current selection and input value
-    const input = document.getElementById(`${type}Filter`);
+    const input = this.container.querySelector(`${type}Filter`);
     const currentValue = filterManager.filters[type] || '';
     const currentInputValue = input ? input.value : '';
 
@@ -2922,7 +2922,7 @@ function populateDropdownFilter(type, options) {
 }
 
 function populateSelect(selectId, options) {
-    const select = document.getElementById(selectId);
+    const select = this.container.querySelector(selectId);
     if (!select) return;
 
     // Save current selection
@@ -3156,7 +3156,7 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
-    const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+    const activeFiltersContainer = this.container.querySelector('activeFiltersDisplay');
     if (!activeFiltersContainer) return;
     
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
@@ -3383,7 +3383,7 @@ function removeSpecificFilterValueFromPill(filterKey, specificValue) {
         }
         
         // Update the input display
-        const input = document.getElementById(`${filterKey}Filter`);
+        const input = this.container.querySelector(`${filterKey}Filter`);
         if (input) {
             if (!filterManager.filters[filterKey] || filterManager.filters[filterKey].length === 0) {
                 input.value = '';
@@ -3417,7 +3417,7 @@ function removeSpecificFilterValueFromPill(filterKey, specificValue) {
 function clearAllActiveFilters(event) {
     event?.stopPropagation();
     
-    const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
+    const activeFiltersContainer = this.container.querySelector('activeFiltersDisplay');
     if (activeFiltersContainer) {
         // Animate all pills out
         const pills = activeFiltersContainer.querySelectorAll('.filter-pill, .clear-all-filters-btn');
@@ -3441,10 +3441,10 @@ function removeFilter(filterKey) {
         delete filterManager.filters.minPrice;
         delete filterManager.filters.maxPrice;
         
-        const minPriceRange = document.getElementById('minPriceRange');
-        const maxPriceRange = document.getElementById('maxPriceRange');
-        const minPriceValue = document.getElementById('minPriceValue');
-        const maxPriceValue = document.getElementById('maxPriceValue');
+        const minPriceRange = this.container.querySelector('minPriceRange');
+        const maxPriceRange = this.container.querySelector('maxPriceRange');
+        const minPriceValue = this.container.querySelector('minPriceValue');
+        const maxPriceValue = this.container.querySelector('maxPriceValue');
         
         if (minPriceRange) minPriceRange.value = 0;
         if (maxPriceRange) maxPriceRange.value = 100;
@@ -3468,17 +3468,17 @@ function removeFilter(filterKey) {
         
         const selectId = filterMap[filterKey];
         if (selectId) {
-            const select = document.getElementById(selectId);
+            const select = this.container.querySelector(selectId);
             if (select) select.selectedIndex = 0;
         }
         
         // Handle special cases
         if (filterKey === 'minRating') {
-            document.querySelectorAll('.rating-star-filter').forEach(star => {
+            this.container.querySelectorAll('.rating-star-filter').forEach(star => {
                 star.classList.remove('active');
                 star.style.color = '#d1d5db';
             });
-            const ratingText = document.getElementById('ratingText');
+            const ratingText = this.container.querySelector('ratingText');
             if (ratingText) ratingText.textContent = 'Qualsiasi rating';
         }
         
@@ -3487,20 +3487,20 @@ function removeFilter(filterKey) {
             delete filterManager.filters.minPrice;
             delete filterManager.filters.maxPrice;
             
-            document.querySelectorAll('.price-toggle').forEach(toggle => {
+            this.container.querySelectorAll('.price-toggle').forEach(toggle => {
                 toggle.classList.remove('active');
             });
-            const allPriceToggle = document.querySelector('.price-toggle[data-price="all"]');
+            const allPriceToggle = this.container.querySelector('.price-toggle[data-price="all"]');
             if (allPriceToggle) allPriceToggle.classList.add('active');
             
-            const priceRangeContainer = document.getElementById('priceRangeContainer');
+            const priceRangeContainer = this.container.querySelector('priceRangeContainer');
             if (priceRangeContainer) priceRangeContainer.style.display = 'none';
             
             // Reset price range sliders
-            const minPriceRange = document.getElementById('minPriceRange');
-            const maxPriceRange = document.getElementById('maxPriceRange');
-            const minPriceValue = document.getElementById('minPriceValue');
-            const maxPriceValue = document.getElementById('maxPriceValue');
+            const minPriceRange = this.container.querySelector('minPriceRange');
+            const maxPriceRange = this.container.querySelector('maxPriceRange');
+            const minPriceValue = this.container.querySelector('minPriceValue');
+            const maxPriceValue = this.container.querySelector('maxPriceValue');
             
             if (minPriceRange) minPriceRange.value = 0;
             if (maxPriceRange) maxPriceRange.value = 100;
@@ -3512,10 +3512,10 @@ function removeFilter(filterKey) {
 
         
         if (filterKey === 'vetrinaType') {
-            document.querySelectorAll('.vetrina-toggle').forEach(toggle => {
+            this.container.querySelectorAll('.vetrina-toggle').forEach(toggle => {
                 toggle.classList.remove('active');
             });
-            const allVetrinaToggle = document.querySelector('.vetrina-toggle[data-vetrina="all"]');
+            const allVetrinaToggle = this.container.querySelector('.vetrina-toggle[data-vetrina="all"]');
             if (allVetrinaToggle) allVetrinaToggle.classList.add('active');
         }
     }
@@ -3693,8 +3693,8 @@ async function makeAuthenticatedRequest(url) {
 }
 
 // Function to create and display loading cards
-function showLoadingCards(count = null) {
-    const grid = document.getElementById('documentsGrid');
+this.showLoadingCards(count = null) {
+    const grid = this.container.querySelector('documentsGrid');
     if (!grid) {
         console.error('❌ Grid element not found!');
         return;
@@ -3779,10 +3779,10 @@ function showLoadingCards(count = null) {
     // Add resize listener to update loading cards when screen size changes
     if (!window.loadingCardsResizeListener) {
         window.loadingCardsResizeListener = debounce(() => {
-            const grid = document.getElementById('documentsGrid');
+            const grid = this.container.querySelector('documentsGrid');
             if (grid && grid.classList.contains('loading')) {
                 console.log('📱 Screen resized, updating loading cards...');
-                showLoadingCards(); // Recalculate and update loading cards
+                this.showLoadingCards(); // Recalculate and update loading cards
             }
         }, 250); // Debounce resize events
         
@@ -3792,7 +3792,7 @@ function showLoadingCards(count = null) {
 
 
 
-async function loadAllFiles() {
+async this.loadAllFiles() {
     try {
         // 🚀 DEVELOPMENT MODE: Check if we should bypass backend
         if (DEV_MODE_NO_RESULTS) {
@@ -3800,7 +3800,7 @@ async function loadAllFiles() {
             showStatus('Modalità sviluppo: Nessun risultato');
             currentFiles = [];
             originalFiles = [];
-            renderDocuments([]);
+            this.renderDocuments([]);
             return;
         }
         
@@ -3884,7 +3884,7 @@ async function loadAllFiles() {
         
         currentFiles = allFiles;
         originalFiles = [...allFiles]; // Keep original copy
-        renderDocuments(currentFiles);
+        this.renderDocuments(currentFiles);
         populateFilterOptions();
         showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);
         
@@ -3893,11 +3893,11 @@ async function loadAllFiles() {
         // Show empty state without error message for guests
         currentFiles = [];
         originalFiles = [];
-        renderDocuments([]);
+        this.renderDocuments([]);
         showStatus('Nessuna vetrina disponibile');
     } finally {
         // Ensure loading class is removed even if there's an error
-        const grid = document.getElementById('documentsGrid');
+        const grid = this.container.querySelector('documentsGrid');
         if (grid) {
             grid.classList.remove('loading');
         }
@@ -3969,7 +3969,7 @@ async function loadValidTags() {
 
 // Function to update document card tags in the UI
 function updateDocumentCardTags(vetrinaId, tags) {
-    const card = document.querySelector(`[data-vetrina-id="${vetrinaId}"]`);
+    const card = this.container.querySelector(`[data-vetrina-id="${vetrinaId}"]`);
     if (!card) return;
     
     const badgesContainer = card.querySelector('.document-type-badges');
@@ -4128,7 +4128,7 @@ function formatCanaleDisplay(canale) {
     return canale;
 }
 
-function renderDocuments(files) {
+this.renderDocuments(files) {
     const grid = DOM_CACHE.get('documentsGrid');
     if (!grid) {
         console.error('Documents grid not found');
@@ -4502,7 +4502,7 @@ function renderDocuments(files) {
 
     // Animate document cards into view
     setTimeout(() => {
-        const cards = document.querySelectorAll('.document-card');
+        const cards = this.container.querySelectorAll('.document-card');
         cards.forEach((card, index) => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
@@ -4670,7 +4670,7 @@ async function toggleFavorite(button, event) {
                     (item.vetrina_id || item.id) === vetrinaIdInt
                 );
                 if (vetrinaIndex !== -1) {
-                    currentFiles[vetrinaIndex].favorite = isActive; // isActive is the new state
+                    this.state.currentFiles[vetrinaIndex].favorite = isActive; // isActive is the new state
                 }
             }
             if (originalFiles) {
@@ -4678,7 +4678,7 @@ async function toggleFavorite(button, event) {
                     (item.vetrina_id || item.id) === vetrinaIdInt
                 );
                 if (vetrinaIndex !== -1) {
-                    originalFiles[vetrinaIndex].favorite = isActive; // isActive is the new state
+                    this.state.originalFiles[vetrinaIndex].favorite = isActive; // isActive is the new state
                 }
             }
             
@@ -4761,7 +4761,7 @@ async function previewDocument(fileId) {
     const price = parseFloat(file.price) || 0;
     const ownerUsername = file.vetrina_info?.owner_username || 'Unknown';
     
-    const previewTitle = document.getElementById('previewTitle');
+    const previewTitle = this.container.querySelector('previewTitle');
     if (previewTitle) previewTitle.textContent = documentTitle;
     
     const content = `
@@ -4832,17 +4832,17 @@ async function previewDocument(fileId) {
             Chiudi
          </button>`;
     
-    const previewBody = document.getElementById('previewBody');
-    const previewActions = document.getElementById('previewActions');
-    const previewModal = document.getElementById('previewModal');
+    const previewBody = this.container.querySelector('previewBody');
+    const previewActions = this.container.querySelector('previewActions');
+    const previewModal = this.container.querySelector('previewModal');
     
     if (previewBody) previewBody.innerHTML = content;
     if (previewActions) previewActions.innerHTML = actions;
     if (previewModal) previewModal.classList.add('active');
     
     // Set the preview icon for the modal  
-    const modalImg = document.getElementById(`modalPreviewImg-${file.id}`);
-    const modalLoading = document.getElementById(`modalPreviewLoading-${file.id}`);
+    const modalImg = this.container.querySelector(`modalPreviewImg-${file.id}`);
+    const modalLoading = this.container.querySelector(`modalPreviewLoading-${file.id}`);
     
     if (modalLoading) {
         // Show loading state
@@ -4924,7 +4924,7 @@ async function previewDocument(fileId) {
 }
 
 function closePreview() {
-    const previewModal = document.getElementById('previewModal');
+    const previewModal = this.container.querySelector('previewModal');
     if (previewModal) previewModal.classList.remove('active');
 }
 
@@ -4969,7 +4969,7 @@ async function purchaseDocument(fileId) {
         await makeRequest(`/files/${fileId}/buy`, { method: 'POST' });
         showStatus('Acquisto completato! Documento sbloccato! 🎉');
         // Reload documents to update ownership status
-        loadAllFiles();
+        this.loadAllFiles();
     } catch (error) {
         showError('Acquisto fallito: ' + error.message);
     }
@@ -5126,7 +5126,7 @@ function restoreFiltersFromStorage() {
             // Apply filters to current documents
             if (originalFiles && originalFiles.length > 0) {
                 const filteredFiles = applyClientSideFilters(originalFiles);
-                renderDocuments(filteredFiles);
+                this.renderDocuments(filteredFiles);
                 currentFiles = filteredFiles;
                 
                 const filterCount = filterManager.getActiveFilterCount().count;
@@ -5146,7 +5146,7 @@ function restoreFiltersFromStorage() {
             
             // Show all documents
             if (originalFiles && originalFiles.length > 0) {
-                renderDocuments(originalFiles);
+                this.renderDocuments(originalFiles);
                 currentFiles = originalFiles;
                 showStatus(`${originalFiles.length} documenti disponibili 📚`);
             }
@@ -5161,7 +5161,7 @@ function restoreFiltersFromStorage() {
         updateActiveFiltersDisplay();
         
         if (originalFiles && originalFiles.length > 0) {
-            renderDocuments(originalFiles);
+            this.renderDocuments(originalFiles);
             currentFiles = originalFiles;
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
@@ -5215,7 +5215,7 @@ function updateFilterInputs() {
     // Clear all inputs first to ensure clean state
     const allInputs = ['facultyFilter', 'courseFilter', 'canaleFilter', 'documentTypeFilter', 'languageFilter', 'academicYearFilter', 'tagFilter'];
     allInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
+        const input = this.container.querySelector(inputId);
         if (input) {
             input.value = '';
         }
@@ -5230,7 +5230,7 @@ function updateFilterInputs() {
     };
     
     Object.entries(dropdownDefaults).forEach(([id, defaultValue]) => {
-        const input = document.getElementById(id);
+        const input = this.container.querySelector(id);
         if (input) {
             input.value = defaultValue;
         }
@@ -5241,7 +5241,7 @@ function updateFilterInputs() {
     // Update dropdown inputs
     const dropdownTypes = ['faculty', 'course', 'canale', 'documentType', 'language', 'academicYear', 'tag'];
     dropdownTypes.forEach(type => {
-        const input = document.getElementById(`${type}Filter`);
+        const input = this.container.querySelector(`${type}Filter`);
         const filterKey = type;
         if (input && filterManager.filters[filterKey]) {
             let displayValue = filterManager.filters[filterKey];
@@ -5266,7 +5266,7 @@ function updateFilterInputs() {
     const toggleTypes = ['priceType', 'vetrinaType'];
     toggleTypes.forEach(type => {
         const toggleClass = type.replace('Type', '-toggle');
-        document.querySelectorAll(`.${toggleClass}`).forEach(toggle => {
+        this.container.querySelectorAll(`.${toggleClass}`).forEach(toggle => {
             toggle.classList.remove('active');
         });
     });
@@ -5278,13 +5278,13 @@ function updateFilterInputs() {
         
         if (filterManager.filters[type] && filterManager.filters[type] !== 'all') {
             // Add active class to the correct toggle
-            const activeToggle = document.querySelector(`[data-${dataAttr}="${filterManager.filters[type]}"]`);
+            const activeToggle = this.container.querySelector(`[data-${dataAttr}="${filterManager.filters[type]}"]`);
             if (activeToggle) {
                 activeToggle.classList.add('active');
             }
         } else {
             // Default to "all" toggle if no filter is set
-            const allToggle = document.querySelector(`[data-${dataAttr}="all"]`);
+            const allToggle = this.container.querySelector(`[data-${dataAttr}="all"]`);
             if (allToggle) {
                 allToggle.classList.add('active');
             }
@@ -5292,11 +5292,11 @@ function updateFilterInputs() {
     });
     
     // Restore price range values
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
-    const minPriceValue = document.getElementById('minPriceValue');
-    const maxPriceValue = document.getElementById('maxPriceValue');
-    const priceRangeContainer = document.getElementById('priceRangeContainer');
+    const minPriceRange = this.container.querySelector('minPriceRange');
+    const maxPriceRange = this.container.querySelector('maxPriceRange');
+    const minPriceValue = this.container.querySelector('minPriceValue');
+    const maxPriceValue = this.container.querySelector('maxPriceValue');
+    const priceRangeContainer = this.container.querySelector('priceRangeContainer');
     
     if (filterManager.filters.minPrice !== undefined && filterManager.filters.maxPrice !== undefined) {
         if (minPriceRange) minPriceRange.value = filterManager.filters.minPrice;
@@ -5324,8 +5324,8 @@ function updateFilterInputs() {
     }
     
     // Restore rating filter
-    const ratingText = document.getElementById('ratingText');
-    const ratingStars = document.querySelectorAll('.rating-star-filter');
+    const ratingText = this.container.querySelector('ratingText');
+    const ratingStars = this.container.querySelectorAll('.rating-star-filter');
     
     // Reset all stars first
     ratingStars.forEach(star => {
@@ -5352,7 +5352,7 @@ function updateFilterInputs() {
     
     // Update dropdown option visual states
     dropdownTypes.forEach(type => {
-        const optionsContainer = document.getElementById(`${type}Options`);
+        const optionsContainer = this.container.querySelector(`${type}Options`);
         if (optionsContainer) {
             const options = optionsContainer.querySelectorAll('.dropdown-option');
             options.forEach(option => {
@@ -5373,10 +5373,10 @@ function updateFilterInputs() {
     
     // Close all dropdowns and suggestion containers
     closeAllDropdowns();
-    document.querySelectorAll('.author-suggestions, .autocomplete-suggestions').forEach(suggestions => {
+    this.container.querySelectorAll('.author-suggestions, .autocomplete-suggestions').forEach(suggestions => {
         suggestions.classList.remove('show');
     });
-    document.querySelectorAll('.author-container').forEach(container => {
+    this.container.querySelectorAll('.author-container').forEach(container => {
         container.classList.remove('open');
     });
 }
@@ -5395,21 +5395,21 @@ function logout() {
 // ===========================
 
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const userIcon = document.getElementById('userIcon');
+    const searchInput = this.container.querySelector('searchInput');
+    const searchBtn = this.container.querySelector('searchBtn');
+    const uploadBtn = this.container.querySelector('uploadBtn');
+    const userIcon = this.container.querySelector('userIcon');
 
     if (searchBtn) {
         searchBtn.addEventListener('click', async function() {
-            await performSearch(searchInput.value);
+            await this.performSearch(searchInput.value);
         });
     }
 
     if (searchInput) {
         searchInput.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
-                await performSearch(searchInput.value);
+                await this.performSearch(searchInput.value);
             }
         });
 
@@ -5432,11 +5432,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (Object.keys(filterManager.filters).length > 0) {
                         await applyFiltersAndRender();
                 } else {
-                        await loadAllFiles();
+                        await this.loadAllFiles();
                     }
                 } else if (this.value.length >= 2) {
                     // Only search when at least 2 characters
-                    await performSearch(this.value, currentSearchController.signal);
+                    await this.performSearch(this.value, currentSearchController.signal);
                 }
                 currentSearchController = null;
             }, 500); // Increased debounce delay for better performance
@@ -5461,7 +5461,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Close modal when clicking outside
-    const previewModal = document.getElementById('previewModal');
+    const previewModal = this.container.querySelector('previewModal');
     if (previewModal) {
         previewModal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -5482,7 +5482,7 @@ function initializeKeyboardShortcuts() {
         // Ctrl/Cmd + F to focus search (prevent default browser search)
         if ((e.ctrlKey || e.metaKey) && e.key === 'f' && !e.shiftKey) {
             e.preventDefault();
-            const searchInput = document.getElementById('searchInput');
+            const searchInput = this.container.querySelector('searchInput');
             if (searchInput) {
                 searchInput.focus();
                 searchInput.select();
@@ -5504,10 +5504,10 @@ function initializeKeyboardShortcuts() {
         // Escape to close filters or preview
         if (e.key === 'Escape') {
             e.preventDefault();
-            if (isFiltersOpen) {
+            if (this.state.isFiltersOpen) {
                 closeFiltersPanel();
             } else {
-                const previewModal = document.getElementById('previewModal');
+                const previewModal = this.container.querySelector('previewModal');
                 if (previewModal && previewModal.classList.contains('active')) {
                     closePreview();
                 }
@@ -5532,7 +5532,7 @@ window.clearAllFiltersAction = clearAllFiltersAction;
 
 async function openQuickLook(vetrina) {
     // Prevent multiple modals
-    if (document.getElementById('quick-look-overlay')) return;
+    if (this.container.querySelector('quick-look-overlay')) return;
 
     const modalHTML = `
         <div id="quick-look-overlay" class="quick-look-overlay">
@@ -5579,7 +5579,7 @@ async function openQuickLook(vetrina) {
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    const overlay = document.getElementById('quick-look-overlay');
+    const overlay = this.container.querySelector('quick-look-overlay');
     const modal = overlay.querySelector('.quick-look-modal');
     const closeButton = overlay.querySelector('.quick-look-close-button');
     const fileList = overlay.querySelector('.quick-look-file-list');
@@ -5673,7 +5673,7 @@ async function openQuickLook(vetrina) {
 }
 
 function closeQuickLook() {
-    const overlay = document.getElementById('quick-look-overlay');
+    const overlay = this.container.querySelector('quick-look-overlay');
     if (overlay) {
         // Remove keyboard event listener
         document.removeEventListener('keydown', handleQuickLookKeyboard);
@@ -5687,10 +5687,10 @@ function closeQuickLook() {
 
 function openChunksOverlay(item) {
     // Prevent multiple modals
-    if (document.getElementById('chunks-overlay')) return;
+    if (this.container.querySelector('chunks-overlay')) return;
 
     // Get current search query
-    const searchInput = document.querySelector('.search-input');
+    const searchInput = this.container.querySelector('.search-input');
     const currentQuery = searchInput?.value?.trim() || '';
 
     const modalHTML = `
@@ -5746,7 +5746,7 @@ function openChunksOverlay(item) {
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    const overlay = document.getElementById('chunks-overlay');
+    const overlay = this.container.querySelector('chunks-overlay');
     const closeButton = overlay.querySelector('.chunks-close-button');
     const viewFullBtn = overlay.querySelector('.chunks-view-full-btn');
 
@@ -5774,7 +5774,7 @@ function openChunksOverlay(item) {
 }
 
 function closeChunksOverlay() {
-    const overlay = document.getElementById('chunks-overlay');
+    const overlay = this.container.querySelector('chunks-overlay');
     if (overlay) {
         // Remove keyboard event listener
         document.removeEventListener('keydown', handleChunksKeyboard);
@@ -5796,8 +5796,8 @@ function switchQuickLookPreview(vetrina, index) {
     const file = vetrina.files[index];
     if (!file) return;
 
-    const previewContainer = document.querySelector('.quick-look-main-preview');
-    const fileListItems = document.querySelectorAll('.quick-look-file-list .quick-look-file-item');
+    const previewContainer = this.container.querySelector('.quick-look-main-preview');
+    const fileListItems = this.container.querySelectorAll('.quick-look-file-list .quick-look-file-item');
 
     // Get file type and size
     const fileType = getFileTypeFromFilename(file.filename);
@@ -5828,7 +5828,7 @@ function switchQuickLookPreview(vetrina, index) {
 }
 
 function handleQuickLookKeyboard(e) {
-    const overlay = document.getElementById('quick-look-overlay');
+    const overlay = this.container.querySelector('quick-look-overlay');
     if (!overlay) return;
 
     switch (e.key) {
@@ -5847,14 +5847,14 @@ function handleQuickLookKeyboard(e) {
 }
 
 function navigateQuickLookFile(direction) {
-    const activeItem = document.querySelector('.quick-look-file-item.active');
+    const activeItem = this.container.querySelector('.quick-look-file-item.active');
     if (!activeItem) return;
 
     const currentIndex = parseInt(activeItem.dataset.index, 10);
-    const fileList = document.querySelectorAll('.quick-look-file-item');
+    const fileList = this.container.querySelectorAll('.quick-look-file-item');
     const newIndex = (currentIndex + direction + fileList.length) % fileList.length;
     
-    const newItem = document.querySelector(`[data-index="${newIndex}"]`);
+    const newItem = this.container.querySelector(`[data-index="${newIndex}"]`);
     if (newItem) {
         newItem.click();
         newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -5868,7 +5868,7 @@ function navigateQuickLookFile(direction) {
 // ===========================
 
 function initializeScrollToTop() {
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    const scrollToTopBtn = this.container.querySelector('scrollToTopBtn');
     if (!scrollToTopBtn) return;
 
     let scrollThreshold = 300; // Show button after scrolling 300px
@@ -5996,9 +5996,9 @@ function preloadBackgroundImage() {
 }
 
 function adjustBackgroundPosition() {
-    const bgElement = document.querySelector('.background-image');
-    const title = document.querySelector('.search-title');
-    const searchContainer = document.querySelector('.search-container');
+    const bgElement = this.container.querySelector('.background-image');
+    const title = this.container.querySelector('.search-title');
+    const searchContainer = this.container.querySelector('.search-container');
 
     if (!bgElement || !title || !searchContainer) {
         return;
@@ -6082,7 +6082,7 @@ window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
 
 // Simple scroll handler for sticky search bar
 function initializeStickySearch() {
-    const searchContainerWrapper = document.querySelector('.search-container-wrapper');
+    const searchContainerWrapper = this.container.querySelector('.search-container-wrapper');
     
     if (!searchContainerWrapper) {
         return;
@@ -6105,7 +6105,7 @@ document.addEventListener('DOMContentLoaded', initializeStickySearch);
 
 // Font Loading Detection Script (moved from search.html for CSP compliance)
 function showIconsImmediately() {
-    document.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
+    this.container.querySelectorAll('.material-symbols-outlined').forEach(function(element) {
         element.style.visibility = 'visible';
         element.style.opacity = '1';
     });
@@ -6128,7 +6128,7 @@ setTimeout(showIconsImmediately, 50);
 
 // Add event listener for preview close button (replaces inline onclick)
 document.addEventListener('DOMContentLoaded', function() {
-    const previewCloseBtn = document.getElementById('previewCloseBtn');
+    const previewCloseBtn = this.container.querySelector('previewCloseBtn');
     if (previewCloseBtn) {
         previewCloseBtn.addEventListener('click', closePreview);
     }
@@ -6142,7 +6142,7 @@ let selectedRating = 0;
 
 // Initialize reviews overlay functionality
 function initializeReviewsOverlay() {
-    const reviewsOverlay = document.getElementById('reviewsOverlay');
+    const reviewsOverlay = this.container.querySelector('reviewsOverlay');
     if (reviewsOverlay) {
         reviewsOverlay.addEventListener('click', (e) => {
             if (e.target.id === 'reviewsOverlay') {
@@ -6189,7 +6189,7 @@ function initializeReviewsOverlay() {
 // Open reviews overlay for a specific vetrina
 async function openReviewsOverlay(vetrinaId) {
     currentVetrinaForReviews = vetrinaId;
-    const overlay = document.getElementById('reviewsOverlay');
+    const overlay = this.container.querySelector('reviewsOverlay');
     
     if (overlay) {
         overlay.classList.add('active');
@@ -6206,16 +6206,16 @@ async function openReviewsOverlay(vetrinaId) {
 
 // Show initial rating data from search results
 function showInitialRatingData(vetrinaId) {
-    const reviewsList = document.getElementById('reviewsList');
-    const bigRatingScore = document.querySelector('.big-rating-score');
-    const totalReviews = document.querySelector('.total-reviews');
-    const bigStars = document.querySelector('.big-stars');
-    const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+    const reviewsList = this.container.querySelector('reviewsList');
+    const bigRatingScore = this.container.querySelector('.big-rating-score');
+    const totalReviews = this.container.querySelector('.total-reviews');
+    const bigStars = this.container.querySelector('.big-stars');
+    const addReviewBtn = this.container.querySelector('[data-action="show-review-form"]');
 
     if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
 
     // Find the vetrina data from search results
-    const ratingBadge = document.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
+    const ratingBadge = this.container.querySelector(`[data-vetrina-id="${vetrinaId}"][data-action="open-reviews"]`);
     if (ratingBadge) {
         // Get rating and review count from dataset attributes
         const rating = parseFloat(ratingBadge.dataset.rating) || 0;
@@ -6245,11 +6245,11 @@ function showInitialRatingData(vetrinaId) {
 
 // Show loading state for reviews
 function showReviewsLoadingState() {
-    const reviewsList = document.getElementById('reviewsList');
-    const bigRatingScore = document.querySelector('.big-rating-score');
-    const totalReviews = document.querySelector('.total-reviews');
-    const bigStars = document.querySelector('.big-stars');
-    const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+    const reviewsList = this.container.querySelector('reviewsList');
+    const bigRatingScore = this.container.querySelector('.big-rating-score');
+    const totalReviews = this.container.querySelector('.total-reviews');
+    const bigStars = this.container.querySelector('.big-stars');
+    const addReviewBtn = this.container.querySelector('[data-action="show-review-form"]');
 
     if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
 
@@ -6269,7 +6269,7 @@ function showReviewsLoadingState() {
 
 // Close reviews overlay
 function closeReviewsOverlay() {
-    const overlay = document.getElementById('reviewsOverlay');
+    const overlay = this.container.querySelector('reviewsOverlay');
     if (overlay) {
         overlay.classList.remove('active');
         document.body.style.overflow = '';
@@ -6335,11 +6335,11 @@ async function loadReviewsForVetrina(vetrinaId) {
 
 // Update the reviews overlay content
 function updateReviewsOverlay() {
-    const reviewsList = document.getElementById('reviewsList');
-    const bigRatingScore = document.querySelector('.big-rating-score');
-    const totalReviews = document.querySelector('.total-reviews');
-    const bigStars = document.querySelector('.big-stars');
-    const addReviewBtn = document.querySelector('[data-action="show-review-form"]');
+    const reviewsList = this.container.querySelector('reviewsList');
+    const bigRatingScore = this.container.querySelector('.big-rating-score');
+    const totalReviews = this.container.querySelector('.total-reviews');
+    const bigStars = this.container.querySelector('.big-stars');
+    const addReviewBtn = this.container.querySelector('[data-action="show-review-form"]');
 
     if (!reviewsList || !bigRatingScore || !totalReviews || !bigStars || !addReviewBtn) return;
 
@@ -6424,9 +6424,9 @@ function updateReviewsOverlay() {
 
 // Show add review form
 function showAddReviewForm() {
-    const form = document.getElementById('addReviewForm');
-    const reviewsList = document.getElementById('reviewsList');
-    const reviewsSummary = document.querySelector('.reviews-summary');
+    const form = this.container.querySelector('addReviewForm');
+    const reviewsList = this.container.querySelector('reviewsList');
+    const reviewsSummary = this.container.querySelector('.reviews-summary');
     
     if (form && reviewsList) {
         form.style.display = 'block';
@@ -6434,7 +6434,7 @@ function showAddReviewForm() {
         if (reviewsSummary) reviewsSummary.style.display = 'none';
         
         // Reset form
-        document.getElementById('reviewComment').value = '';
+        this.container.querySelector('reviewComment').value = '';
         selectedRating = 0;
         updateStarRatingDisplay();
     }
@@ -6442,9 +6442,9 @@ function showAddReviewForm() {
 
 // Hide add review form
 function hideAddReviewForm() {
-    const form = document.getElementById('addReviewForm');
-    const reviewsList = document.getElementById('reviewsList');
-    const reviewsSummary = document.querySelector('.reviews-summary');
+    const form = this.container.querySelector('addReviewForm');
+    const reviewsList = this.container.querySelector('reviewsList');
+    const reviewsSummary = this.container.querySelector('.reviews-summary');
     
     if (form && reviewsList) {
         form.style.display = 'none';
@@ -6452,7 +6452,7 @@ function hideAddReviewForm() {
         if (reviewsSummary) reviewsSummary.style.display = 'flex';
         
         // Reset form
-        document.getElementById('reviewComment').value = '';
+        this.container.querySelector('reviewComment').value = '';
         selectedRating = 0;
         updateStarRatingDisplay();
     }
@@ -6460,7 +6460,7 @@ function hideAddReviewForm() {
 
 // Initialize star rating functionality
 function initializeStarRating() {
-    const starInputs = document.querySelectorAll('.star-input');
+    const starInputs = this.container.querySelectorAll('.star-input');
     
     starInputs.forEach(star => {
         star.addEventListener('click', () => {
@@ -6482,7 +6482,7 @@ function initializeStarRating() {
 
 // Update star rating display
 function updateStarRatingDisplay() {
-    const starInputs = document.querySelectorAll('.star-input');
+    const starInputs = this.container.querySelectorAll('.star-input');
     
     starInputs.forEach((star, index) => {
         const starRating = index + 1;
@@ -6496,7 +6496,7 @@ function updateStarRatingDisplay() {
 
 // Highlight stars on hover
 function highlightStars(rating) {
-    const starInputs = document.querySelectorAll('.star-input');
+    const starInputs = this.container.querySelectorAll('.star-input');
     
     starInputs.forEach((star, index) => {
         const starRating = index + 1;
@@ -6515,7 +6515,7 @@ async function submitReview() {
         return;
     }
 
-    const comment = document.getElementById('reviewComment').value.trim();
+    const comment = this.container.querySelector('reviewComment').value.trim();
     if (!comment) {
         showError('Inserisci un commento per la tua recensione.');
         return;
@@ -6635,7 +6635,7 @@ async function deleteUserReview() {
 
 // Update vetrina rating in search results
 function updateVetrinaRatingInSearch(vetrinaId) {
-    const ratingElements = document.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
+    const ratingElements = this.container.querySelectorAll(`[data-vetrina-id="${vetrinaId}"] .rating-badge`);
     
     ratingElements.forEach(element => {
         // Reload the rating data for this vetrina
@@ -6662,10 +6662,10 @@ let aiSearchEnabled = false;
 
 // Initialize AI Search Toggle
 function initializeAISearchToggle() {
-    const aiToggle = document.getElementById('aiSearchToggle');
-    const toggleInput = document.getElementById('toggle');
-    const searchBar = document.querySelector('.search-bar');
-    const searchInput = document.getElementById('searchInput');
+    const aiToggle = this.container.querySelector('aiSearchToggle');
+    const toggleInput = this.container.querySelector('toggle');
+    const searchBar = this.container.querySelector('.search-bar');
+    const searchInput = this.container.querySelector('searchInput');
     
     if (!aiToggle || !toggleInput) return;
     
@@ -6675,7 +6675,7 @@ function initializeAISearchToggle() {
         aiSearchEnabled = true;
         toggleInput.checked = true;
         searchBar.classList.add('ai-active');
-        const searchBarBackground = document.getElementById('searchBarBackground');
+        const searchBarBackground = this.container.querySelector('searchBarBackground');
         if (searchBarBackground) searchBarBackground.classList.add('ai-active');
         updateSearchPlaceholder(true);
     }
@@ -6688,7 +6688,7 @@ function initializeAISearchToggle() {
         // Update UI with enhanced visual feedback
         if (aiSearchEnabled) {
             searchBar.classList.add('ai-active');
-            const searchBarBackground = document.getElementById('searchBarBackground');
+            const searchBarBackground = this.container.querySelector('searchBarBackground');
             if (searchBarBackground) searchBarBackground.classList.add('ai-active');
             updateSearchPlaceholder(true);
             updateTypewriterForAIMode();
@@ -6701,7 +6701,7 @@ function initializeAISearchToggle() {
             showStatus('Ricerca semantica attivata! 🚀', 'success');
         } else {
             searchBar.classList.remove('ai-active');
-            const searchBarBackground = document.getElementById('searchBarBackground');
+            const searchBarBackground = this.container.querySelector('searchBarBackground');
             if (searchBarBackground) searchBarBackground.classList.remove('ai-active');
             updateSearchPlaceholder(false);
             updateTypewriterForAIMode();
@@ -6720,7 +6720,7 @@ function initializeAISearchToggle() {
         // If there's a current search query, re-run the search with new mode
         const currentQuery = searchInput.value.trim();
         if (currentQuery) {
-            performSearch(currentQuery);
+            this.performSearch(currentQuery);
         }
     });
     
@@ -6745,7 +6745,7 @@ function initializeAISearchToggle() {
     if (searchInput) {
         // Debounced search function
         const debouncedSearch = debounce(async (query) => {
-            await performSearch(query);
+            await this.performSearch(query);
         }, 300);
         
         // Input event for real-time search
@@ -6755,7 +6755,7 @@ function initializeAISearchToggle() {
                 debouncedSearch(query);
             } else {
                 // If search is cleared, load all files
-                loadAllFiles();
+                this.loadAllFiles();
             }
         });
         
@@ -6765,9 +6765,9 @@ function initializeAISearchToggle() {
                 e.preventDefault();
                 const query = e.target.value.trim();
                 if (query.length > 0) {
-                    performSearch(query);
+                    this.performSearch(query);
                 } else {
-                    loadAllFiles();
+                    this.loadAllFiles();
                 }
             }
         });
@@ -6783,7 +6783,7 @@ function initializeAISearchToggle() {
 
 // Update search placeholder based on AI mode
 function updateSearchPlaceholder(aiEnabled) {
-    const searchInput = document.getElementById('searchInput');
+    const searchInput = this.container.querySelector('searchInput');
     if (!searchInput) return;
     
     if (aiEnabled) {
@@ -6794,25 +6794,25 @@ function updateSearchPlaceholder(aiEnabled) {
 }
 
 // Enhanced performSearch function with AI support
-async function performSearch(query) {
+async this.performSearch(query) {
     try {
         // 🚀 DEVELOPMENT MODE: Check if we should bypass backend
         if (DEV_MODE_NO_RESULTS) {
             console.log('🚀 DEV MODE: Bypassing backend search, showing no results');
             showStatus('Modalità sviluppo: Nessun risultato di ricerca');
             currentFiles = [];
-            renderDocuments([]);
+            this.renderDocuments([]);
             return;
         }
         
         // Show loading cards immediately for search
-        showLoadingCards();
+        this.showLoadingCards();
         
         // Show search-specific loading message
         if (aiSearchEnabled) {
             showStatus('Ricerca semantica in corso... 🤖', 'success');
             // Add loading animation to toggle
-            const aiToggle = document.getElementById('aiSearchToggle');
+            const aiToggle = this.container.querySelector('aiSearchToggle');
             if (aiToggle) {
                 aiToggle.classList.add('loading');
             }
@@ -6822,7 +6822,7 @@ async function performSearch(query) {
         
         // If no query, load all files with current filters
         if (!query || !query.trim()) {
-            await loadAllFiles();
+            await this.loadAllFiles();
             return;
         }
         
@@ -6887,7 +6887,7 @@ async function performSearch(query) {
             console.warn('⚠️ Backend search failed:', error);
             
             // Remove loading state from toggle
-            const aiToggle = document.getElementById('aiSearchToggle');
+            const aiToggle = this.container.querySelector('aiSearchToggle');
             if (aiToggle) {
                 aiToggle.classList.remove('loading');
             }
@@ -6896,26 +6896,26 @@ async function performSearch(query) {
                 showStatus('Ricerca semantica non disponibile. Passaggio a ricerca standard...', 'error');
                 // Fallback to standard search
                 aiSearchEnabled = false;
-                const toggle = document.getElementById('aiSearchToggle');
-                const searchBar = document.querySelector('.search-bar');
+                const toggle = this.container.querySelector('aiSearchToggle');
+                const searchBar = this.container.querySelector('.search-bar');
                 if (toggle) toggle.classList.remove('active');
                 if (searchBar) searchBar.classList.remove('ai-active');
                 updateSearchPlaceholder(false);
                 localStorage.setItem('aiSearchEnabled', 'false');
                 
                 // Retry with standard search
-                await performSearch(query);
+                await this.performSearch(query);
                 return;
             } else {
                 showStatus('Ricerca backend non disponibile. Riprova più tardi.');
                 currentFiles = [];
-                renderDocuments([]);
+                this.renderDocuments([]);
                 return;
             }
         }
     
         // Remove loading state from toggle
-        const aiToggle = document.getElementById('aiSearchToggle');
+        const aiToggle = this.container.querySelector('aiSearchToggle');
         if (aiToggle) {
             aiToggle.classList.remove('loading');
         }
@@ -6923,7 +6923,7 @@ async function performSearch(query) {
         if (!response) {
             console.warn('Empty response from backend, showing empty state');
             currentFiles = [];
-            renderDocuments([]);
+            this.renderDocuments([]);
             showStatus('Nessun risultato trovato');
             return;
         }
@@ -6945,7 +6945,7 @@ async function performSearch(query) {
         // If backend search returns 0 results, show empty state
         if (searchResults.length === 0) {
             currentFiles = [];
-            renderDocuments([]);
+            this.renderDocuments([]);
             const searchMode = aiSearchEnabled ? 'semantica' : 'standard';
             showStatus(`Nessun risultato trovato per "${query}" con ricerca ${searchMode} 🔍`);
             
@@ -7004,7 +7004,7 @@ async function performSearch(query) {
         
         // Update current files and render
         currentFiles = filteredResults;
-        renderDocuments(filteredResults);
+        this.renderDocuments(filteredResults);
         
         // Debug position after search results
         setTimeout(() => debugPensatoTextPosition(), 200);
@@ -7028,13 +7028,13 @@ async function performSearch(query) {
         console.error('Search error:', error);
         
         // Remove loading state from toggle
-        const aiToggle = document.getElementById('aiSearchToggle');
+        const aiToggle = this.container.querySelector('aiSearchToggle');
         if (aiToggle) {
             aiToggle.classList.remove('loading');
         }
         
         showError('Errore durante la ricerca. Riprova più tardi.');
-        renderDocuments(currentFiles);
+        this.renderDocuments(currentFiles);
     }
 }
 
@@ -7101,7 +7101,7 @@ async function typewriterPrintPhrase(phrase, input) {
 }
 
 async function typewriterRun() {
-    const input = document.getElementById('searchInput');
+    const input = this.container.querySelector('searchInput');
     if (!input) return;
     setTypewriterSuggestions();
     while (typewriterActive) {
@@ -7137,7 +7137,7 @@ function resumeTypewriter() {
 
 // Hook into search input events
 window.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('searchInput');
+    const input = this.container.querySelector('searchInput');
     if (!input) return;
     // Only pause animation when user actually types, not when they just focus
     input.addEventListener('input', () => {
@@ -7247,7 +7247,7 @@ function startTypewriter() {
     typewriterPaused = false;
     currentTypewriterIndex = 0;
     setTypewriterSuggestions();
-    const input = document.getElementById('searchInput');
+    const input = this.container.querySelector('searchInput');
     if (input) startTypewriterCursor(input);
     typewriterRun();
 }
@@ -7255,19 +7255,19 @@ function startTypewriter() {
 // In stopTypewriter and pauseTypewriter, stop the cursor
 function stopTypewriter() {
     typewriterActive = false;
-    const input = document.getElementById('searchInput');
+    const input = this.container.querySelector('searchInput');
     if (input) stopTypewriterCursor(input);
 }
 
 function pauseTypewriter() {
     typewriterPaused = true;
-    const input = document.getElementById('searchInput');
+    const input = this.container.querySelector('searchInput');
     if (input) stopTypewriterCursor(input);
 }
 
 function resumeTypewriter() {
     typewriterPaused = false;
-    const input = document.getElementById('searchInput');
+    const input = this.container.querySelector('searchInput');
     if (input && input.value.length === 0) startTypewriterCursor(input);
 }
 
@@ -7277,11 +7277,11 @@ function resumeTypewriter() {
 
 // --- Pagine (Pages) Range Filter ---
 function initializePagesRangeFilter() {
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
-    const minPagesValue = document.getElementById('minPagesValue');
-    const maxPagesValue = document.getElementById('maxPagesValue');
-    const pagesRangeFill = document.getElementById('pagesRangeFill');
+    const minPagesRange = this.container.querySelector('minPagesRange');
+    const maxPagesRange = this.container.querySelector('maxPagesRange');
+    const minPagesValue = this.container.querySelector('minPagesValue');
+    const maxPagesValue = this.container.querySelector('maxPagesValue');
+    const pagesRangeFill = this.container.querySelector('pagesRangeFill');
 
     if (minPagesRange && maxPagesRange) {
         if (minPagesValue) minPagesValue.textContent = '1';
@@ -7297,10 +7297,10 @@ function initializePagesRangeFilter() {
 }
 
 function handlePagesRangeChange() {
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
-    const minPagesValue = document.getElementById('minPagesValue');
-    const maxPagesValue = document.getElementById('maxPagesValue');
+    const minPagesRange = this.container.querySelector('minPagesRange');
+    const maxPagesRange = this.container.querySelector('maxPagesRange');
+    const minPagesValue = this.container.querySelector('minPagesValue');
+    const maxPagesValue = this.container.querySelector('maxPagesValue');
 
     let minVal = parseInt(minPagesRange.value);
     let maxVal = parseInt(maxPagesRange.value);
@@ -7325,9 +7325,9 @@ function handlePagesRangeChange() {
 }
 
 function updatePagesSliderFill() {
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
-    const pagesRangeFill = document.getElementById('pagesRangeFill');
+    const minPagesRange = this.container.querySelector('minPagesRange');
+    const maxPagesRange = this.container.querySelector('maxPagesRange');
+    const pagesRangeFill = this.container.querySelector('pagesRangeFill');
 
     if (minPagesRange && maxPagesRange && pagesRangeFill) {
         const min = parseInt(minPagesRange.min);
@@ -7366,8 +7366,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ... existing code ...
     // Failsafe: always show price slider if 'Tutti' is active after initialization
     window.addEventListener('DOMContentLoaded', () => {
-        const priceRangeContainer = document.getElementById('priceRangeContainer');
-        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        const priceRangeContainer = this.container.querySelector('priceRangeContainer');
+        const tuttiToggle = this.container.querySelector('.price-toggle.active[data-price="all"]');
         if (tuttiToggle && priceRangeContainer) {
             priceRangeContainer.style.display = 'block';
         }
@@ -7377,8 +7377,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ... existing code ...
     // Failsafe: always show price slider if 'Tutti' is active after restoring filters
     setTimeout(() => {
-        const priceRangeContainer = document.getElementById('priceRangeContainer');
-        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        const priceRangeContainer = this.container.querySelector('priceRangeContainer');
+        const tuttiToggle = this.container.querySelector('.price-toggle.active[data-price="all"]');
         if (tuttiToggle && priceRangeContainer) {
             priceRangeContainer.style.display = 'block';
         }
@@ -7403,29 +7403,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ... existing code ...
     // Faculty filter
-    const facultyInput = document.getElementById('facultyFilter');
+    const facultyInput = this.container.querySelector('facultyFilter');
     if (facultyInput) {
         facultyInput.addEventListener('change', (e) => {
             filterManager.setFilter('faculty', e.target.value);
         });
     }
     // Course filter
-    const courseInput = document.getElementById('courseFilter');
+    const courseInput = this.container.querySelector('courseFilter');
     if (courseInput) {
         courseInput.addEventListener('change', (e) => {
             filterManager.setFilter('course', e.target.value);
         });
     }
     // Canale filter
-    const canaleInput = document.getElementById('canaleFilter');
+    const canaleInput = this.container.querySelector('canaleFilter');
     if (canaleInput) {
         canaleInput.addEventListener('change', (e) => {
             filterManager.setFilter('canale', e.target.value);
         });
     }
     // Price range sliders
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
+    const minPriceRange = this.container.querySelector('minPriceRange');
+    const maxPriceRange = this.container.querySelector('maxPriceRange');
     if (minPriceRange && maxPriceRange) {
         const updatePrice = () => {
             const min = parseInt(minPriceRange.value, 10);
@@ -7436,8 +7436,8 @@ document.addEventListener('DOMContentLoaded', function() {
         maxPriceRange.addEventListener('input', updatePrice);
     }
     // Pages range sliders
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
+    const minPagesRange = this.container.querySelector('minPagesRange');
+    const maxPagesRange = this.container.querySelector('maxPagesRange');
     if (minPagesRange && maxPagesRange) {
         const updatePages = () => {
             const min = parseInt(minPagesRange.value, 10);
@@ -7449,20 +7449,20 @@ document.addEventListener('DOMContentLoaded', function() {
         maxPagesRange.addEventListener('input', updatePages);
     }
     // Rating filter (example for stars)
-    document.querySelectorAll('.rating-star-filter').forEach(star => {
+    this.container.querySelectorAll('.rating-star-filter').forEach(star => {
         star.addEventListener('click', (e) => {
             const rating = parseInt(star.getAttribute('data-rating'), 10);
             filterManager.setFilter('minRating', rating);
         });
     });
     // Toggle groups (example for priceType)
-    document.querySelectorAll('.price-toggle').forEach(toggle => {
+    this.container.querySelectorAll('.price-toggle').forEach(toggle => {
         toggle.addEventListener('click', (e) => {
             filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
         });
     });
     // Clear all button
-    const clearAllBtn = document.getElementById('clearAllFilters');
+    const clearAllBtn = this.container.querySelector('clearAllFilters');
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', () => {
             filterManager.filters = {};

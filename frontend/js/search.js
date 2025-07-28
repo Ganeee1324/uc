@@ -2663,6 +2663,7 @@ class FilterManager {
     constructor() {
         this.filters = {};
         this.updateCountTimeout = null;
+        this.isRestoring = false;
     }
     
     // Add or update a filter
@@ -2682,13 +2683,15 @@ class FilterManager {
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
         
-        // Update URL with current filters
-        console.log('🔧 About to call URL_FILTER_MANAGER.updateUrl with:', this.filters);
-        try {
-            URL_FILTER_MANAGER.updateUrl(this.filters);
-            console.log('🔧 URL_FILTER_MANAGER.updateUrl called successfully');
-        } catch (error) {
-            console.error('❌ Error calling URL_FILTER_MANAGER.updateUrl:', error);
+        // Update URL with current filters (only if not during restoration)
+        if (!this.isRestoring) {
+            console.log('🔧 About to call URL_FILTER_MANAGER.updateUrl with:', this.filters);
+            try {
+                URL_FILTER_MANAGER.updateUrl(this.filters);
+                console.log('🔧 URL_FILTER_MANAGER.updateUrl called successfully');
+            } catch (error) {
+                console.error('❌ Error calling URL_FILTER_MANAGER.updateUrl:', error);
+            }
         }
         
         // Save to localStorage whenever a filter is set
@@ -5202,6 +5205,9 @@ function saveFiltersToStorage() {
 
 function restoreFiltersFromStorage() {
     try {
+        // Set restoration flag to prevent URL updates during restoration
+        filterManager.isRestoring = true;
+        
         // Priority 1: Check URL parameters first
         if (URL_FILTER_MANAGER.hasUrlFilters()) {
             const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
@@ -5233,11 +5239,17 @@ function restoreFiltersFromStorage() {
             }
         }
         
-        // Update UI to reflect restored filters
+        // Update UI to reflect restored filters (but don't trigger URL update during restoration)
         updateFilterInputs();
         updateActiveFilterIndicators();
         updateBottomFilterCount();
         updateActiveFiltersDisplay();
+        
+        // Update URL with restored filters after UI is updated
+        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
+        
+        // Reset restoration flag
+        filterManager.isRestoring = false;
         
         // Apply filters to current documents
         if (originalFiles && originalFiles.length > 0) {
@@ -5266,6 +5278,9 @@ function restoreFiltersFromStorage() {
             currentFiles = originalFiles;
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
+        
+        // Reset restoration flag
+        filterManager.isRestoring = false;
     }
 }
 

@@ -13,8 +13,16 @@ class IframeSearchWrapper {
         this.retryCount = 0;
         this.maxRetries = 2;
         
-        // Lazy load the iframe when it comes into view
-        this.initLazyLoading();
+        // Check if this is the main search container (should load immediately)
+        const isMainSearch = containerId === 'main-search-container';
+        
+        if (isMainSearch) {
+            // Load main search iframe immediately
+            this.init();
+        } else {
+            // Lazy load other iframes when they come into view
+            this.initLazyLoading();
+        }
     }
 
     /**
@@ -84,12 +92,15 @@ class IframeSearchWrapper {
         container.appendChild(this.iframe);
 
         // Set up load timeout
+        const isMainSearch = this.containerId === 'main-search-container';
+        const timeoutDuration = isMainSearch ? 5000 : 10000; // 5s for main, 10s for others
+        
         const loadTimeout = setTimeout(() => {
             if (!this.isLoaded) {
-                console.warn(`Iframe load timeout for container "${this.containerId}"`);
+                console.warn(`Iframe load timeout for container "${this.containerId}" (${timeoutDuration}ms)`);
                 this.handleLoadError(container);
             }
-        }, 10000); // 10 second timeout
+        }, timeoutDuration);
 
         // Wait for iframe to load, then pass configuration
         this.iframe.onload = () => {

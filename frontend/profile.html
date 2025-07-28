@@ -28,7 +28,7 @@
             border: none;
             border-radius: 12px;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out;
+            transition: opacity 0.2s ease-in-out; /* Faster transition */
         }
         
         .search-section-container iframe.loaded {
@@ -44,11 +44,17 @@
             min-height: 400px;
         }
         
+        /* Faster loading animation for main search */
         .search-section-container.loading::after {
-            content: "Caricamento sezione di ricerca...";
+            content: "Caricamento...";
             color: #666;
             font-size: 14px;
-            animation: pulse 1.5s ease-in-out infinite;
+            animation: quickPulse 0.8s ease-in-out infinite; /* Faster pulse */
+        }
+        
+        @keyframes quickPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
         
         @keyframes pulse {
@@ -73,6 +79,18 @@
         * {
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+        }
+        
+        /* Optimize main search container for immediate loading */
+        #main-search-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        #main-search-container.loading::after {
+            content: "Caricamento ricerca...";
+            animation: quickPulse 0.6s ease-in-out infinite; /* Even faster for main */
         }
     </style>
     
@@ -900,9 +918,10 @@
             
             console.log('✅ IframeSearchWrapper class is available');
             
-            // Initialize Main Search Wrapper (visible on profile page)
+            // Initialize Main Search Wrapper immediately (visible on profile page)
             const mainContainer = document.getElementById('main-search-container');
             if (mainContainer && !mainSearchWrapper) {
+                console.log('🚀 Loading main search iframe immediately...');
                 mainSearchWrapper = new IframeSearchWrapper('main-search-container', {
                     context: 'default',
                     title: 'Cerca Documenti',
@@ -927,6 +946,7 @@
             // Initialize Documents Search Wrapper (lazy load for tab switching)
             const documentsContainer = document.getElementById('documents-search-container');
             if (documentsContainer && !documentsSearchWrapper) {
+                console.log('📋 Setting up documents search wrapper (lazy load)...');
                 documentsSearchWrapper = new IframeSearchWrapper('documents-search-container', {
                     context: 'user-documents',
                     title: 'I Miei Documenti',
@@ -948,12 +968,13 @@
                     console.log('Documents search document clicked:', data);
                 });
                 
-                console.log('✅ Documents Search Wrapper initialized');
+                console.log('✅ Documents Search Wrapper initialized (lazy load)');
             }
             
             // Initialize Favorites Search Wrapper (lazy load for tab switching)
             const favoritesContainer = document.getElementById('favorites-search-container');
             if (favoritesContainer && !favoritesSearchWrapper) {
+                console.log('❤️ Setting up favorites search wrapper (lazy load)...');
                 favoritesSearchWrapper = new IframeSearchWrapper('favorites-search-container', {
                     context: 'favorites',
                     title: 'Documenti Preferiti',
@@ -975,12 +996,12 @@
                     console.log('Favorites search document clicked:', data);
                 });
                 
-                console.log('✅ Favorites Search Wrapper initialized');
+                console.log('✅ Favorites Search Wrapper initialized (lazy load)');
             }
             
             initializationComplete = true;
             console.log('🎉 All IframeSearchWrapper instances initialized successfully');
-            console.log('Search sections should now be visible on the profile page');
+            console.log('Main search section should be visible immediately, others will load on demand');
             
         } catch (error) {
             console.error('❌ Error initializing IframeSearchWrapper instances:', error);
@@ -990,16 +1011,14 @@
                 initializeIframeWrappers();
             }, 2000);
         }
-    }, 100); // 100ms debounce
+    }, 50); // Reduced debounce time for faster initialization
 
     // Wait for the page to be ready
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 Profile Page Loaded');
         
-        // Initialize iframe wrappers after a short delay to ensure all scripts are loaded
-        setTimeout(() => {
-            initializeIframeWrappers();
-        }, 100);
+        // Initialize iframe wrappers immediately for faster loading
+        initializeIframeWrappers();
     });
     
     // Add error handling for script loading

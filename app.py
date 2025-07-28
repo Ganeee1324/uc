@@ -10,7 +10,6 @@ import traceback
 from PIL import Image
 
 from bge import get_sentence_embedding
-from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
@@ -301,62 +300,32 @@ def upload_file(vetrina_id):
             return jsonify({"error": "pdf_processing_failed", "msg": "Failed to process PDF file"}), 500
 
     # Add file to database with size and tag
-    db_file = database.add_file_to_vetrina(
+    db_file = database.add_file_to_processing_queue(
         requester_id=requester_id,
         vetrina_id=vetrina_id,
         file_name=new_file_name,
+        display_name=display_name,
         sha256=file_hash,
         extension=extension,
         price=random.uniform(0.5, 1.0),
         size=file_size,
         tag=tag,
         num_pages=num_pages,
-        display_name=display_name,
+        file_data=file_content,
     )
 
-    try:
-        # Save file content to disk
-        with open(new_file_path, "wb") as f:
-            f.write(file_content)
+    if extension == "pdf":
+        redact.blur_pages(new_file_path, [1])
 
-        # Create redacted version for PDFs
-        if extension == "pdf":
-            redact.blur_pages(new_file_path, [1])
+    with open(new_file_path, "wb") as f:
+        f.write(file_content)
 
-    except Exception as e:
-        try:
-            os.remove(new_file_path)
-        except Exception as e:
-            logging.error(f"Error deleting file: {e}")
-        try:
-            os.remove(new_file_path.replace(".pdf", "_redacted.pdf"))
-        except Exception as e:
-            logging.error(f"Error deleting redacted file: {e}")
-        try:
-            database.delete_file(requester_id, db_file.file_id)
-        except Exception as e:
-            logging.error(f"Error deleting file from database: {e}")
-        return jsonify({"error": "redaction_failed", "msg": str(e)}), 500
     try:
         file.close()
     except Exception as e:
         logging.error(f"Error closing file: {e}")
 
-    # Process embeddings directly in the upload endpoint
-    try:
-        logging.info(f"Generating embeddings for file '{display_name}'")
-        chunks = process_pdf_chunks(
-            os.path.join(files_folder_path, new_file_name), display_name, database.get_vetrina_by_id(vetrina_id, requester_id)[0].name
-        )
-        chunks = enrich_snippets_request(os.path.join(files_folder_path, new_file_name), chunks)
-        database.insert_chunk_embeddings(vetrina_id, db_file.file_id, chunks)
-        logging.info(f"Processed {len(chunks)} chunks for file '{display_name}'")
-    except Exception as e:
-        logging.error(f"Error processing embeddings for file '{display_name}': {e}")
-        # Don't fail the upload if embedding processing fails
-        # The file is still uploaded successfully
-
-    return jsonify({"msg": "File uploaded"}), 200
+    return jsonify({"msg": "File uploaded", "file": db_file.to_dict()}), 200
 
 
 @app.route("/files/<int:file_id>/download", methods=["GET"])
@@ -682,21 +651,6 @@ def get_hierarchy():
 def get_valid_tags():
     """Get the list of valid file tags."""
     return jsonify({"tags": VALID_TAGS}), 200
-
-
-def enrich_snippets_request(pdf_path: str, chunks: list[dict[str, str | int]]):
-    with open(pdf_path, "rb") as pdf_file:
-        files = {"pdf": ("document.pdf", pdf_file, "application/pdf")}
-        data = {"num_windows": 8, "window_height_percentage": 0.35, "snippets": json.dumps(chunks)}
-
-        response = requests.post("http://lancionaco.love:8222/enrich_snippets", files=files, data=data, timeout=(60, 2000))  # 5 minute timeout
-
-    data = response.json()
-    for chunk in data["snippets"]:
-        chunk["embedding"] = np.array(chunk["embedding"])
-    for chunk in data["snippets"]:
-        chunk["image"] = Image.open(BytesIO(base64.b64decode(chunk["image"])))
-    return data["snippets"]
 
 
 if __name__ == "__main__":

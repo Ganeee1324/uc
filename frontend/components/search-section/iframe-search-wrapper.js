@@ -16,13 +16,150 @@ class IframeSearchWrapper {
         // Check if this is the main search container (should load immediately)
         const isMainSearch = containerId === 'main-search-container';
         
+        // Preload critical resources for faster loading
+        this.preloadCriticalResources();
+        
         if (isMainSearch) {
-            // Load main search iframe immediately
-            this.init();
+            // Load main search iframe immediately with instant loading
+            this.initInstant();
         } else {
             // Lazy load other iframes when they come into view
             this.initLazyLoading();
         }
+    }
+
+    /**
+     * Preload critical resources for faster iframe loading
+     */
+    preloadCriticalResources() {
+        // Preload the iframe HTML file
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'document';
+        link.href = 'components/search-section/search-section.html';
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+
+        // Preload critical CSS files
+        const criticalCSS = [
+            'components/search-section/search-section.css',
+            'css/search.css',
+            'css/document-preview.css'
+        ];
+
+        criticalCSS.forEach(cssFile => {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'preload';
+            cssLink.as = 'style';
+            cssLink.href = cssFile;
+            cssLink.crossOrigin = 'anonymous';
+            document.head.appendChild(cssLink);
+        });
+
+        // Preload critical JavaScript
+        const jsLink = document.createElement('link');
+        jsLink.rel = 'preload';
+        jsLink.as = 'script';
+        jsLink.href = 'components/search-section/search-section.js';
+        jsLink.crossOrigin = 'anonymous';
+        document.head.appendChild(jsLink);
+    }
+
+    /**
+     * Initialize the iframe with instant loading for critical iframes
+     */
+    initInstant() {
+        if (this.isLoading || this.isLoaded) {
+            return;
+        }
+        
+        this.isLoading = true;
+        
+        const container = document.getElementById(this.containerId);
+        if (!container) {
+            console.error(`Container with ID "${this.containerId}" not found`);
+            return;
+        }
+
+        // Create iframe element with instant loading optimizations
+        this.iframe = document.createElement('iframe');
+        this.iframe.src = 'components/search-section/search-section.html';
+        
+        // Add instant loading attributes
+        this.iframe.setAttribute('loading', 'eager');
+        this.iframe.setAttribute('importance', 'high');
+        
+        // Apply comprehensive styling to make iframe invisible and seamless
+        Object.assign(this.iframe.style, {
+            width: '100%',
+            maxWidth: '100vw',
+            height: 'auto',
+            minHeight: this.config.height || '600px',
+            border: 'none',
+            borderRadius: '0',
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
+            boxSizing: 'border-box',
+            display: 'block',
+            overflow: 'hidden',
+            scrolling: 'no',
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+            resize: 'none',
+            margin: '0',
+            padding: '0',
+            position: 'relative',
+            zIndex: '1',
+            verticalAlign: 'top',
+            // Make iframe completely invisible
+            outline: 'none',
+            background: 'transparent',
+            // Additional properties to ensure no scroll bars
+            frameBorder: '0',
+            allowTransparency: 'true',
+            seamless: 'seamless'
+        });
+
+        // Set iframe attributes to prevent scrolling
+        this.iframe.setAttribute('scrolling', 'no');
+        this.iframe.setAttribute('frameborder', '0');
+        this.iframe.setAttribute('allowtransparency', 'true');
+        this.iframe.setAttribute('seamless', 'seamless');
+
+        // Add iframe to container immediately
+        container.appendChild(this.iframe);
+
+        // Set up load timeout with shorter duration for instant loading
+        const loadTimeout = setTimeout(() => {
+            if (!this.isLoaded) {
+                console.warn(`Iframe load timeout for container "${this.containerId}" (3s)`);
+                this.handleLoadError(container);
+            }
+        }, 3000);
+
+        // Wait for iframe to load, then pass configuration
+        this.iframe.onload = () => {
+            clearTimeout(loadTimeout);
+            this.isLoaded = true;
+            this.isLoading = false;
+            container.classList.remove('loading');
+            this.iframe.classList.add('loaded');
+            
+            // Inject CSS to prevent scroll bars in iframe content
+            this.injectNoScrollCSS();
+            
+            this.passConfiguration();
+            this.setupMessageHandling();
+            
+            // Adjust height to content immediately
+            this.adjustHeightToContent();
+        };
+
+        // Handle iframe load errors
+        this.iframe.onerror = () => {
+            clearTimeout(loadTimeout);
+            this.handleLoadError(container);
+        };
     }
 
     /**

@@ -618,16 +618,6 @@ html {
     transition: transform 0.2s var(--ease-2);
 }
 
-.main-content {
-    /* --sticky-top-offset is set by JavaScript */
-    --sticky-top-offset: 10px; /* Default fallback value */
-    padding-top: 100px;
-    min-height: calc(100vh - 120px);
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-}
-
 /* Main Content - Dual Layout System */
 .main-content {
     min-height: calc(100vh - 120px);
@@ -636,6 +626,9 @@ html {
     max-width: 100vw;
     overflow-x: hidden;
     box-sizing: border-box;
+    /* Ensure proper centering */
+    margin: 0 auto;
+    padding: 0;
 }
 
 /* Initial Search Section - Centered Layout */
@@ -644,12 +637,12 @@ html {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-top: 0;
+    margin: 0 auto;
     padding: var(--space-12);
     text-align: center;
     position: relative;
     width: 100%;
-    max-width: 100vw;
+    max-width: 100%;
     overflow-x: hidden;
     box-sizing: border-box;
     /* Ensure proper centering within iframe context */
@@ -680,19 +673,16 @@ html {
 /* Base grid container - consistent for all states */
 .documents-grid {
     padding-top: 10px;
-    margin-top: var(--space-2);
-    margin-bottom: 40px;
+    margin: var(--space-2) auto 40px auto;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: var(--space-5);
-    max-width: min(2400px, 100vw); /* Responsive max-width that doesn't exceed viewport */
+    max-width: min(2400px, 100%); /* Responsive max-width that doesn't exceed container */
     position: relative;
     z-index: 2;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     contain: layout;
-    margin-left: auto;
-    margin-right: auto;
     width: 100%;
     box-sizing: border-box;
 }
@@ -1254,7 +1244,7 @@ html {
         #402fb5 5%,
         transparent 14%,
         transparent 50%,
-        #cf30aa 60%,
+        #cf30aa,
         transparent 64%
     );
     transition: all 2s;
@@ -1360,7 +1350,7 @@ html {
         #402fb5 5%,
         transparent 38%,
         transparent 50%,
-        #cf30aa 60%,
+        #cf30aa,
         transparent 87%
     );
     transition: all 2s;

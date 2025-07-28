@@ -13,6 +13,7 @@ import logging
 import pandas as pd
 import numpy as np
 from langdetect import detect
+from PIL import Image
 import json
 
 load_dotenv()
@@ -662,10 +663,12 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
                         page_number = chunk["page_number"]
                         description = chunk["description"]
                         embedding = chunk["embedding"]
-                        image = chunk["image"]
-                        image_path = f"images/{uuid.uuid4()}.png"
-                        with open(image_path, "wb") as f:
-                            f.write(image)
+                        image: Image.Image = chunk["image"]
+                        images_path = os.path.join(os.path.dirname(__file__), "images")
+                        if not os.path.exists(images_path):
+                            os.makedirs(images_path)
+                        image_path = os.path.join(images_path, f"{uuid.uuid4()}.png")
+                        image.save(image_path)
 
                         pg_vector_data = embedding.squeeze()
                         cursor.execute(

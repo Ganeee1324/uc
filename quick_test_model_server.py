@@ -8,7 +8,7 @@ from io import BytesIO
 def quick_test():
     """Quick test to check if model server is running"""
     
-    model_server_url = "http://localhost:8222/enrich_snippets"
+    model_server_url = "http://lancionaco.love:8222/enrich_snippets"
     pdf_path = r"Statistics Exam - DONE.pdf"
     
     print("Quick Model Server Test")

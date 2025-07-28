@@ -3168,8 +3168,10 @@ function updateActiveFiltersDisplay() {
     }
     
     const filterPills = [];
+    console.log('🔧 Starting to create filter pills for entries:', filterEntries);
     
     filterEntries.forEach(([key, value]) => {
+        console.log('🔧 Processing filter entry:', key, value);
         let label = '';
         let displayValue = '';
         
@@ -3278,9 +3280,14 @@ function updateActiveFiltersDisplay() {
                 label = 'Tag';
                 displayValue = getTagDisplayName(value);
                 break;
+            default:
+                console.log('🔧 No case found for filter key:', key, 'value:', value);
+                // Skip unknown filter types
+                return;
         }
         
         if (label && displayValue) {
+            console.log('🔧 Creating pill for:', key, 'with label:', label, 'displayValue:', displayValue);
             filterPills.push(`
                 <div class="filter-pill" data-filter-key="${key}" data-action="remove-filter">
                     <span class="filter-pill-label">${label}:</span>
@@ -3288,6 +3295,8 @@ function updateActiveFiltersDisplay() {
                     <div class="filter-pill-remove"></div>
                 </div>
             `);
+        } else {
+            console.log('🔧 Skipping pill creation for:', key, 'label:', label, 'displayValue:', displayValue);
         }
     });
     
@@ -3318,6 +3327,8 @@ function updateActiveFiltersDisplay() {
         `);
     }
     
+    console.log('🔧 Final filterPills array:', filterPills);
+    
     // Add clear all button if there are filters
     if (filterPills.length > 0) {
         filterPills.unshift(`
@@ -3328,6 +3339,7 @@ function updateActiveFiltersDisplay() {
         `);
     }
     
+    console.log('🔧 Setting innerHTML with pills:', filterPills.join(''));
     activeFiltersContainer.innerHTML = filterPills.join('');
     
     // Trigger animation

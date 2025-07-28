@@ -582,17 +582,9 @@
             <!-- Search Section Component for Documents -->
             <div id="documentsSearchSectionContainer">
                 <!-- User's own documents with management capabilities -->
-                <search-section-component 
-                    api-base="https://symbia.it:5000"
-                    placeholder-text="Cerca i tuoi documenti..."
-                    button-text="Cerca"
-                    instance-id="documents-search">
-                    <!-- Fallback content if component doesn't load -->
-                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
-                        <p>⚠️ Web component not loaded</p>
-                        <p>Check console for errors</p>
-                    </div>
-                </search-section-component>
+                <div id="documents-search-container" class="search-section-container">
+                    <!-- SearchSectionComponent will be initialized here -->
+                </div>
             </div>
         </div>
 
@@ -617,17 +609,9 @@
                 <h2 class="section-title">Documenti Preferiti</h2>
                 <div id="favoritesSearchSectionContainer">
                     <!-- User's favorite documents -->
-                    <search-section-component 
-                    api-base="https://symbia.it:5000"
-                    placeholder-text="Cerca una dispensa..."
-                    button-text="Cerca"
-                    instance-id="favorites-search">
-                    <!-- Fallback content if component doesn't load -->
-                    <div style="padding: 20px; background: #f0f0f0; border: 2px dashed #ccc; text-align: center; color: #666;">
-                        <p>⚠️ Web component not loaded</p>
-                        <p>Check console for errors</p>
+                    <div id="favorites-search-container" class="search-section-container">
+                        <!-- SearchSectionComponent will be initialized here -->
                     </div>
-                </search-section-component>
                 </div>
             </div>
         </div>
@@ -639,38 +623,61 @@
     <script src="js/performance-cache.js" defer></script>
     <script src="js/profile.js" defer></script>
 
-<!-- Debug script to check component loading -->
+<!-- Initialize SearchSectionComponent instances -->
 <script>
-    // Wait for the component to be ready
-    document.addEventListener('DOMContentLoaded', function() {
+    // Global variables to store component instances
+    let documentsSearchComponent = null;
+    let favoritesSearchComponent = null;
+
+    // Wait for the page to be ready
+    document.addEventListener('DOMContentLoaded', async function() {
         console.log('🚀 Profile Page Loaded');
         
-        // Check if the component is defined
-        if (customElements.get('search-section-component')) {
-            console.log('✅ Search Section Component is defined');
-        } else {
-            console.error('❌ Search Section Component is NOT defined');
+        try {
+            // Check if SearchSectionComponent class is available
+            if (typeof SearchSectionComponent === 'undefined') {
+                console.error('❌ SearchSectionComponent class is not defined');
+                console.error('Make sure search-section-component.js is loaded properly');
+                return;
+            }
+            
+            console.log('✅ SearchSectionComponent class is available');
+            
+            // Initialize Documents Search Component
+            const documentsContainer = document.getElementById('documents-search-container');
+            if (documentsContainer) {
+                documentsSearchComponent = new SearchSectionComponent(documentsContainer, {
+                    apiBase: 'https://symbia.it:5000',
+                    placeholderText: 'Cerca i tuoi documenti...',
+                    buttonText: 'Cerca',
+                    instanceId: 'documents-search',
+                    devMode: false
+                });
+                
+                await documentsSearchComponent.init();
+                console.log('✅ Documents Search Component initialized');
+            }
+            
+            // Initialize Favorites Search Component
+            const favoritesContainer = document.getElementById('favorites-search-container');
+            if (favoritesContainer) {
+                favoritesSearchComponent = new SearchSectionComponent(favoritesContainer, {
+                    apiBase: 'https://symbia.it:5000',
+                    placeholderText: 'Cerca una dispensa...',
+                    buttonText: 'Cerca',
+                    instanceId: 'favorites-search',
+                    devMode: false
+                });
+                
+                await favoritesSearchComponent.init();
+                console.log('✅ Favorites Search Component initialized');
+            }
+            
+            console.log('🎉 All SearchSectionComponent instances initialized successfully');
+            
+        } catch (error) {
+            console.error('❌ Error initializing SearchSectionComponent instances:', error);
         }
-        
-        // Check for components in the DOM
-        const components = document.querySelectorAll('search-section-component');
-        console.log(`Found ${components.length} search-section-component instances`);
-        
-        components.forEach((component, index) => {
-            console.log(`Component ${index}:`, component);
-            console.log('Component shadow root:', component.shadowRoot);
-            console.log('Component attributes:', {
-                apiBase: component.getAttribute('api-base'),
-                placeholderText: component.getAttribute('placeholder-text'),
-                buttonText: component.getAttribute('button-text')
-            });
-        });
-        
-        // Check for any script loading errors
-        const scripts = document.querySelectorAll('script');
-        scripts.forEach((script, index) => {
-            console.log(`Script ${index}:`, script.src || 'inline script');
-        });
     });
     
     // Add error handling for script loading

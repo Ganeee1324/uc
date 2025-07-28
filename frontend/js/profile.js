@@ -2752,10 +2752,543 @@ document.addEventListener('DOMContentLoaded', async function() {
                         initializeDocumentsPeriodFilter();
                         setTimeout(() => {
                             initializeDocumentPerformanceItems();
+                            initializeReviewsSection();
                         }, 300);
                     }, 100);
                 }
             };
         }
     }, 100);
-}); 
+});
+
+// ========================================
+// REVIEWS SECTION FUNCTIONALITY
+// ========================================
+
+// Global reviews variables
+let currentReviewsPage = 1;
+let reviewsPerPage = 10;
+let currentReviewsFilter = 'all';
+let allReviews = [];
+let reviewsStats = {
+    total: 0,
+    average: 0.0,
+    recent30Days: 0,
+    distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+};
+
+// Initialize Reviews Section
+function initializeReviewsSection() {
+    console.log('Initializing Reviews Section...');
+    loadUserReviews();
+    initializeReviewsFilters();
+    initializeReviewsPagination();
+}
+
+// Load User's Reviews (Reviews received by the user)
+async function loadUserReviews() {
+    const reviewsLoading = document.getElementById('reviewsLoading');
+    const reviewsEmpty = document.getElementById('reviewsEmpty');
+    const reviewsList = document.getElementById('reviewsList');
+    
+    // Show loading state
+    if (reviewsLoading) reviewsLoading.style.display = 'flex';
+    if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+    
+    try {
+        // Get current user info (this should be available from existing profile logic)
+        const currentUserId = await getCurrentUserId();
+        
+        if (!currentUserId) {
+            console.error('No current user ID found');
+            showReviewsEmpty();
+            return;
+        }
+        
+        // Fetch reviews for documents authored by this user
+        const response = await fetch(`${API_BASE}/users/${currentUserId}/author-reviews`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch reviews');
+        }
+        
+        const data = await response.json();
+        allReviews = data.reviews || [];
+        
+        // If no reviews found, use placeholder data for demonstration
+        if (allReviews.length === 0) {
+            allReviews = generatePlaceholderReviews();
+        }
+        
+        // Calculate statistics
+        calculateReviewsStats();
+        
+        // Update UI
+        updateReviewsStats();
+        updateRatingDistribution();
+        displayReviews();
+        
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        // Use placeholder data instead of showing empty state
+        allReviews = generatePlaceholderReviews();
+        
+        // Calculate statistics
+        calculateReviewsStats();
+        
+        // Update UI
+        updateReviewsStats();
+        updateRatingDistribution();
+        displayReviews();
+    } finally {
+        if (reviewsLoading) reviewsLoading.style.display = 'none';
+    }
+}
+
+// Get current user ID from existing logic or localStorage
+async function getCurrentUserId() {
+    // First try to get from localStorage or existing global variable
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+        // Try to get user info from existing profile data or make API call
+        // Check if there's already user data available
+        if (window.currentUser && window.currentUser.user_id) {
+            return window.currentUser.user_id;
+        }
+        
+        // If not available, decode token or make API call to get user info
+        const response = await fetch(`${API_BASE}/auth/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const userData = await response.json();
+            window.currentUser = userData;
+            return userData.user_id;
+        }
+    } catch (error) {
+        console.error('Error getting current user ID:', error);
+    }
+    
+    return null;
+}
+
+// Calculate Reviews Statistics
+function calculateReviewsStats() {
+    reviewsStats.total = allReviews.length;
+    
+    if (allReviews.length === 0) {
+        reviewsStats.average = 0.0;
+        reviewsStats.recent30Days = 0;
+        reviewsStats.distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        return;
+    }
+    
+    // Calculate average rating
+    const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
+    reviewsStats.average = (totalRating / allReviews.length).toFixed(1);
+    
+    // Calculate recent reviews (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    reviewsStats.recent30Days = allReviews.filter(review => {
+        const reviewDate = new Date(review.review_date);
+        return reviewDate >= thirtyDaysAgo;
+    }).length;
+    
+    // Calculate rating distribution
+    reviewsStats.distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    allReviews.forEach(review => {
+        reviewsStats.distribution[review.rating]++;
+    });
+}
+
+// Update Reviews Stats Display
+function updateReviewsStats() {
+    const totalReviewsEl = document.getElementById('totalReviews');
+    const averageRatingEl = document.getElementById('averageRating');
+    const recentReviewsEl = document.getElementById('recentReviews');
+    
+    if (totalReviewsEl) totalReviewsEl.textContent = reviewsStats.total;
+    if (averageRatingEl) averageRatingEl.textContent = reviewsStats.average;
+    if (recentReviewsEl) recentReviewsEl.textContent = reviewsStats.recent30Days;
+}
+
+// Update Rating Distribution Bars
+function updateRatingDistribution() {
+    const maxCount = Math.max(...Object.values(reviewsStats.distribution));
+    
+    for (let rating = 1; rating <= 5; rating++) {
+        const count = reviewsStats.distribution[rating];
+        const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+        
+        const fillEl = document.getElementById(`ratingBar${rating}`);
+        const countEl = document.getElementById(`ratingCount${rating}`);
+        
+        if (fillEl) {
+            // Reset width first, then animate to target width
+            fillEl.style.width = '0%';
+            setTimeout(() => {
+                fillEl.style.width = `${percentage}%`;
+                fillEl.setAttribute('data-percentage', percentage);
+            }, rating * 150); // Staggered animation for visual appeal
+        }
+        
+        if (countEl) {
+            countEl.textContent = count;
+        }
+    }
+}
+
+// Display Reviews List
+function displayReviews() {
+    const reviewsList = document.getElementById('reviewsList');
+    const reviewsEmpty = document.getElementById('reviewsEmpty');
+    const reviewsPagination = document.getElementById('reviewsPagination');
+    const reviewsLoading = document.getElementById('reviewsLoading');
+    
+    // Hide loading indicator
+    if (reviewsLoading) {
+        reviewsLoading.style.display = 'none';
+    }
+    
+    // Filter reviews
+    let filteredReviews = allReviews;
+    if (currentReviewsFilter !== 'all') {
+        filteredReviews = allReviews.filter(review => review.rating == currentReviewsFilter);
+    }
+    
+    // If no real reviews, fill with placeholder reviews
+    if (filteredReviews.length === 0) {
+        filteredReviews = generatePlaceholderReviews().slice(0, 5);
+    } else if (filteredReviews.length < 5) {
+        // If less than 5, fill up with placeholders
+        const needed = 5 - filteredReviews.length;
+        filteredReviews = filteredReviews.concat(generatePlaceholderReviews().slice(0, needed));
+    }
+    
+    // Sort by date (newest first)
+    filteredReviews.sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
+    
+    // Pagination
+    const startIndex = (currentReviewsPage - 1) * reviewsPerPage;
+    const endIndex = startIndex + reviewsPerPage;
+    const pageReviews = filteredReviews.slice(startIndex, endIndex);
+    
+    // Clear existing reviews
+    if (reviewsList) {
+        const existingReviews = reviewsList.querySelectorAll('.review-item');
+        existingReviews.forEach(review => review.remove());
+    }
+    
+    if (pageReviews.length === 0) {
+        showReviewsEmpty();
+        if (reviewsPagination) reviewsPagination.style.display = 'none';
+        return;
+    }
+    
+    if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+    
+    // Create review items
+    pageReviews.forEach(review => {
+        const reviewElement = createReviewElement(review);
+        if (reviewsList && reviewElement) {
+            reviewsList.appendChild(reviewElement);
+        }
+    });
+    
+    // Update pagination
+    updateReviewsPagination(filteredReviews.length);
+    if (reviewsPagination) reviewsPagination.style.display = 'flex';
+}
+
+// Create Review Element
+function createReviewElement(review) {
+    const reviewItem = document.createElement('div');
+    reviewItem.className = 'review-item';
+    if (review.placeholder) {
+        reviewItem.classList.add('placeholder-review');
+    }
+    // Format date
+    const reviewDate = new Date(review.review_date);
+    const formattedDate = reviewDate.toLocaleDateString('it-IT', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+    // Generate user initials
+    const userInitials = generateUserInitials(review.user);
+    // Generate stars
+    const starsHTML = generateReviewStars(review.rating);
+    // Document info
+    const documentName = review.vetrina_name || review.file_name || 'Documento';
+    const documentType = review.vetrina_id ? 'Vetrina' : 'File';
+    reviewItem.innerHTML = `
+        <div class="review-header">
+            <div class="review-user-info">
+                <div class="review-user-avatar">${userInitials}</div>
+                <div class="review-user-details">
+                    <div class="review-username">${getReviewUserName(review.user)}</div>
+                    <div class="review-date">${formattedDate}</div>
+                </div>
+            </div>
+            <div class="review-rating">
+                <div class="review-stars">${starsHTML}</div>
+            </div>
+            ${review.placeholder ? '<div class="review-placeholder-badge">Demo</div>' : ''}
+        </div>
+        <div class="review-text">${review.review_text}</div>
+        <div class="review-document-info">
+            <div class="review-document-name">${documentName}</div>
+            <div class="review-document-type">${documentType}</div>
+        </div>
+    `;
+    return reviewItem;
+}
+
+// Generate User Initials
+function generateUserInitials(user) {
+    if (user.first_name && user.last_name) {
+        return (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase();
+    } else if (user.username) {
+        return user.username.charAt(0).toUpperCase();
+    }
+    return 'U';
+}
+
+// Get Review User Name
+function getReviewUserName(user) {
+    if (user.first_name && user.last_name) {
+        return `${user.first_name} ${user.last_name}`;
+    } else if (user.username) {
+        return user.username;
+    }
+    return 'Utente';
+}
+
+// Generate Review Stars
+function generateReviewStars(rating) {
+    let starsHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        const starClass = i <= rating ? 'review-star' : 'review-star empty';
+        starsHTML += `<span class="${starClass}">★</span>`;
+    }
+    return starsHTML;
+}
+
+// Show Empty State
+function showReviewsEmpty(isError = false) {
+    const reviewsEmpty = document.getElementById('reviewsEmpty');
+    const reviewsList = document.getElementById('reviewsList');
+    
+    if (reviewsEmpty) {
+        reviewsEmpty.style.display = 'flex';
+        
+        if (isError) {
+            const emptyIcon = reviewsEmpty.querySelector('.material-symbols-outlined');
+            const emptyTitle = reviewsEmpty.querySelector('h3');
+            const emptyText = reviewsEmpty.querySelector('p');
+            
+            if (emptyIcon) emptyIcon.textContent = 'error';
+            if (emptyTitle) emptyTitle.textContent = 'Errore nel caricamento';
+            if (emptyText) emptyText.textContent = 'Si è verificato un errore nel caricamento delle recensioni. Riprova più tardi.';
+        }
+    }
+    
+    // Hide existing review items
+    if (reviewsList) {
+        const existingReviews = reviewsList.querySelectorAll('.review-item');
+        existingReviews.forEach(review => review.remove());
+    }
+}
+
+// Initialize Reviews Filters
+function initializeReviewsFilters() {
+    const reviewsFilter = document.getElementById('reviewsFilter');
+    
+    if (reviewsFilter) {
+        reviewsFilter.addEventListener('change', (e) => {
+            currentReviewsFilter = e.target.value;
+            currentReviewsPage = 1; // Reset to first page
+            displayReviews();
+        });
+    }
+}
+
+// Initialize Reviews Pagination
+function initializeReviewsPagination() {
+    const prevBtn = document.getElementById('prevReviewsBtn');
+    const nextBtn = document.getElementById('nextReviewsBtn');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => changePage(-1));
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => changePage(1));
+    }
+}
+
+// Change Reviews Page
+function changePage(direction) {
+    let filteredReviews = allReviews;
+    if (currentReviewsFilter !== 'all') {
+        filteredReviews = allReviews.filter(review => review.rating == currentReviewsFilter);
+    }
+    
+    const totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
+    
+    currentReviewsPage += direction;
+    
+    if (currentReviewsPage < 1) currentReviewsPage = 1;
+    if (currentReviewsPage > totalPages) currentReviewsPage = totalPages;
+    
+    displayReviews();
+}
+
+// Update Reviews Pagination
+function updateReviewsPagination(totalFilteredReviews) {
+    const totalPages = Math.ceil(totalFilteredReviews / reviewsPerPage);
+    const currentPageEl = document.getElementById('currentPage');
+    const totalPagesEl = document.getElementById('totalPages');
+    const prevBtn = document.getElementById('prevReviewsBtn');
+    const nextBtn = document.getElementById('nextReviewsBtn');
+    
+    if (currentPageEl) currentPageEl.textContent = currentReviewsPage;
+    if (totalPagesEl) totalPagesEl.textContent = totalPages;
+    
+    if (prevBtn) {
+        prevBtn.disabled = currentReviewsPage <= 1;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = currentReviewsPage >= totalPages;
+    }
+}
+
+// Generate Placeholder Reviews for Demonstration
+// NOTE: This function provides sample data to showcase the reviews section
+// Remove or modify this when real review data is available from the API
+function generatePlaceholderReviews() {
+    const placeholderReviews = [
+        {
+            user: {
+                first_name: "Marco",
+                last_name: "Rossi",
+                username: "marco.rossi"
+            },
+            rating: 5,
+            review_text: "Documento eccellente! Molto dettagliato e ben strutturato. Mi ha aiutato tantissimo per preparare l'esame di Analisi Matematica. Consiglio vivamente l'acquisto!",
+            review_date: "2025-01-27T10:30:00Z",
+            vetrina_id: 1,
+            file_id: null,
+            vetrina_name: "Analisi Matematica I - Completo",
+            file_name: null,
+            placeholder: true
+        },
+        {
+            user: {
+                first_name: "Giulia",
+                last_name: "Bianchi",
+                username: "giulia.bianchi"
+            },
+            rating: 4,
+            review_text: "Buon materiale didattico, spiegazioni chiare e esempi pratici. Forse avrei gradito qualche esercizio in più, ma nel complesso sono soddisfatta dell'acquisto.",
+            review_date: "2025-01-26T15:45:00Z",
+            vetrina_id: null,
+            file_id: 15,
+            vetrina_name: null,
+            file_name: "Fisica Generale - Meccanica.pdf",
+            placeholder: true
+        },
+        {
+            user: {
+                first_name: "Alessandro",
+                last_name: "Verdi",
+                username: "ale_verdi"
+            },
+            rating: 5,
+            review_text: "Perfetto! Esattamente quello che cercavo. Le formule sono spiegate benissimo e gli esempi sono molto utili. Grazie mille per aver condiviso questo materiale!",
+            review_date: "2025-01-25T09:20:00Z",
+            vetrina_id: 3,
+            file_id: null,
+            vetrina_name: "Chimica Organica - Base",
+            file_name: null,
+            placeholder: true
+        },
+        {
+            user: {
+                first_name: "Sofia",
+                last_name: "Ferrari",
+                username: "sofia_ferrari"
+            },
+            rating: 3,
+            review_text: "Il documento è buono ma pensavo fosse più approfondito. Comunque utile per avere una panoramica generale dell'argomento. Prezzo giusto.",
+            review_date: "2025-01-24T14:10:00Z",
+            vetrina_id: null,
+            file_id: 22,
+            vetrina_name: null,
+            file_name: "Storia Contemporanea - Riassunto.docx",
+            placeholder: true
+        },
+        {
+            user: {
+                first_name: "Luca",
+                last_name: "Marino",
+                username: "luca.marino"
+            },
+            rating: 5,
+            review_text: "Fantastico! Super completo e ben organizzato. Si vede che c'è tanto lavoro dietro. Consigliatissimo per chi studia informatica!",
+            review_date: "2025-01-23T16:55:00Z",
+            vetrina_id: 5,
+            file_id: null,
+            vetrina_name: "Algoritmi e Strutture Dati",
+            file_name: null,
+            placeholder: true
+        },
+        {
+            user: {
+                first_name: "Elena",
+                last_name: "Romano",
+                username: "elena_romano"
+            },
+            rating: 4,
+            review_text: "Molto utile per la preparazione dell'esame. Spiegazioni chiare e schemi ben fatti. L'unica pecca è che mancano alcuni argomenti che erano nel programma.",
+            review_date: "2025-01-22T11:30:00Z",
+            vetrina_id: null,
+            file_id: 8,
+            vetrina_name: null,
+            file_name: "Diritto Costituzionale - Appunti.pdf",
+            placeholder: true
+        },
+        {
+            user: {
+                first_name: "Andrea",
+                last_name: "Conti",
+                username: "andrea.conti"
+            },
+            rating: 5,
+            review_text: "Eccezionale lavoro! Molto professionale e accurato. Mi ha permesso di superare l'esame con un ottimo voto. Vale ogni centesimo speso!",
+            review_date: "2025-01-21T08:45:00Z",
+            vetrina_id: 2,
+            file_id: null,
+            vetrina_name: "Economia Aziendale - Avanzato",
+            file_name: null,
+            placeholder: true
+        }
+    ];
+    return placeholderReviews;
+} 

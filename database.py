@@ -657,7 +657,7 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
     """Insert chunk embeddings into the database"""
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
-            with conn.transaction():
+            with conn.transaction() as transaction:
                 try:
                     for chunk in chunks:
                         page_number = chunk["page_number"]
@@ -679,10 +679,8 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
                         )
                 except Exception as e:
                     logging.error(f"Error inserting chunk embeddings: {e}")
-                    conn.rollback()
-                    raise e
+                    raise psycopg.Rollback()
                 else:
-                    conn.commit()
                     logging.info(f"Inserted {len(chunks)} chunk embeddings")
 
 

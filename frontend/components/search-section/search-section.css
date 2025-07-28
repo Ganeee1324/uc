@@ -698,7 +698,7 @@ iframe html {
     overflow-y: visible; /* Allow natural vertical scrolling */
     box-sizing: border-box;
     /* Ensure proper centering */
-    margin: 0 auto;
+    margin: 20px auto 0 auto;
     padding: 0;
     height: auto; /* Allow natural height */
 }

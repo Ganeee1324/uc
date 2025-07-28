@@ -1559,23 +1559,89 @@ search-section {
     pointer-events: none;
     z-index: 1000;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, transform 0.1s ease;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --arrow-offset: 50%;
+    max-width: 250px;
+    word-wrap: break-word;
+    white-space: nowrap;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .chart-tooltip {
+        font-size: 11px;
+        padding: 6px 10px;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-tooltip {
+        font-size: 10px;
+        padding: 5px 8px;
+        max-width: 150px;
+    }
 }
 
 .chart-tooltip.show {
     opacity: 1;
 }
 
-.chart-tooltip::after {
+/* Arrow pointing down (tooltip above element) */
+.chart-tooltip.arrow-bottom::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: var(--arrow-offset);
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Arrow pointing up (tooltip below element) */
+.chart-tooltip.arrow-top::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: var(--arrow-offset);
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Arrow pointing right (tooltip to the left of element) */
+.chart-tooltip.arrow-right::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Arrow pointing left (tooltip to the right of element) */
+.chart-tooltip.arrow-left::after {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Default arrow for backwards compatibility - only show when no specific arrow class is set */
+.chart-tooltip:not(.arrow-top):not(.arrow-bottom):not(.arrow-left):not(.arrow-right)::after {
     content: '';
     position: absolute;
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    border: 4px solid transparent;
+    border: 6px solid transparent;
     border-top-color: rgba(0, 0, 0, 0.9);
 }
 

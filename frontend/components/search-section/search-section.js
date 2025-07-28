@@ -377,6 +377,62 @@ const DOM_CACHE = {
     }
 };
 
+// URL Filter Manager for handling URL parameters
+const URL_FILTER_MANAGER = {
+    filtersToUrlParams(filters) {
+        const params = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '' && value !== 'all') {
+                if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        params.append(key, encodeURIComponent(item));
+                    });
+                } else {
+                    params.set(key, encodeURIComponent(value));
+                }
+            }
+        });
+        
+        return params.toString();
+    },
+    
+    urlParamsToFilters(urlParams) {
+        const filters = {};
+        const params = new URLSearchParams(urlParams);
+        
+        for (const [key, value] of params.entries()) {
+            const decodedValue = decodeURIComponent(value);
+            
+            if (filters[key]) {
+                if (!Array.isArray(filters[key])) {
+                    filters[key] = [filters[key]];
+                }
+                filters[key].push(decodedValue);
+            } else {
+                filters[key] = decodedValue;
+            }
+        }
+        
+        return filters;
+    },
+    
+    updateUrl(filters) {
+        const params = this.filtersToUrlParams(filters);
+        const newUrl = params ? `${window.location.pathname}?${params}` : window.location.pathname;
+        
+        window.history.replaceState({}, '', newUrl);
+    },
+    
+    getFiltersFromUrl() {
+        return this.urlParamsToFilters(window.location.search);
+    },
+    
+    hasUrlFilters() {
+        return window.location.search.length > 0;
+    }
+};
+
 // Debug function to track "Pensato per chi vuole di più" text position
 function debugPensatoTextPosition() {
     // Make this function globally accessible for manual debugging
@@ -2596,7 +2652,11 @@ function applyPriceFilters(minVal, maxVal) {
     
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
-    debouncedApplyFilters();
+    
+    // Don't apply filters during restoration
+    if (!filterManager.isRestoring) {
+        debouncedApplyFilters();
+    }
 }
 
 // Order functionality
@@ -3435,7 +3495,15 @@ function applyFiltersToFiles(files) {
 
 function updateActiveFiltersDisplay() {
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-    if (!activeFiltersContainer) return;
+    if (!activeFiltersContainer) {
+        return;
+    }
+    
+    // Clear any existing timeout to prevent clearing pills that are about to be created
+    if (activeFiltersContainer._clearTimeout) {
+        clearTimeout(activeFiltersContainer._clearTimeout);
+        activeFiltersContainer._clearTimeout = null;
+    }
     
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
@@ -3443,8 +3511,9 @@ function updateActiveFiltersDisplay() {
     
     if (filterEntries.length === 0) {
         activeFiltersContainer.classList.remove('visible');
-        setTimeout(() => {
+        activeFiltersContainer._clearTimeout = setTimeout(() => {
             activeFiltersContainer.innerHTML = '';
+            activeFiltersContainer._clearTimeout = null;
         }, 400);
         return;
     }
@@ -3560,6 +3629,10 @@ function updateActiveFiltersDisplay() {
                 label = 'Tag';
                 displayValue = getTagDisplayName(value);
                 break;
+            default:
+                // Remove invalid filter types from the filterManager
+                delete filterManager.filters[key];
+                return;
         }
         
         if (label && displayValue) {
@@ -3599,6 +3672,9 @@ function updateActiveFiltersDisplay() {
             </div>
         `);
     }
+    
+    // Update URL to remove any invalid filters that were cleaned up
+    URL_FILTER_MANAGER.updateUrl(filterManager.filters);
     
     // Add clear all button if there are filters
     if (filterPills.length > 0) {
@@ -5379,56 +5455,61 @@ function saveFiltersToStorage() {
 
 function restoreFiltersFromStorage() {
     try {
-        // Try to restore filters from localStorage
-        const savedFilters = localStorage.getItem('searchFilters');
-        const savedTags = localStorage.getItem('searchTags');
+        // Set restoration flag to prevent premature UI updates
+        filterManager.isRestoring = true;
         
-        if (savedFilters) {
-            const parsedFilters = JSON.parse(savedFilters);
-            
-            // Restore all filters
-            filterManager.filters = parsedFilters;
-            
-            // Ensure tags are properly restored
-            if (savedTags) {
-                const parsedTags = JSON.parse(savedTags);
-                filterManager.filters.tag = parsedTags;
-            }
-            
-            // Update UI to reflect restored filters
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
-            
-            // Apply filters to current documents
-            if (originalFiles && originalFiles.length > 0) {
-                const filteredFiles = applyClientSideFilters(originalFiles);
-                renderDocuments(filteredFiles);
-                currentFiles = filteredFiles;
-                
-                const filterCount = filterManager.getActiveFilterCount().count;
-                if (filterCount > 0) {
-                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
-                } else {
-                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
-                }
-            }
+        // First, try to restore filters from URL parameters
+        const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
+        if (urlFilters && Object.keys(urlFilters).length > 0) {
+            filterManager.filters = urlFilters;
         } else {
-            // No saved filters, start fresh
-            filterManager.filters = {};
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
+            // Fallback to localStorage
+            const savedFilters = localStorage.getItem('searchFilters');
+            const savedTags = localStorage.getItem('searchTags');
             
-            // Show all documents
-            if (originalFiles && originalFiles.length > 0) {
-                renderDocuments(originalFiles);
-                currentFiles = originalFiles;
-                showStatus(`${originalFiles.length} documenti disponibili 📚`);
+            if (savedFilters) {
+                const parsedFilters = JSON.parse(savedFilters);
+                
+                // Restore all filters
+                filterManager.filters = parsedFilters;
+                
+                // Ensure tags are properly restored
+                if (savedTags) {
+                    const parsedTags = JSON.parse(savedTags);
+                    filterManager.filters.tag = parsedTags;
+                }
+            } else {
+                // No saved filters, start fresh
+                filterManager.filters = {};
             }
         }
+        
+        // Update UI to reflect restored filters
+        updateFilterInputs();
+        updateActiveFilterIndicators();
+        updateBottomFilterCount();
+        updateActiveFiltersDisplay();
+        
+        // Apply filters to current documents
+        if (originalFiles && originalFiles.length > 0) {
+            const filteredFiles = applyClientSideFilters(originalFiles);
+            renderDocuments(filteredFiles);
+            currentFiles = filteredFiles;
+            
+            const filterCount = filterManager.getActiveFilterCount().count;
+            if (filterCount > 0) {
+                showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
+            } else {
+                showStatus(`${filteredFiles.length} documenti disponibili 📚`);
+            }
+        }
+        
+        // Update URL with restored filters
+        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
+        
+        // Reset restoration flag
+        filterManager.isRestoring = false;
+        
     } catch (e) {
         console.warn('Could not restore filters from localStorage:', e);
         // Fallback to fresh start
@@ -5443,6 +5524,9 @@ function restoreFiltersFromStorage() {
             currentFiles = originalFiles;
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
+        
+        // Reset restoration flag even on error
+        filterManager.isRestoring = false;
     }
 }
 
@@ -6251,8 +6335,7 @@ let bgImageDimensions = null;
 // Preload and cache image dimensions immediately
 function preloadBackgroundImage() {
     const tempImage = new Image();
-    // Use absolute path that works from iframe context
-    tempImage.src = window.location.origin + '/frontend/images/bg.png';
+    tempImage.src = 'images/bg.png';
     
     const storeImageDimensions = () => {
         if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
@@ -6270,16 +6353,7 @@ function preloadBackgroundImage() {
         storeImageDimensions();
     } else {
         tempImage.onload = storeImageDimensions;
-        tempImage.onerror = () => {
-            console.warn("Background image failed to load, using fallback");
-            // Use fallback dimensions to prevent layout issues
-            bgImageDimensions = {
-                width: 1920,
-                height: 1080,
-                aspectRatio: 16/9
-            };
-            adjustBackgroundPosition();
-        };
+        tempImage.onerror = () => console.error("Background image failed to load");
     }
 }
 
@@ -6295,7 +6369,7 @@ function adjustBackgroundPosition() {
     // If we don't have image dimensions yet, try to get them
     if (!bgImageDimensions) {
         const tempImage = new Image();
-        tempImage.src = window.location.origin + '/frontend/images/bg.png';
+        tempImage.src = 'images/bg.png';
         
         if (tempImage.complete && tempImage.naturalWidth > 0) {
             bgImageDimensions = {
@@ -6304,12 +6378,8 @@ function adjustBackgroundPosition() {
                 aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
             };
         } else {
-            // Use fallback dimensions
-            bgImageDimensions = {
-                width: 1920,
-                height: 1080,
-                aspectRatio: 16/9
-            };
+            // Image not ready yet, will be called again when it loads
+            return;
         }
     }
 
@@ -7643,7 +7713,11 @@ function applyPagesFilters(minVal, maxVal) {
     
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
-    debouncedApplyFilters();
+    
+    // Don't apply filters during restoration
+    if (!filterManager.isRestoring) {
+        debouncedApplyFilters();
+    }
 }
 
 // ... existing code ...
@@ -7677,8 +7751,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 0);
 // ... existing code ...
 
-// ... existing code ...
-    // Add pages range pill if min/max are set and not default values
+// ... existing code ...    // Add pages range pill if min/max are set and not default values
     if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
         (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
         const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
@@ -7691,10 +7764,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `);
     }
-// ... existing code ...
-
-// ... existing code ...
-    // Faculty filter
+// ... existing code ...// ... existing code ...    // Faculty filter
     const facultyInput = document.getElementById('facultyFilter');
     if (facultyInput) {
         facultyInput.addEventListener('change', (e) => {

@@ -87,9 +87,16 @@ class IframeSearchWrapper {
         this.iframe.style.backgroundColor = 'transparent';
         this.iframe.style.boxSizing = 'border-box'; // Include padding and border in width calculation
         this.iframe.style.display = 'block'; // Ensure proper block display
-        this.iframe.style.overflow = 'visible'; // Force visible overflow to prevent scrollbars
+        this.iframe.style.overflow = 'hidden'; // Completely remove scroll bars
         this.iframe.style.scrolling = 'no'; // Disable scrolling within iframe
-        // Remove overflow: hidden to allow natural page scrolling
+        this.iframe.style.overflowX = 'hidden'; // Prevent horizontal scroll
+        this.iframe.style.overflowY = 'hidden'; // Prevent vertical scroll
+        this.iframe.style.resize = 'none'; // Prevent iframe resizing
+        this.iframe.style.margin = '0'; // Remove any margins
+        this.iframe.style.padding = '0'; // Remove any padding
+        this.iframe.style.position = 'relative'; // Use relative positioning for natural flow
+        this.iframe.style.zIndex = '1'; // Ensure proper stacking
+        this.iframe.style.verticalAlign = 'top'; // Align to top for proper flow
 
         // Add iframe to container
         container.appendChild(this.iframe);
@@ -114,6 +121,15 @@ class IframeSearchWrapper {
             this.iframe.classList.add('loaded'); // Add loaded class for smooth transition
             this.passConfiguration();
             this.setupMessageHandling();
+            
+            // Adjust height to content after a short delay to ensure content is fully loaded
+            setTimeout(() => {
+                this.adjustHeightToContent();
+            }, 100);
+            
+            // Set up a ResizeObserver to automatically adjust height when content changes
+            this.setupHeightObserver();
+            
             console.log(`Iframe ${this.containerId} is ready`);
         };
 
@@ -163,9 +179,13 @@ class IframeSearchWrapper {
             switch (type) {
                 case 'SEARCH_RESULTS':
                     this.handleSearchResults(data);
+                    // Adjust height after search results are loaded
+                    setTimeout(() => this.adjustHeightToContent(), 200);
                     break;
                 case 'FILTER_CHANGED':
                     this.handleFilterChanged(data);
+                    // Adjust height after filters are applied
+                    setTimeout(() => this.adjustHeightToContent(), 200);
                     break;
                 case 'DOCUMENT_CLICKED':
                     this.handleDocumentClicked(data);
@@ -178,9 +198,15 @@ class IframeSearchWrapper {
                     break;
                 case 'READY':
                     this.handleReady();
+                    // Adjust height when iframe is ready
+                    setTimeout(() => this.adjustHeightToContent(), 100);
                     break;
                 case 'API_REQUEST':
                     this.handleApiRequest(data);
+                    break;
+                case 'CONTENT_CHANGED':
+                    // Handle explicit content change notifications
+                    setTimeout(() => this.adjustHeightToContent(), 100);
                     break;
                 default:
                     // Check if there's a custom handler for this message type
@@ -232,6 +258,68 @@ class IframeSearchWrapper {
         if (this.iframe) {
             this.iframe.style.minHeight = height;
             // Keep height auto to allow natural expansion
+        }
+    }
+
+    /**
+     * Adjust iframe height to content
+     */
+    adjustHeightToContent() {
+        if (!this.iframe || !this.isLoaded) {
+            return;
+        }
+
+        try {
+            const iframeDoc = this.iframe.contentDocument || this.iframe.contentWindow.document;
+            const iframeBody = iframeDoc.body;
+            const iframeHtml = iframeDoc.documentElement;
+            
+            // Get the actual content height
+            const contentHeight = Math.max(
+                iframeBody.scrollHeight,
+                iframeBody.offsetHeight,
+                iframeHtml.clientHeight,
+                iframeHtml.scrollHeight,
+                iframeHtml.offsetHeight
+            );
+            
+            // Set the iframe height to match content
+            this.iframe.style.height = `${contentHeight}px`;
+            this.iframe.style.minHeight = `${contentHeight}px`;
+            
+            console.log(`Iframe height adjusted to ${contentHeight}px`);
+        } catch (error) {
+            console.warn('Could not adjust iframe height:', error);
+        }
+    }
+
+    /**
+     * Setup ResizeObserver to automatically adjust iframe height
+     */
+    setupHeightObserver() {
+        if (!this.iframe || !this.isLoaded || !window.ResizeObserver) {
+            return;
+        }
+
+        try {
+            const iframeDoc = this.iframe.contentDocument || this.iframe.contentWindow.document;
+            const iframeBody = iframeDoc.body;
+            
+            // Create a ResizeObserver to watch for content changes
+            this.resizeObserver = new ResizeObserver((entries) => {
+                // Debounce the height adjustment
+                clearTimeout(this.resizeTimeout);
+                this.resizeTimeout = setTimeout(() => {
+                    this.adjustHeightToContent();
+                }, 100);
+            });
+            
+            // Observe the iframe body for size changes
+            this.resizeObserver.observe(iframeBody);
+            
+            console.log('Height observer set up for iframe');
+        } catch (error) {
+            console.warn('Could not set up height observer:', error);
         }
     }
 
@@ -304,6 +392,18 @@ class IframeSearchWrapper {
      * Destroy the iframe wrapper
      */
     destroy() {
+        // Clean up resize observer
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+        
+        // Clear resize timeout
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = null;
+        }
+        
         if (this.iframe && this.iframe.parentNode) {
             this.iframe.parentNode.removeChild(this.iframe);
         }

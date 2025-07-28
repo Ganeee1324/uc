@@ -837,6 +837,12 @@ function updateHeaderUserInfo(user) {
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
+    // Check if user avatar elements exist (they may not exist in iframe context)
+    if (!userAvatar) {
+        console.log('User avatar elements not found - this is normal in iframe context');
+        return;
+    }
+    
     if (user) {
         // Construct the user's full name for the avatar
         let fullName = '';
@@ -878,40 +884,43 @@ function updateHeaderUserInfo(user) {
         const userInfo = document.querySelector('.user-info');
         let hoverTimeout;
         
-        // Check if device supports hover
-        const supportsHover = window.matchMedia('(hover: hover)').matches;
-        
-        if (supportsHover) {
-            // Show dropdown on hover with delay to prevent accidental closing
-            userAvatar.addEventListener('mouseenter', (event) => {
-                event.stopPropagation();
-                clearTimeout(hoverTimeout);
-                userInfo.classList.add('open');
-            });
+        // Check if user info element exists
+        if (userInfo) {
+            // Check if device supports hover
+            const supportsHover = window.matchMedia('(hover: hover)').matches;
             
-            // Handle mouse enter on dropdown to keep it open
-            const userDropdown = document.getElementById('userDropdown');
-            if (userDropdown) {
-                userDropdown.addEventListener('mouseenter', (event) => {
+            if (supportsHover) {
+                // Show dropdown on hover with delay to prevent accidental closing
+                userAvatar.addEventListener('mouseenter', (event) => {
                     event.stopPropagation();
                     clearTimeout(hoverTimeout);
                     userInfo.classList.add('open');
                 });
+                
+                // Handle mouse enter on dropdown to keep it open
+                const userDropdown = document.getElementById('userDropdown');
+                if (userDropdown) {
+                    userDropdown.addEventListener('mouseenter', (event) => {
+                        event.stopPropagation();
+                        clearTimeout(hoverTimeout);
+                        userInfo.classList.add('open');
+                    });
+                }
+                
+                // Hide dropdown when mouse leaves the user info area with small delay
+                userInfo.addEventListener('mouseleave', (event) => {
+                    event.stopPropagation();
+                    hoverTimeout = setTimeout(() => {
+                        userInfo.classList.remove('open');
+                    }, 150); // Small delay to allow moving to dropdown
+                });
+                
+                // Cancel timeout when re-entering the area
+                userInfo.addEventListener('mouseenter', (event) => {
+                    event.stopPropagation();
+                    clearTimeout(hoverTimeout);
+                });
             }
-            
-            // Hide dropdown when mouse leaves the user info area with small delay
-            userInfo.addEventListener('mouseleave', (event) => {
-                event.stopPropagation();
-                hoverTimeout = setTimeout(() => {
-                    userInfo.classList.remove('open');
-                }, 150); // Small delay to allow moving to dropdown
-            });
-            
-            // Cancel timeout when re-entering the area
-            userInfo.addEventListener('mouseenter', (event) => {
-                event.stopPropagation();
-                clearTimeout(hoverTimeout);
-            });
         }
         
         // Redirect to profile when user clicks their avatar

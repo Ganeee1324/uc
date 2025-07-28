@@ -6251,7 +6251,8 @@ let bgImageDimensions = null;
 // Preload and cache image dimensions immediately
 function preloadBackgroundImage() {
     const tempImage = new Image();
-    tempImage.src = 'images/bg.png';
+    // Use absolute path that works from iframe context
+    tempImage.src = window.location.origin + '/frontend/images/bg.png';
     
     const storeImageDimensions = () => {
         if (tempImage.naturalWidth > 0 && tempImage.naturalHeight > 0) {
@@ -6269,7 +6270,16 @@ function preloadBackgroundImage() {
         storeImageDimensions();
     } else {
         tempImage.onload = storeImageDimensions;
-        tempImage.onerror = () => console.error("Background image failed to load");
+        tempImage.onerror = () => {
+            console.warn("Background image failed to load, using fallback");
+            // Use fallback dimensions to prevent layout issues
+            bgImageDimensions = {
+                width: 1920,
+                height: 1080,
+                aspectRatio: 16/9
+            };
+            adjustBackgroundPosition();
+        };
     }
 }
 
@@ -6285,7 +6295,7 @@ function adjustBackgroundPosition() {
     // If we don't have image dimensions yet, try to get them
     if (!bgImageDimensions) {
         const tempImage = new Image();
-        tempImage.src = 'images/bg.png';
+        tempImage.src = window.location.origin + '/frontend/images/bg.png';
         
         if (tempImage.complete && tempImage.naturalWidth > 0) {
             bgImageDimensions = {
@@ -6294,8 +6304,12 @@ function adjustBackgroundPosition() {
                 aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
             };
         } else {
-            // Image not ready yet, will be called again when it loads
-            return;
+            // Use fallback dimensions
+            bgImageDimensions = {
+                width: 1920,
+                height: 1080,
+                aspectRatio: 16/9
+            };
         }
     }
 

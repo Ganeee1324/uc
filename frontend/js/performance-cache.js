@@ -12,6 +12,7 @@ class PerformanceCacheManager {
         this.searchDebounceTimer = null;
         this.lastSearchQuery = '';
         this.lastSearchParams = {};
+        this.pendingVetrineRequest = null; // Add pending request tracking
         
         // Cache configuration with TTL and storage strategy
         this.cacheConfig = {
@@ -397,6 +398,12 @@ class PerformanceCacheManager {
 
     async loadVetrine(useCache = true) {
         try {
+            // Check if we already have a pending request
+            if (this.pendingVetrineRequest) {
+                console.log('🔄 Vetrine request already pending, waiting...');
+                return await this.pendingVetrineRequest;
+            }
+
             if (useCache) {
                 const cached = this.get('vetrine_list', 'vetrine_list');
                 if (cached) {
@@ -406,9 +413,20 @@ class PerformanceCacheManager {
             }
 
             console.log('🔄 Loading vetrine from API...');
-            const data = await window.ApiClient.get('/vetrine', {}, 'vetrine_list');
+            
+            // Create a promise for this request
+            this.pendingVetrineRequest = window.ApiClient.get('/vetrine', {}, 'vetrine_list');
+            
+            const data = await this.pendingVetrineRequest;
+            
+            // Clear the pending request
+            this.pendingVetrineRequest = null;
+            
             return data;
         } catch (error) {
+            // Clear the pending request on error
+            this.pendingVetrineRequest = null;
+            
             console.error('❌ Error loading vetrine:', error);
             
             // Enhanced error handling with fallback mechanisms
@@ -664,22 +682,37 @@ class PerformanceCacheManager {
     // ==================== PRELOADING & OPTIMIZATION ====================
 
     async preloadCriticalData() {
+        console.log('🚀 Preloading critical data...');
+        
         try {
-            console.log('🚀 Preloading critical data...');
-            
-            const [hierarchy, vetrine] = await Promise.allSettled([
-                this.loadHierarchy(),
-                this.loadVetrine()
+            // Use Promise.allSettled to load data in parallel and handle individual failures
+            const results = await Promise.allSettled([
+                this.loadVetrine(true).catch(err => {
+                    console.warn('⚠️ Vetrine preload failed, will retry on demand:', err.message);
+                    return null;
+                }),
+                this.loadHierarchy().catch(err => {
+                    console.warn('⚠️ Hierarchy preload failed, will retry on demand:', err.message);
+                    return null;
+                })
             ]);
-
+            
+            // Log results
+            const [vetrineResult, hierarchyResult] = results;
+            
+            if (vetrineResult.status === 'fulfilled' && vetrineResult.value) {
+                console.log('✅ Vetrine data preloaded successfully');
+            }
+            
+            if (hierarchyResult.status === 'fulfilled' && hierarchyResult.value) {
+                console.log('✅ Hierarchy data preloaded successfully');
+            }
+            
             console.log('✅ Critical data preloaded');
-            return {
-                hierarchy: hierarchy.status === 'fulfilled' ? hierarchy.value : null,
-                vetrine: vetrine.status === 'fulfilled' ? vetrine.value : null
-            };
+            
         } catch (error) {
-            console.error('❌ Error preloading data:', error);
-            throw error;
+            console.error('❌ Error during critical data preload:', error);
+            // Don't throw - let the application continue with fallback data
         }
     }
 

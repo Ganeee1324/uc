@@ -18,6 +18,8 @@
             background: #fff;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
+            position: relative;
+            contain: layout style paint; /* Optimize rendering */
         }
         
         .search-section-container iframe {
@@ -25,6 +27,12 @@
             height: 100%;
             border: none;
             border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .search-section-container iframe.loaded {
+            opacity: 1;
         }
         
         /* Loading state for iframe containers */
@@ -33,12 +41,38 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 400px;
         }
         
         .search-section-container.loading::after {
             content: "Caricamento sezione di ricerca...";
             color: #666;
             font-size: 14px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Prevent layout shifts during loading */
+        .search-section-container {
+            contain: layout style paint;
+            will-change: auto;
+        }
+        
+        /* Optimize image loading */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Reduce repaints during loading */
+        * {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
     </style>
     
@@ -70,11 +104,11 @@
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <h3 class="nav-section-title">Dashboard</h3>
-                <div class="menu-item active">
+                <div class="menu-item active" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('profile');">
                     <span class="menu-icon material-symbols-outlined">person</span>
                     <span class="menu-text">Profilo</span>
                 </div>
-                <div class="menu-item">
+                <div class="menu-item" onclick="console.log('Vendite clicked!'); document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('stats');">
                     <span class="menu-icon material-symbols-outlined">analytics</span>
                     <span class="menu-text">Vendite</span>
                 </div>
@@ -349,74 +383,252 @@
 
             <!-- Main Charts Section -->
             <div class="stats-main-content">
-                <!-- Primary Chart with Dropdown -->
-                <div class="chart-section primary-chart">
-                    <div class="chart-header">
-                        <div class="chart-title-group">
-                            <h3 class="chart-title">Analisi delle Performance</h3>
-                            <p class="chart-description">Monitora i tuoi indicatori chiave nel tempo</p>
-                        </div>
-                        <div class="chart-controls">
-                            <div class="chart-dropdown-container">
-                                <button class="chart-dropdown-btn" id="chartDropdownBtn">
-                                    <span class="dropdown-text">Ricavi</span>
-                                    <span class="material-symbols-outlined">expand_more</span>
-                                </button>
-                                <div class="chart-dropdown-menu" id="chartDropdownMenu">
-                                    <div class="chart-dropdown-option active" data-chart="revenue">
-                                        <span class="material-symbols-outlined">payments</span>
-                                        <span>Ricavi</span>
-                                    </div>
-                                    <div class="chart-dropdown-option" data-chart="sales">
-                                        <span class="material-symbols-outlined">shopping_cart</span>
-                                        <span>Vendite</span>
-                                    </div>
-                                    <div class="chart-dropdown-option" data-chart="downloads">
-                                        <span class="material-symbols-outlined">download</span>
-                                        <span>Download</span>
-                                    </div>
-                                    <div class="chart-dropdown-option" data-chart="views">
-                                        <span class="material-symbols-outlined">visibility</span>
-                                        <span>Visualizzazioni</span>
-                                    </div>
-                                    <div class="chart-dropdown-option" data-chart="conversion">
-                                        <span class="material-symbols-outlined">trending_up</span>
-                                        <span>Tasso di Conversione</span>
+                <!-- Dual Charts Container -->
+                <div class="dual-charts-container">
+                    <!-- Primary Chart with Dropdown (Left Side) -->
+                    <div class="chart-section primary-chart left-chart">
+                        <div class="chart-header">
+                            <div class="chart-title-group">
+                                <h3 class="chart-title">Analisi delle Performance</h3>
+                                <p class="chart-description">Monitora i tuoi indicatori chiave nel tempo</p>
+                            </div>
+                            <div class="chart-controls">
+                                <div class="chart-time-filters">
+                                    <button class="time-filter-btn active" data-period="7d" onclick="selectTimePeriod(this, '7d')">7D</button>
+                                    <button class="time-filter-btn" data-period="30d" onclick="selectTimePeriod(this, '30d')">30D</button>
+                                    <button class="time-filter-btn" data-period="90d" onclick="selectTimePeriod(this, '90d')">90D</button>
+                                    <button class="time-filter-btn" data-period="1y" onclick="selectTimePeriod(this, '1y')">1Y</button>
+                                </div>
+                                <div class="chart-dropdown-container">
+                                    <button class="chart-dropdown-btn" id="chartDropdownBtn" onclick="toggleDropdown()">
+                                        <span class="dropdown-text">Ricavi</span>
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </button>
+                                    <div class="chart-dropdown-menu" id="chartDropdownMenu">
+                                        <div class="chart-dropdown-option active" data-chart="revenue" onclick="selectChartType(this, 'revenue', 'Ricavi')">
+                                            <span class="material-symbols-outlined">payments</span>
+                                            <span>Ricavi</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="sales" onclick="selectChartType(this, 'sales', 'Vendite')">
+                                            <span class="material-symbols-outlined">shopping_cart</span>
+                                            <span>Vendite</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="downloads" onclick="selectChartType(this, 'downloads', 'Download')">
+                                            <span class="material-symbols-outlined">download</span>
+                                            <span>Download</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="views" onclick="selectChartType(this, 'views', 'Visualizzazioni')">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            <span>Visualizzazioni</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="conversion" onclick="selectChartType(this, 'conversion', 'Tasso di Conversione')">
+                                            <span class="material-symbols-outlined">trending_up</span>
+                                            <span>Tasso di Conversione</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="chart-time-filters">
-                                <button class="time-filter-btn active" data-period="7d">7D</button>
-                                <button class="time-filter-btn" data-period="30d">30D</button>
-                                <button class="time-filter-btn" data-period="90d">90D</button>
-                                <button class="time-filter-btn" data-period="1y">1Y</button>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-placeholder" id="mainChart">
+                                <!-- Chart will be rendered here -->
+                                <div class="chart-mock">
+                                    
+                                    <svg viewBox="0 0 800 320" class="chart-svg" style="height: 320px;">
+                                        <defs>
+                                            <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+                                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
+                                            </linearGradient>
+                                        </defs>
+                                        
+                                        <!-- Grid lines for professional appearance -->
+                                        <defs>
+                                            <pattern id="grid" width="100" height="50" patternUnits="userSpaceOnUse">
+                                                <path d="M 100 0 L 0 0 0 50" fill="none" stroke="rgba(226, 232, 240, 0.4)" stroke-width="0.5"/>
+                                            </pattern>
+                                        </defs>
+                                        <rect width="750" height="200" x="50" y="40" fill="url(#grid)" opacity="0.5"/>
+                                        
+                                        <!-- Chart area with gradient -->
+                                        <path d="M50,240 L150,200 L250,175 L350,150 L450,125 L550,100 L650,75 L750,50 L750,240 L50,240 Z" 
+                                              fill="url(#chartGradient)" class="chart-area"/>
+                                        
+                                        <!-- Main chart line -->
+                                        <path d="M50,240 L150,200 L250,175 L350,150 L450,125 L550,100 L650,75 L750,50" 
+                                              stroke="#3b82f6" stroke-width="3" fill="none" class="chart-line"/>
+                                        
+                                        <!-- Data points with enhanced styling -->
+                                        <circle cx="150" cy="200" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Lunedì" data-revenue="1250" data-sales="28" data-downloads="156" data-views="890" data-conversion="3.1"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <circle cx="250" cy="175" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Martedì" data-revenue="1580" data-sales="35" data-downloads="203" data-views="1240" data-conversion="2.8"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <circle cx="350" cy="150" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Mercoledì" data-revenue="1920" data-sales="42" data-downloads="267" data-views="1456" data-conversion="2.9"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <circle cx="450" cy="125" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Giovedì" data-revenue="2340" data-sales="51" data-downloads="321" data-views="1789" data-conversion="2.9"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <circle cx="550" cy="100" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Venerdì" data-revenue="2680" data-sales="58" data-downloads="389" data-views="2103" data-conversion="2.8"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <circle cx="650" cy="75" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Sabato" data-revenue="2890" data-sales="63" data-downloads="445" data-views="2456" data-conversion="2.6"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <circle cx="750" cy="50" r="5" fill="#ffffff" stroke="#3b82f6" stroke-width="3" class="chart-point" 
+                                                data-day="Domenica" data-revenue="3100" data-sales="67" data-downloads="512" data-views="2789" data-conversion="2.4"
+                                                onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        
+                                        <!-- Axis lines -->
+                                        <line x1="50" y1="40" x2="50" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+                                        <line x1="50" y1="240" x2="750" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+                                        
+                                        <!-- Y-axis labels -->
+                                        <text x="40" y="65" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">€3000</text>
+                                        <text x="40" y="110" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">€2500</text>
+                                        <text x="40" y="155" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">€2000</text>
+                                        <text x="40" y="200" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">€1500</text>
+                                        <text x="40" y="245" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">€1000</text>
+                                        <text x="40" y="295" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">€0</text>
+                                        
+                                        <!-- X-axis labels -->
+                                        <text x="150" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Lun</text>
+                                        <text x="250" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Mar</text>
+                                        <text x="350" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Mer</text>
+                                        <text x="450" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Gio</text>
+                                        <text x="550" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Ven</text>
+                                        <text x="650" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Sab</text>
+                                        <text x="750" y="260" text-anchor="middle" fill="#64748b" font-size="11" font-weight="500">Dom</text>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <div class="chart-placeholder" id="mainChart">
-                            <!-- Chart will be rendered here -->
-                            <div class="chart-mock">
-                                <svg viewBox="0 0 800 300" class="chart-svg">
-                                    <defs>
-                                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
-                                            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
-                                        </linearGradient>
-                                    </defs>
-                                    <path d="M50,250 L150,200 L250,180 L350,160 L450,140 L550,120 L650,100 L750,80" 
-                                          stroke="#3b82f6" stroke-width="3" fill="none" class="chart-line"/>
-                                    <path d="M50,250 L150,200 L250,180 L350,160 L450,140 L550,120 L650,100 L750,80 L750,250 L50,250 Z" 
-                                          fill="url(#chartGradient)" class="chart-area"/>
-                                    <!-- Data points -->
-                                    <circle cx="150" cy="200" r="4" fill="#3b82f6" class="chart-point"/>
-                                    <circle cx="250" cy="180" r="4" fill="#3b82f6" class="chart-point"/>
-                                    <circle cx="350" cy="160" r="4" fill="#3b82f6" class="chart-point"/>
-                                    <circle cx="450" cy="140" r="4" fill="#3b82f6" class="chart-point"/>
-                                    <circle cx="550" cy="120" r="4" fill="#3b82f6" class="chart-point"/>
-                                    <circle cx="650" cy="100" r="4" fill="#3b82f6" class="chart-point"/>
-                                    <circle cx="750" cy="80" r="4" fill="#3b82f6" class="chart-point"/>
-                                </svg>
+
+                    <!-- Document Types Histogram (Right Side) -->
+                    <div class="chart-section primary-chart right-chart">
+                        <div class="chart-header">
+                            <div class="chart-title-group">
+                                <h3 class="chart-title">Vendite per Tipo di Documento</h3>
+                                <p class="chart-description">Distribuzione delle vendite per categoria</p>
+                            </div>
+                            <div class="chart-controls">
+                                <div class="chart-time-filters">
+                                    <button class="time-filter-btn active" data-period="7d">7D</button>
+                                    <button class="time-filter-btn" data-period="30d">30D</button>
+                                    <button class="time-filter-btn" data-period="90d">90D</button>
+                                    <button class="time-filter-btn" data-period="1y">1Y</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-placeholder" id="histogramChart">
+                                <!-- Histogram will be rendered here -->
+                                <div class="histogram-mock">
+                                    
+                                    <svg viewBox="0 0 800 320" class="chart-svg" style="height: 320px;">
+                                        <defs>
+                                            <linearGradient id="histogramGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.9" />
+                                                <stop offset="100%" style="stop-color:#1e40af;stop-opacity:0.7" />
+                                            </linearGradient>
+                                            <linearGradient id="histogramGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.9" />
+                                                <stop offset="100%" style="stop-color:#047857;stop-opacity:0.7" />
+                                            </linearGradient>
+                                            <linearGradient id="histogramGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.9" />
+                                                <stop offset="100%" style="stop-color:#d97706;stop-opacity:0.7" />
+                                            </linearGradient>
+                                            <linearGradient id="histogramGradient4" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.9" />
+                                                <stop offset="100%" style="stop-color:#dc2626;stop-opacity:0.7" />
+                                            </linearGradient>
+                                            <linearGradient id="histogramGradient5" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.9" />
+                                                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:0.7" />
+                                            </linearGradient>
+                                            <linearGradient id="histogramGradient6" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.9" />
+                                                <stop offset="100%" style="stop-color:#0891b2;stop-opacity:0.7" />
+                                            </linearGradient>
+                                            
+                                            <!-- Grid pattern for professional look -->
+                                            <pattern id="histogramGrid" width="100" height="50" patternUnits="userSpaceOnUse">
+                                                <path d="M 100 0 L 0 0 0 50" fill="none" stroke="rgba(226, 232, 240, 0.3)" stroke-width="0.5"/>
+                                            </pattern>
+                                        </defs>
+                                        
+                                        <!-- Background grid -->
+                                        <rect width="750" height="200" x="50" y="40" fill="url(#histogramGrid)" opacity="0.4"/>
+                                        
+                                        <!-- Enhanced histogram bars with shadows -->
+                                        <rect x="80" y="120" width="80" height="120" fill="url(#histogramGradient1)" rx="6" 
+                                              class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(59, 130, 246, 0.3))"
+                                              data-type="Appunti" data-count="45" data-revenue="€1,350"
+                                              onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <rect x="180" y="80" width="80" height="160" fill="url(#histogramGradient2)" rx="6" 
+                                              class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(16, 185, 129, 0.3))"
+                                              data-type="Esami" data-count="67" data-revenue="€2,010"
+                                              onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <rect x="280" y="140" width="80" height="100" fill="url(#histogramGradient3)" rx="6" 
+                                              class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(245, 158, 11, 0.3))"
+                                              data-type="Libri" data-count="32" data-revenue="€960"
+                                              onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <rect x="380" y="105" width="80" height="135" fill="url(#histogramGradient4)" rx="6" 
+                                              class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(239, 68, 68, 0.3))"
+                                              data-type="Progetti" data-count="58" data-revenue="€1,740"
+                                              onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <rect x="480" y="180" width="80" height="60" fill="url(#histogramGradient5)" rx="6" 
+                                              class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(139, 92, 246, 0.3))"
+                                              data-type="Tesi" data-count="18" data-revenue="€540"
+                                              onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        <rect x="580" y="160" width="80" height="80" fill="url(#histogramGradient6)" rx="6" 
+                                              class="histogram-bar" filter="drop-shadow(0 4px 6px rgba(6, 182, 212, 0.3))"
+                                              data-type="Altri" data-count="25" data-revenue="€750"
+                                              onmouseenter="showHistogramTooltip(event, this)" onmouseleave="hideTooltip()" onmousemove="moveTooltip(event)"/>
+                                        
+                                        <!-- Enhanced value labels with backgrounds -->
+                                        <rect x="110" y="105" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+                                        <text x="120" y="117" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">45</text>
+                                        
+                                        <rect x="210" y="65" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+                                        <text x="220" y="77" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">67</text>
+                                        
+                                        <rect x="310" y="125" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+                                        <text x="320" y="137" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">32</text>
+                                        
+                                        <rect x="410" y="90" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+                                        <text x="420" y="102" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">58</text>
+                                        
+                                        <rect x="510" y="165" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+                                        <text x="520" y="177" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">18</text>
+                                        
+                                        <rect x="610" y="145" width="20" height="16" fill="rgba(255,255,255,0.9)" rx="3" opacity="0.8"/>
+                                        <text x="620" y="157" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="700">25</text>
+                                        
+                                        <!-- Professional axis lines -->
+                                        <line x1="50" y1="40" x2="50" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+                                        <line x1="50" y1="240" x2="750" y2="240" stroke="#94a3b8" stroke-width="2" class="chart-axis-line"/>
+                                        
+                                        <!-- Enhanced X-axis labels -->
+                                        <text x="120" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">Appunti</text>
+                                        <text x="220" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">Esami</text>
+                                        <text x="320" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">Libri</text>
+                                        <text x="420" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">Progetti</text>
+                                        <text x="520" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">Tesi</text>
+                                        <text x="620" y="260" text-anchor="middle" fill="#64748b" font-size="12" font-weight="600">Altri</text>
+                                        
+                                        <!-- Y-axis labels with proper scaling -->
+                                        <text x="40" y="45" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">80</text>
+                                        <text x="40" y="90" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">60</text>
+                                        <text x="40" y="135" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">40</text>
+                                        <text x="40" y="180" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">20</text>
+                                        <text x="40" y="245" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">0</text>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -655,10 +867,28 @@
     let mainSearchWrapper = null;
     let documentsSearchWrapper = null;
     let favoritesSearchWrapper = null;
+    let initializationComplete = false;
 
-    // Wait for the page to be ready
-    document.addEventListener('DOMContentLoaded', async function() {
-        console.log('🚀 Profile Page Loaded');
+    // Debounce function to prevent multiple rapid initializations
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Initialize iframe wrappers with error handling
+    const initializeIframeWrappers = debounce(async function() {
+        if (initializationComplete) {
+            return; // Prevent multiple initializations
+        }
+        
+        console.log('🚀 Initializing IframeSearchWrapper instances...');
         
         try {
             // Check if IframeSearchWrapper class is available
@@ -672,7 +902,7 @@
             
             // Initialize Main Search Wrapper (visible on profile page)
             const mainContainer = document.getElementById('main-search-container');
-            if (mainContainer) {
+            if (mainContainer && !mainSearchWrapper) {
                 mainSearchWrapper = new IframeSearchWrapper('main-search-container', {
                     context: 'default',
                     title: 'Cerca Documenti',
@@ -694,9 +924,9 @@
                 console.log('✅ Main Search Wrapper initialized');
             }
             
-            // Initialize Documents Search Wrapper
+            // Initialize Documents Search Wrapper (lazy load for tab switching)
             const documentsContainer = document.getElementById('documents-search-container');
-            if (documentsContainer) {
+            if (documentsContainer && !documentsSearchWrapper) {
                 documentsSearchWrapper = new IframeSearchWrapper('documents-search-container', {
                     context: 'user-documents',
                     title: 'I Miei Documenti',
@@ -721,9 +951,9 @@
                 console.log('✅ Documents Search Wrapper initialized');
             }
             
-            // Initialize Favorites Search Wrapper
+            // Initialize Favorites Search Wrapper (lazy load for tab switching)
             const favoritesContainer = document.getElementById('favorites-search-container');
-            if (favoritesContainer) {
+            if (favoritesContainer && !favoritesSearchWrapper) {
                 favoritesSearchWrapper = new IframeSearchWrapper('favorites-search-container', {
                     context: 'favorites',
                     title: 'Documenti Preferiti',
@@ -748,12 +978,28 @@
                 console.log('✅ Favorites Search Wrapper initialized');
             }
             
+            initializationComplete = true;
             console.log('🎉 All IframeSearchWrapper instances initialized successfully');
             console.log('Search sections should now be visible on the profile page');
             
         } catch (error) {
             console.error('❌ Error initializing IframeSearchWrapper instances:', error);
+            // Retry initialization after a delay
+            setTimeout(() => {
+                initializationComplete = false;
+                initializeIframeWrappers();
+            }, 2000);
         }
+    }, 100); // 100ms debounce
+
+    // Wait for the page to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Profile Page Loaded');
+        
+        // Initialize iframe wrappers after a short delay to ensure all scripts are loaded
+        setTimeout(() => {
+            initializeIframeWrappers();
+        }, 100);
     });
     
     // Add error handling for script loading

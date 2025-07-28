@@ -8,15 +8,58 @@ class IframeSearchWrapper {
         this.config = config;
         this.iframe = null;
         this.isLoaded = false;
+        this.isLoading = false;
         this.messageHandlers = new Map();
+        this.retryCount = 0;
+        this.maxRetries = 2;
         
-        this.init();
+        // Lazy load the iframe when it comes into view
+        this.initLazyLoading();
+    }
+
+    /**
+     * Initialize lazy loading for the iframe
+     */
+    initLazyLoading() {
+        const container = document.getElementById(this.containerId);
+        if (!container) {
+            console.error(`Container with ID "${this.containerId}" not found`);
+            return;
+        }
+
+        // Add loading state to container
+        container.classList.add('loading');
+        
+        // Use Intersection Observer for lazy loading
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !this.isLoading && !this.isLoaded) {
+                        this.init();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                rootMargin: '50px' // Start loading 50px before the element comes into view
+            });
+            
+            observer.observe(container);
+        } else {
+            // Fallback for browsers without Intersection Observer
+            this.init();
+        }
     }
 
     /**
      * Initialize the iframe wrapper
      */
     init() {
+        if (this.isLoading || this.isLoaded) {
+            return; // Prevent multiple initializations
+        }
+        
+        this.isLoading = true;
+        
         const container = document.getElementById(this.containerId);
         if (!container) {
             console.error(`Container with ID "${this.containerId}" not found`);
@@ -37,25 +80,33 @@ class IframeSearchWrapper {
         this.iframe.style.boxSizing = 'border-box'; // Include padding and border in width calculation
         this.iframe.style.display = 'block'; // Ensure proper block display
 
-        // Add loading state to container
-        container.classList.add('loading');
-        
         // Add iframe to container
         container.appendChild(this.iframe);
 
+        // Set up load timeout
+        const loadTimeout = setTimeout(() => {
+            if (!this.isLoaded) {
+                console.warn(`Iframe load timeout for container "${this.containerId}"`);
+                this.handleLoadError(container);
+            }
+        }, 10000); // 10 second timeout
+
         // Wait for iframe to load, then pass configuration
         this.iframe.onload = () => {
+            clearTimeout(loadTimeout);
             this.isLoaded = true;
+            this.isLoading = false;
             container.classList.remove('loading');
+            this.iframe.classList.add('loaded'); // Add loaded class for smooth transition
             this.passConfiguration();
             this.setupMessageHandling();
+            console.log(`Iframe ${this.containerId} is ready`);
         };
 
         // Handle iframe load errors
         this.iframe.onerror = () => {
-            console.error(`Failed to load search section iframe for container "${this.containerId}"`);
-            container.classList.remove('loading');
-            this.showErrorMessage(container);
+            clearTimeout(loadTimeout);
+            this.handleLoadError(container);
         };
     }
 

@@ -3359,14 +3359,18 @@ function updateActiveFiltersDisplay() {
     }
     
     const filterPills = [];
+    console.log('🔧 Starting to create filter pills for entries:', filterEntries);
     
     filterEntries.forEach(([key, value]) => {
+        console.log('🔧 Processing filter entry:', key, value);
         let label = '';
         let displayValue = '';
         
         // Handle arrays for multi-select filters
         if (Array.isArray(value)) {
+            console.log('🔧 Processing array value for key:', key);
             value.forEach(item => {
+                console.log('🔧 Processing array item:', item);
                 let itemLabel = '';
                 let itemValue = '';
                 
@@ -3379,10 +3383,9 @@ function updateActiveFiltersDisplay() {
                         itemLabel = 'Corso';
                         itemValue = item;
                         break;
-                            case 'canale':
-            itemLabel = 'Canale';
-            value = formatCanaleDisplay(value);
-                        itemValue = item;
+                    case 'canale':
+                        itemLabel = 'Canale';
+                        itemValue = formatCanaleDisplay(item); // Fixed: use 'item' instead of 'value'
                         break;
                     case 'documentType':
                         itemLabel = 'Tipo';
@@ -3402,14 +3405,17 @@ function updateActiveFiltersDisplay() {
                         break;
                 }
                 
+                console.log('🔧 Created itemLabel:', itemLabel, 'itemValue:', itemValue);
                 if (itemLabel && itemValue) {
-                    filterPills.push(`
+                    const pillHtml = `
                         <div class="filter-pill" data-filter="${key}" data-value="${item}">
                             <span class="filter-pill-label">${itemLabel}:</span>
                             <span class="filter-pill-value">${itemValue}</span>
                             <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="${key}" data-specific-value="${item}"></span>
                         </div>
-                    `);
+                    `;
+                    filterPills.push(pillHtml);
+                    console.log('🔧 Added filter pill:', pillHtml);
                 }
             });
             return; // Skip the single-value processing below
@@ -3519,12 +3525,17 @@ function updateActiveFiltersDisplay() {
         `);
     }
     
+    console.log('🔧 Final filterPills array:', filterPills);
+    console.log('🔧 About to set innerHTML with pills');
     activeFiltersContainer.innerHTML = filterPills.join('');
+    console.log('🔧 innerHTML set, container now contains:', activeFiltersContainer.innerHTML);
     
     // Trigger animation
     setTimeout(() => {
+        console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
         updateBottomFilterCount();
+        console.log('🔧 Filter pills should now be visible');
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)

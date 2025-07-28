@@ -38,6 +38,8 @@ logger.info("Embedder model initialized successfully")
 
 def load_reranker():
     global reranker, reranker_processor
+    if reranker is not None:
+        return
     logger.info("Loading reranker model...")
     reranker_processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
     logger.info("Reranker processor loaded successfully")
@@ -50,6 +52,8 @@ def load_reranker():
 
 def unload_reranker():
     global reranker, reranker_processor
+    if reranker is None:
+        return
     logger.info("Unloading reranker model...")
     reranker = None
     reranker_processor = None

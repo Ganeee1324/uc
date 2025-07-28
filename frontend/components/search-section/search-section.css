@@ -193,6 +193,7 @@ body {
     font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
     letter-spacing: -0.011em;
     overflow-x: hidden;
+    overflow-y: visible; /* Allow natural vertical scrolling */
     position: relative;
     max-width: 100vw;
     width: 100%;
@@ -221,7 +222,6 @@ html {
 
 /* Ensure iframe content flows naturally without scroll bars */
 iframe {
-    overflow: hidden !important;
     scrolling: no !important;
     border: none !important;
     margin: 0 !important;
@@ -235,58 +235,27 @@ iframe {
     position: relative !important;
     z-index: 1 !important;
     vertical-align: top !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    -webkit-overflow-scrolling: auto !important;
 }
 
 /* Ensure iframe content doesn't create scroll bars */
 iframe body {
-    overflow: hidden !important;
     overflow-x: hidden !important;
-    overflow-y: hidden !important;
+    overflow-y: visible !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    -webkit-overflow-scrolling: auto !important;
 }
 
 iframe html {
-    overflow: hidden !important;
     overflow-x: hidden !important;
-    overflow-y: hidden !important;
+    overflow-y: visible !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    -webkit-overflow-scrolling: auto !important;
-}
-
-/* Hide scrollbars for webkit browsers in iframe */
-iframe::-webkit-scrollbar,
-iframe *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
-/* Force remove scroll from all iframe content */
-iframe * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-}
-
-iframe *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
 }
 
 /* Background Image as Element */

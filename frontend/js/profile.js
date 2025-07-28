@@ -1161,6 +1161,8 @@ function updateChartPeriod(period, chartType = 'main') {
             }
         });
     }
+    
+    console.log('Updated periods - Main:', mainChartTimePeriod, 'Histogram:', histogramTimePeriod);
 }
 
 function initializeDonutChart() {
@@ -1623,6 +1625,11 @@ function initializeDynamicCharts() {
             }
         });
     });
+    
+    // Also handle the onclick attributes from HTML for left chart
+    window.selectTimePeriod = function(button, period) {
+        updateChartPeriod(period, 'main');
+    };
     
     console.log('✅ Dynamic charts initialized successfully');
 }

@@ -408,6 +408,9 @@ let isFiltersOpen = false;
         // Initialize CSP-compliant event handlers
         handleCSPEventHandlers();
         
+        // Set restoration flag to prevent premature UI updates during initialization
+        filterManager.isRestoring = true;
+        
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
@@ -429,14 +432,14 @@ let isFiltersOpen = false;
         setTimeout(() => debugPensatoTextPosition(), 200);
     }
         
-        // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
+        // Small delay to ensure DOM is fully ready, then restore filters
         setTimeout(() => {
             restoreFiltersFromStorage();
             
             // Additional check to ensure all UI elements are properly updated
             setTimeout(() => {
                 updateActiveFilterIndicators();
-                updateActiveFiltersDisplay();
+                // Note: updateActiveFiltersDisplay() is already called by restoreFiltersFromStorage()
                 
                 // Final safety check - if no documents are shown, show all documents
                 setTimeout(() => {

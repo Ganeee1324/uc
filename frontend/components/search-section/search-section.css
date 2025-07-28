@@ -156,6 +156,24 @@ html {
     font-size: 16px;
     max-width: 100vw;
     overflow-x: hidden;
+    /* Ensure proper iframe alignment */
+    text-align: center;
+}
+
+/* Iframe-specific centering fixes */
+body {
+    text-align: center; /* Center all content by default */
+}
+
+/* Reset text alignment for specific elements that should be left-aligned */
+.document-count-container,
+.document-count-and-filters,
+.documents-grid,
+.document-card,
+.document-content,
+.document-info,
+.document-footer {
+    text-align: left;
 }
 
 body {
@@ -198,11 +216,12 @@ html {
 /* Background Image as Element */
 .background-image {
     position: absolute;
-    left: -1px; /* Offset left by 1px to center the extra 2px width */
-    width: calc(100vw + 2px); /* Span the full viewport width plus 2px */
+    left: 0; /* Remove the negative offset that was causing centering issues */
+    width: 100%; /* Use 100% instead of viewport width to respect iframe boundaries */
     /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
     background-image: url('../images/bg.png');
-    background-size: 100% 100%; /* Stretch to fill the element */
+    background-size: cover; /* Use cover instead of 100% 100% for better scaling */
+    background-position: center; /* Center the background image */
     background-repeat: no-repeat;
     z-index: -1;
     pointer-events: none;
@@ -633,6 +652,11 @@ html {
     max-width: 100vw;
     overflow-x: hidden;
     box-sizing: border-box;
+    /* Ensure proper centering within iframe context */
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Loading state - remove excess height */
@@ -1101,8 +1125,9 @@ html {
 
 .search-container-wrapper {
     /* The wrapper is now back inside search-section. */
-    width: fit-content;
-    margin-top: 0px auto; /* Restore the original spacing between subtitle and search bar. */
+    width: 100%;
+    max-width: 600px; /* Limit maximum width for better centering */
+    margin: 0 auto; /* Center the wrapper properly */
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
@@ -1137,6 +1162,7 @@ html {
     margin: 0 auto;
     flex-wrap: nowrap;
     z-index: 9997; /* High z-index for search container */
+    box-sizing: border-box; /* Ensure proper width calculations */
 }
 
 /* Animated Border Search Bar Container */
@@ -1785,14 +1811,17 @@ html {
 /* Document Count and Filters Display */
 .document-count-container {
     margin-top: calc(var(--space-8) + 40px - var(--space-2)); /* Compensate for loading placeholder negative margin */
-    margin-left: 0;
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: var(--space-4);
     position: relative;
     z-index: 999; /* Higher than search wrapper to ensure clickability */
     width: 100%;
-    max-width: none;
+    max-width: min(2400px, 100vw); /* Match documents grid max-width */
     text-align: left !important;
     padding-left: 0;
+    padding-right: 0;
+    box-sizing: border-box;
 }
 
 /* When filters overlay is active, reduce z-index so it appears below the overlay */

@@ -1071,16 +1071,24 @@ function updateTooltipPosition(event) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    let x = event.clientX + 10;
-    let y = event.clientY - tooltip.offsetHeight - 10;
+    // Get the target element (chart circle or histogram bar)
+    const targetElement = event.target;
+    const elementRect = targetElement.getBoundingClientRect();
     
-    // Adjust if tooltip would go off screen
-    if (x + tooltipRect.width > viewportWidth) {
-        x = event.clientX - tooltipRect.width - 10;
+    // Position tooltip centered above the element
+    let x = elementRect.left + (elementRect.width / 2) - (tooltipRect.width / 2);
+    let y = elementRect.top - tooltipRect.height - 10;
+    
+    // Adjust if tooltip would go off screen horizontally
+    if (x < 10) {
+        x = 10;
+    } else if (x + tooltipRect.width > viewportWidth - 10) {
+        x = viewportWidth - tooltipRect.width - 10;
     }
     
-    if (y < 0) {
-        y = event.clientY + 10;
+    // Adjust if tooltip would go off screen vertically
+    if (y < 10) {
+        y = elementRect.bottom + 10; // Show below the element instead
     }
     
     tooltip.style.left = x + 'px';
@@ -1136,10 +1144,11 @@ window.showTooltip = function(event, element) {
     }
     
     chartTooltip.innerHTML = content;
-    chartTooltip.classList.add('show');
     chartTooltip.style.pointerEvents = 'none';
     
+    // Position tooltip first, then show it
     updateTooltipPosition(event);
+    chartTooltip.classList.add('show');
 };
 
 window.showHistogramTooltip = function(event, element) {
@@ -1158,10 +1167,11 @@ window.showHistogramTooltip = function(event, element) {
     const content = `<strong>${type}</strong><br>Venduti: ${count}<br>Ricavi: ${revenue}`;
     
     chartTooltip.innerHTML = content;
-    chartTooltip.classList.add('show');
     chartTooltip.style.pointerEvents = 'none';
     
+    // Position tooltip first, then show it
     updateTooltipPosition(event);
+    chartTooltip.classList.add('show');
 };
 
 window.hideTooltip = function() {

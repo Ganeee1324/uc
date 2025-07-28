@@ -977,8 +977,8 @@ function generateChart(chartType, timePeriod) {
     const ySteps = 6; // Number of Y-axis labels
     for (let i = 0; i <= ySteps; i++) {
         const rawValue = (maxValue / ySteps) * (ySteps - i);
-        // Round to nearest nice number (10, 50, 100, 500, 1000, etc.)
-        const value = Math.round(rawValue);
+        // Round to nearest nice number ending in 0
+        const value = Math.round(rawValue / 10) * 10;
         const y = 40 + (i * (200 / ySteps)) + 5;
         const format = chartType === 'revenue' ? `€${value.toLocaleString()}` : value.toLocaleString();
         svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${format}</text>`;
@@ -1009,8 +1009,10 @@ function generateHistogram(timePeriod) {
     
     const data = histogramData[timePeriod] || histogramData['7d'];
     console.log('Histogram data found:', data);
+    console.log('Time period:', timePeriod);
     const maxCount = Math.max(...data.map(d => d.count));
     console.log('Max count:', maxCount);
+    console.log('Data range:', data.map(d => ({ type: d.type, count: d.count })));
     
     // Chart configuration
     const chartConfig = {
@@ -1055,6 +1057,8 @@ function generateHistogram(timePeriod) {
         const y = 240 - height;
         const colorIndex = i % colors.length;
         
+        console.log(`Bar ${i}: ${d.type} - count: ${d.count}, height: ${height}, y: ${y}`);
+        
         svg += `
             <rect x="${x}" y="${y}" width="${barWidth}" height="${height}" 
                   fill="url(#histogramGradient${colorIndex + 1})" rx="6" 
@@ -1082,7 +1086,8 @@ function generateHistogram(timePeriod) {
     const ySteps = 4;
     for (let i = 0; i <= ySteps; i++) {
         const rawValue = (maxCount / ySteps) * (ySteps - i);
-        const value = Math.round(rawValue);
+        // Round to nearest nice number ending in 0
+        const value = Math.round(rawValue / 10) * 10;
         const y = 40 + (i * (200 / ySteps)) + 5;
         svg += `<text x="40" y="${y}" text-anchor="end" fill="#64748b" font-size="11" font-weight="500">${value.toLocaleString()}</text>`;
     }
@@ -1103,6 +1108,29 @@ function generateHistogram(timePeriod) {
 function updateChart(chartType) {
     currentChartType = chartType;
     generateChart(chartType, mainChartTimePeriod);
+    
+    // Preserve chart type selection in dropdown
+    const options = document.querySelectorAll('.chart-dropdown-option');
+    options.forEach(opt => opt.classList.remove('active'));
+    
+    const selectedOption = document.querySelector(`[data-chart="${chartType}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('active');
+    }
+    
+    // Update dropdown button text
+    const dropdownBtn = document.getElementById('chartDropdownBtn');
+    const dropdownText = dropdownBtn?.querySelector('.dropdown-text');
+    if (dropdownText) {
+        const labels = {
+            'revenue': 'Ricavi',
+            'sales': 'Vendite',
+            'downloads': 'Download',
+            'views': 'Visualizzazioni',
+            'conversion': 'Tasso di Conversione'
+        };
+        dropdownText.textContent = labels[chartType] || 'Ricavi';
+    }
 }
 
 function updateChartPeriod(period, chartType = 'main') {

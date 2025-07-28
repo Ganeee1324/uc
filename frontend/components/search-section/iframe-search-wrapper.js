@@ -79,14 +79,15 @@ class IframeSearchWrapper {
         this.iframe.src = 'components/search-section/search-section.html';
         this.iframe.style.width = '100%';
         this.iframe.style.maxWidth = '100vw'; // Ensure it doesn't exceed viewport width
-        this.iframe.style.height = this.config.height || '600px'; // Use config height or default
+        this.iframe.style.minHeight = this.config.height || '600px'; // Use config height as minimum
+        this.iframe.style.height = 'auto'; // Allow iframe to expand naturally
         this.iframe.style.border = 'none';
-        this.iframe.style.overflow = 'hidden';
         this.iframe.style.borderRadius = '12px';
         this.iframe.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
         this.iframe.style.backgroundColor = 'transparent';
         this.iframe.style.boxSizing = 'border-box'; // Include padding and border in width calculation
         this.iframe.style.display = 'block'; // Ensure proper block display
+        // Remove overflow: hidden to allow natural page scrolling
 
         // Add iframe to container
         container.appendChild(this.iframe);
@@ -227,7 +228,8 @@ class IframeSearchWrapper {
      */
     setHeight(height) {
         if (this.iframe) {
-            this.iframe.style.height = height;
+            this.iframe.style.minHeight = height;
+            // Keep height auto to allow natural expansion
         }
     }
 

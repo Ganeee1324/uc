@@ -7,99 +7,6 @@ const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
-// URL Parameter Management for Filters
-const URL_FILTER_MANAGER = {
-    // Convert filter object to URL parameters
-    filtersToUrlParams(filters) {
-        const params = new URLSearchParams();
-        
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value !== null && value !== undefined && value !== '') {
-                if (Array.isArray(value)) {
-                    // Handle array values (like multiple tags)
-                    value.forEach(v => params.append(key, v));
-                } else {
-                    params.set(key, value);
-                }
-            }
-        });
-        
-        return params;
-    },
-    
-    // Convert URL parameters to filter object
-    urlParamsToFilters(params) {
-        const filters = {};
-        
-        for (const [key, value] of params.entries()) {
-            if (filters[key]) {
-                // If key already exists, convert to array
-                if (!Array.isArray(filters[key])) {
-                    filters[key] = [filters[key]];
-                }
-                filters[key].push(value);
-            } else {
-                filters[key] = value;
-            }
-        }
-        
-        return filters;
-    },
-    
-    // Update URL with current filters
-    updateUrl(filters) {
-        try {
-            console.log('🔗 URL_FILTER_MANAGER.updateUrl called with filters:', filters);
-            
-            const url = new URL(window.location);
-            const params = this.filtersToUrlParams(filters);
-            
-            console.log('🔗 Generated URL params:', params.toString());
-            
-            // Clear existing filter parameters
-            const filterKeys = [
-                'faculty', 'course', 'canale', 'tag', 'documentType', 'language', 
-                'academicYear', 'courseYear', 'minPrice', 'maxPrice', 'minPages', 
-                'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
-            ];
-            
-            filterKeys.forEach(key => url.searchParams.delete(key));
-            
-            // Add new filter parameters
-            for (const [key, value] of params.entries()) {
-                url.searchParams.set(key, value);
-            }
-            
-            console.log('🔗 New URL will be:', url.toString());
-            
-            // Update URL without reloading the page
-            window.history.replaceState({}, '', url);
-            
-            console.log('🔗 URL updated successfully');
-        } catch (error) {
-            console.error('❌ Error updating URL:', error);
-        }
-    },
-    
-    // Get filters from URL
-    getFiltersFromUrl() {
-        const url = new URL(window.location);
-        return this.urlParamsToFilters(url.searchParams);
-    },
-    
-    // Check if URL has filter parameters
-    hasUrlFilters() {
-        const url = new URL(window.location);
-        const filterKeys = [
-            'faculty', 'course', 'canale', 'tag', 'documentType', 'language', 
-            'academicYear', 'courseYear', 'minPrice', 'maxPrice', 'minPages', 
-            'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
-        ];
-        
-        return filterKeys.some(key => url.searchParams.has(key));
-    }
-};
-
 // DOM element cache for performance optimization
 const DOM_CACHE = {
     documentsGrid: null,
@@ -401,10 +308,6 @@ let isFiltersOpen = false;
         // Initialize CSP-compliant event handlers
         handleCSPEventHandlers();
         
-        // Set restoration flag to prevent premature UI updates during initialization
-        console.log('🔧 Setting isRestoring to true for initialization');
-        filterManager.isRestoring = true;
-        
         initializeAnimations();
         initializeFilters();
         initializeScrollToTop();
@@ -426,14 +329,14 @@ let isFiltersOpen = false;
         setTimeout(() => debugPensatoTextPosition(), 200);
     }
         
-        // Small delay to ensure DOM is fully ready, then restore filters
+        // Small delay to ensure DOM is fully ready, then clear filters (fresh start)
         setTimeout(() => {
             restoreFiltersFromStorage();
             
             // Additional check to ensure all UI elements are properly updated
             setTimeout(() => {
                 updateActiveFilterIndicators();
-                // Note: updateActiveFiltersDisplay() is already called by restoreFiltersFromStorage()
+                updateActiveFiltersDisplay();
                 
                 // Final safety check - if no documents are shown, show all documents
                 setTimeout(() => {
@@ -485,50 +388,8 @@ let isFiltersOpen = false;
     
     // Handle browser back/forward navigation
     window.addEventListener('popstate', async (event) => {
-        // Don't handle popstate during initialization/restoration
-        if (filterManager.isRestoring) {
-            console.log('🔧 Skipping popstate handler during restoration');
-            return;
-        }
-        
-        // Restore filters from URL when navigating back/forward
-        if (URL_FILTER_MANAGER.hasUrlFilters()) {
-            const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
-            filterManager.filters = urlFilters;
-            
-            console.log('📋 Restored filters from URL navigation:', urlFilters);
-            
-            // Update UI and apply filters
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
-            
-            if (originalFiles && originalFiles.length > 0) {
-                const filteredFiles = applyClientSideFilters(originalFiles);
-                renderDocuments(filteredFiles);
-                currentFiles = filteredFiles;
-                
-                const filterCount = filterManager.getActiveFilterCount().count;
-                if (filterCount > 0) {
-                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
-                } else {
-                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
-                }
-            }
-        } else {
-            // No URL filters, clear all filters
-            filterManager.filters = {};
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
-            
-            if (originalFiles && originalFiles.length > 0) {
-                renderDocuments(originalFiles);
-                currentFiles = originalFiles;
-                showStatus(`${originalFiles.length} documenti disponibili 📚`);
-            }
+        if (currentFiles && currentFiles.length > 0) {
+            // Favorite status is already included in vetrine data, no need for separate refresh
         }
     });
 };
@@ -730,7 +591,6 @@ function initializeFilters() {
 
     // Always set priceType to 'all' as default on initialization
     if (!filterManager.filters.priceType) {
-        console.log('🔧 Setting default priceType to "all" during initialization');
         filterManager.filters.priceType = 'all';
     }
 
@@ -760,79 +620,6 @@ function initializeFilterControls() {
     const priceRangeContainer = document.getElementById('priceRangeContainer');
     if (filterManager.filters.priceType === 'all' && priceRangeContainer) {
         priceRangeContainer.style.display = 'block';
-    }
-    
-    // Set up event listeners for filter inputs
-    // Faculty filter
-    const facultyInput = document.getElementById('facultyFilter');
-    console.log('🔧 Faculty input element found:', !!facultyInput);
-    if (facultyInput) {
-        facultyInput.addEventListener('change', (e) => {
-            console.log('🔧 Faculty input change event triggered:', e.target.value);
-            filterManager.setFilter('faculty', e.target.value);
-        });
-    }
-    // Course filter
-    const courseInput = document.getElementById('courseFilter');
-    console.log('🔧 Course input element found:', !!courseInput);
-    if (courseInput) {
-        courseInput.addEventListener('change', (e) => {
-            console.log('🔧 Course input change event triggered:', e.target.value);
-            filterManager.setFilter('course', e.target.value);
-        });
-    }
-    // Canale filter
-    const canaleInput = document.getElementById('canaleFilter');
-    if (canaleInput) {
-        canaleInput.addEventListener('change', (e) => {
-            filterManager.setFilter('canale', e.target.value);
-        });
-    }
-    // Price range sliders
-    const minPriceRange = document.getElementById('minPriceRange');
-    const maxPriceRange = document.getElementById('maxPriceRange');
-    if (minPriceRange && maxPriceRange) {
-        const updatePrice = () => {
-            const min = parseInt(minPriceRange.value, 10);
-            const max = parseInt(maxPriceRange.value, 10);
-            filterManager.setFilter('priceRange', [min, max]);
-        };
-        minPriceRange.addEventListener('input', updatePrice);
-        maxPriceRange.addEventListener('input', updatePrice);
-    }
-    // Pages range sliders
-    const minPagesRange = document.getElementById('minPagesRange');
-    const maxPagesRange = document.getElementById('maxPagesRange');
-    if (minPagesRange && maxPagesRange) {
-        const updatePages = () => {
-            const min = parseInt(minPagesRange.value, 10);
-            const max = parseInt(maxPagesRange.value, 10);
-            filterManager.setFilter('minPages', min);
-            filterManager.setFilter('maxPages', max);
-        };
-        minPagesRange.addEventListener('input', updatePages);
-        maxPagesRange.addEventListener('input', updatePages);
-    }
-    // Rating filter (example for stars)
-    document.querySelectorAll('.rating-star-filter').forEach(star => {
-        star.addEventListener('click', (e) => {
-            const rating = parseInt(star.getAttribute('data-rating'), 10);
-            filterManager.setFilter('minRating', rating);
-        });
-    });
-    // Toggle groups (example for priceType)
-    document.querySelectorAll('.price-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
-        });
-    });
-    // Clear all button
-    const clearAllBtn = document.getElementById('clearAllFilters');
-    if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', () => {
-            filterManager.filters = {};
-            filterManager.updateActiveFiltersDisplay();
-        });
     }
 }
 
@@ -2461,7 +2248,11 @@ function applyPriceFilters(minVal, maxVal) {
     
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
-    debouncedApplyFilters();
+    
+    // Don't apply filters during restoration
+    if (!filterManager.isRestoring) {
+        debouncedApplyFilters();
+    }
 }
 
 // Order functionality
@@ -2747,35 +2538,18 @@ class FilterManager {
     constructor() {
         this.filters = {};
         this.updateCountTimeout = null;
-        this.isRestoring = false;
     }
     
     // Add or update a filter
     setFilter(key, value) {
-        console.log('🔧 FilterManager.setFilter called with:', key, value, 'isRestoring:', this.isRestoring);
-        
         if (value === null || value === '' || value === undefined || 
             (Array.isArray(value) && value.length === 0)) {
             delete this.filters[key];
         } else {
             this.filters[key] = value;
         }
-        
-        console.log('🔧 Current filters after setFilter:', this.filters);
-        
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
-        
-        // Update URL with current filters (only if not during restoration)
-        if (!this.isRestoring) {
-            console.log('🔧 About to call URL_FILTER_MANAGER.updateUrl with:', this.filters);
-            try {
-                URL_FILTER_MANAGER.updateUrl(this.filters);
-                console.log('🔧 URL_FILTER_MANAGER.updateUrl called successfully');
-            } catch (error) {
-                console.error('❌ Error calling URL_FILTER_MANAGER.updateUrl:', error);
-            }
-        }
         
         // Save to localStorage whenever a filter is set
         saveFiltersToStorage();
@@ -2786,9 +2560,6 @@ class FilterManager {
         delete this.filters[key];
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
-        
-        // Update URL with current filters
-        URL_FILTER_MANAGER.updateUrl(this.filters);
         
         // Save to localStorage whenever a filter is removed
         saveFiltersToStorage();
@@ -2959,24 +2730,6 @@ class FilterManager {
 // Initialize the filter manager
 const filterManager = new FilterManager();
 
-// Test URL_FILTER_MANAGER accessibility
-console.log('🔧 TEST: FilterManager created successfully');
-console.log('🔧 TEST: URL_FILTER_MANAGER type:', typeof URL_FILTER_MANAGER);
-console.log('🔧 TEST: URL_FILTER_MANAGER exists:', !!URL_FILTER_MANAGER);
-
-if (typeof URL_FILTER_MANAGER !== 'undefined' && URL_FILTER_MANAGER) {
-    console.log('🔧 TEST: URL_FILTER_MANAGER methods:', Object.keys(URL_FILTER_MANAGER));
-    try {
-        console.log('🔧 TEST: Calling URL_FILTER_MANAGER.updateUrl...');
-        URL_FILTER_MANAGER.updateUrl({test: 'value'});
-        console.log('🔧 TEST: URL_FILTER_MANAGER.updateUrl called successfully');
-    } catch (error) {
-        console.error('❌ TEST: Error calling URL_FILTER_MANAGER.updateUrl:', error);
-    }
-} else {
-    console.error('❌ TEST: URL_FILTER_MANAGER is not defined or falsy!');
-}
-
 // Replace your existing functions with calls to the filter manager
 function updateBottomFilterCount() {
     filterManager.updateBottomFilterCount();
@@ -3130,9 +2883,6 @@ function populateSelect(selectId, options) {
 
 function clearAllFiltersAction() {
     filterManager.filters = {};
-    
-    // Clear filters from URL
-    URL_FILTER_MANAGER.updateUrl({});
     
     // Clear filters from localStorage
     try {
@@ -3340,20 +3090,14 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
-    console.log('🔧 updateActiveFiltersDisplay called - filters:', filterManager.filters);
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-    if (!activeFiltersContainer) {
-        console.log('🔧 activeFiltersContainer not found');
-        return;
-    }
+    if (!activeFiltersContainer) return;
     
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
-    console.log('🔧 filterEntries after filtering:', filterEntries);
     
     if (filterEntries.length === 0) {
-        console.log('🔧 No filter entries, hiding container');
         activeFiltersContainer.classList.remove('visible');
         setTimeout(() => {
             activeFiltersContainer.innerHTML = '';
@@ -3382,9 +3126,10 @@ function updateActiveFiltersDisplay() {
                         itemLabel = 'Corso';
                         itemValue = item;
                         break;
-                    case 'canale':
-                        itemLabel = 'Canale';
-                        itemValue = formatCanaleDisplay(item); // Fixed: use 'item' instead of 'value'
+                            case 'canale':
+            itemLabel = 'Canale';
+            value = formatCanaleDisplay(value);
+                        itemValue = item;
                         break;
                     case 'documentType':
                         itemLabel = 'Tipo';
@@ -3405,14 +3150,13 @@ function updateActiveFiltersDisplay() {
                 }
                 
                 if (itemLabel && itemValue) {
-                    const pillHtml = `
+                    filterPills.push(`
                         <div class="filter-pill" data-filter="${key}" data-value="${item}">
                             <span class="filter-pill-label">${itemLabel}:</span>
                             <span class="filter-pill-value">${itemValue}</span>
                             <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="${key}" data-specific-value="${item}"></span>
                         </div>
-                    `;
-                    filterPills.push(pillHtml);
+                    `);
                 }
             });
             return; // Skip the single-value processing below
@@ -3526,10 +3270,8 @@ function updateActiveFiltersDisplay() {
     
     // Trigger animation
     setTimeout(() => {
-        console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
         updateBottomFilterCount();
-        console.log('🔧 Filter pills should now be visible');
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)
@@ -3599,9 +3341,6 @@ function removeSpecificFilterValueFromPill(filterKey, specificValue) {
                 input.value = `${filterManager.filters[filterKey].length} selected`;
             }
         }
-        
-        // Update URL with current filters
-        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
         
         saveFiltersToStorage();
         showStatus('Filtro rimosso 🗑️');
@@ -5296,68 +5035,58 @@ function saveFiltersToStorage() {
 
 function restoreFiltersFromStorage() {
     try {
-        // Set restoration flag to prevent URL updates during restoration
-        filterManager.isRestoring = true;
+        // Try to restore filters from localStorage
+        const savedFilters = localStorage.getItem('searchFilters');
+        const savedTags = localStorage.getItem('searchTags');
         
-        // Priority 1: Check URL parameters first
-        if (URL_FILTER_MANAGER.hasUrlFilters()) {
-            const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
-            filterManager.filters = urlFilters;
+        if (savedFilters) {
+            const parsedFilters = JSON.parse(savedFilters);
             
-            console.log('📋 Restored filters from URL:', urlFilters);
-        } else {
-            // Priority 2: Fallback to localStorage
-            const savedFilters = localStorage.getItem('searchFilters');
-            const savedTags = localStorage.getItem('searchTags');
+            // Restore all filters
+            filterManager.filters = parsedFilters;
             
-            if (savedFilters) {
-                const parsedFilters = JSON.parse(savedFilters);
-                
-                // Restore all filters
-                filterManager.filters = parsedFilters;
-                
-                // Ensure tags are properly restored
-                if (savedTags) {
-                    const parsedTags = JSON.parse(savedTags);
-                    filterManager.filters.tag = parsedTags;
-                }
-                
-                console.log('📋 Restored filters from localStorage:', parsedFilters);
-            } else {
-                // No saved filters, start fresh
-                filterManager.filters = {};
-                console.log('📋 No saved filters found, starting fresh');
+            // Ensure tags are properly restored
+            if (savedTags) {
+                const parsedTags = JSON.parse(savedTags);
+                filterManager.filters.tag = parsedTags;
             }
-        }
-        
-        // Update UI to reflect restored filters (but don't trigger URL update during restoration)
-        updateFilterInputs();
-        updateActiveFilterIndicators();
-        updateBottomFilterCount();
-        updateActiveFiltersDisplay();
-        
-        // Update URL with restored filters after UI is updated
-        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
-        
-        // Reset restoration flag
-        console.log('🔧 Setting isRestoring to false after successful restoration');
-        filterManager.isRestoring = false;
-        
-        // Apply filters to current documents
-        if (originalFiles && originalFiles.length > 0) {
-            const filteredFiles = applyClientSideFilters(originalFiles);
-            renderDocuments(filteredFiles);
-            currentFiles = filteredFiles;
             
-            const filterCount = filterManager.getActiveFilterCount().count;
-            if (filterCount > 0) {
-                showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
-            } else {
-                showStatus(`${filteredFiles.length} documenti disponibili 📚`);
+            // Update UI to reflect restored filters
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateBottomFilterCount();
+            updateActiveFiltersDisplay();
+            
+            // Apply filters to current documents
+            if (originalFiles && originalFiles.length > 0) {
+                const filteredFiles = applyClientSideFilters(originalFiles);
+                renderDocuments(filteredFiles);
+                currentFiles = filteredFiles;
+                
+                const filterCount = filterManager.getActiveFilterCount().count;
+                if (filterCount > 0) {
+                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
+                } else {
+                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
+                }
+            }
+        } else {
+            // No saved filters, start fresh
+            filterManager.filters = {};
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateBottomFilterCount();
+            updateActiveFiltersDisplay();
+            
+            // Show all documents
+            if (originalFiles && originalFiles.length > 0) {
+                renderDocuments(originalFiles);
+                currentFiles = originalFiles;
+                showStatus(`${originalFiles.length} documenti disponibili 📚`);
             }
         }
     } catch (e) {
-        console.warn('Could not restore filters:', e);
+        console.warn('Could not restore filters from localStorage:', e);
         // Fallback to fresh start
         filterManager.filters = {};
         updateFilterInputs();
@@ -5370,10 +5099,6 @@ function restoreFiltersFromStorage() {
             currentFiles = originalFiles;
             showStatus(`${originalFiles.length} documenti disponibili 📚`);
         }
-        
-        // Reset restoration flag
-        console.log('🔧 Setting isRestoring to false after fallback');
-        filterManager.isRestoring = false;
     }
 }
 
@@ -7560,7 +7285,11 @@ function applyPagesFilters(minVal, maxVal) {
     
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
-    debouncedApplyFilters();
+    
+    // Don't apply filters during restoration
+    if (!filterManager.isRestoring) {
+        debouncedApplyFilters();
+    }
 }
 
 // ... existing code ...
@@ -7584,5 +7313,98 @@ document.addEventListener('DOMContentLoaded', function() {
 // ... existing code ...
 
 // ... existing code ...
-
+    // Failsafe: always show price slider if 'Tutti' is active after restoring filters
+    setTimeout(() => {
+        const priceRangeContainer = document.getElementById('priceRangeContainer');
+        const tuttiToggle = document.querySelector('.price-toggle.active[data-price="all"]');
+        if (tuttiToggle && priceRangeContainer) {
+            priceRangeContainer.style.display = 'block';
+        }
+    }, 0);
 // ... existing code ...
+
+// ... existing code ...    // Add pages range pill if min/max are set and not default values
+    if ((filterManager.filters.minPages !== undefined || filterManager.filters.maxPages !== undefined) &&
+        (filterManager.filters.minPages !== 1 || filterManager.filters.maxPages !== 1000)) {
+        const minPages = filterManager.filters.minPages !== undefined ? filterManager.filters.minPages : 1;
+        const maxPages = filterManager.filters.maxPages !== undefined ? filterManager.filters.maxPages : 1000;
+        filterPills.push(`
+            <div class="filter-pill" data-filter-key="pagesRange">
+                <span class="filter-pill-label">Pagine:</span>
+                <span class="filter-pill-value">${minPages}-${maxPages}</span>
+                <span class="filter-pill-remove" data-action="remove-filter" data-filter-key="pagesRange"></span>
+            </div>
+        `);
+    }
+// ... existing code ...// ... existing code ...    // Faculty filter
+    const facultyInput = document.getElementById('facultyFilter');
+    if (facultyInput) {
+        facultyInput.addEventListener('change', (e) => {
+            filterManager.setFilter('faculty', e.target.value);
+        });
+    }
+    // Course filter
+    const courseInput = document.getElementById('courseFilter');
+    if (courseInput) {
+        courseInput.addEventListener('change', (e) => {
+            filterManager.setFilter('course', e.target.value);
+        });
+    }
+    // Canale filter
+    const canaleInput = document.getElementById('canaleFilter');
+    if (canaleInput) {
+        canaleInput.addEventListener('change', (e) => {
+            filterManager.setFilter('canale', e.target.value);
+        });
+    }
+    // Price range sliders
+    const minPriceRange = document.getElementById('minPriceRange');
+    const maxPriceRange = document.getElementById('maxPriceRange');
+    if (minPriceRange && maxPriceRange) {
+        const updatePrice = () => {
+            const min = parseInt(minPriceRange.value, 10);
+            const max = parseInt(maxPriceRange.value, 10);
+            filterManager.setFilter('priceRange', [min, max]);
+        };
+        minPriceRange.addEventListener('input', updatePrice);
+        maxPriceRange.addEventListener('input', updatePrice);
+    }
+    // Pages range sliders
+    const minPagesRange = document.getElementById('minPagesRange');
+    const maxPagesRange = document.getElementById('maxPagesRange');
+    if (minPagesRange && maxPagesRange) {
+        const updatePages = () => {
+            const min = parseInt(minPagesRange.value, 10);
+            const max = parseInt(maxPagesRange.value, 10);
+            filterManager.setFilter('minPages', min);
+            filterManager.setFilter('maxPages', max);
+        };
+        minPagesRange.addEventListener('input', updatePages);
+        maxPagesRange.addEventListener('input', updatePages);
+    }
+    // Rating filter (example for stars)
+    document.querySelectorAll('.rating-star-filter').forEach(star => {
+        star.addEventListener('click', (e) => {
+            const rating = parseInt(star.getAttribute('data-rating'), 10);
+            filterManager.setFilter('minRating', rating);
+        });
+    });
+    // Toggle groups (example for priceType)
+    document.querySelectorAll('.price-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            filterManager.setFilter('priceType', toggle.getAttribute('data-price'));
+        });
+    });
+    // Clear all button
+    const clearAllBtn = document.getElementById('clearAllFilters');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            filterManager.filters = {};
+            filterManager.updateActiveFiltersDisplay();
+        });
+    }
+    // Pills are handled by FilterManager.createFilterPill
+// ... existing code ...
+
+
+

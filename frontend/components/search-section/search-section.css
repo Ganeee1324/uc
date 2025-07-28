@@ -235,29 +235,58 @@ iframe {
     position: relative !important;
     z-index: 1 !important;
     vertical-align: top !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: auto !important;
 }
 
 /* Ensure iframe content doesn't create scroll bars */
 iframe body {
     overflow: hidden !important;
     overflow-x: hidden !important;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: auto !important;
 }
 
 iframe html {
     overflow: hidden !important;
     overflow-x: hidden !important;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: auto !important;
+}
+
+/* Hide scrollbars for webkit browsers in iframe */
+iframe::-webkit-scrollbar,
+iframe *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Force remove scroll from all iframe content */
+iframe * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+iframe *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 /* Background Image as Element */

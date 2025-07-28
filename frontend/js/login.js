@@ -151,6 +151,7 @@ function setLoading(button, isLoading) {
 // API Request Function for Login
 async function makeLoginRequest(url, options = {}) {
     try {
+        console.log('Making login request...'); // Debug log
         const response = await fetch(API_BASE + url, {
             ...options,
             headers: {
@@ -159,12 +160,17 @@ async function makeLoginRequest(url, options = {}) {
             }
         });
         const data = await response.json();
+        console.log('Login response:', response.status, data); // Debug log
+        
         if (response.ok) {
             localStorage.setItem('authToken', data.access_token);
             localStorage.setItem('currentUser', JSON.stringify(data.user));
-            // Debug mode: Auto-redirect disabled
-            // window.location.href = 'search.html';
-            showMessage('success', 'Login effettuato con successo! Reindirizzamento disabilitato per debug.');
+            console.log('Login successful, redirecting...'); // Debug log
+            
+            // Force redirect with a small delay to ensure localStorage is saved
+            setTimeout(() => {
+                window.location.href = 'search.html';
+            }, 100);
         } else {
             const errorMessage = data.msg || 'Accesso fallito. Riprova.';
             showMessage('error', errorMessage);
@@ -265,9 +271,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
                 // Direct login without email verification (legacy)
                 localStorage.setItem('authToken', data.access_token);
                 localStorage.setItem('currentUser', JSON.stringify(data.user));
-                // Debug mode: Auto-redirect disabled
-                // window.location.href = 'search.html';
-                showMessage('success', 'Account creato con successo! Reindirizzamento disabilitato per debug.');
+                console.log('Registration successful, redirecting...'); // Debug log
+                
+                // Force redirect with a small delay to ensure localStorage is saved
+                setTimeout(() => {
+                    window.location.href = 'search.html';
+                }, 100);
             }
         } else {
             const errorMsg = data.msg || 'Registrazione fallita. Riprova.';
@@ -363,7 +372,8 @@ if (pendingEmail && !localStorage.getItem('authToken')) {
     document.querySelector('.email-actions').appendChild(backToLoginBtn);
 }
 
-// Debug mode: Auto-redirect disabled
-// if (localStorage.getItem('authToken')) {
-//     window.location.href = 'search.html';
-// }
+// Auto-redirect if already logged in
+if (localStorage.getItem('authToken')) {
+    console.log('Auth token found, redirecting...'); // Debug log
+    window.location.href = 'search.html';
+}

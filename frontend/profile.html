@@ -664,6 +664,121 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Reviews Section -->
+                <div class="reviews-section">
+                    <div class="reviews-header">
+                        <div class="reviews-title-group">
+                            <h3 class="reviews-title">Recensioni Ricevute</h3>
+                            <p class="reviews-description">Tutte le recensioni che gli utenti hanno lasciato sui tuoi documenti</p>
+                        </div>
+                        <div class="reviews-stats-overview">
+                            <div class="reviews-stat-card">
+                                <div class="reviews-stat-value" id="totalReviews">0</div>
+                                <div class="reviews-stat-label">Recensioni Totali</div>
+                            </div>
+                            <div class="reviews-stat-card">
+                                <div class="reviews-stat-value" id="averageRating">0.0</div>
+                                <div class="reviews-stat-label">Valutazione Media</div>
+                            </div>
+                            <div class="reviews-stat-card">
+                                <div class="reviews-stat-value" id="recentReviews">0</div>
+                                <div class="reviews-stat-label">Ultime 30 giorni</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reviews-content">
+                        <!-- Reviews Rating Distribution -->
+                        <div class="reviews-distribution-section">
+                            <h4 class="reviews-section-title">Distribuzione Valutazioni</h4>
+                            <div class="rating-distribution">
+                                <div class="rating-row" data-rating="5">
+                                    <span class="rating-label">5 ★</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-fill" id="ratingBar5" data-percentage="0"></div>
+                                    </div>
+                                    <span class="rating-count" id="ratingCount5">0</span>
+                                </div>
+                                <div class="rating-row" data-rating="4">
+                                    <span class="rating-label">4 ★</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-fill" id="ratingBar4" data-percentage="0"></div>
+                                    </div>
+                                    <span class="rating-count" id="ratingCount4">0</span>
+                                </div>
+                                <div class="rating-row" data-rating="3">
+                                    <span class="rating-label">3 ★</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-fill" id="ratingBar3" data-percentage="0"></div>
+                                    </div>
+                                    <span class="rating-count" id="ratingCount3">0</span>
+                                </div>
+                                <div class="rating-row" data-rating="2">
+                                    <span class="rating-label">2 ★</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-fill" id="ratingBar2" data-percentage="0"></div>
+                                    </div>
+                                    <span class="rating-count" id="ratingCount2">0</span>
+                                </div>
+                                <div class="rating-row" data-rating="1">
+                                    <span class="rating-label">1 ★</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-fill" id="ratingBar1" data-percentage="0"></div>
+                                    </div>
+                                    <span class="rating-count" id="ratingCount1">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Reviews List -->
+                        <div class="reviews-list-section">
+                            <div class="reviews-list-header">
+                                <h4 class="reviews-section-title">Recensioni Recenti</h4>
+                                <div class="reviews-filters">
+                                    <label class="reviews-filter-label" for="reviewsFilter">Filtra per:</label>
+                                    <select class="reviews-filter-select" id="reviewsFilter">
+                                        <option value="all">Tutte le recensioni</option>
+                                        <option value="5">⭐⭐⭐⭐⭐ 5 stelle</option>
+                                        <option value="4">⭐⭐⭐⭐ 4 stelle</option>
+                                        <option value="3">⭐⭐⭐ 3 stelle</option>
+                                        <option value="2">⭐⭐ 2 stelle</option>
+                                        <option value="1">⭐ 1 stella</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="reviews-list" id="reviewsList">
+                                <div class="reviews-loading" id="reviewsLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Caricamento recensioni...</p>
+                                </div>
+                                
+                                <div class="reviews-empty" id="reviewsEmpty" style="display: none;">
+                                    <div class="empty-state-icon">
+                                        <span class="material-symbols-outlined">star_border</span>
+                                    </div>
+                                    <h3>Nessuna recensione ancora</h3>
+                                    <p>Quando gli utenti lasceranno recensioni sui tuoi documenti, le vedrai qui.</p>
+                                </div>
+                            </div>
+
+                            <div class="reviews-pagination" id="reviewsPagination" style="display: none;">
+                                <button class="pagination-btn" id="prevReviewsBtn">
+                                    <span class="material-symbols-outlined">chevron_left</span>
+                                    Precedente
+                                </button>
+                                <div class="pagination-info">
+                                    <span id="currentPage">1</span> di <span id="totalPages">1</span>
+                                </div>
+                                <button class="pagination-btn" id="nextReviewsBtn">
+                                    Successiva
+                                    <span class="material-symbols-outlined">chevron_right</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

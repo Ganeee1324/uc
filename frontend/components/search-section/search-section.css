@@ -7958,6 +7958,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .stars-inner::before {
     content: "★★★★★";
     color: #fbbf24;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .big-rating-score {

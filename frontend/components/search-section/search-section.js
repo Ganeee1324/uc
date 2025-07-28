@@ -4915,10 +4915,19 @@ function generateStars(rating) {
 
 function generateReviewStars(rating) {
     let stars = '';
+    const fullStars = Math.floor(rating);
+    const hasPartialStar = rating % 1 !== 0;
+    const partialStarPercentage = hasPartialStar ? (rating % 1) * 100 : 0;
+    
     for (let i = 1; i <= 5; i++) {
-        if (i <= rating) {
+        if (i <= fullStars) {
+            // Full star
             stars += '<span class="rating-star filled">★</span>';
+        } else if (i === fullStars + 1 && hasPartialStar) {
+            // Partial star
+            stars += `<span class="rating-star partial" style="background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 ${partialStarPercentage}%, #d1d5db ${partialStarPercentage}%, #d1d5db 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">★</span>`;
         } else {
+            // Empty star
             stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
         }
     }
@@ -7069,7 +7078,7 @@ function updateVetrinaRatingInSearch(vetrinaId) {
             
             if (ratingScore) ratingScore.textContent = vetrina.average_rating?.toFixed(1) || '0.0';
             if (ratingCount) ratingCount.textContent = `(${vetrina.review_count || 0})`;
-            if (ratingStars) ratingStars.innerHTML = generateFractionalStars(vetrina.average_rating || 0);
+            if (ratingStars) ratingStars.innerHTML = generateStars(vetrina.average_rating || 0);
         }
     });
 }

@@ -7,6 +7,87 @@ const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
 let authToken = localStorage.getItem('authToken');
 
+// URL Parameter Management for Filters
+const URL_FILTER_MANAGER = {
+    // Convert filter object to URL parameters
+    filtersToUrlParams(filters) {
+        const params = new URLSearchParams();
+        
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                if (Array.isArray(value)) {
+                    // Handle array values (like multiple tags)
+                    value.forEach(v => params.append(key, v));
+                } else {
+                    params.set(key, value);
+                }
+            }
+        });
+        
+        return params;
+    },
+    
+    // Convert URL parameters to filter object
+    urlParamsToFilters(params) {
+        const filters = {};
+        
+        for (const [key, value] of params.entries()) {
+            if (filters[key]) {
+                // If key already exists, convert to array
+                if (!Array.isArray(filters[key])) {
+                    filters[key] = [filters[key]];
+                }
+                filters[key].push(value);
+            } else {
+                filters[key] = value;
+            }
+        }
+        
+        return filters;
+    },
+    
+    // Update URL with current filters
+    updateUrl(filters) {
+        const url = new URL(window.location);
+        const params = this.filtersToUrlParams(filters);
+        
+        // Clear existing filter parameters
+        const filterKeys = [
+            'faculty', 'course', 'canale', 'tag', 'documentType', 'language', 
+            'academicYear', 'courseYear', 'minPrice', 'maxPrice', 'minPages', 
+            'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
+        ];
+        
+        filterKeys.forEach(key => url.searchParams.delete(key));
+        
+        // Add new filter parameters
+        for (const [key, value] of params.entries()) {
+            url.searchParams.set(key, value);
+        }
+        
+        // Update URL without reloading the page
+        window.history.replaceState({}, '', url);
+    },
+    
+    // Get filters from URL
+    getFiltersFromUrl() {
+        const url = new URL(window.location);
+        return this.urlParamsToFilters(url.searchParams);
+    },
+    
+    // Check if URL has filter parameters
+    hasUrlFilters() {
+        const url = new URL(window.location);
+        const filterKeys = [
+            'faculty', 'course', 'canale', 'tag', 'documentType', 'language', 
+            'academicYear', 'courseYear', 'minPrice', 'maxPrice', 'minPages', 
+            'maxPages', 'priceType', 'vetrinaType', 'rating', 'order'
+        ];
+        
+        return filterKeys.some(key => url.searchParams.has(key));
+    }
+};
+
 // DOM element cache for performance optimization
 const DOM_CACHE = {
     documentsGrid: null,
@@ -388,8 +469,44 @@ let isFiltersOpen = false;
     
     // Handle browser back/forward navigation
     window.addEventListener('popstate', async (event) => {
-        if (currentFiles && currentFiles.length > 0) {
-            // Favorite status is already included in vetrine data, no need for separate refresh
+        // Restore filters from URL when navigating back/forward
+        if (URL_FILTER_MANAGER.hasUrlFilters()) {
+            const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
+            filterManager.filters = urlFilters;
+            
+            console.log('📋 Restored filters from URL navigation:', urlFilters);
+            
+            // Update UI and apply filters
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateBottomFilterCount();
+            updateActiveFiltersDisplay();
+            
+            if (originalFiles && originalFiles.length > 0) {
+                const filteredFiles = applyClientSideFilters(originalFiles);
+                renderDocuments(filteredFiles);
+                currentFiles = filteredFiles;
+                
+                const filterCount = filterManager.getActiveFilterCount().count;
+                if (filterCount > 0) {
+                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
+                } else {
+                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
+                }
+            }
+        } else {
+            // No URL filters, clear all filters
+            filterManager.filters = {};
+            updateFilterInputs();
+            updateActiveFilterIndicators();
+            updateBottomFilterCount();
+            updateActiveFiltersDisplay();
+            
+            if (originalFiles && originalFiles.length > 0) {
+                renderDocuments(originalFiles);
+                currentFiles = originalFiles;
+                showStatus(`${originalFiles.length} documenti disponibili 📚`);
+            }
         }
     });
 };
@@ -2547,6 +2664,9 @@ class FilterManager {
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
         
+        // Update URL with current filters
+        URL_FILTER_MANAGER.updateUrl(this.filters);
+        
         // Save to localStorage whenever a filter is set
         saveFiltersToStorage();
     }
@@ -2556,6 +2676,9 @@ class FilterManager {
         delete this.filters[key];
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
+        
+        // Update URL with current filters
+        URL_FILTER_MANAGER.updateUrl(this.filters);
         
         // Save to localStorage whenever a filter is removed
         saveFiltersToStorage();
@@ -2879,6 +3002,9 @@ function populateSelect(selectId, options) {
 
 function clearAllFiltersAction() {
     filterManager.filters = {};
+    
+    // Clear filters from URL
+    URL_FILTER_MANAGER.updateUrl({});
     
     // Clear filters from localStorage
     try {
@@ -3337,6 +3463,9 @@ function removeSpecificFilterValueFromPill(filterKey, specificValue) {
                 input.value = `${filterManager.filters[filterKey].length} selected`;
             }
         }
+        
+        // Update URL with current filters
+        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
         
         saveFiltersToStorage();
         showStatus('Filtro rimosso 🗑️');
@@ -5031,58 +5160,58 @@ function saveFiltersToStorage() {
 
 function restoreFiltersFromStorage() {
     try {
-        // Try to restore filters from localStorage
-        const savedFilters = localStorage.getItem('searchFilters');
-        const savedTags = localStorage.getItem('searchTags');
-        
-        if (savedFilters) {
-            const parsedFilters = JSON.parse(savedFilters);
+        // Priority 1: Check URL parameters first
+        if (URL_FILTER_MANAGER.hasUrlFilters()) {
+            const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
+            filterManager.filters = urlFilters;
             
-            // Restore all filters
-            filterManager.filters = parsedFilters;
-            
-            // Ensure tags are properly restored
-            if (savedTags) {
-                const parsedTags = JSON.parse(savedTags);
-                filterManager.filters.tag = parsedTags;
-            }
-            
-            // Update UI to reflect restored filters
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
-            
-            // Apply filters to current documents
-            if (originalFiles && originalFiles.length > 0) {
-                const filteredFiles = applyClientSideFilters(originalFiles);
-                renderDocuments(filteredFiles);
-                currentFiles = filteredFiles;
-                
-                const filterCount = filterManager.getActiveFilterCount().count;
-                if (filterCount > 0) {
-                    showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
-                } else {
-                    showStatus(`${filteredFiles.length} documenti disponibili 📚`);
-                }
-            }
+            console.log('📋 Restored filters from URL:', urlFilters);
         } else {
-            // No saved filters, start fresh
-            filterManager.filters = {};
-            updateFilterInputs();
-            updateActiveFilterIndicators();
-            updateBottomFilterCount();
-            updateActiveFiltersDisplay();
+            // Priority 2: Fallback to localStorage
+            const savedFilters = localStorage.getItem('searchFilters');
+            const savedTags = localStorage.getItem('searchTags');
             
-            // Show all documents
-            if (originalFiles && originalFiles.length > 0) {
-                renderDocuments(originalFiles);
-                currentFiles = originalFiles;
-                showStatus(`${originalFiles.length} documenti disponibili 📚`);
+            if (savedFilters) {
+                const parsedFilters = JSON.parse(savedFilters);
+                
+                // Restore all filters
+                filterManager.filters = parsedFilters;
+                
+                // Ensure tags are properly restored
+                if (savedTags) {
+                    const parsedTags = JSON.parse(savedTags);
+                    filterManager.filters.tag = parsedTags;
+                }
+                
+                console.log('📋 Restored filters from localStorage:', parsedFilters);
+            } else {
+                // No saved filters, start fresh
+                filterManager.filters = {};
+                console.log('📋 No saved filters found, starting fresh');
+            }
+        }
+        
+        // Update UI to reflect restored filters
+        updateFilterInputs();
+        updateActiveFilterIndicators();
+        updateBottomFilterCount();
+        updateActiveFiltersDisplay();
+        
+        // Apply filters to current documents
+        if (originalFiles && originalFiles.length > 0) {
+            const filteredFiles = applyClientSideFilters(originalFiles);
+            renderDocuments(filteredFiles);
+            currentFiles = filteredFiles;
+            
+            const filterCount = filterManager.getActiveFilterCount().count;
+            if (filterCount > 0) {
+                showStatus(`${filteredFiles.length} documenti trovati con ${filterCount} filtro${filterCount > 1 ? 'i' : ''} attivo${filterCount > 1 ? 'i' : ''} 🔍`);
+            } else {
+                showStatus(`${filteredFiles.length} documenti disponibili 📚`);
             }
         }
     } catch (e) {
-        console.warn('Could not restore filters from localStorage:', e);
+        console.warn('Could not restore filters:', e);
         // Fallback to fresh start
         filterManager.filters = {};
         updateFilterInputs();

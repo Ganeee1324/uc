@@ -6352,6 +6352,11 @@ let bgImageDimensions = null;
 
 // Preload and cache image dimensions immediately
 function preloadBackgroundImage() {
+    // Only load background image if this is the main search interface
+    if (!window.SEARCH_CONFIG || window.SEARCH_CONFIG.context !== 'default' || window.SEARCH_CONFIG.hideBackground) {
+        return;
+    }
+    
     const tempImage = new Image();
     tempImage.src = 'images/bg.png';
     

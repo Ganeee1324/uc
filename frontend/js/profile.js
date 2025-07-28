@@ -1073,32 +1073,32 @@ function updateTooltipPosition(event, element = null) {
     
     // Use the provided element or fall back to event.target
     const targetElement = element || event.target;
-    const elementRect = targetElement.getBoundingClientRect();
     
-    // For SVG elements, we need to account for the SVG viewBox scaling
     let x, y;
     
     if (targetElement.tagName === 'circle') {
-        // For SVG circles, use the cx and cy attributes for more precise positioning
-        const cx = parseFloat(targetElement.getAttribute('cx'));
-        const cy = parseFloat(targetElement.getAttribute('cy'));
-        const r = parseFloat(targetElement.getAttribute('r'));
+        // For SVG circles, use a more reliable method
+        // Get the actual screen position of the circle using getBoundingClientRect
+        const circleRect = targetElement.getBoundingClientRect();
         
-        // Get the SVG element to calculate the scaling
-        const svg = targetElement.closest('svg');
-        const svgRect = svg.getBoundingClientRect();
-        const viewBox = svg.viewBox.baseVal;
+        // Position tooltip centered above the circle
+        x = circleRect.left + (circleRect.width / 2) - (tooltipRect.width / 2);
+        y = circleRect.top - tooltipRect.height - 10;
         
-        // Calculate the actual position in screen coordinates
-        const scaleX = svgRect.width / viewBox.width;
-        const scaleY = svgRect.height / viewBox.height;
-        
-        x = svgRect.left + (cx * scaleX) - (tooltipRect.width / 2);
-        y = svgRect.top + (cy * scaleY) - tooltipRect.height - 10;
+        // If tooltip would go off screen vertically, show it below
+        if (y < 10) {
+            y = circleRect.bottom + 10;
+        }
     } else {
-        // For regular elements, use the standard positioning
+        // For regular elements (like histogram bars), use standard positioning
+        const elementRect = targetElement.getBoundingClientRect();
         x = elementRect.left + (elementRect.width / 2) - (tooltipRect.width / 2);
         y = elementRect.top - tooltipRect.height - 10;
+        
+        // If tooltip would go off screen vertically, show it below
+        if (y < 10) {
+            y = elementRect.bottom + 10;
+        }
     }
     
     // Adjust if tooltip would go off screen horizontally
@@ -1106,22 +1106,6 @@ function updateTooltipPosition(event, element = null) {
         x = 10;
     } else if (x + tooltipRect.width > viewportWidth - 10) {
         x = viewportWidth - tooltipRect.width - 10;
-    }
-    
-    // Adjust if tooltip would go off screen vertically
-    if (y < 10) {
-        if (targetElement.tagName === 'circle') {
-            // For circles, show below
-            const svg = targetElement.closest('svg');
-            const svgRect = svg.getBoundingClientRect();
-            const viewBox = svg.viewBox.baseVal;
-            const scaleY = svgRect.height / viewBox.height;
-            const cy = parseFloat(targetElement.getAttribute('cy'));
-            const r = parseFloat(targetElement.getAttribute('r'));
-            y = svgRect.top + (cy * scaleY) + (r * scaleY) + 10;
-        } else {
-            y = elementRect.bottom + 10;
-        }
     }
     
     tooltip.style.left = x + 'px';

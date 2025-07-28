@@ -294,6 +294,7 @@ window.switchTab = async function switchTab(tabName) {
     const statsDashboard = document.getElementById('statsDashboard');
     const documentsDashboard = document.getElementById('documentsDashboard');
     const favoritesDashboard = document.getElementById('favoritesDashboard');
+    const settingsDashboard = document.getElementById('settingsDashboard');
     const mainSearchContainer = document.getElementById('searchSectionContainer');
     const documentsSearchContainer = document.getElementById('documentsSearchSectionContainer');
     const favoritesSearchContainer = document.getElementById('favoritesSearchSectionContainer');
@@ -305,6 +306,7 @@ window.switchTab = async function switchTab(tabName) {
         if (statsDashboard) statsDashboard.style.display = 'block';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
         if (favoritesDashboard) favoritesDashboard.style.display = 'none';
+        if (settingsDashboard) settingsDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
@@ -328,6 +330,7 @@ window.switchTab = async function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (favoritesDashboard) favoritesDashboard.style.display = 'none';
+        if (settingsDashboard) settingsDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (favoritesSearchContainer) {
             favoritesSearchContainer.style.display = 'none';
@@ -363,6 +366,7 @@ window.switchTab = async function switchTab(tabName) {
         if (dashboardRow) dashboardRow.style.display = 'none';
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (settingsDashboard) settingsDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
@@ -395,6 +399,28 @@ window.switchTab = async function switchTab(tabName) {
                 }
             });
         }, 100);
+    } else if (tabName === 'settings') {
+        // Show settings dashboard, hide others
+        if (profileSection) profileSection.style.display = 'none';
+        if (dashboardRow) dashboardRow.style.display = 'none';
+        if (statsDashboard) statsDashboard.style.display = 'none';
+        if (documentsDashboard) documentsDashboard.style.display = 'none';
+        if (favoritesDashboard) favoritesDashboard.style.display = 'none';
+        if (settingsDashboard) settingsDashboard.style.display = 'block';
+        if (mainSearchContainer) mainSearchContainer.style.display = 'none';
+        if (documentsSearchContainer) {
+            documentsSearchContainer.style.display = 'none';
+        }
+        if (favoritesSearchContainer) {
+            favoritesSearchContainer.style.display = 'none';
+        }
+        
+        currentTab = 'settings';
+        
+        // Initialize settings functionality
+        setTimeout(() => {
+            initializeSettings();
+        }, 100);
     } else {
         // Show profile/dashboard content, hide stats, documents, and favorites
         if (profileSection) profileSection.style.display = 'block';
@@ -402,6 +428,7 @@ window.switchTab = async function switchTab(tabName) {
         if (statsDashboard) statsDashboard.style.display = 'none';
         if (documentsDashboard) documentsDashboard.style.display = 'none';
         if (favoritesDashboard) favoritesDashboard.style.display = 'none';
+        if (settingsDashboard) settingsDashboard.style.display = 'none';
         if (mainSearchContainer) {
             mainSearchContainer.style.display = 'block';
             console.log('Setting main search container to display: block');
@@ -474,6 +501,9 @@ function initializeTabSwitching() {
                 } else if (text === 'Preferiti') {
                     console.log('Switching to Preferiti tab');
                     await switchTab('favorites');
+                } else if (text === 'Impostazioni') {
+                    console.log('Switching to Impostazioni tab');
+                    await switchTab('settings');
                 } else {
                     // For other menu items, just switch back to profile view
                     console.log('Switching to profile view for:', text);
@@ -2046,6 +2076,601 @@ function initializeLogout() {
                 }
             }
         });
+    }
+}
+
+// ===========================
+// SETTINGS DASHBOARD FUNCTIONALITY
+// ===========================
+
+function initializeSettings() {
+    console.log('Initializing settings dashboard...');
+    
+    // Initialize settings navigation
+    initializeSettingsNavigation();
+    
+    // Initialize all form interactions
+    initializeSettingsForms();
+    
+    // Initialize toggle switches
+    initializeSettingsToggles();
+    
+    // Initialize delete account functionality
+    initializeDeleteAccount();
+    
+    // Initialize profile picture upload
+    initializeProfilePictureUpload();
+    
+    // Load user data into forms
+    loadUserDataIntoSettings();
+    
+    console.log('✅ Settings dashboard initialized successfully');
+}
+
+function initializeSettingsNavigation() {
+    const settingsNavItems = document.querySelectorAll('.settings-nav-item');
+    const settingsSections = document.querySelectorAll('.settings-section');
+    
+    settingsNavItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const targetSection = this.getAttribute('data-section');
+            
+            // Remove active class from all nav items
+            settingsNavItems.forEach(navItem => navItem.classList.remove('active'));
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Hide all sections
+            settingsSections.forEach(section => section.classList.remove('active'));
+            
+            // Show target section (fix: append 'Section' to match section IDs)
+            const targetElement = document.getElementById(targetSection + 'Section');
+            if (targetElement) {
+                targetElement.classList.add('active');
+            }
+        });
+    });
+}
+
+function initializeSettingsForms() {
+    // Account settings form
+    const accountForm = document.getElementById('accountForm');
+    if (accountForm) {
+        accountForm.addEventListener('submit', handleAccountFormSubmit);
+    }
+    
+    // Privacy form
+    const privacyForm = document.getElementById('privacyForm');
+    if (privacyForm) {
+        privacyForm.addEventListener('submit', handlePrivacyFormSubmit);
+    }
+    
+    // Notifications form
+    const notificationsForm = document.getElementById('notificationsForm');
+    if (notificationsForm) {
+        notificationsForm.addEventListener('submit', handleNotificationsFormSubmit);
+    }
+    
+    // Preferences form
+    const preferencesForm = document.getElementById('preferencesForm');
+    if (preferencesForm) {
+        preferencesForm.addEventListener('submit', handlePreferencesFormSubmit);
+    }
+    
+    // Security form
+    const securityForm = document.getElementById('securityForm');
+    if (securityForm) {
+        securityForm.addEventListener('submit', handleSecurityFormSubmit);
+    }
+}
+
+function initializeSettingsToggles() {
+    const toggles = document.querySelectorAll('.settings-toggle');
+    
+    toggles.forEach(toggle => {
+        const input = toggle.querySelector('input[type="checkbox"]');
+        if (input) {
+            input.addEventListener('change', function() {
+                // Add visual feedback
+                const slider = toggle.querySelector('.toggle-slider');
+                if (slider) {
+                    if (this.checked) {
+                        slider.style.backgroundColor = '#3b82f6';
+                    } else {
+                        slider.style.backgroundColor = '#e5e7eb';
+                    }
+                }
+                
+                // Handle the toggle change
+                handleToggleChange(this);
+            });
+        }
+    });
+}
+
+function initializeDeleteAccount() {
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', function() {
+            showDeleteAccountModal();
+        });
+    }
+}
+
+function initializeProfilePictureUpload() {
+    const profilePictureInput = document.getElementById('profilePictureInput');
+    const uploadProfilePictureBtn = document.getElementById('uploadProfilePictureBtn');
+    
+    if (uploadProfilePictureBtn) {
+        uploadProfilePictureBtn.addEventListener('click', function() {
+            profilePictureInput?.click();
+        });
+    }
+    
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', handleProfilePictureUpload);
+    }
+}
+
+// Form submission handlers
+async function handleAccountFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    try {
+        showSettingsNotification('Aggiornamento account in corso...', 'info');
+        
+        // API call to update account
+        const response = await updateAccountSettings(data);
+        if (response.success) {
+            showSettingsNotification('Account aggiornato con successo!', 'success');
+        } else {
+            throw new Error(response.message || 'Errore nell\'aggiornamento');
+        }
+    } catch (error) {
+        console.error('Error updating account:', error);
+        showSettingsNotification('Errore nell\'aggiornamento dell\'account', 'error');
+    }
+}
+
+async function handlePrivacyFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    try {
+        showSettingsNotification('Aggiornamento privacy in corso...', 'info');
+        
+        // API call to update privacy settings
+        const response = await updatePrivacySettings(data);
+        if (response.success) {
+            showSettingsNotification('Impostazioni privacy aggiornate!', 'success');
+        } else {
+            throw new Error(response.message || 'Errore nell\'aggiornamento');
+        }
+    } catch (error) {
+        console.error('Error updating privacy:', error);
+        showSettingsNotification('Errore nell\'aggiornamento delle impostazioni privacy', 'error');
+    }
+}
+
+async function handleNotificationsFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    try {
+        showSettingsNotification('Aggiornamento notifiche in corso...', 'info');
+        
+        // API call to update notification settings
+        const response = await updateNotificationSettings(data);
+        if (response.success) {
+            showSettingsNotification('Impostazioni notifiche aggiornate!', 'success');
+        } else {
+            throw new Error(response.message || 'Errore nell\'aggiornamento');
+        }
+    } catch (error) {
+        console.error('Error updating notifications:', error);
+        showSettingsNotification('Errore nell\'aggiornamento delle notifiche', 'error');
+    }
+}
+
+async function handlePreferencesFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    try {
+        showSettingsNotification('Aggiornamento preferenze in corso...', 'info');
+        
+        // API call to update preferences
+        const response = await updatePreferences(data);
+        if (response.success) {
+            showSettingsNotification('Preferenze aggiornate!', 'success');
+        } else {
+            throw new Error(response.message || 'Errore nell\'aggiornamento');
+        }
+    } catch (error) {
+        console.error('Error updating preferences:', error);
+        showSettingsNotification('Errore nell\'aggiornamento delle preferenze', 'error');
+    }
+}
+
+async function handleSecurityFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Validate password fields
+    if (data.newPassword !== data.confirmPassword) {
+        showSettingsNotification('Le password non corrispondono', 'error');
+        return;
+    }
+    
+    try {
+        showSettingsNotification('Aggiornamento password in corso...', 'info');
+        
+        // API call to update password
+        const response = await updatePassword(data);
+        if (response.success) {
+            showSettingsNotification('Password aggiornata con successo!', 'success');
+            e.target.reset(); // Clear form
+        } else {
+            throw new Error(response.message || 'Errore nell\'aggiornamento');
+        }
+    } catch (error) {
+        console.error('Error updating password:', error);
+        showSettingsNotification('Errore nell\'aggiornamento della password', 'error');
+    }
+}
+
+// Toggle change handler
+function handleToggleChange(toggle) {
+    const toggleId = toggle.id;
+    const isChecked = toggle.checked;
+    
+    console.log(`Toggle ${toggleId} changed to:`, isChecked);
+    
+    // Handle specific toggle changes
+    switch (toggleId) {
+        case 'profileVisibility':
+            updateProfileVisibility(isChecked);
+            break;
+        case 'emailNotifications':
+            updateEmailNotifications(isChecked);
+            break;
+        case 'pushNotifications':
+            updatePushNotifications(isChecked);
+            break;
+        case 'marketingEmails':
+            updateMarketingEmails(isChecked);
+            break;
+        case 'darkMode':
+            updateDarkMode(isChecked);
+            break;
+        case 'autoSave':
+            updateAutoSave(isChecked);
+            break;
+        case 'twoFactorAuth':
+            handleTwoFactorToggle(isChecked);
+            break;
+        default:
+            console.log('Unknown toggle:', toggleId);
+    }
+}
+
+// Profile picture upload handler
+function handleProfilePictureUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showSettingsNotification('Formato file non supportato. Usa JPG, PNG, GIF o WebP.', 'error');
+        return;
+    }
+    
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+        showSettingsNotification('File troppo grande. Dimensione massima: 5MB.', 'error');
+        return;
+    }
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const profilePicturePreview = document.querySelector('.settings-profile-picture');
+        if (profilePicturePreview) {
+            profilePicturePreview.style.backgroundImage = `url(${e.target.result})`;
+            profilePicturePreview.textContent = '';
+        }
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload file
+    uploadProfilePicture(file);
+}
+
+// Settings notification system
+function showSettingsNotification(message, type = 'info') {
+    // Remove existing notification
+    const existingNotification = document.querySelector('.settings-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `settings-notification settings-notification-${type}`;
+    notification.innerHTML = `
+        <div class="settings-notification-content">
+            <span class="material-symbols-outlined">
+                ${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}
+            </span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add to DOM
+    const settingsDashboard = document.getElementById('settingsDashboard');
+    if (settingsDashboard) {
+        settingsDashboard.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Remove after 4 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 4000);
+    }
+}
+
+// Delete account modal
+function showDeleteAccountModal() {
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'delete-account-modal-overlay';
+    modalOverlay.innerHTML = `
+        <div class="delete-account-modal">
+            <div class="delete-account-modal-header">
+                <h3>Elimina Account</h3>
+                <button class="modal-close-btn" onclick="closeDeleteAccountModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="delete-account-modal-content">
+                <div class="delete-warning">
+                    <span class="material-symbols-outlined">warning</span>
+                    <h4>Attenzione! Questa azione è irreversibile</h4>
+                </div>
+                <p>Eliminando il tuo account:</p>
+                <ul>
+                    <li>Tutti i tuoi documenti verranno rimossi</li>
+                    <li>Perderai l'accesso a tutti i tuoi dati</li>
+                    <li>Non potrai recuperare il tuo account</li>
+                    <li>Tutte le tue statistiche verranno cancellate</li>
+                </ul>
+                <div class="confirmation-input">
+                    <label for="deleteConfirmation">Per confermare, digita "ELIMINA" nel campo sottostante:</label>
+                    <input type="text" id="deleteConfirmation" placeholder="Digita ELIMINA per confermare">
+                </div>
+            </div>
+            <div class="delete-account-modal-actions">
+                <button class="btn-secondary" onclick="closeDeleteAccountModal()">Annulla</button>
+                <button class="btn-danger" id="confirmDeleteBtn" disabled onclick="confirmDeleteAccount()">
+                    Elimina Account
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modalOverlay);
+    
+    // Show modal
+    setTimeout(() => {
+        modalOverlay.classList.add('show');
+    }, 10);
+    
+    // Handle confirmation input
+    const confirmationInput = document.getElementById('deleteConfirmation');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    
+    confirmationInput.addEventListener('input', function() {
+        if (this.value === 'ELIMINA') {
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.classList.add('enabled');
+        } else {
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.classList.remove('enabled');
+        }
+    });
+}
+
+function closeDeleteAccountModal() {
+    const modalOverlay = document.querySelector('.delete-account-modal-overlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('show');
+        setTimeout(() => {
+            modalOverlay.remove();
+        }, 300);
+    }
+}
+
+async function confirmDeleteAccount() {
+    try {
+        showSettingsNotification('Eliminazione account in corso...', 'info');
+        
+        // API call to delete account
+        const response = await deleteUserAccount();
+        if (response.success) {
+            showSettingsNotification('Account eliminato con successo', 'success');
+            
+            // Clear all data and redirect
+            setTimeout(() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }, 2000);
+        } else {
+            throw new Error(response.message || 'Errore nell\'eliminazione');
+        }
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        showSettingsNotification('Errore nell\'eliminazione dell\'account', 'error');
+    }
+    
+    closeDeleteAccountModal();
+}
+
+// Load user data into settings forms
+function loadUserDataIntoSettings() {
+    const user = getCurrentUser();
+    if (!user) return;
+    
+    // Load account data
+    const emailInput = document.getElementById('email');
+    const usernameInput = document.getElementById('username');
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    const bioInput = document.getElementById('bio');
+    const facultyInput = document.getElementById('faculty');
+    const canaleInput = document.getElementById('canale');
+    
+    if (emailInput) emailInput.value = user.email || '';
+    if (usernameInput) usernameInput.value = user.username || '';
+    if (firstNameInput) firstNameInput.value = user.first_name || '';
+    if (lastNameInput) lastNameInput.value = user.last_name || '';
+    if (bioInput) bioInput.value = user.bio || '';
+    if (facultyInput) facultyInput.value = user.user_faculty || '';
+    if (canaleInput) canaleInput.value = user.user_canale || '';
+    
+    // Update profile picture preview
+    const profilePicturePreview = document.querySelector('.settings-profile-picture');
+    if (profilePicturePreview && user.username) {
+        const gradient = getConsistentGradient(user.username);
+        profilePicturePreview.style.background = gradient;
+        profilePicturePreview.textContent = getInitials(user.username);
+    }
+}
+
+// API functions (placeholder implementations)
+async function updateAccountSettings(data) {
+    // Placeholder for API call
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 1000);
+    });
+}
+
+async function updatePrivacySettings(data) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 1000);
+    });
+}
+
+async function updateNotificationSettings(data) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 1000);
+    });
+}
+
+async function updatePreferences(data) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 1000);
+    });
+}
+
+async function updatePassword(data) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 1000);
+    });
+}
+
+async function uploadProfilePicture(file) {
+    try {
+        showSettingsNotification('Caricamento immagine in corso...', 'info');
+        
+        // Placeholder for API call
+        setTimeout(() => {
+            showSettingsNotification('Immagine caricata con successo!', 'success');
+        }, 1500);
+    } catch (error) {
+        console.error('Error uploading profile picture:', error);
+        showSettingsNotification('Errore nel caricamento dell\'immagine', 'error');
+    }
+}
+
+async function deleteUserAccount() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({ success: true });
+        }, 2000);
+    });
+}
+
+// Individual toggle update functions
+function updateProfileVisibility(isVisible) {
+    console.log('Profile visibility updated:', isVisible);
+    showSettingsNotification(`Profilo ${isVisible ? 'pubblico' : 'privato'}`, 'success');
+}
+
+function updateEmailNotifications(enabled) {
+    console.log('Email notifications updated:', enabled);
+    showSettingsNotification(`Notifiche email ${enabled ? 'attivate' : 'disattivate'}`, 'success');
+}
+
+function updatePushNotifications(enabled) {
+    console.log('Push notifications updated:', enabled);
+    showSettingsNotification(`Notifiche push ${enabled ? 'attivate' : 'disattivate'}`, 'success');
+}
+
+function updateMarketingEmails(enabled) {
+    console.log('Marketing emails updated:', enabled);
+    showSettingsNotification(`Email marketing ${enabled ? 'attivate' : 'disattivate'}`, 'success');
+}
+
+function updateDarkMode(enabled) {
+    console.log('Dark mode updated:', enabled);
+    // Here you would implement dark mode toggle
+    showSettingsNotification(`Modalità scura ${enabled ? 'attivata' : 'disattivata'}`, 'success');
+}
+
+function updateAutoSave(enabled) {
+    console.log('Auto save updated:', enabled);
+    showSettingsNotification(`Salvataggio automatico ${enabled ? 'attivato' : 'disattivato'}`, 'success');
+}
+
+function handleTwoFactorToggle(enabled) {
+    console.log('Two factor auth updated:', enabled);
+    if (enabled) {
+        // Show 2FA setup modal or redirect to setup page
+        showSettingsNotification('Autenticazione a due fattori in configurazione...', 'info');
+    } else {
+        showSettingsNotification('Autenticazione a due fattori disattivata', 'success');
     }
 }
 

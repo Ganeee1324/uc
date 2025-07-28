@@ -3555,13 +3555,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     height: 40px;
     margin: var(--space-4) 0;
+    overflow: visible;
+    padding: 0 10px; /* Add padding to prevent thumb from going outside container */
+    box-sizing: border-box;
  }
  
  .range-track {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 100%;
+    width: calc(100% - 20px); /* Account for container padding */
+    left: 10px; /* Align with container padding */
     height: 6px;
     background: var(--gray-200);
     border-radius: 3px;
@@ -3570,8 +3574,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  
  .range-fill {
     position: absolute;
-    top: 0;
-    height: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 10px; /* Align with container padding */
+    height: 6px;
     background: var(--gradient-primary);
     border-radius: 3px;
  }
@@ -3580,7 +3586,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 100%;
+    width: calc(100% - 20px); /* Account for container padding */
+    left: 10px; /* Align with container padding */
     height: 6px;
     background: transparent;
     border: none;
@@ -3672,13 +3679,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     height: 32px;
     display: flex;
     align-items: center;
+    overflow: visible;
+    padding: 0 10px; /* Add padding to prevent thumb from going outside container */
+    box-sizing: border-box;
 }
 
 .pages-range-filter .range-track {
     position: absolute;
     height: 4px;
     background: var(--gray-300);
-    width: 100%;
+    width: calc(100% - 20px); /* Account for container padding */
+    left: 10px; /* Align with container padding */
     border-radius: 2px;
     z-index: 1;
 }
@@ -3687,13 +3698,15 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: absolute;
     height: 4px;
     background: var(--primary-500);
+    left: 10px; /* Align with container padding */
     border-radius: 2px;
     z-index: 2;
 }
 
 .pages-range-filter .range-slider {
     position: absolute;
-    width: 100%;
+    width: calc(100% - 20px); /* Account for container padding */
+    left: 10px; /* Align with container padding */
     height: 32px;
     background: none;
     pointer-events: all;

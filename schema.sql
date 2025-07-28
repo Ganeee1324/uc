@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
     page_number INTEGER NOT NULL,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
     embedding vector(1024) NOT NULL
 );
 

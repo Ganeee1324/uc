@@ -402,6 +402,7 @@ let isFiltersOpen = false;
         handleCSPEventHandlers();
         
         // Set restoration flag to prevent premature UI updates during initialization
+        console.log('🔧 Setting isRestoring to true for initialization');
         filterManager.isRestoring = true;
         
         initializeAnimations();
@@ -484,6 +485,12 @@ let isFiltersOpen = false;
     
     // Handle browser back/forward navigation
     window.addEventListener('popstate', async (event) => {
+        // Don't handle popstate during initialization/restoration
+        if (filterManager.isRestoring) {
+            console.log('🔧 Skipping popstate handler during restoration');
+            return;
+        }
+        
         // Restore filters from URL when navigating back/forward
         if (URL_FILTER_MANAGER.hasUrlFilters()) {
             const urlFilters = URL_FILTER_MANAGER.getFiltersFromUrl();
@@ -723,6 +730,7 @@ function initializeFilters() {
 
     // Always set priceType to 'all' as default on initialization
     if (!filterManager.filters.priceType) {
+        console.log('🔧 Setting default priceType to "all" during initialization');
         filterManager.filters.priceType = 'all';
     }
 
@@ -2744,9 +2752,7 @@ class FilterManager {
     
     // Add or update a filter
     setFilter(key, value) {
-        console.log('🔧 FilterManager.setFilter called with:', key, value);
-        console.log('🔧 FilterManager.setFilter - isRestoring:', this.isRestoring);
-        console.log('🔧 FilterManager.setFilter - URL_FILTER_MANAGER type:', typeof URL_FILTER_MANAGER);
+        console.log('🔧 FilterManager.setFilter called with:', key, value, 'isRestoring:', this.isRestoring);
         
         if (value === null || value === '' || value === undefined || 
             (Array.isArray(value) && value.length === 0)) {
@@ -3334,14 +3340,20 @@ function applyFiltersToFiles(files) {
 }
 
 function updateActiveFiltersDisplay() {
+    console.log('🔧 updateActiveFiltersDisplay called - filters:', filterManager.filters);
     const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
-    if (!activeFiltersContainer) return;
+    if (!activeFiltersContainer) {
+        console.log('🔧 activeFiltersContainer not found');
+        return;
+    }
     
     const filterEntries = Object.entries(filterManager.filters).filter(([key, value]) => {
         return value !== null && value !== undefined && value !== '' && value !== 'all';
     });
+    console.log('🔧 filterEntries after filtering:', filterEntries);
     
     if (filterEntries.length === 0) {
+        console.log('🔧 No filter entries, hiding container');
         activeFiltersContainer.classList.remove('visible');
         setTimeout(() => {
             activeFiltersContainer.innerHTML = '';
@@ -3514,8 +3526,10 @@ function updateActiveFiltersDisplay() {
     
     // Trigger animation
     setTimeout(() => {
+        console.log('🔧 Adding visible class to container');
         activeFiltersContainer.classList.add('visible');
         updateBottomFilterCount();
+        console.log('🔧 Filter pills should now be visible');
     }, 50);
 
     // Add event delegation for priceRange and pagesRange pills (remove button only)
@@ -5326,6 +5340,7 @@ function restoreFiltersFromStorage() {
         URL_FILTER_MANAGER.updateUrl(filterManager.filters);
         
         // Reset restoration flag
+        console.log('🔧 Setting isRestoring to false after successful restoration');
         filterManager.isRestoring = false;
         
         // Apply filters to current documents
@@ -5357,6 +5372,7 @@ function restoreFiltersFromStorage() {
         }
         
         // Reset restoration flag
+        console.log('🔧 Setting isRestoring to false after fallback');
         filterManager.isRestoring = false;
     }
 }

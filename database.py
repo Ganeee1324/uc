@@ -1,5 +1,6 @@
 import random
 from typing import Any, Dict, List, Optional, Tuple
+import uuid
 import psycopg
 import os
 from pgvector.psycopg import register_vector
@@ -68,11 +69,7 @@ def fill_courses(debug: bool = False) -> None:
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
 
 
-def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
-    with connect(vector=True) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
-            conn.commit()
+
 
 
 # ---------------------------------------------
@@ -662,20 +659,31 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
     """Insert chunk embeddings into the database"""
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
-            for chunk in chunks:
-                page_number = chunk["page_number"]
-                description = chunk["description"]
-                embedding = chunk["embedding"]
+            with conn.transaction():
+                try:
+                    for chunk in chunks:
+                        page_number = chunk["page_number"]
+                        description = chunk["description"]
+                        embedding = chunk["embedding"]
+                        image = chunk["image"]
+                        image_path = f"images/{uuid.uuid4()}.png"
+                        with open(image_path, "wb") as f:
+                            f.write(image)
 
-                pg_vector_data = embedding.squeeze()
-                cursor.execute(
-                    """INSERT INTO chunk_embeddings 
-                       (vetrina_id, file_id, page_number, description, embedding) 
-                       VALUES (%s, %s, %s, %s, %s)""",
-                    (vetrina_id, file_id, page_number, description, pg_vector_data),
-                )
-                conn.commit()
-            logging.info(f"Inserted {len(chunks)} chunk embeddings")
+                        pg_vector_data = embedding.squeeze()
+                        cursor.execute(
+                            """INSERT INTO chunk_embeddings 
+                            (vetrina_id, file_id, page_number, description, image_path, embedding) 
+                            VALUES (%s, %s, %s, %s, %s, %s)""",
+                            (vetrina_id, file_id, page_number, description, image_path, pg_vector_data),
+                        )
+                except Exception as e:
+                    logging.error(f"Error inserting chunk embeddings: {e}")
+                    conn.rollback()
+                    raise e
+                else:
+                    conn.commit()
+                    logging.info(f"Inserted {len(chunks)} chunk embeddings")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:

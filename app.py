@@ -1,20 +1,24 @@
+import base64
+import json
 from datetime import timedelta
 import logging
 import time
 
-# import threading
 import random
 import traceback
 
-# from bge import get_document_embedding
+from PIL import Image
+
 from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
 from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
+import requests
 from dotenv import load_dotenv
 import os
+import numpy as np
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
 import hashlib
 from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, ForbiddenError
@@ -23,14 +27,12 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 import uuid
 import pymupdf
 from io import BytesIO
-import threading
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", force=True)
 
 load_dotenv()
 
-file_uploaded = False
-file_uploaded_lock = threading.Lock()
+
 
 # Check if JWT secret key exists in environment
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
@@ -342,9 +344,17 @@ def upload_file(vetrina_id):
     except Exception as e:
         logging.error(f"Error closing file: {e}")
 
-    with file_uploaded_lock:
-        file_uploaded = True
-        database.insert_embedding_queue(db_file.file_id, vetrina_id)
+    # Process embeddings directly in the upload endpoint
+    try:
+        logging.info(f"Generating embeddings for file '{display_name}'")
+        chunks = process_pdf_chunks(os.path.join(files_folder_path, new_file_name), display_name, database.get_vetrina_by_id(vetrina_id, requester_id)[0].name)
+        chunks = enrich_snippets_request(os.path.join(files_folder_path, new_file_name), chunks)
+        database.insert_chunk_embeddings(vetrina_id, db_file.file_id, chunks)
+        logging.info(f"Processed {len(chunks)} chunks for file '{display_name}'")
+    except Exception as e:
+        logging.error(f"Error processing embeddings for file '{display_name}': {e}")
+        # Don't fail the upload if embedding processing fails
+        # The file is still uploaded successfully
 
     return jsonify({"msg": "File uploaded"}), 200
 
@@ -673,44 +683,37 @@ def get_valid_tags():
     """Get the list of valid file tags."""
     return jsonify({"tags": VALID_TAGS}), 200
 
+def enrich_snippets_request(pdf_path: str, chunks: list[dict[str, str | int]]):
+    with open(pdf_path, 'rb') as pdf_file:
+        files = {'pdf': ('document.pdf', pdf_file, 'application/pdf')}
+        data = {
+            'num_windows': 8,
+            'window_height_percentage': 0.35,
+            'snippets': json.dumps(chunks)
+        }
+        
+        response = requests.post(
+            "http://lancionaco.love:8222/enrich_snippets",
+            files=files,
+            data=data,
+            timeout=300  # 5 minute timeout
+        )
+    
+    data = response.json()
+    for chunk in data["snippets"]:
+        chunk["embedding"] = np.array(chunk["embedding"])
+    for chunk in data["snippets"]:
+        chunk["image"] = Image.open(BytesIO(base64.b64decode(chunk["image"])))
+    return data["snippets"]
 
-def process_embedding_queue():
-    global file_uploaded
-    while True:
-        try:
-            time.sleep(10)
-            with database.connect() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT eq.file_id, eq.vetrina_id, f.filename, f.display_name, v.name
-                        FROM embedding_queue eq
-                        JOIN files f ON eq.file_id = f.file_id
-                        JOIN vetrina v ON eq.vetrina_id = v.vetrina_id
-                        """
-                    )
-                    rows = cursor.fetchall()
-                    if not rows:
-                        continue
-            logging.info(f"Processing {len(rows)} files from embedding queue.")
-            for i, row in enumerate(rows):
-                logging.info(f"Generating embeddings for file '{row['display_name']}' (remaining: {len(rows) - i})")
-                chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], row["name"])
-                database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
-                logging.info(f"Processed {len(chunks)} chunks for file '{row['display_name']}' in vetrina '{row['name']}'")
-                with database.connect() as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
-                        conn.commit()
-        except Exception as e:
-            logging.error(f"Error processing embedding queue: {e}")
-            time.sleep(1)
+
+
+
 
 
 if __name__ == "__main__":
-    threading.Thread(target=process_embedding_queue, daemon=False).start()
     if os.name == "nt":  # Windows
-        app.run(host="0.0.0.0", debug=False)
+        app.run(host="0.0.0.0", debug=False, threaded=True)
     else:
         import ssl
 
@@ -728,4 +731,4 @@ if __name__ == "__main__":
             print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
             ssl_context = "adhoc"
 
-        app.run(host="0.0.0.0", debug=False, ssl_context=ssl_context)
+        app.run(host="0.0.0.0", debug=False, ssl_context=ssl_context, threaded=True)

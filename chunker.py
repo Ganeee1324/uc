@@ -1,13 +1,8 @@
 import lmstudio as lms
 import pymupdf
-from PIL import Image
-from io import BytesIO
-import logging
 import os
 import tempfile
 import json
-import bge
-from PIL import Image
 
 
 def extract_page_images(doc_path: str):
@@ -75,47 +70,37 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
     all_chunks = []
     images = extract_page_images(doc_path)
 
-    try:
-        # Process one page at a time
-        for current_page, (temp_image, _) in enumerate(images):
-            current_page += 1
-            file_handlers = [lms.prepare_image(src=temp_image.name)]
-            chat.add_user_message(
-                content=f"{file_name}, {collection_name}, Page: {current_page}", 
-                images=file_handlers
-            )
+    # Process one page at a time
+    for current_page, (temp_image, _) in enumerate(images):
+        current_page += 1
+        file_handlers = [lms.prepare_image(src=temp_image.name)]
+        chat.add_user_message(
+            content=f"{file_name}, {collection_name}, Page: {current_page}", 
+            images=file_handlers
+        )
 
-            response = model.respond_stream(chat, response_format=schema, config={"contextOverflowPolicy": "rollingWindow"})
-            print(f"Processing page {current_page}:")
-            for chunk in response:
-                print(chunk.content, end="", flush=True)
-            print("\n" + "=" * 50 + "\n")
+        response = model.respond_stream(chat, response_format=schema, config={"contextOverflowPolicy": "rollingWindow"})
+        print(f"Processing page {current_page}:")
+        for chunk in response:
+            print(chunk.content, end="", flush=True)
+        print("\n" + "=" * 50 + "\n")
 
-            try:
-                os.unlink(temp_image.name)
-            except Exception:
-                pass
+        try:
+            os.unlink(temp_image.name)
+        except Exception:
+            pass
 
-            chat.add_assistant_response(response.result())
-            temp_chunks = json.loads(response.result().content)
-            
-            # Update page_number for chunks from this page
-            for chunk in temp_chunks:
-                chunk['page_number'] = current_page
-            
-            all_chunks.extend(temp_chunks)
-            print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
+        chat.add_assistant_response(response.result())
+        temp_chunks = json.loads(response.result().content)
+        
+        # Update page_number for chunks from this page
+        for chunk in temp_chunks:
+            chunk['page_number'] = current_page
+        
+        all_chunks.extend(temp_chunks)
+        print(f"Current context length: {get_current_context_length(chat, model)}/{model.get_context_length()}")
 
-        model.unload()
-
-        # process embeddings for pages
-        for chunk in all_chunks:
-            image = images[chunk['page_number'] - 1][1]
-            chunk['embedding'] = bge.get_chunk_embeddings(chunk['description'], image, chunk['context'])
-            
-    finally:
-        if os.name == "nt":
-            bge.unload_model()
+    model.unload()
 
     return all_chunks
 

@@ -20,14 +20,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <!-- Add Material Icons as Fallback -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <!-- Fallback Material Symbols Font -->
+    <!-- Improved Fallback Material Symbols Font -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
         
-        /* Ensure Material Symbols load properly in iframe context */
+        /* Force immediate font loading */
+        @font-face {
+            font-family: 'Material Symbols Outlined';
+            font-style: normal;
+            font-weight: 100 700;
+            font-display: block; /* Force blocking load */
+            src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v135/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1v-p_4MrImHCIJIZrDCvHOej.woff2) format('woff2');
+        }
+        
         .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined', 'Material Icons', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            font-family: 'Material Symbols Outlined', 'Material Icons', 'Material Icons Outlined', -apple-system, BlinkMacSystemFont, sans-serif !important;
             font-weight: normal;
             font-style: normal;
             font-size: 24px;
@@ -50,9 +61,9 @@
             opacity: 1;
         }
         
-        /* Fallback for when Material Symbols don't load */
-        .material-symbols-outlined:not([style*="font-family"]) {
-            font-family: 'Material Icons', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        /* Force fallback if symbols don't load */
+        .material-symbols-outlined:before {
+            content: attr(data-fallback);
         }
     </style>
     
@@ -812,50 +823,84 @@
     <script src="../../js/config.js"></script>
     <script src="../../js/performance-cache.js"></script>
     
-    <!-- Material Symbols Font Fallback -->
+    <!-- Improved Material Symbols Font Fallback -->
     <script>
-        // Ensure Material Symbols icons load properly in iframe context
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if Material Symbols font is loaded
-            const testElement = document.createElement('span');
-            testElement.className = 'material-symbols-outlined';
-            testElement.textContent = 'star';
-            testElement.style.position = 'absolute';
-            testElement.style.visibility = 'hidden';
-            testElement.style.fontSize = '24px';
-            document.body.appendChild(testElement);
+            // Function to check if font is loaded
+            function checkFontLoaded() {
+                return new Promise((resolve) => {
+                    const testElement = document.createElement('span');
+                    testElement.className = 'material-symbols-outlined';
+                    testElement.textContent = 'star';
+                    testElement.style.cssText = 'position: absolute; visibility: hidden; font-size: 24px; top: -9999px;';
+                    document.body.appendChild(testElement);
+                    
+                    // Check multiple times as fonts can take time to load
+                    let attempts = 0;
+                    const maxAttempts = 20;
+                    
+                    function check() {
+                        attempts++;
+                        const computed = window.getComputedStyle(testElement);
+                        const fontFamily = computed.fontFamily.toLowerCase();
+                        
+                        if (fontFamily.includes('material') || attempts >= maxAttempts) {
+                            document.body.removeChild(testElement);
+                            resolve(fontFamily.includes('material'));
+                        } else {
+                            setTimeout(check, 100);
+                        }
+                    }
+                    
+                    setTimeout(check, 100);
+                });
+            }
             
-            // Wait a bit for font to load
-            setTimeout(function() {
-                const isLoaded = testElement.offsetWidth > 0 && testElement.offsetHeight > 0;
-                document.body.removeChild(testElement);
-                
+            // Check font loading and apply fallbacks
+            checkFontLoaded().then(isLoaded => {
                 if (!isLoaded) {
                     console.warn('Material Symbols font not loaded, applying fallback');
-                    // Apply fallback styles
+                    
+                    // Create comprehensive fallback
                     const style = document.createElement('style');
                     style.textContent = `
                         .material-symbols-outlined {
-                            font-family: 'Material Icons', -apple-system, BlinkMacSystemFont, sans-serif !important;
-                            font-weight: normal;
-                            font-style: normal;
-                            font-size: 24px;
-                            line-height: 1;
-                            display: inline-block;
-                            text-transform: none;
-                            letter-spacing: normal;
-                            word-wrap: normal;
-                            white-space: nowrap;
-                            direction: ltr;
-                            -webkit-font-smoothing: antialiased;
-                            -moz-osx-font-smoothing: grayscale;
-                            text-rendering: optimizeLegibility;
-                            font-feature-settings: 'liga';
+                            font-family: 'Material Icons', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
                         }
+                        
+                        /* Specific icon mappings for common icons */
+                        .material-symbols-outlined[data-icon="tune"]:before { content: "\\e429"; }
+                        .material-symbols-outlined[data-icon="star"]:before { content: "\\e838"; }
+                        .material-symbols-outlined[data-icon="close"]:before { content: "\\e5cd"; }
+                        .material-symbols-outlined[data-icon="expand_more"]:before { content: "\\e5cf"; }
+                        .material-symbols-outlined[data-icon="keyboard_arrow_up"]:before { content: "\\e316"; }
+                        .material-symbols-outlined[data-icon="auto_awesome"]:before { content: "\\e6d7"; }
+                        .material-symbols-outlined[data-icon="trending_up"]:before { content: "\\e8e5"; }
+                        .material-symbols-outlined[data-icon="trending_down"]:before { content: "\\e8e3"; }
+                        .material-symbols-outlined[data-icon="schedule"]:before { content: "\\e8b5"; }
+                        .material-symbols-outlined[data-icon="history"]:before { content: "\\e889"; }
+                        .material-symbols-outlined[data-icon="clear_all"]:before { content: "\\e14b"; }
+                        .material-symbols-outlined[data-icon="school"]:before { content: "\\e80c"; }
+                        .material-symbols-outlined[data-icon="description"]:before { content: "\\e873"; }
+                        .material-symbols-outlined[data-icon="select_all"]:before { content: "\\e162"; }
+                        .material-symbols-outlined[data-icon="folder"]:before { content: "\\e2c7"; }
+                        .material-symbols-outlined[data-icon="calendar_month"]:before { content: "\\e435"; }
+                        .material-symbols-outlined[data-icon="payments"]:before { content: "\\e8a1"; }
+                        .material-symbols-outlined[data-icon="volunteer_activism"]:before { content: "\\e8d0"; }
+                        .material-symbols-outlined[data-icon="paid"]:before { content: "\\e8a1"; }
+                        .material-symbols-outlined[data-icon="rate_review"]:before { content: "\\e560"; }
+                        .material-symbols-outlined[data-icon="add"]:before { content: "\\e145"; }
                     `;
                     document.head.appendChild(style);
+                    
+                    // Add data-icon attributes to existing icons
+                    document.querySelectorAll('.material-symbols-outlined').forEach(icon => {
+                        const iconName = icon.textContent.trim();
+                        icon.setAttribute('data-icon', iconName);
+                        icon.textContent = '';
+                    });
                 }
-            }, 1000);
+            });
         });
     </script>
     

@@ -1,4 +1,4 @@
-from visual_bge.modeling import Visualized_BGE
+from bge_model import Visualized_BGE
 from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 import os
 import torch

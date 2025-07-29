@@ -1,7 +1,7 @@
 import os
 import time
 
-from visual_bge.modeling import Visualized_BGE
+from bge_model import Visualized_BGE
 
 # import base64
 # from io import BytesIO
@@ -33,12 +33,12 @@ def load_model():
 
 def get_sentence_embedding(sentence: str) -> np.ndarray:
     with torch.no_grad():
-        return model.encode(text=sentence).detach().cpu().numpy()
+        return model.encode(text=sentence)[0].detach().cpu().numpy()
 
 
 def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> np.ndarray:
     with torch.no_grad():
-        return model.encode(image=image, text=f"{description} {context}").detach().cpu().numpy()
+        return model.encode(image=image, text=f"{description} {context}")[0].detach().cpu().numpy()
 
 
 def unload_model():
@@ -53,3 +53,6 @@ def unload_model():
 
 
 load_model()
+
+if __name__ == "__main__":
+    print(get_sentence_embedding("Hello, world!"))

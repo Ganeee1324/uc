@@ -272,49 +272,28 @@ def upload_file(vetrina_id):
     if tag and tag not in VALID_TAGS:
         return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
 
-    # Get display_name if provided
-    display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
-
     # Read file content into memory for processing
     file_content = file.read()
-    file_size = len(file_content)
-    file_hash = hashlib.sha256(file_content).hexdigest()
+    # file_size = len(file_content)
 
     new_file_name = "-".join([str(uuid.uuid4()), str(requester_id), file.filename])
     new_file_path = os.path.join(FILES_FOLDER, new_file_name)
 
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
+    
+    display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
 
-    # Get number of pages for PDF files using PyMuPDF from memory
-    num_pages = 0
-    if extension == "pdf":
-        try:
-            # Process PDF from memory using BytesIO
-            pdf_stream = BytesIO(file_content)
-            with pymupdf.open(stream=pdf_stream, filetype="pdf") as doc:
-                num_pages = doc.page_count
-        except Exception as e:
-            logging.error(f"Error processing PDF with PyMuPDF: {e}")
-            return jsonify({"error": "pdf_processing_failed", "msg": "Failed to process PDF file"}), 500
-
-    # Add file to database with size and tag
     db_file = database.add_file_to_processing_queue(
         requester_id=requester_id,
         vetrina_id=vetrina_id,
         file_name=new_file_name,
-        display_name=display_name,
-        sha256=file_hash,
         extension=extension,
         price=random.uniform(0.5, 1.0),
-        size=file_size,
         tag=tag,
-        num_pages=num_pages,
         file_data=file_content,
+        display_name=display_name,
     )
-
-    if extension == "pdf":
-        redact.blur_pages(new_file_path, [1])
 
     with open(new_file_path, "wb") as f:
         f.write(file_content)

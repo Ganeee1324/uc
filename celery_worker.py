@@ -1,4 +1,7 @@
+import hashlib
+import os
 from chunker import process_pdf_chunks
+import redact
 import torch
 import numpy as np
 import logging
@@ -6,6 +9,11 @@ import pymupdf
 from PIL import Image
 from io import BytesIO
 from typing import List, Dict, Union, Any
+from bge_model import Visualized_BGE
+from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
+import dotenv
+
+dotenv.load_dotenv()
 
 # Import database functions and models
 import database
@@ -18,6 +26,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+FILES_FOLDER = os.getenv("FILES_FOLDER")
+
 # Configuration
 import config
 
@@ -28,23 +38,9 @@ from celery_config import celery_app as app
 model_path = config.MODEL_PATH
 
 # Global model instances - embedder always loaded, reranker loaded on demand
-embedder = None
+embedder = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path, device="cpu")
 reranker = None
 reranker_processor = None
-
-
-def load_embedder():
-    """Load the embedder model (always keep it loaded)"""
-    global embedder
-
-    if embedder is not None:
-        return
-
-    logger.info("Loading embedder model...")
-    from visual_bge.modeling import Visualized_BGE
-
-    embedder = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path, device="cpu")
-    logger.info("Embedder model loaded successfully")
 
 
 def load_reranker():
@@ -55,7 +51,6 @@ def load_reranker():
         return
 
     logger.info("Loading reranker model...")
-    from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 
     reranker_processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
     logger.info("Reranker processor loaded successfully")
@@ -126,9 +121,6 @@ def get_sentence_embedding(sentence: str) -> np.ndarray:
     """Get sentence embedding using embedder model"""
     logger.debug(f"Getting sentence embedding for: {sentence[:50]}...")
 
-    # Ensure embedder is loaded (always keep it loaded)
-    load_embedder()
-
     with torch.no_grad():
         embedding = embedder.encode(text=sentence).detach().cpu().numpy()
         logger.debug(f"Sentence embedding computed with shape: {embedding.shape}")
@@ -139,9 +131,6 @@ def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> 
     """Get chunk embeddings using embedder model"""
     logger.debug(f"Getting chunk embeddings for description: {description[:50]}...")
 
-    # Ensure embedder is loaded (always keep it loaded)
-    load_embedder()
-
     with torch.no_grad():
         embedding = embedder.encode(image=image, text=f"{description} {context}").detach().cpu().numpy()
         logger.debug(f"Chunk embedding computed with shape: {embedding.shape}")
@@ -149,13 +138,13 @@ def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> 
 
 
 def retrieve_snippet_images(
-    pdf_data: bytes, snippets: List[Dict[str, Union[str, int]]], num_windows: int = 8, window_height_percentage: float = 0.35
+    doc: pymupdf.Document, snippets: List[Dict[str, Union[str, int]]], num_windows: int = 8, window_height_percentage: float = 0.35
 ) -> List[Dict[str, Any]]:
     """
     Process snippets to add images and embeddings from PDF data in memory.
 
     Args:
-        pdf_data: PDF file content as bytes
+        doc: PDF document
         snippets: List of snippets to process
         num_windows: Number of windows to extract (default: 8)
         window_height_percentage: Height of each window as percentage of page height
@@ -163,9 +152,7 @@ def retrieve_snippet_images(
     Returns:
         List of enriched snippets with images and embeddings
     """
-    logger.info(f"Processing PDF from memory")
     logger.info(f"Number of snippets to process: {len(snippets)}")
-    logger.info(f"Using {num_windows} windows with {window_height_percentage*100}% height")
 
     # Load reranker for this processing session
     load_reranker()
@@ -174,24 +161,13 @@ def retrieve_snippet_images(
         page_images = []
         logger.info("Loading PDF pages from memory...")
 
-        # Open PDF from memory
-        pdf_stream = BytesIO(pdf_data)
-        with pymupdf.open(stream=pdf_stream, filetype="pdf") as doc:
-            for page in doc:
-                page_images.append(page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).pil_image())
+        for page in doc:
+            page_images.append(page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).pil_image())
         logger.info(f"Loaded {len(page_images)} pages from PDF")
 
-        # Get page dimensions
         width, height = page_images[0].size
-        logger.info(f"Page dimensions: {width}x{height}")
-
-        # Calculate window height
         window_height = int(height * window_height_percentage)
-        logger.info(f"Window height: {window_height}")
-
-        # Calculate step size to get num_windows windows
         step_size = (height - window_height) / (num_windows - 1) if num_windows > 1 else 0
-        logger.info(f"Step size: {step_size}")
 
         for i, snippet in enumerate(snippets):
             logger.info(f"Processing snippet {i+1}/{len(snippets)}")
@@ -203,18 +179,11 @@ def retrieve_snippet_images(
             windows = []
 
             for j in range(num_windows):
-                # Calculate top position for this window
                 top = int(j * step_size)
-
-                # Ensure we don't go beyond the page boundaries
                 if top + window_height > height:
                     top = height - window_height
 
-                # Crop the image to get the window
                 window_image = page_image.crop((0, top, width, top + window_height))
-
-                # Get score from reranker
-                logger.debug(f"Computing score for window {j+1}/{num_windows}")
                 score = compute_similarity_score(description, window_image)
 
                 windows.append((window_image, float(score)))
@@ -224,11 +193,9 @@ def retrieve_snippet_images(
             best_score = max(windows, key=lambda x: x[1])[1]
             logger.info(f"Best window score: {best_score:.4f}")
 
-            # Store image as PIL object for now
             snippet["image"] = best_image
-            logger.debug("Computing chunk embedding...")
             embedding = get_chunk_embeddings(description, page_image, snippet["context"])
-            snippet["embedding"] = embedding.tolist()  # Convert numpy array to list
+            snippet["embedding"] = embedding
             logger.info(f"Snippet {i+1} processing completed")
 
         logger.info("All snippets processed successfully")
@@ -248,64 +215,59 @@ def process_pending_files(self):
     """
     logger.info("Starting periodic file processing - checking for pending files...")
 
-    # Keep processing files until no more are found
     while True:
         with database.connect(vector=True) as conn:
             with conn.cursor() as cursor:
-                with conn.transaction():  # TODO: add error handling
+                try:
+                    with conn.transaction():  # TODO: add error handling
+                        cursor.execute(
+                            """
+                            SELECT * FROM file_processing_queue 
+                            WHERE failed = FALSE
+                            ORDER BY upload_date ASC 
+                            LIMIT 1 FOR UPDATE SKIP LOCKED
+                            """
+                        )
+                        pending_file = cursor.fetchone()
+                        if not pending_file:
+                            break
+
+                        with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:
+                            chunks = process_pdf_chunks(doc, pending_file["display_name"], "")
+                            logger.info(f"Generated {len(chunks)} chunks")
+                            num_pages = doc.page_count
+                            doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
+
+                            redacted_doc = redact.blur_pages(doc, [1])
+                            redacted_doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"] + "_redacted.pdf"))
+
+                            enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
+                            logger.info(f"Enriched {len(enriched_chunks)} chunks")
+
+                        db_file = database.add_file_to_vetrina(
+                            cursor=cursor,
+                            requester_id=pending_file["requester_id"],
+                            vetrina_id=pending_file["vetrina_id"],
+                            file_name=pending_file["file_name"],
+                            sha256=hashlib.sha256(pending_file["file_data"]).hexdigest(),
+                            extension=pending_file["extension"],
+                            price=pending_file["price"],
+                            size=len(pending_file["file_data"]),
+                            tag=pending_file["tag"],
+                            language=pending_file["language"],
+                            num_pages=num_pages,
+                            display_name=pending_file["display_name"],
+                        )
+
+                        database.insert_chunk_embeddings(pending_file["vetrina_id"], db_file.file_id, enriched_chunks, cursor)
+
+                        cursor.execute("DELETE FROM file_processing_queue WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],))
+                except Exception as e:
+                    logger.error(f"Error processing file: {e}")
                     cursor.execute(
-                        """
-                        SELECT * FROM file_processing_queue 
-                        WHERE status = 'pending' 
-                        ORDER BY upload_date ASC 
-                        LIMIT 1 FOR UPDATE SKIP LOCKED
-                        """
+                        "UPDATE file_processing_queue SET failed = TRUE WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],)
                     )
-                    pending_file = cursor.fetchone()
-                    if not pending_file:
-                        break
-
-                    if pending_file["extension"] != "pdf" or not pending_file["file_data"]:
-                        logger.error(f"Skipping non-PDF file or file without data: {pending_file["display_name"]}")
-                        raise Exception("Skipping non-PDF file or file without data")
-
-                    with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:
-                        chunks = process_pdf_chunks(doc, pending_file["display_name"], "")
-                        logger.info(f"Generated {len(chunks)} chunks")
-
-                    enriched_chunks = retrieve_snippet_images(pending_file["file_data"], chunks, num_windows=8, window_height_percentage=0.35)
-                    logger.info(f"Enriched {len(enriched_chunks)} chunks")
-
-                    db_file = database.add_file_to_vetrina(
-                        cursor=cursor,
-                        requester_id=pending_file["requester_id"],
-                        vetrina_id=pending_file["vetrina_id"],
-                        file_name=pending_file["file_name"],
-                        sha256=pending_file["sha256"],
-                        extension=pending_file["extension"],
-                        price=pending_file["price"],
-                        size=pending_file["size"],
-                        tag=pending_file["tag"],
-                        language=pending_file["language"],
-                        num_pages=pending_file["num_pages"],
-                        display_name=pending_file["display_name"],
-                    )
-
-                    database.insert_chunk_embeddings(pending_file["vetrina_id"], db_file.file_id, enriched_chunks, cursor)
-
-                    cursor.execute("DELETE FROM file_processing_queue WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],))
+                    conn.commit()
 
     logger.info("No pending files found in queue")
     return {"message": "No pending files"}
-
-
-# Initialize embedder when worker starts
-def initialize_worker():
-    """Initialize the worker by loading the embedder model"""
-    logger.info("Initializing worker - loading embedder model...")
-    load_embedder()
-    logger.info("Worker initialization complete - embedder model loaded")
-
-
-# Initialize embedder when module is imported
-initialize_worker()

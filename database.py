@@ -661,13 +661,10 @@ def add_file_to_processing_queue(
     vetrina_id: int,
     file_name: str,
     display_name: str,
-    sha256: str,
     extension: str,
     price: int = 0,
-    size: int = 0,
     tag: str | None = None,
     language: str = "it",
-    num_pages: int = 0,
     file_data: bytes | None = None,
 ) -> File:
     """
@@ -690,8 +687,8 @@ def add_file_to_processing_queue(
 
                 # insert the file into the processing queue
                 cursor.execute(
-                    "INSERT INTO file_processing_queue (requester_id, vetrina_id, file_name, display_name, sha256, extension, price, size, tag, language, num_pages, file_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (requester_id, vetrina_id, file_name, display_name, sha256, extension, price, size, tag, language, num_pages, file_data),
+                    "INSERT INTO file_processing_queue (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data),
                 )
                 file_data = cursor.fetchone()
                 file = File.from_dict(file_data)
@@ -714,12 +711,12 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
                     image_name = f"{uuid.uuid4()}.png"
                     image.save(os.path.join(IMAGES_FOLDER, image_name))
 
-                    pg_vector_data = embedding.squeeze()
+                    embedding = embedding.squeeze()
                     cursor.execute(
                         """INSERT INTO chunk_embeddings 
                         (vetrina_id, file_id, page_number, description, image_path, embedding) 
                         VALUES (%s, %s, %s, %s, %s, %s)""",
-                        (vetrina_id, file_id, page_number, description, image_name, pg_vector_data),
+                        (vetrina_id, file_id, page_number, description, image_name, embedding),
                     )
                 logging.info(f"Inserted {len(chunks)} chunk embeddings")
 

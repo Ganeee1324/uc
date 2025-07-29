@@ -271,7 +271,7 @@ def upload_file(vetrina_id):
     
     display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
 
-    db_file = database.add_file_to_processing_queue(
+    database.add_file_to_processing_queue(
         requester_id=requester_id,
         vetrina_id=vetrina_id,
         file_name=new_file_name,
@@ -290,7 +290,7 @@ def upload_file(vetrina_id):
     except Exception as e:
         logging.error(f"Error closing file: {e}")
 
-    return jsonify({"msg": "File uploaded", "file": db_file.to_dict()}), 200
+    return jsonify({"msg": "File uploaded"}), 200
 
 
 @app.route("/files/<int:file_id>/download", methods=["GET"])

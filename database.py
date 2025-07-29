@@ -71,9 +71,6 @@ def fill_courses(debug: bool = False) -> None:
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
 
 
-
-
-
 # ---------------------------------------------
 # User management
 # ---------------------------------------------
@@ -285,7 +282,9 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
+def new_search(
+    query: str, query_embedding: np.ndarray, params: Dict[str, Any] = {}, user_id: Optional[int] = None
+) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
             try:
@@ -508,11 +507,11 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
         with conn.cursor() as cursor:
             favorite_select = ""
             params = [vetrina_id]
-            
+
             if user_id is not None:
                 favorite_select = ", EXISTS(SELECT 1 FROM favourite_vetrine WHERE vetrina_id = v.vetrina_id AND user_id = %s) AS favorite"
                 params.insert(0, user_id)
-            
+
             cursor.execute(
                 f"""
                 SELECT v.*, u.*, ci.*{favorite_select}
@@ -528,7 +527,7 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
             if not vetrina_data:
                 raise NotFoundException("Vetrina not found")
             vetrina = Vetrina.from_dict(vetrina_data)
-            
+
             cursor.execute("SELECT * FROM files WHERE vetrina_id = %s", (vetrina_id,))
             files_data = cursor.fetchall()
             files = [File.from_dict(file_data) for file_data in files_data]
@@ -538,7 +537,8 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
             reviews = [Review.from_dict(review_data) for review_data in reviews_data]
 
             return vetrina, files, reviews
-            
+
+
 # ---------------------------------------------
 # Course management
 # ---------------------------------------------
@@ -601,6 +601,7 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
+    cursor: psycopg.Cursor,
     requester_id: int,
     vetrina_id: int,
     file_name: str,
@@ -632,6 +633,46 @@ def add_file_to_vetrina(
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
     """
+
+    # First check if the vetrina exists
+    cursor.execute("SELECT author_id FROM vetrina WHERE vetrina_id = %s", (vetrina_id,))
+    vetrina = cursor.fetchone()
+
+    if not vetrina:
+        raise NotFoundException("Vetrina not found")
+
+    # Then check if the requester is the author
+    if vetrina["author_id"] != requester_id:
+        raise ForbiddenError("Only the author can add files to this vetrina")
+
+    # If all checks pass, insert the file
+    cursor.execute(
+        "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+        (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
+    )
+    file_data = cursor.fetchone()
+    file = File.from_dict(file_data)
+    logging.info(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
+    return file
+
+
+def add_file_to_processing_queue(
+    requester_id: int,
+    vetrina_id: int,
+    file_name: str,
+    display_name: str,
+    sha256: str,
+    extension: str,
+    price: int = 0,
+    size: int = 0,
+    tag: str | None = None,
+    language: str = "it",
+    num_pages: int = 0,
+    file_data: bytes | None = None,
+) -> File:
+    """
+    Add a file to the processing queue.
+    """
     with connect() as conn:
         with conn.cursor() as cursor:
             with conn.transaction():
@@ -647,19 +688,20 @@ def add_file_to_vetrina(
                 if vetrina["author_id"] != requester_id:
                     raise ForbiddenError("Only the author can add files to this vetrina")
 
-                # If all checks pass, insert the file
+                # insert the file into the processing queue
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
+                    "INSERT INTO file_processing_queue (requester_id, vetrina_id, file_name, display_name, sha256, extension, price, size, tag, language, num_pages, file_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (requester_id, vetrina_id, file_name, display_name, sha256, extension, price, size, tag, language, num_pages, file_data),
                 )
                 file_data = cursor.fetchone()
                 file = File.from_dict(file_data)
+                logging.info(
+                    f'File "{file_name}" added to processing queue for vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}'
+                )
+                return file
 
-                logging.info(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
-            return File.from_dict(file_data)
 
-
-def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]]) -> None:
+def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]], cursor: psycopg.Cursor) -> None:
     """Insert chunk embeddings into the database"""
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:

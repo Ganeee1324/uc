@@ -691,6 +691,7 @@ def add_file_to_processing_queue(
                     (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data),
                 )
                 file_data = cursor.fetchone()
+                logging.debug(f"File data: {file_data}")
                 file = File.from_dict(file_data)
                 logging.info(
                     f'File "{file_name}" added to processing queue for vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}'

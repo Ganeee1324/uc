@@ -5,9 +5,8 @@ import tempfile
 import json
 
 
-def extract_page_images(doc_path: str):
+def extract_page_images(doc: pymupdf.Document):
     """Extract images from PDF pages and return temporary file paths"""
-    doc = pymupdf.open(doc_path)
     images = []
 
     for i in range(doc.page_count):
@@ -19,7 +18,6 @@ def extract_page_images(doc_path: str):
         temp_file.close()
         images.append((temp_file, image))
 
-    doc.close()
     return images
 
 
@@ -28,7 +26,7 @@ def get_current_context_length(chat: lms.Chat, model: lms.LLM) -> int:
     return len(model.tokenize(formatted))
 
 
-def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> list[dict[str, str | int]]:
+def process_pdf_chunks(doc: pymupdf.Document, file_name: str, collection_name: str) -> list[dict[str, str | int]]:
     """Process PDF one page at a time. Returns list of chunks."""
 
     # Specify the host IP and port
@@ -68,7 +66,7 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
     )
 
     all_chunks = []
-    images = extract_page_images(doc_path)
+    images = extract_page_images(doc)
 
     # Process one page at a time
     for current_page, (temp_image, _) in enumerate(images):
@@ -107,4 +105,6 @@ def process_pdf_chunks(doc_path: str, file_name: str, collection_name: str) -> l
 
 if __name__ == "__main__":
     # Example usage
-    process_pdf_chunks("Statistics Exam - DONE.pdf", "Systems of linear equations", "Statistics")
+    doc = pymupdf.open("Statistics Exam - DONE.pdf")
+    process_pdf_chunks(doc, "Systems of linear equations", "Statistics")
+    doc.close()

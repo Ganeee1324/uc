@@ -1,0 +1,24 @@
+2025-07-29 19:47:38,160 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:47:38,190 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 19:47:39,393 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:47:39,402 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 19:51:28,804 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:51:28,812 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 19:51:30,578 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:51:30,588 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 19:52:39,053 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:52:39,055 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 19:52:41,004 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:52:41,014 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 19:57:42,456 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 19:57:42,464 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 20:03:23,960 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 20:03:23,967 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 20:06:07,529 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 20:06:07,539 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 20:07:39,308 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 20:07:39,323 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 20:17:54,764 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 20:17:54,773 - root - INFO - Shape of rope freq: torch.Size([256, 64])
+2025-07-29 20:20:26,654 - root - INFO - Loaded EVA02-CLIP-L-14 model config.
+2025-07-29 20:20:26,654 - root - INFO - Shape of rope freq: torch.Size([256, 64])

@@ -1,33 +1,20 @@
-import base64
-import json
 from datetime import timedelta
 import logging
-import time
-
 import random
 import traceback
 
-from PIL import Image
-
 from bge import get_sentence_embedding, load_model
-from chunker import process_pdf_chunks
 import werkzeug
 import database
-import redact
 from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
-import requests
 from dotenv import load_dotenv
 import os
-import numpy as np
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
-import hashlib
 from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, ForbiddenError
 
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import uuid
-import pymupdf
-from io import BytesIO
 
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s", force=True)
 

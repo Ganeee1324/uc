@@ -395,7 +395,7 @@ def new_search(query: str, query_embedding: np.ndarray, params: Dict[str, Any] =
                     SUM(keyword_score) as keyword_score,
                     (SUM(semantic_score) + SUM(keyword_score)) as score
                 FROM combined_results
-                GROUP BY vetrina_id, file_id, page_number, description -- Correctly group by the full chunk key
+                GROUP BY vetrina_id, file_id, page_number, description, image_path -- Include image_path in GROUP BY
             )
             -- Final Selection with Late Joins
             SELECT

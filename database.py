@@ -21,6 +21,8 @@ load_dotenv()
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
+FILES_FOLDER = os.getenv("FILES_FOLDER")
+IMAGES_FOLDER = os.getenv("IMAGES_FOLDER")
 
 
 def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector: bool = False) -> psycopg.Connection:
@@ -661,31 +663,23 @@ def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str
     """Insert chunk embeddings into the database"""
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
-            with conn.transaction() as transaction:
-                try:
-                    for chunk in chunks:
-                        page_number = chunk["page_number"]
-                        description = chunk["description"]
-                        embedding = chunk["embedding"]
-                        image: Image.Image = chunk["image"]
-                        images_path = os.path.join(os.path.dirname(__file__), "images")
-                        if not os.path.exists(images_path):
-                            os.makedirs(images_path)
-                        image_path = os.path.join(images_path, f"{uuid.uuid4()}.png")
-                        image.save(image_path)
+            with conn.transaction():
+                for chunk in chunks:
+                    page_number = chunk["page_number"]
+                    description = chunk["description"]
+                    embedding = chunk["embedding"]
+                    image: Image.Image = chunk["image"]
+                    image_name = f"{uuid.uuid4()}.png"
+                    image.save(os.path.join(IMAGES_FOLDER, image_name))
 
-                        pg_vector_data = embedding.squeeze()
-                        cursor.execute(
-                            """INSERT INTO chunk_embeddings 
-                            (vetrina_id, file_id, page_number, description, image_path, embedding) 
-                            VALUES (%s, %s, %s, %s, %s, %s)""",
-                            (vetrina_id, file_id, page_number, description, image_path, pg_vector_data),
-                        )
-                except Exception as e:
-                    logging.error(f"Error inserting chunk embeddings: {e}")
-                    raise psycopg.Rollback()
-                else:
-                    logging.info(f"Inserted {len(chunks)} chunk embeddings")
+                    pg_vector_data = embedding.squeeze()
+                    cursor.execute(
+                        """INSERT INTO chunk_embeddings 
+                        (vetrina_id, file_id, page_number, description, image_path, embedding) 
+                        VALUES (%s, %s, %s, %s, %s, %s)""",
+                        (vetrina_id, file_id, page_number, description, image_name, pg_vector_data),
+                    )
+                logging.info(f"Inserted {len(chunks)} chunk embeddings")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:

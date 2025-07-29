@@ -9,7 +9,8 @@ import traceback
 
 from PIL import Image
 
-from bge import get_sentence_embedding
+from bge import get_sentence_embedding, load_model
+from chunker import process_pdf_chunks
 import werkzeug
 import database
 import redact
@@ -28,7 +29,7 @@ import uuid
 import pymupdf
 from io import BytesIO
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", force=True)
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s", force=True)
 
 load_dotenv()
 
@@ -41,6 +42,7 @@ if not jwt_secret_key:
     print("Warning: Using default JWT secret key. This is not secure for production.")
 
 app = Flask(__name__)
+load_model()
 
 # Enable CORS for all origins (prototype only)
 CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
@@ -50,14 +52,11 @@ app.config["JWT_VERIFY_SUB"] = False
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
 
-# file folder
-files_folder = os.getenv("FILES_FOLDER")
-if not files_folder:
-    files_folder = "files"
-    print("Warning: Using default files folder. This is not secure for production.")
+FILES_FOLDER = os.getenv("FILES_FOLDER")
+IMAGES_FOLDER = os.getenv("IMAGES_FOLDER")
 
-files_folder_path = os.path.join(os.path.dirname(__file__), files_folder)
-os.makedirs(files_folder_path, exist_ok=True)
+os.makedirs(FILES_FOLDER, exist_ok=True)
+os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
 # Valid file tags
 VALID_TAGS = ["dispense", "appunti", "esercizi"]
@@ -282,7 +281,7 @@ def upload_file(vetrina_id):
     file_hash = hashlib.sha256(file_content).hexdigest()
 
     new_file_name = "-".join([str(uuid.uuid4()), str(requester_id), file.filename])
-    new_file_path = os.path.join(files_folder_path, new_file_name)
+    new_file_path = os.path.join(FILES_FOLDER, new_file_name)
 
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
@@ -333,14 +332,14 @@ def upload_file(vetrina_id):
 def download_file(file_id):
     user_id = get_jwt_identity()
     file = database.check_file_ownership(user_id, file_id)
-    return send_file(os.path.join(files_folder_path, file.filename), as_attachment=True)
+    return send_file(os.path.join(FILES_FOLDER, file.filename), as_attachment=True)
 
 
 @app.route("/files/<int:file_id>/download/redacted", methods=["GET"])
 @jwt_required()
 def download_file_redacted(file_id):
     file = database.get_file(file_id)
-    return send_file(os.path.join(files_folder_path, file.filename.replace(".pdf", "_redacted.pdf")), as_attachment=True)
+    return send_file(os.path.join(FILES_FOLDER, file.filename.replace(".pdf", "_redacted.pdf")), as_attachment=True)
 
 
 @app.route("/files/<int:file_id>", methods=["DELETE"])
@@ -349,7 +348,7 @@ def delete_file(file_id):
     user_id = get_jwt_identity()
     db_file = database.delete_file(user_id, file_id)
     try:
-        os.remove(os.path.join(files_folder_path, db_file.filename))
+        os.remove(os.path.join(FILES_FOLDER, db_file.filename))
     except Exception as e:
         print(f"Error deleting file: {e}")
     return jsonify({"msg": "File deleted"}), 200
@@ -611,12 +610,8 @@ def serve_image(filename):
         filename: The name of the image file to serve
     """
 
-    # Get the directory where the script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    images_folder = os.path.join(script_dir, "images")
-
     # Check if the requested file exists
-    file_path = os.path.join(images_folder, filename)
+    file_path = os.path.join(IMAGES_FOLDER, filename)
     if not os.path.exists(file_path):
         return jsonify({"error": "image_not_found", "msg": f"Image '{filename}' not found"}), 404
 
@@ -625,7 +620,7 @@ def serve_image(filename):
         return jsonify({"error": "not_a_file", "msg": f"'{filename}' is not a file"}), 400
 
     # Serve the image file
-    return send_from_directory(images_folder, filename)
+    return send_from_directory(IMAGES_FOLDER, filename)
 
 
 # ---------------------------------------------
@@ -654,23 +649,4 @@ def get_valid_tags():
 
 
 if __name__ == "__main__":
-    if os.name == "nt":  # Windows
-        app.run(host="0.0.0.0", debug=False, threaded=True)
-    else:
-        import ssl
-
-        # Use Let's Encrypt certificate (copied to local directory)
-        cert_path = os.path.join(os.path.dirname(__file__), "certs", "fullchain.pem")
-        key_path = os.path.join(os.path.dirname(__file__), "certs", "privkey.pem")
-
-        # Check if certificate files exist
-        if os.path.exists(cert_path) and os.path.exists(key_path):
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(cert_path, key_path)
-            print(f"Using Let's Encrypt certificate from {cert_path}")
-            ssl_context = context
-        else:
-            print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
-            ssl_context = "adhoc"
-
-        app.run(host="0.0.0.0", debug=False, ssl_context=ssl_context, threaded=True)
+    app.run(host="0.0.0.0", debug=True)

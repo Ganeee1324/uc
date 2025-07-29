@@ -127,7 +127,7 @@ def get_sentence_embedding(sentence: str) -> np.ndarray:
     logger.debug(f"Getting sentence embedding for: {sentence[:50]}...")
 
     with torch.no_grad():
-        embedding = embedder.encode(text=sentence).detach().cpu().numpy()
+        embedding = embedder.encode(text=sentence)[0].detach().cpu().numpy()
         logger.debug(f"Sentence embedding computed with shape: {embedding.shape}")
         return embedding
 
@@ -137,7 +137,7 @@ def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> 
     logger.debug(f"Getting chunk embeddings for description: {description[:50]}...")
 
     with torch.no_grad():
-        embedding = embedder.encode(image=image, text=f"{description} {context}").detach().cpu().numpy()
+        embedding = embedder.encode(image=image, text=f"{description} {context}")[0].detach().cpu().numpy()
         logger.debug(f"Chunk embedding computed with shape: {embedding.shape}")
         return embedding
 

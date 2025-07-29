@@ -223,6 +223,7 @@ def process_pending_files(self):
     while True:
         with database.connect(vector=True) as conn:
             with conn.cursor() as cursor:
+                pending_file = None
                 try:
                     with conn.transaction():  # TODO: add error handling
                         cursor.execute(
@@ -267,12 +268,18 @@ def process_pending_files(self):
                         database.insert_chunk_embeddings(pending_file["vetrina_id"], db_file.file_id, enriched_chunks, cursor)
 
                         cursor.execute("DELETE FROM file_processing_queue WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],))
+                        pending_file = None
                 except Exception as e:
                     logger.error(f"Error processing file: {e}")
-                    cursor.execute(
-                        "UPDATE file_processing_queue SET failed = TRUE WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],)
-                    )
-                    conn.commit()
+                    try:
+                        cursor.execute(
+                            "UPDATE file_processing_queue SET failed = TRUE WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],)
+                        )
+                        conn.commit()
+                    except Exception as e:
+                        logger.error(f"Error marking file as failed in file processing queue: {e}")
+                    finally:
+                        pending_file = None
 
     logger.info("No pending files found in queue")
     return {"message": "No pending files"}

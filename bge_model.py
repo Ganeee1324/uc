@@ -33,6 +33,7 @@ class Visualized_BGE(nn.Module):
         negatives_cross_device: bool = False,
         temperature: float = 0.02,  # 1.0
         from_pretrained=None,  # local config file and model
+        device: str = "cpu"
     ):
         super().__init__()
 
@@ -85,11 +86,9 @@ class Visualized_BGE(nn.Module):
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(from_pretrained, use_fast=False)
 
-        if torch.cuda.is_available():
-            self.device = torch.device("cuda")
-            self.to(self.device)
-        else:
-            self.device = torch.device("cpu")
+        self.device = torch.device(device)
+        self.to(self.device)
+
         self.dtype = next(bge.parameters()).dtype
 
     def load_model(self, model_weight):

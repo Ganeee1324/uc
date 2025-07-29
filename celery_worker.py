@@ -244,11 +244,12 @@ def process_pending_files(self):
                             num_pages = doc.page_count
                             doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
 
+                            enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
+                            logger.info(f"Enriched {len(enriched_chunks)} chunks")
+                            
                             redacted_doc = redact.blur_pages(doc, [1])
                             redacted_doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"] + "_redacted.pdf"))
 
-                            enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
-                            logger.info(f"Enriched {len(enriched_chunks)} chunks")
 
                         db_file = database.add_file_to_vetrina(
                             cursor=cursor,

@@ -29,7 +29,7 @@ import uuid
 import pymupdf
 from io import BytesIO
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", force=True)
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s", force=True)
 
 load_dotenv()
 

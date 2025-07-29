@@ -9,7 +9,7 @@ import traceback
 
 from PIL import Image
 
-from bge import get_sentence_embedding
+from bge import get_sentence_embedding, load_model
 from chunker import process_pdf_chunks
 import werkzeug
 import database
@@ -42,6 +42,7 @@ if not jwt_secret_key:
     print("Warning: Using default JWT secret key. This is not secure for production.")
 
 app = Flask(__name__)
+load_model()
 
 # Enable CORS for all origins (prototype only)
 CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])

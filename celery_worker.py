@@ -114,6 +114,11 @@ def compute_similarity_score(query: str, image: Image.Image) -> float:
     # Return True probability as the score
     score = relevance_score[0, 0].item()
     logger.debug(f"Similarity score computed: {score:.4f}")
+
+    # Free VRAM
+    del inputs, outputs, logits_for_last_token, relevance_score
+    torch.cuda.empty_cache()
+
     return score
 
 

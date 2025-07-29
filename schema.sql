@@ -85,13 +85,10 @@ CREATE TABLE IF NOT EXISTS file_processing_queue (
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     display_name VARCHAR(255) NOT NULL,
-    sha256 VARCHAR(64) NOT NULL,
     extension VARCHAR(10) NOT NULL,
     price REAL NOT NULL DEFAULT 0,
-    size INTEGER NOT NULL DEFAULT 0,
     tag VARCHAR(50),
     language VARCHAR(15) NOT NULL DEFAULT 'it',
-    num_pages INTEGER NOT NULL DEFAULT 0,
     file_data BYTEA,
     upload_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     failed BOOLEAN NOT NULL DEFAULT FALSE

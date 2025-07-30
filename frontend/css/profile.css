@@ -4652,6 +4652,8 @@ body {
     width: 48px;
     height: 48px;
     border-radius: 50%;
+    /* Default fallback background for empty avatars */
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
     /* Background gradient will be applied inline via JavaScript */
     color: #ffffff;
     display: flex;
@@ -4674,6 +4676,13 @@ body {
         0 6px 20px rgba(99, 102, 241, 0.3),
         0 3px 8px rgba(0, 0, 0, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Default content for empty avatars */
+.review-user-avatar:empty::before {
+    content: "👤";
+    font-size: 20px;
+    opacity: 0.8;
 }
 
 .review-user-details {
@@ -4739,8 +4748,8 @@ body {
 }
 
 .review-document-info {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid rgba(226, 232, 240, 0.6);
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border: 1px solid rgba(100, 116, 139, 0.3);
     border-radius: 12px;
     padding: 16px;
     margin-top: 16px;
@@ -4748,6 +4757,7 @@ body {
     overflow: hidden;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.1);
 }
 
 .review-document-info::before {

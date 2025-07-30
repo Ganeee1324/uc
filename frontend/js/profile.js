@@ -561,26 +561,17 @@ async function loadFavoritesUsers() {
         // Show loading state
         favoritesUsersContainer.innerHTML = '<div class="loading-state">Caricamento...</div>';
         
-        const authToken = localStorage.getItem('authToken');
-        if (!authToken) {
-            console.error('No auth token found');
-            showFavoritesUsersEmpty(favoritesUsersContainer);
-            return;
+        // Mock data for UI testing - simulate empty favorites
+        const mockResponse = {
+            ok: true,
+            json: async () => ({ favorites: [] })
+        };
+        
+        if (!mockResponse.ok) {
+            throw new Error(`HTTP error! status: ${mockResponse.status}`);
         }
         
-        const response = await fetch(`${API_BASE}/user/favorites`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        const data = await mockResponse.json();
         console.log('Favorites data loaded:', data);
         
         // Extract unique users from favorites
@@ -1966,13 +1957,15 @@ window.selectChartType = function(option, type, label) {
 // USER PERSONALIZATION FUNCTIONALITY
 // ===========================
 
-// Get current user data from localStorage
+// Get current user data - return mock data for UI testing
 function getCurrentUser() {
-    const cachedUser = localStorage.getItem('currentUser');
-    if (cachedUser) {
-        return JSON.parse(cachedUser);
-    }
-    return null;
+    return {
+        user_id: 'mock-user-123',
+        first_name: 'Test',
+        last_name: 'User',
+        email: 'test@example.com',
+        username: 'testuser'
+    };
 }
 
 // Create gradient avatar function (copied from search.js)
@@ -2083,42 +2076,29 @@ function updateUserStatistics(user) {
 
 // Initialize user personalization
 async function initializeUserPersonalization() {
-    const user = getCurrentUser();
-    if (user) {
-        // Fetch complete user profile data
-        const completeUserData = await fetchCompleteUserProfile(user.user_id);
-        if (completeUserData) {
-            personalizeDashboard(completeUserData);
-        } else {
-            // Fallback to cached user data
-            personalizeDashboard(user);
-        }
-    } else {
-        // If no user is logged in, just show default state without redirecting
-        console.log('No user logged in, showing default dashboard state');
-        // Don't redirect - let the page load normally for testing
-    }
+    // Create mock user data for UI testing
+    const mockUser = {
+        user_id: 'mock-user-123',
+        first_name: 'Test',
+        last_name: 'User',
+        email: 'test@example.com',
+        username: 'testuser'
+    };
+    
+    // Always show personalized dashboard with mock data
+    personalizeDashboard(mockUser);
 }
 
 // Fetch complete user profile from backend
 async function fetchCompleteUserProfile(userId) {
-    try {
-        const token = localStorage.getItem('authToken');
-        if (!token) return null;
-        
-        // Since there's no specific current user endpoint, we'll use the user data from localStorage
-        // In a real implementation, you would call an endpoint like /api/user/profile or /api/user/me
-        const user = getCurrentUser();
-        if (user) {
-            // Return the cached user data which should include all the fields
-            return user;
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-        return null;
-    }
+    // Return mock user data for UI testing
+    return {
+        user_id: 'mock-user-123',
+        first_name: 'Test',
+        last_name: 'User',
+        email: 'test@example.com',
+        username: 'testuser'
+    };
 }
 
 // ===========================
@@ -2938,14 +2918,11 @@ async function loadUserReviews() {
             return;
         }
         
-        // Fetch reviews for documents authored by this user
-        const response = await fetch(`${API_BASE}/users/${currentUserId}/author-reviews`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        // Mock reviews data for UI testing
+        const response = {
+            ok: true,
+            json: async () => ({ reviews: [] })
+        };
         
         if (!response.ok) {
             throw new Error('Failed to fetch reviews');
@@ -2984,43 +2961,8 @@ async function loadUserReviews() {
 }
 
 async function getCurrentUserId() {
-    const token = localStorage.getItem('authToken');
-    console.log('🔍 [AUTH] Token exists:', !!token);
-    if (!token) return null;
-    
-    try {
-        // Check if there's already user data available
-        if (window.currentUser && window.currentUser.user_id) {
-            console.log('✅ [AUTH] Using cached user ID:', window.currentUser.user_id);
-            return window.currentUser.user_id;
-        }
-        
-        console.log('🔄 [AUTH] Fetching user data from /auth/me...');
-        // Make API call to get user info
-        const response = await fetch(`${API_BASE}/auth/me`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        console.log('📡 [AUTH] Response status:', response.status);
-        
-        if (response.ok) {
-            const userData = await response.json();
-            console.log('✅ [AUTH] User data received:', userData);
-            window.currentUser = userData;
-            return userData.user_id;
-        } else {
-            const errorText = await response.text();
-            console.error('❌ [AUTH] Response not OK:', response.status, errorText);
-        }
-    } catch (error) {
-        console.error('❌ [AUTH] Error getting current user ID:', error);
-    }
-    
-    return null;
+    // Return a mock user ID for UI testing without authentication
+    return 'mock-user-123';
 }
 
 // Calculate Reviews Statistics

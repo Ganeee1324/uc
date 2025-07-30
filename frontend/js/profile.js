@@ -2103,7 +2103,7 @@ async function initializeUserPersonalization() {
 // Fetch complete user profile from backend
 async function fetchCompleteUserProfile(userId) {
     try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('authToken');
         if (!token) return null;
         
         // Since there's no specific current user endpoint, we'll use the user data from localStorage
@@ -2942,7 +2942,7 @@ async function loadUserReviews() {
         const response = await fetch(`${API_BASE}/users/${currentUserId}/author-reviews`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -2984,7 +2984,7 @@ async function loadUserReviews() {
 }
 
 async function getCurrentUserId() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     console.log('🔍 [AUTH] Token exists:', !!token);
     if (!token) return null;
     

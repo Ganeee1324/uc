@@ -332,6 +332,16 @@ window.switchTab = async function switchTab(tabName) {
             if (typeof initializeReviewsSection === 'function') {
                 console.log('✅ Calling initializeReviewsSection directly from stats tab switch');
                 initializeReviewsSection();
+                
+                // Force reviews to show if they're not visible after 2 seconds
+                setTimeout(() => {
+                    const reviewsList = document.getElementById('reviewsList');
+                    if (reviewsList && reviewsList.children.length === 0) {
+                        console.log('🔧 Reviews not visible, forcing re-initialization...');
+                        reviewsInitialized = false; // Reset the flag
+                        initializeReviewsSection();
+                    }
+                }, 2000);
             } else {
                 console.error('❌ initializeReviewsSection not available in direct call');
             }

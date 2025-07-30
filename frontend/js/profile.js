@@ -2800,8 +2800,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Charts will be initialized when stats tab is shown
     
-    // Set initial tab state to ensure proper display - start with stats/vendite tab to test reviews
-    await switchTab('stats');
+    // Set initial tab state to ensure proper display - start with profile tab as default
+    await switchTab('profile');
     
     // FORCE REVIEWS INITIALIZATION - For debugging
     setTimeout(() => {

@@ -2800,8 +2800,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Charts will be initialized when stats tab is shown
     
-    // Set initial tab state to ensure proper display
-    await switchTab('profile');
+    // Set initial tab state to ensure proper display - start with stats/vendite tab to test reviews
+    await switchTab('stats');
+    
+    // FORCE REVIEWS INITIALIZATION - For debugging
+    setTimeout(() => {
+        console.log('🚀 FORCING reviews initialization for debugging...');
+        if (typeof initializeReviewsSection === 'function') {
+            console.log('✅ Force calling initializeReviewsSection');
+            initializeReviewsSection();
+        } else {
+            console.error('❌ initializeReviewsSection not available for force call');
+        }
+    }, 2000); // Wait 2 seconds after page load
     
     // Initialize animations when switching to stats tab
     setTimeout(() => {
@@ -3143,6 +3154,16 @@ function displayReviews() {
     const reviewsPagination = document.getElementById('reviewsPagination');
     const reviewsLoading = document.getElementById('reviewsLoading');
     
+    // Debug: Check if reviewsList element exists
+    if (!reviewsList) {
+        console.error('[REVIEWS] ERROR: reviewsList element not found in DOM!');
+        console.log('[REVIEWS] Available elements with "reviews" in ID:', 
+            Array.from(document.querySelectorAll('[id*="reviews"]')).map(el => el.id));
+        return;
+    } else {
+        console.log('[REVIEWS] ✅ reviewsList element found successfully');
+    }
+    
     // Hide loading indicator
     if (reviewsLoading) {
         reviewsLoading.style.display = 'none';
@@ -3180,14 +3201,21 @@ function displayReviews() {
     }
     
     // Create review items
+    console.log('[REVIEWS] Creating', pageReviews.length, 'review elements...');
     pageReviews.forEach((review, index) => {
+        console.log(`[REVIEWS] Creating review ${index + 1}:`, review.user?.first_name, review.user?.last_name);
         const reviewElement = createReviewElement(review);
         if (reviewsList && reviewElement) {
             reviewsList.appendChild(reviewElement);
+            console.log(`[REVIEWS] ✅ Review ${index + 1} added to DOM`);
         } else {
-            console.error('[REVIEWS] Failed to add review to DOM:', review.user?.first_name);
+            console.error(`[REVIEWS] ❌ Failed to add review ${index + 1} to DOM:`, review.user?.first_name);
+            console.error('[REVIEWS] reviewsList exists:', !!reviewsList);
+            console.error('[REVIEWS] reviewElement exists:', !!reviewElement);
         }
     });
+    
+    console.log('[REVIEWS] Final reviewsList children count:', reviewsList.children.length);
     
     // Update scroll state
     reviewsLoaded = pageReviews.length;
@@ -3198,10 +3226,14 @@ function displayReviews() {
 
 // Create Review Element
 function createReviewElement(review) {
+    console.log('[REVIEWS] Creating review element for:', review.user?.first_name, review.user?.last_name);
+    console.log('[REVIEWS] Review data:', review);
+    
     const reviewItem = document.createElement('div');
     reviewItem.className = 'review-item';
     if (review.placeholder) {
         reviewItem.classList.add('placeholder-review');
+        console.log('[REVIEWS] Added placeholder-review class');
     }
     // Format date
     const reviewDate = new Date(review.review_date);

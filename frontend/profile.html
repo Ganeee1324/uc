@@ -124,11 +124,11 @@
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <h3 class="nav-section-title">Dashboard</h3>
-                <div class="menu-item active" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('profile');">
+                <div class="menu-item" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('profile');">
                     <span class="menu-icon material-symbols-outlined">person</span>
                     <span class="menu-text">Profilo</span>
                 </div>
-                <div class="menu-item" onclick="console.log('Vendite clicked!'); document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('stats');">
+                <div class="menu-item active" onclick="console.log('Vendite clicked!'); document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('stats');">
                     <span class="menu-icon material-symbols-outlined">analytics</span>
                     <span class="menu-text">Vendite</span>
                 </div>

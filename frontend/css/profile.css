@@ -3920,7 +3920,7 @@ body {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 25%, #ec4899 50%, #f43f5e 75%, #06b6d4 100%);
+    background: linear-gradient(90deg, #6b7280 0%, #9ca3af 25%, #d1d5db 50%, #e5e7eb 75%, #f3f4f6 100%);
     background-size: 400% 100%;
     animation: gradientFlow 8s ease-in-out infinite;
 }
@@ -3963,12 +3963,11 @@ body {
 .reviews-title::before {
     content: '✨';
     font-size: 28px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.2));
-    animation: sparkle 3s ease-in-out infinite;
+    filter: drop-shadow(0 2px 4px rgba(107, 114, 128, 0.2));
 }
 
 @keyframes sparkle {
@@ -4041,7 +4040,7 @@ body {
     font-size: 36px;
     font-weight: 900;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -4121,7 +4120,7 @@ body {
     content: '';
     width: 4px;
     height: 20px;
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
     border-radius: 2px;
 }
 
@@ -4269,10 +4268,10 @@ body {
 }
 
 .review-item:focus-within {
-    border-color: #6366f1;
+    border-color: #6b7280;
     box-shadow: 
-        0 0 0 3px rgba(99, 102, 241, 0.1),
-        0 8px 32px rgba(99, 102, 241, 0.08);
+        0 0 0 3px rgba(107, 114, 128, 0.1),
+        0 8px 32px rgba(107, 114, 128, 0.08);
 }
 
 /* Smooth Scroll */
@@ -4289,7 +4288,7 @@ body {
 }
 
 .loading-spinner {
-    background: conic-gradient(from 0deg, #6366f1, #8b5cf6, #ec4899, #6366f1);
+    background: conic-gradient(from 0deg, #6b7280, #9ca3af, #d1d5db, #6b7280);
     border-radius: 50%;
     animation: spin 1.5s linear infinite;
 }
@@ -4631,9 +4630,9 @@ body {
 }
 
 .review-item:hover::before {
-    background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    background: linear-gradient(180deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%);
     width: 6px;
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 12px rgba(107, 114, 128, 0.3);
 }
 
 .review-header {

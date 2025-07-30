@@ -3149,6 +3149,13 @@ function updateRatingDistribution() {
 function displayReviews() {
     console.log('[REVIEWS] Displaying reviews list...');
     
+    // Make sure the reviews overlay is visible in profile context
+    const reviewsOverlay = document.getElementById('reviewsOverlay');
+    if (reviewsOverlay && !reviewsOverlay.classList.contains('active')) {
+        reviewsOverlay.classList.add('active');
+        console.log('[REVIEWS] ✅ Reviews overlay made visible');
+    }
+    
     const reviewsList = document.getElementById('reviewsList');
     const reviewsEmpty = document.getElementById('reviewsEmpty');
     const reviewsPagination = document.getElementById('reviewsPagination');

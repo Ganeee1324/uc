@@ -2985,14 +2985,17 @@ async function loadUserReviews() {
 
 async function getCurrentUserId() {
     const token = localStorage.getItem('token');
+    console.log('🔍 [AUTH] Token exists:', !!token);
     if (!token) return null;
     
     try {
         // Check if there's already user data available
         if (window.currentUser && window.currentUser.user_id) {
+            console.log('✅ [AUTH] Using cached user ID:', window.currentUser.user_id);
             return window.currentUser.user_id;
         }
         
+        console.log('🔄 [AUTH] Fetching user data from /auth/me...');
         // Make API call to get user info
         const response = await fetch(`${API_BASE}/auth/me`, {
             method: 'GET',
@@ -3002,13 +3005,19 @@ async function getCurrentUserId() {
             }
         });
         
+        console.log('📡 [AUTH] Response status:', response.status);
+        
         if (response.ok) {
             const userData = await response.json();
+            console.log('✅ [AUTH] User data received:', userData);
             window.currentUser = userData;
             return userData.user_id;
+        } else {
+            const errorText = await response.text();
+            console.error('❌ [AUTH] Response not OK:', response.status, errorText);
         }
     } catch (error) {
-        console.error('Error getting current user ID:', error);
+        console.error('❌ [AUTH] Error getting current user ID:', error);
     }
     
     return null;

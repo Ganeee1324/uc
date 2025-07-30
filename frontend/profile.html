@@ -1430,9 +1430,27 @@
 
 <!-- Initialize Profile Page -->
 <script>
+    // Check authentication before initializing page
+    function checkAuthenticationAndRedirect() {
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            console.log('No auth token found, redirecting to login...');
+            // Save current page URL for redirect after login
+            const currentUrl = window.location.pathname;
+            window.location.href = `index.html?returnUrl=${encodeURIComponent(currentUrl)}`;
+            return false;
+        }
+        return true;
+    }
+
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 Profile Page Loaded');
+        
+        // Check authentication first
+        if (!checkAuthenticationAndRedirect()) {
+            return; // Stop initialization if not authenticated
+        }
         
         // Wait a bit for all scripts to load, then initialize tab switching
         setTimeout(() => {

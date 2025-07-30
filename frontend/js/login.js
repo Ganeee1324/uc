@@ -167,9 +167,13 @@ async function makeLoginRequest(url, options = {}) {
             localStorage.setItem('currentUser', JSON.stringify(data.user));
             console.log('Login successful, redirecting...'); // Debug log
             
+            // Get return URL from query parameters or default to search.html
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnUrl = urlParams.get('returnUrl') || 'search.html';
+            
             // Force redirect with a small delay to ensure localStorage is saved
             setTimeout(() => {
-                window.location.href = 'search.html';
+                window.location.href = returnUrl;
             }, 100);
         } else {
             const errorMessage = data.msg || 'Accesso fallito. Riprova.';
@@ -273,9 +277,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
                 localStorage.setItem('currentUser', JSON.stringify(data.user));
                 console.log('Registration successful, redirecting...'); // Debug log
                 
+                // Get return URL from query parameters or default to search.html
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('returnUrl') || 'search.html';
+                
                 // Force redirect with a small delay to ensure localStorage is saved
                 setTimeout(() => {
-                    window.location.href = 'search.html';
+                    window.location.href = returnUrl;
                 }, 100);
             }
         } else {
@@ -375,5 +383,10 @@ if (pendingEmail && !localStorage.getItem('authToken')) {
 // Auto-redirect if already logged in
 if (localStorage.getItem('authToken')) {
     console.log('Auth token found, redirecting...'); // Debug log
-    window.location.href = 'search.html';
+    
+    // Get return URL from query parameters or default to search.html
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnUrl = urlParams.get('returnUrl') || 'search.html';
+    
+    window.location.href = returnUrl;
 }

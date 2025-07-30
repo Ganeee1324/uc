@@ -1,369 +1,3 @@
-// ===========================
-// IFRAME COMMUNICATION SYSTEM
-// ===========================
-
-// Listen for configuration messages from parent
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'CONFIG') {
-        // Store configuration for this instance
-        window.SEARCH_CONFIG = event.data.config;
-        window.INSTANCE_ID = event.data.instanceId;
-
-        // Initialize with the configuration
-        initializeWithConfig(event.data.config);
-    }
-});
-
-// Enhanced configuration initialization
-function initializeWithConfig(config) {
-    console.log('Initializing search section with config:', config);
-    
-    // Store configuration globally
-    window.SEARCH_CONFIG = config;
-    
-    // Extract configuration values
-    const context = config.context || 'default';
-    const faculty = config.faculty;
-    const category = config.category;
-    const domain = config.domain;
-    const title = config.title;
-    const apiEndpoint = config.apiEndpoint;
-    const filters = config.filters || {};
-    const searchPlaceholder = config.searchPlaceholder;
-    const height = config.height;
-    const theme = config.theme || 'default';
-    
-    // Apply configuration to UI
-    applyConfigurationToUI(config);
-    
-    // Modify API endpoints if specified
-    if (apiEndpoint) {
-        window.API_BASE = apiEndpoint;
-    }
-    
-    // Apply custom filters if provided
-    if (filters && Object.keys(filters).length > 0) {
-        Object.entries(filters).forEach(([key, value]) => {
-            if (filterManager) {
-                filterManager.setFilter(key, value);
-            }
-        });
-    }
-    
-    // Load data based on context
-    loadDataForContext(context, config);
-    
-    // Preload background image and position it only if this is the main search interface
-    // (not used in profile pages or other embedded contexts)
-    if (context === 'default' && !config.hideBackground) {
-        preloadBackgroundImage();
-        // Also position the background after a short delay to ensure DOM is ready
-        setTimeout(() => {
-            adjustBackgroundPosition();
-        }, 100);
-    }
-    
-    // Notify parent that we're ready
-    sendToParent({
-        type: 'READY',
-        config: config
-    });
-}
-
-// Apply configuration to UI elements
-function applyConfigurationToUI(config) {
-    // Update search placeholder
-    if (config.searchPlaceholder) {
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.placeholder = config.searchPlaceholder;
-        }
-    }
-    
-    // Update title if provided
-    if (config.title) {
-        const titleElement = document.querySelector('.search-section h2');
-        if (titleElement) {
-            titleElement.textContent = config.title;
-        }
-    }
-    
-    // Apply theme if specified
-    if (config.theme) {
-        document.body.setAttribute('data-theme', config.theme);
-    }
-    
-    // Set custom height if provided
-    if (config.height) {
-        document.body.style.height = config.height;
-    }
-}
-
-// Load data based on context
-async function loadDataForContext(context, config) {
-    try {
-        switch (context) {
-            case 'university':
-                await loadUniversityData(config);
-                break;
-            case 'professional':
-                await loadProfessionalData(config);
-                break;
-            case 'research':
-                await loadResearchData(config);
-                break;
-            case 'custom':
-                await loadCustomData(config);
-                break;
-            default:
-                // Use default data loading
-                await loadAllFiles();
-                break;
-        }
-    } catch (error) {
-        console.error('Error loading data for context:', context, error);
-        sendToParent({
-            type: 'ERROR',
-            error: error.message,
-            context: context
-        });
-    }
-}
-
-// Context-specific data loading functions
-async function loadUniversityData(config) {
-    const faculty = config.faculty;
-    const course = config.course;
-    
-    // Modify API calls based on faculty/course
-    if (faculty) {
-        // Filter by faculty
-        filterManager.setFilter('faculty', faculty);
-    }
-    
-    if (course) {
-        // Filter by course
-        filterManager.setFilter('course', course);
-    }
-    
-    await loadAllFiles();
-}
-
-async function loadProfessionalData(config) {
-    const category = config.category;
-    
-    if (category) {
-        // Filter by professional category
-        filterManager.setFilter('category', category);
-    }
-    
-    await loadAllFiles();
-}
-
-async function loadResearchData(config) {
-    const domain = config.domain;
-    
-    if (domain) {
-        // Filter by research domain
-        filterManager.setFilter('domain', domain);
-    }
-    
-    await loadAllFiles();
-}
-
-async function loadCustomData(config) {
-    // Custom data loading logic
-    if (config.customEndpoint) {
-        // Use custom API endpoint
-        if (window.parent && window.parent !== window) {
-            const data = await makeRequestThroughParent(config.customEndpoint);
-            // Process custom data
-        } else {
-            const response = await fetch(config.customEndpoint);
-            const data = await response.json();
-            // Process custom data
-        }
-    } else {
-        await loadAllFiles();
-    }
-}
-
-// ===========================
-// PARENT COMMUNICATION FUNCTIONS
-// ===========================
-
-// Send message to parent window
-function sendToParent(message) {
-    if (window.parent && window.parent !== window) {
-        const messageWithId = {
-            ...message,
-            instanceId: window.INSTANCE_ID
-        };
-        window.parent.postMessage(messageWithId, '*');
-    }
-}
-
-// API request proxy through parent window
-let requestIdCounter = 0;
-const pendingRequests = new Map();
-
-async function makeRequestThroughParent(url, options = {}) {
-    const requestId = `req_${Date.now()}_${++requestIdCounter}`;
-    
-    return new Promise((resolve, reject) => {
-        // Store the promise handlers
-        pendingRequests.set(requestId, { resolve, reject });
-        
-        // Send request to parent
-        sendToParent({
-            type: 'API_REQUEST',
-            requestId: requestId,
-            url: url,
-            options: options
-        });
-        
-        // Set timeout for request
-        setTimeout(() => {
-            if (pendingRequests.has(requestId)) {
-                pendingRequests.delete(requestId);
-                reject(new Error('Request timeout'));
-            }
-        }, 30000); // 30 second timeout
-    });
-}
-
-// Listen for API responses from parent
-window.addEventListener('message', function(event) {
-    if (event.data.type === 'API_RESPONSE' && event.data.instanceId === window.INSTANCE_ID) {
-        const { requestId, success, data, error, status } = event.data;
-        
-        if (pendingRequests.has(requestId)) {
-            const { resolve, reject } = pendingRequests.get(requestId);
-            pendingRequests.delete(requestId);
-            
-            if (success) {
-                resolve(data);
-            } else {
-                reject(new Error(error));
-            }
-        }
-    }
-});
-
-// Send search results to parent
-function onSearchComplete(results) {
-    sendToParent({
-        type: 'SEARCH_RESULTS',
-        results: results,
-        query: window.currentSearchQuery || ''
-    });
-}
-
-// Send filter changes to parent
-function onFilterChanged(filters) {
-    sendToParent({
-        type: 'FILTER_CHANGED',
-        filters: filters
-    });
-}
-
-// Send document click events to parent
-function onDocumentClicked(documentData) {
-    sendToParent({
-        type: 'DOCUMENT_CLICKED',
-        document: documentData
-    });
-}
-
-// Send loading state to parent
-function onLoadingStateChanged(isLoading) {
-    sendToParent({
-        type: 'LOADING_STATE',
-        loading: isLoading
-    });
-}
-
-// Send error to parent
-function onError(error) {
-    sendToParent({
-        type: 'ERROR',
-        error: error.message || error
-    });
-}
-
-// ===========================
-// MESSAGE HANDLERS FROM PARENT
-// ===========================
-
-// Listen for messages from parent
-window.addEventListener('message', function(event) {
-    // Only handle messages from parent
-    if (event.source !== window.parent) {
-        return;
-    }
-    
-    const { type, data, instanceId } = event.data;
-    
-    // Only handle messages for this instance
-    if (instanceId && instanceId !== window.INSTANCE_ID) {
-        return;
-    }
-    
-    switch (type) {
-        case 'SEARCH':
-            performSearch(data.query);
-            break;
-        case 'APPLY_FILTERS':
-            applyFiltersFromParent(data.filters);
-            break;
-        case 'CLEAR_FILTERS':
-            clearAllFiltersAction();
-            break;
-        case 'REFRESH':
-            loadAllFiles();
-            break;
-        case 'SHOW_LOADING':
-            showLoadingCards();
-            break;
-        case 'HIDE_LOADING':
-            // Hide loading state
-            break;
-        case 'UPDATE_CONFIG':
-            updateConfigFromParent(data.config);
-            break;
-    }
-});
-
-// Apply filters from parent
-function applyFiltersFromParent(filters) {
-    if (!filterManager) return;
-    
-    // Clear existing filters
-    filterManager.filters = {};
-    
-    // Apply new filters
-    Object.entries(filters).forEach(([key, value]) => {
-        filterManager.setFilter(key, value);
-    });
-    
-    // Apply filters and render
-    applyFiltersAndRender();
-}
-
-// Update configuration from parent
-function updateConfigFromParent(newConfig) {
-    window.SEARCH_CONFIG = { ...window.SEARCH_CONFIG, ...newConfig };
-    applyConfigurationToUI(window.SEARCH_CONFIG);
-    
-    // Handle background positioning if configuration changes affect it
-    const context = window.SEARCH_CONFIG.context || 'default';
-    if (context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
-        setTimeout(() => {
-            adjustBackgroundPosition();
-        }, 100);
-    }
-}
-
 // Add cache-busting timestamp to force browser refresh
 const CACHE_BUSTER = Date.now();
 
@@ -837,12 +471,6 @@ function updateHeaderUserInfo(user) {
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
-    // Check if user avatar elements exist (they may not exist in iframe context)
-    if (!userAvatar) {
-        console.log('User avatar elements not found - this is normal in iframe context');
-        return;
-    }
-    
     if (user) {
         // Construct the user's full name for the avatar
         let fullName = '';
@@ -884,43 +512,40 @@ function updateHeaderUserInfo(user) {
         const userInfo = document.querySelector('.user-info');
         let hoverTimeout;
         
-        // Check if user info element exists
-        if (userInfo) {
-            // Check if device supports hover
-            const supportsHover = window.matchMedia('(hover: hover)').matches;
+        // Check if device supports hover
+        const supportsHover = window.matchMedia('(hover: hover)').matches;
+        
+        if (supportsHover) {
+            // Show dropdown on hover with delay to prevent accidental closing
+            userAvatar.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                clearTimeout(hoverTimeout);
+                userInfo.classList.add('open');
+            });
             
-            if (supportsHover) {
-                // Show dropdown on hover with delay to prevent accidental closing
-                userAvatar.addEventListener('mouseenter', (event) => {
+            // Handle mouse enter on dropdown to keep it open
+            const userDropdown = document.getElementById('userDropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('mouseenter', (event) => {
                     event.stopPropagation();
                     clearTimeout(hoverTimeout);
                     userInfo.classList.add('open');
                 });
-                
-                // Handle mouse enter on dropdown to keep it open
-                const userDropdown = document.getElementById('userDropdown');
-                if (userDropdown) {
-                    userDropdown.addEventListener('mouseenter', (event) => {
-                        event.stopPropagation();
-                        clearTimeout(hoverTimeout);
-                        userInfo.classList.add('open');
-                    });
-                }
-                
-                // Hide dropdown when mouse leaves the user info area with small delay
-                userInfo.addEventListener('mouseleave', (event) => {
-                    event.stopPropagation();
-                    hoverTimeout = setTimeout(() => {
-                        userInfo.classList.remove('open');
-                    }, 150); // Small delay to allow moving to dropdown
-                });
-                
-                // Cancel timeout when re-entering the area
-                userInfo.addEventListener('mouseenter', (event) => {
-                    event.stopPropagation();
-                    clearTimeout(hoverTimeout);
-                });
             }
+            
+            // Hide dropdown when mouse leaves the user info area with small delay
+            userInfo.addEventListener('mouseleave', (event) => {
+                event.stopPropagation();
+                hoverTimeout = setTimeout(() => {
+                    userInfo.classList.remove('open');
+                }, 150); // Small delay to allow moving to dropdown
+            });
+            
+            // Cancel timeout when re-entering the area
+            userInfo.addEventListener('mouseenter', (event) => {
+                event.stopPropagation();
+                clearTimeout(hoverTimeout);
+            });
         }
         
         // Redirect to profile when user clicks their avatar
@@ -4633,7 +4258,7 @@ function renderDocuments(files) {
         const description = item.description || 'Nessuna descrizione disponibile';
         const price = parseFloat(item.price) || 0;
         
-        const stars = generateStars(rating);
+        const stars = generateFractionalStars(rating);
         const documentCategory = getDocumentCategory(documentTitle, description);
         
         // Determine if this is a multi-file vetrina and if files have been loaded
@@ -4894,19 +4519,10 @@ function renderDocuments(files) {
 
 function generateStars(rating) {
     let stars = '';
-    const fullStars = Math.floor(rating);
-    const hasPartialStar = rating % 1 !== 0;
-    const partialStarPercentage = hasPartialStar ? (rating % 1) * 100 : 0;
-    
     for (let i = 1; i <= 5; i++) {
-        if (i <= fullStars) {
-            // Full star
+        if (i <= rating) {
             stars += '<span class="rating-star filled">★</span>';
-        } else if (i === fullStars + 1 && hasPartialStar) {
-            // Partial star
-            stars += `<span class="rating-star partial" style="background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 ${partialStarPercentage}%, #d1d5db ${partialStarPercentage}%, #d1d5db 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">★</span>`;
         } else {
-            // Empty star
             stars += '<span class="rating-star">★</span>';
         }
     }
@@ -4915,20 +4531,11 @@ function generateStars(rating) {
 
 function generateReviewStars(rating) {
     let stars = '';
-    const fullStars = Math.floor(rating);
-    const hasPartialStar = rating % 1 !== 0;
-    const partialStarPercentage = hasPartialStar ? (rating % 1) * 100 : 0;
-    
     for (let i = 1; i <= 5; i++) {
-        if (i <= fullStars) {
-            // Full star
+        if (i <= rating) {
             stars += '<span class="rating-star filled">★</span>';
-        } else if (i === fullStars + 1 && hasPartialStar) {
-            // Partial star
-            stars += `<span class="rating-star partial" style="background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 ${partialStarPercentage}%, #d1d5db ${partialStarPercentage}%, #d1d5db 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">★</span>`;
         } else {
-            // Empty star
-            stars += '<span class="rating-star">★</span>';
+            stars += '<span class="rating-star" style="color: #d1d5db;">★</span>';
         }
     }
     return stars;
@@ -6379,14 +5986,6 @@ let bgImageDimensions = null;
 
 // Preload and cache image dimensions immediately
 function preloadBackgroundImage() {
-    // Only load background image if this is the main search interface
-    if (!window.SEARCH_CONFIG || window.SEARCH_CONFIG.context !== 'default' || window.SEARCH_CONFIG.hideBackground) {
-        return;
-    }
-    
-    // Set CSS custom property to load the background image
-    document.documentElement.style.setProperty('--bg-image-url', 'url(../images/bg.png)');
-    
     const tempImage = new Image();
     tempImage.src = 'images/bg.png';
     
@@ -6421,23 +6020,17 @@ function adjustBackgroundPosition() {
 
     // If we don't have image dimensions yet, try to get them
     if (!bgImageDimensions) {
-        // Only try to load background image if this is the main search interface
-        if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
-            const tempImage = new Image();
-            tempImage.src = 'images/bg.png';
-            
-            if (tempImage.complete && tempImage.naturalWidth > 0) {
-                bgImageDimensions = {
-                    width: tempImage.naturalWidth,
-                    height: tempImage.naturalHeight,
-                    aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
-                };
-            } else {
-                // Image not ready yet, will be called again when it loads
-                return;
-            }
+        const tempImage = new Image();
+        tempImage.src = 'images/bg.png';
+        
+        if (tempImage.complete && tempImage.naturalWidth > 0) {
+            bgImageDimensions = {
+                width: tempImage.naturalWidth,
+                height: tempImage.naturalHeight,
+                aspectRatio: tempImage.naturalWidth / tempImage.naturalHeight
+            };
         } else {
-            // Not on search page, don't try to load background image
+            // Image not ready yet, will be called again when it loads
             return;
         }
     }
@@ -6484,30 +6077,30 @@ function debounce(func, wait) {
     };
 }
 
-// Background image preloading is now handled in initializeWithConfig function
-// to ensure it only happens after configuration is received
+// Start preloading image immediately - even before DOM is ready - only on search page
+if (document.body && document.body.getAttribute('data-page') === 'search') {
+    preloadBackgroundImage();
+}
 
-// Initialize background positioning when DOM is ready and configuration is available
+// Initialize background positioning immediately when DOM is ready - only on search page
 document.addEventListener('DOMContentLoaded', () => {
-    // Only position background if this is the main search interface
-    if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+    if (document.body && document.body.getAttribute('data-page') === 'search') {
+        // Position immediately when DOM is ready
         adjustBackgroundPosition();
     }
 });
 
-// Also run on window load to ensure everything is fully loaded
+// Also run on window load to ensure everything is fully loaded - only on search page
 window.addEventListener('load', () => {
-    if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
+    if (document.body && document.body.getAttribute('data-page') === 'search') {
         adjustBackgroundPosition();
     }
 });
 
-// Add event listeners for dynamic background
-window.addEventListener('resize', debounce(() => {
-    if (window.SEARCH_CONFIG && window.SEARCH_CONFIG.context === 'default' && !window.SEARCH_CONFIG.hideBackground) {
-        adjustBackgroundPosition();
-    }
-}, 50));
+// Add event listeners for dynamic background - only on search page
+if (document.body && document.body.getAttribute('data-page') === 'search') {
+    window.addEventListener('resize', debounce(adjustBackgroundPosition, 50));
+}
 
 
 
@@ -7078,7 +6671,7 @@ function updateVetrinaRatingInSearch(vetrinaId) {
             
             if (ratingScore) ratingScore.textContent = vetrina.average_rating?.toFixed(1) || '0.0';
             if (ratingCount) ratingCount.textContent = `(${vetrina.review_count || 0})`;
-            if (ratingStars) ratingStars.innerHTML = generateStars(vetrina.average_rating || 0);
+            if (ratingStars) ratingStars.innerHTML = generateFractionalStars(vetrina.average_rating || 0);
         }
     });
 }
@@ -7470,7 +7063,7 @@ async function performSearch(query) {
 }
 
 // ===========================
-// TYPEWRITER PLACEHOLDER ANIMATION
+// OPTIMIZED TYPEWRITER PLACEHOLDER ANIMATION
 // ===========================
 
 const standardSuggestions = [
@@ -7480,6 +7073,7 @@ const standardSuggestions = [
     'Esempio: "Statistica Canale B"',
     'Esempio: "Appunti Diritto Privato"',
 ];
+
 const aiSuggestions = [
     'Cerca con AI avanzata... (es. "concetti di fisica quantistica")',
     'Chiedi: "Spiegami la teoria degli insiemi"',
@@ -7488,60 +7082,165 @@ const aiSuggestions = [
     'Esempio: "Dispense su analisi complessa"',
 ];
 
+// Performance optimization variables
 let typewriterActive = true;
 let typewriterPaused = false;
-let typewriterTimeout = null;
 let currentTypewriterIndex = 0;
 let currentTypewriterSuggestions = standardSuggestions;
+let typewriterCursorVisible = true;
+let typewriterCursorInterval = null;
+const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
+
+// Performance optimizations
+let rafId = null;
+let pendingPlaceholderUpdate = null;
+let cachedInput = null;
+let currentPlaceholderState = '';
 
 function setTypewriterSuggestions() {
     currentTypewriterSuggestions = aiSearchEnabled ? aiSuggestions : standardSuggestions;
 }
 
+// Optimized DOM update function
+function updatePlaceholder(input, newText) {
+    // Batch DOM updates using requestAnimationFrame
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+    }
+    
+    pendingPlaceholderUpdate = newText;
+    
+    rafId = requestAnimationFrame(() => {
+        if (pendingPlaceholderUpdate !== null && input) {
+            // Only update if text actually changed
+            if (currentPlaceholderState !== pendingPlaceholderUpdate) {
+                input.setAttribute('placeholder', pendingPlaceholderUpdate);
+                currentPlaceholderState = pendingPlaceholderUpdate;
+            }
+        }
+        rafId = null;
+        pendingPlaceholderUpdate = null;
+    });
+}
+
 function clearTypewriterPlaceholder(input) {
-    input.setAttribute('placeholder', '');
+    currentPlaceholderState = '';
+    updatePlaceholder(input, '');
 }
 
 function typewriterAddLetter(letter, input) {
-    input.setAttribute('placeholder', input.getAttribute('placeholder') + letter);
+    // Use cached placeholder state instead of DOM query
+    let base = currentPlaceholderState || '';
+    if (base.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+        base = base.slice(0, -1);
+    }
+    
+    const newText = base + letter + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : '');
+    updatePlaceholder(input, newText);
+    
     return new Promise(resolve => setTimeout(resolve, 60));
 }
 
 function typewriterDeleteLetter(input) {
-    let current = input.getAttribute('placeholder');
-    if (current.length > 0) {
-        input.setAttribute('placeholder', current.slice(0, -1));
+    // Use cached placeholder state instead of DOM query
+    let current = currentPlaceholderState || '';
+    if (current.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+        current = current.slice(0, -1);
     }
+    
+    if (current.length > 0) {
+        const newText = current.slice(0, -1) + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : '');
+        updatePlaceholder(input, newText);
+    }
+    
     return new Promise(resolve => setTimeout(resolve, 30));
+}
+
+function setTypewriterCursor(input, show) {
+    // Use cached state instead of DOM query
+    let placeholder = currentPlaceholderState || '';
+    
+    if (show) {
+        if (!placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+            updatePlaceholder(input, placeholder + TYPEWRITER_CURSOR_CHAR);
+        }
+    } else {
+        if (placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+            updatePlaceholder(input, placeholder.slice(0, -1));
+        }
+    }
+}
+
+function startTypewriterCursor(input) {
+    if (typewriterCursorInterval) {
+        clearInterval(typewriterCursorInterval);
+    }
+    
+    typewriterCursorVisible = true;
+    setTypewriterCursor(input, true);
+    
+    typewriterCursorInterval = setInterval(() => {
+        typewriterCursorVisible = !typewriterCursorVisible;
+        setTypewriterCursor(input, typewriterCursorVisible);
+    }, 500);
+}
+
+function stopTypewriterCursor(input) {
+    if (typewriterCursorInterval) {
+        clearInterval(typewriterCursorInterval);
+        typewriterCursorInterval = null;
+    }
+    setTypewriterCursor(input, false);
 }
 
 async function typewriterPrintPhrase(phrase, input) {
     clearTypewriterPlaceholder(input);
+    startTypewriterCursor(input);
+    
+    // Type each letter
     for (let i = 0; i < phrase.length; i++) {
-        if (!typewriterActive || typewriterPaused) return;
+        if (!typewriterActive || typewriterPaused) {
+            stopTypewriterCursor(input);
+            return;
+        }
         await typewriterAddLetter(phrase[i], input);
     }
+    
     // Wait before deleting
     await new Promise(resolve => setTimeout(resolve, 1200));
+    
     // Delete letters
     for (let i = phrase.length - 1; i >= 0; i--) {
-        if (!typewriterActive || typewriterPaused) return;
+        if (!typewriterActive || typewriterPaused) {
+            stopTypewriterCursor(input);
+            return;
+        }
         await typewriterDeleteLetter(input);
     }
+    
     await new Promise(resolve => setTimeout(resolve, 300));
+    stopTypewriterCursor(input);
 }
 
 async function typewriterRun() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
+    // Cache the input element
+    if (!cachedInput) {
+        cachedInput = document.getElementById('searchInput');
+    }
+    
+    if (!cachedInput) return;
+    
     setTypewriterSuggestions();
+    
     while (typewriterActive) {
         if (typewriterPaused) {
             await new Promise(resolve => setTimeout(resolve, 200));
             continue;
         }
+        
         const phrase = currentTypewriterSuggestions[currentTypewriterIndex];
-        await typewriterPrintPhrase(phrase, input);
+        await typewriterPrintPhrase(phrase, cachedInput);
+        
         currentTypewriterIndex = (currentTypewriterIndex + 1) % currentTypewriterSuggestions.length;
     }
 }
@@ -7551,156 +7250,105 @@ function startTypewriter() {
     typewriterPaused = false;
     currentTypewriterIndex = 0;
     setTypewriterSuggestions();
+    
+    // Cache the input element
+    if (!cachedInput) {
+        cachedInput = document.getElementById('searchInput');
+    }
+    
+    if (cachedInput) {
+        // Add CSS optimization hint
+        if (!cachedInput.style.willChange) {
+            cachedInput.style.willChange = 'auto';
+        }
+        startTypewriterCursor(cachedInput);
+    }
+    
     typewriterRun();
 }
 
 function stopTypewriter() {
     typewriterActive = false;
+    
+    if (cachedInput) {
+        stopTypewriterCursor(cachedInput);
+        // Remove CSS optimization hint when not needed
+        cachedInput.style.willChange = 'auto';
+    }
+    
+    // Cancel any pending updates
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+    }
 }
 
 function pauseTypewriter() {
     typewriterPaused = true;
+    
+    if (cachedInput) {
+        stopTypewriterCursor(cachedInput);
+    }
 }
 
 function resumeTypewriter() {
     typewriterPaused = false;
+    
+    if (cachedInput && cachedInput.value.length === 0) {
+        startTypewriterCursor(cachedInput);
+    }
 }
 
-// Hook into search input events
-window.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
-    // Only pause animation when user actually types, not when they just focus
-    input.addEventListener('input', () => {
-        if (input.value.length > 0) {
-            pauseTypewriter();
-        } else {
-            resumeTypewriter();
-        }
-    });
-    input.addEventListener('blur', () => {
-        if (input.value.length === 0) {
-            resumeTypewriter();
-        }
-    });
-    startTypewriter();
-});
-
-// Update suggestions when AI mode changes
 function updateTypewriterForAIMode() {
     setTypewriterSuggestions();
     currentTypewriterIndex = 0;
 }
 
-// ... existing code ...
-// In initializeAISearchToggle, after updating the mode, call updateTypewriterForAIMode and resumeTypewriter if input is empty
-// ... existing code ...
-// In initializeAISearchToggle, after updateSearchPlaceholder(true/false):
-// updateTypewriterForAIMode();
-// if (searchInput.value.length === 0) resumeTypewriter();
-// ... existing code ...
+// Optimized event handlers with debouncing
+let inputDebounceTimeout = null;
 
-let typewriterCursorVisible = true;
-let typewriterCursorInterval = null;
-
-const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
-
-function setTypewriterCursor(input, show) {
-    let placeholder = input.getAttribute('placeholder') || '';
-    if (show) {
-        if (!placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
-            input.setAttribute('placeholder', placeholder + TYPEWRITER_CURSOR_CHAR);
+function handleInputChange() {
+    if (inputDebounceTimeout) {
+        clearTimeout(inputDebounceTimeout);
+    }
+    
+    inputDebounceTimeout = setTimeout(() => {
+        if (!cachedInput) return;
+        
+        if (cachedInput.value.length > 0) {
+            pauseTypewriter();
+        } else {
+            resumeTypewriter();
         }
-    } else {
-        if (placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
-            input.setAttribute('placeholder', placeholder.slice(0, -1));
-        }
+    }, 50); // 50ms debounce
+}
+
+function handleInputBlur() {
+    if (cachedInput && cachedInput.value.length === 0) {
+        resumeTypewriter();
     }
 }
 
-function startTypewriterCursor(input) {
-    if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
-    typewriterCursorVisible = true;
-    setTypewriterCursor(input, true);
-    typewriterCursorInterval = setInterval(() => {
-        typewriterCursorVisible = !typewriterCursorVisible;
-        setTypewriterCursor(input, typewriterCursorVisible);
-    }, 500);
-}
+// Initialize on DOM ready
+window.addEventListener('DOMContentLoaded', function() {
+    cachedInput = document.getElementById('searchInput');
+    if (!cachedInput) return;
+    
+    // Use passive listeners for better performance
+    cachedInput.addEventListener('input', handleInputChange, { passive: true });
+    cachedInput.addEventListener('blur', handleInputBlur, { passive: true });
+    
+    startTypewriter();
+});
 
-function stopTypewriterCursor(input) {
-    if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
-    typewriterCursorInterval = null;
-    setTypewriterCursor(input, false);
-}
-
-function clearTypewriterPlaceholder(input) {
-    input.setAttribute('placeholder', '');
-}
-
-function typewriterAddLetter(letter, input) {
-    let base = input.getAttribute('placeholder') || '';
-    if (base.endsWith(TYPEWRITER_CURSOR_CHAR)) base = base.slice(0, -1);
-    input.setAttribute('placeholder', base + letter + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
-    return new Promise(resolve => setTimeout(resolve, 60));
-}
-
-function typewriterDeleteLetter(input) {
-    let current = input.getAttribute('placeholder') || '';
-    if (current.endsWith(TYPEWRITER_CURSOR_CHAR)) current = current.slice(0, -1);
-    if (current.length > 0) {
-        input.setAttribute('placeholder', current.slice(0, -1) + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
+// Cleanup function for page unload
+window.addEventListener('beforeunload', function() {
+    stopTypewriter();
+    
+    if (inputDebounceTimeout) {
+        clearTimeout(inputDebounceTimeout);
     }
-    return new Promise(resolve => setTimeout(resolve, 30));
-}
-
-async function typewriterPrintPhrase(phrase, input) {
-    clearTypewriterPlaceholder(input);
-    startTypewriterCursor(input);
-    for (let i = 0; i < phrase.length; i++) {
-        if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
-        await typewriterAddLetter(phrase[i], input);
-    }
-    // Wait before deleting
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    // Delete letters
-    for (let i = phrase.length - 1; i >= 0; i--) {
-        if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
-        await typewriterDeleteLetter(input);
-    }
-    await new Promise(resolve => setTimeout(resolve, 300));
-    stopTypewriterCursor(input);
-}
-
-// In startTypewriter, after getting the input, start the cursor
-function startTypewriter() {
-    typewriterActive = true;
-    typewriterPaused = false;
-    currentTypewriterIndex = 0;
-    setTypewriterSuggestions();
-    const input = document.getElementById('searchInput');
-    if (input) startTypewriterCursor(input);
-    typewriterRun();
-}
-
-// In stopTypewriter and pauseTypewriter, stop the cursor
-function stopTypewriter() {
-    typewriterActive = false;
-    const input = document.getElementById('searchInput');
-    if (input) stopTypewriterCursor(input);
-}
-
-function pauseTypewriter() {
-    typewriterPaused = true;
-    const input = document.getElementById('searchInput');
-    if (input) stopTypewriterCursor(input);
-}
-
-function resumeTypewriter() {
-    typewriterPaused = false;
-    const input = document.getElementById('searchInput');
-    if (input && input.value.length === 0) startTypewriterCursor(input);
-}
+});
 
 // ... existing code ...
 // In input event listeners, also stop the cursor when paused, and start when resumed
@@ -7902,3 +7550,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Pills are handled by FilterManager.createFilterPill
 // ... existing code ...
+
+
+

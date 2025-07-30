@@ -7053,7 +7053,7 @@ async function performSearch(query) {
 }
 
 // ===========================
-// TYPEWRITER PLACEHOLDER ANIMATION
+// OPTIMIZED TYPEWRITER PLACEHOLDER ANIMATION
 // ===========================
 
 const standardSuggestions = [
@@ -7063,6 +7063,7 @@ const standardSuggestions = [
     'Esempio: "Statistica Canale B"',
     'Esempio: "Appunti Diritto Privato"',
 ];
+
 const aiSuggestions = [
     'Cerca con AI avanzata... (es. "concetti di fisica quantistica")',
     'Chiedi: "Spiegami la teoria degli insiemi"',
@@ -7071,60 +7072,165 @@ const aiSuggestions = [
     'Esempio: "Dispense su analisi complessa"',
 ];
 
+// Performance optimization variables
 let typewriterActive = true;
 let typewriterPaused = false;
-let typewriterTimeout = null;
 let currentTypewriterIndex = 0;
 let currentTypewriterSuggestions = standardSuggestions;
+let typewriterCursorVisible = true;
+let typewriterCursorInterval = null;
+const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
+
+// Performance optimizations
+let rafId = null;
+let pendingPlaceholderUpdate = null;
+let cachedInput = null;
+let currentPlaceholderState = '';
 
 function setTypewriterSuggestions() {
     currentTypewriterSuggestions = aiSearchEnabled ? aiSuggestions : standardSuggestions;
 }
 
+// Optimized DOM update function
+function updatePlaceholder(input, newText) {
+    // Batch DOM updates using requestAnimationFrame
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+    }
+    
+    pendingPlaceholderUpdate = newText;
+    
+    rafId = requestAnimationFrame(() => {
+        if (pendingPlaceholderUpdate !== null && input) {
+            // Only update if text actually changed
+            if (currentPlaceholderState !== pendingPlaceholderUpdate) {
+                input.setAttribute('placeholder', pendingPlaceholderUpdate);
+                currentPlaceholderState = pendingPlaceholderUpdate;
+            }
+        }
+        rafId = null;
+        pendingPlaceholderUpdate = null;
+    });
+}
+
 function clearTypewriterPlaceholder(input) {
-    input.setAttribute('placeholder', '');
+    currentPlaceholderState = '';
+    updatePlaceholder(input, '');
 }
 
 function typewriterAddLetter(letter, input) {
-    input.setAttribute('placeholder', input.getAttribute('placeholder') + letter);
+    // Use cached placeholder state instead of DOM query
+    let base = currentPlaceholderState || '';
+    if (base.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+        base = base.slice(0, -1);
+    }
+    
+    const newText = base + letter + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : '');
+    updatePlaceholder(input, newText);
+    
     return new Promise(resolve => setTimeout(resolve, 60));
 }
 
 function typewriterDeleteLetter(input) {
-    let current = input.getAttribute('placeholder');
-    if (current.length > 0) {
-        input.setAttribute('placeholder', current.slice(0, -1));
+    // Use cached placeholder state instead of DOM query
+    let current = currentPlaceholderState || '';
+    if (current.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+        current = current.slice(0, -1);
     }
+    
+    if (current.length > 0) {
+        const newText = current.slice(0, -1) + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : '');
+        updatePlaceholder(input, newText);
+    }
+    
     return new Promise(resolve => setTimeout(resolve, 30));
+}
+
+function setTypewriterCursor(input, show) {
+    // Use cached state instead of DOM query
+    let placeholder = currentPlaceholderState || '';
+    
+    if (show) {
+        if (!placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+            updatePlaceholder(input, placeholder + TYPEWRITER_CURSOR_CHAR);
+        }
+    } else {
+        if (placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
+            updatePlaceholder(input, placeholder.slice(0, -1));
+        }
+    }
+}
+
+function startTypewriterCursor(input) {
+    if (typewriterCursorInterval) {
+        clearInterval(typewriterCursorInterval);
+    }
+    
+    typewriterCursorVisible = true;
+    setTypewriterCursor(input, true);
+    
+    typewriterCursorInterval = setInterval(() => {
+        typewriterCursorVisible = !typewriterCursorVisible;
+        setTypewriterCursor(input, typewriterCursorVisible);
+    }, 500);
+}
+
+function stopTypewriterCursor(input) {
+    if (typewriterCursorInterval) {
+        clearInterval(typewriterCursorInterval);
+        typewriterCursorInterval = null;
+    }
+    setTypewriterCursor(input, false);
 }
 
 async function typewriterPrintPhrase(phrase, input) {
     clearTypewriterPlaceholder(input);
+    startTypewriterCursor(input);
+    
+    // Type each letter
     for (let i = 0; i < phrase.length; i++) {
-        if (!typewriterActive || typewriterPaused) return;
+        if (!typewriterActive || typewriterPaused) {
+            stopTypewriterCursor(input);
+            return;
+        }
         await typewriterAddLetter(phrase[i], input);
     }
+    
     // Wait before deleting
     await new Promise(resolve => setTimeout(resolve, 1200));
+    
     // Delete letters
     for (let i = phrase.length - 1; i >= 0; i--) {
-        if (!typewriterActive || typewriterPaused) return;
+        if (!typewriterActive || typewriterPaused) {
+            stopTypewriterCursor(input);
+            return;
+        }
         await typewriterDeleteLetter(input);
     }
+    
     await new Promise(resolve => setTimeout(resolve, 300));
+    stopTypewriterCursor(input);
 }
 
 async function typewriterRun() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
+    // Cache the input element
+    if (!cachedInput) {
+        cachedInput = document.getElementById('searchInput');
+    }
+    
+    if (!cachedInput) return;
+    
     setTypewriterSuggestions();
+    
     while (typewriterActive) {
         if (typewriterPaused) {
             await new Promise(resolve => setTimeout(resolve, 200));
             continue;
         }
+        
         const phrase = currentTypewriterSuggestions[currentTypewriterIndex];
-        await typewriterPrintPhrase(phrase, input);
+        await typewriterPrintPhrase(phrase, cachedInput);
+        
         currentTypewriterIndex = (currentTypewriterIndex + 1) % currentTypewriterSuggestions.length;
     }
 }
@@ -7134,156 +7240,105 @@ function startTypewriter() {
     typewriterPaused = false;
     currentTypewriterIndex = 0;
     setTypewriterSuggestions();
+    
+    // Cache the input element
+    if (!cachedInput) {
+        cachedInput = document.getElementById('searchInput');
+    }
+    
+    if (cachedInput) {
+        // Add CSS optimization hint
+        if (!cachedInput.style.willChange) {
+            cachedInput.style.willChange = 'auto';
+        }
+        startTypewriterCursor(cachedInput);
+    }
+    
     typewriterRun();
 }
 
 function stopTypewriter() {
     typewriterActive = false;
+    
+    if (cachedInput) {
+        stopTypewriterCursor(cachedInput);
+        // Remove CSS optimization hint when not needed
+        cachedInput.style.willChange = 'auto';
+    }
+    
+    // Cancel any pending updates
+    if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+    }
 }
 
 function pauseTypewriter() {
     typewriterPaused = true;
+    
+    if (cachedInput) {
+        stopTypewriterCursor(cachedInput);
+    }
 }
 
 function resumeTypewriter() {
     typewriterPaused = false;
+    
+    if (cachedInput && cachedInput.value.length === 0) {
+        startTypewriterCursor(cachedInput);
+    }
 }
 
-// Hook into search input events
-window.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
-    // Only pause animation when user actually types, not when they just focus
-    input.addEventListener('input', () => {
-        if (input.value.length > 0) {
-            pauseTypewriter();
-        } else {
-            resumeTypewriter();
-        }
-    });
-    input.addEventListener('blur', () => {
-        if (input.value.length === 0) {
-            resumeTypewriter();
-        }
-    });
-    startTypewriter();
-});
-
-// Update suggestions when AI mode changes
 function updateTypewriterForAIMode() {
     setTypewriterSuggestions();
     currentTypewriterIndex = 0;
 }
 
-// ... existing code ...
-// In initializeAISearchToggle, after updating the mode, call updateTypewriterForAIMode and resumeTypewriter if input is empty
-// ... existing code ...
-// In initializeAISearchToggle, after updateSearchPlaceholder(true/false):
-// updateTypewriterForAIMode();
-// if (searchInput.value.length === 0) resumeTypewriter();
-// ... existing code ...
+// Optimized event handlers with debouncing
+let inputDebounceTimeout = null;
 
-let typewriterCursorVisible = true;
-let typewriterCursorInterval = null;
-
-const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
-
-function setTypewriterCursor(input, show) {
-    let placeholder = input.getAttribute('placeholder') || '';
-    if (show) {
-        if (!placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
-            input.setAttribute('placeholder', placeholder + TYPEWRITER_CURSOR_CHAR);
+function handleInputChange() {
+    if (inputDebounceTimeout) {
+        clearTimeout(inputDebounceTimeout);
+    }
+    
+    inputDebounceTimeout = setTimeout(() => {
+        if (!cachedInput) return;
+        
+        if (cachedInput.value.length > 0) {
+            pauseTypewriter();
+        } else {
+            resumeTypewriter();
         }
-    } else {
-        if (placeholder.endsWith(TYPEWRITER_CURSOR_CHAR)) {
-            input.setAttribute('placeholder', placeholder.slice(0, -1));
-        }
+    }, 50); // 50ms debounce
+}
+
+function handleInputBlur() {
+    if (cachedInput && cachedInput.value.length === 0) {
+        resumeTypewriter();
     }
 }
 
-function startTypewriterCursor(input) {
-    if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
-    typewriterCursorVisible = true;
-    setTypewriterCursor(input, true);
-    typewriterCursorInterval = setInterval(() => {
-        typewriterCursorVisible = !typewriterCursorVisible;
-        setTypewriterCursor(input, typewriterCursorVisible);
-    }, 500);
-}
+// Initialize on DOM ready
+window.addEventListener('DOMContentLoaded', function() {
+    cachedInput = document.getElementById('searchInput');
+    if (!cachedInput) return;
+    
+    // Use passive listeners for better performance
+    cachedInput.addEventListener('input', handleInputChange, { passive: true });
+    cachedInput.addEventListener('blur', handleInputBlur, { passive: true });
+    
+    startTypewriter();
+});
 
-function stopTypewriterCursor(input) {
-    if (typewriterCursorInterval) clearInterval(typewriterCursorInterval);
-    typewriterCursorInterval = null;
-    setTypewriterCursor(input, false);
-}
-
-function clearTypewriterPlaceholder(input) {
-    input.setAttribute('placeholder', '');
-}
-
-function typewriterAddLetter(letter, input) {
-    let base = input.getAttribute('placeholder') || '';
-    if (base.endsWith(TYPEWRITER_CURSOR_CHAR)) base = base.slice(0, -1);
-    input.setAttribute('placeholder', base + letter + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
-    return new Promise(resolve => setTimeout(resolve, 60));
-}
-
-function typewriterDeleteLetter(input) {
-    let current = input.getAttribute('placeholder') || '';
-    if (current.endsWith(TYPEWRITER_CURSOR_CHAR)) current = current.slice(0, -1);
-    if (current.length > 0) {
-        input.setAttribute('placeholder', current.slice(0, -1) + (typewriterCursorVisible ? TYPEWRITER_CURSOR_CHAR : ''));
+// Cleanup function for page unload
+window.addEventListener('beforeunload', function() {
+    stopTypewriter();
+    
+    if (inputDebounceTimeout) {
+        clearTimeout(inputDebounceTimeout);
     }
-    return new Promise(resolve => setTimeout(resolve, 30));
-}
-
-async function typewriterPrintPhrase(phrase, input) {
-    clearTypewriterPlaceholder(input);
-    startTypewriterCursor(input);
-    for (let i = 0; i < phrase.length; i++) {
-        if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
-        await typewriterAddLetter(phrase[i], input);
-    }
-    // Wait before deleting
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    // Delete letters
-    for (let i = phrase.length - 1; i >= 0; i--) {
-        if (!typewriterActive || typewriterPaused) { stopTypewriterCursor(input); return; }
-        await typewriterDeleteLetter(input);
-    }
-    await new Promise(resolve => setTimeout(resolve, 300));
-    stopTypewriterCursor(input);
-}
-
-// In startTypewriter, after getting the input, start the cursor
-function startTypewriter() {
-    typewriterActive = true;
-    typewriterPaused = false;
-    currentTypewriterIndex = 0;
-    setTypewriterSuggestions();
-    const input = document.getElementById('searchInput');
-    if (input) startTypewriterCursor(input);
-    typewriterRun();
-}
-
-// In stopTypewriter and pauseTypewriter, stop the cursor
-function stopTypewriter() {
-    typewriterActive = false;
-    const input = document.getElementById('searchInput');
-    if (input) stopTypewriterCursor(input);
-}
-
-function pauseTypewriter() {
-    typewriterPaused = true;
-    const input = document.getElementById('searchInput');
-    if (input) stopTypewriterCursor(input);
-}
-
-function resumeTypewriter() {
-    typewriterPaused = false;
-    const input = document.getElementById('searchInput');
-    if (input && input.value.length === 0) startTypewriterCursor(input);
-}
+});
 
 // ... existing code ...
 // In input event listeners, also stop the cursor when paused, and start when resumed

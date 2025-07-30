@@ -136,15 +136,15 @@
 
 }
 
-/* Preload background image for immediate display */
-body::before {
+/* Preload background image for immediate display - only on search page */
+body[data-page="search"]::before {
     content: '';
     position: absolute;
     top: -9999px;
     left: -9999px;
     width: 1px;
     height: 1px;
-    background-image: var(--bg-image-url, none);
+    background-image: url('../images/bg.png');
     opacity: 0;
     pointer-events: none;
     z-index: -9999;
@@ -154,31 +154,6 @@ body::before {
 html {
     scroll-behavior: smooth;
     font-size: 16px;
-    max-width: 100vw;
-    overflow-x: hidden;
-    overflow-y: visible; /* Allow natural vertical scrolling */
-    /* Ensure proper iframe alignment */
-    text-align: center;
-}
-
-/* Iframe-specific centering fixes */
-body {
-    text-align: center; /* Center all content by default */
-    overflow-x: hidden; /* Prevent horizontal scroll */
-    overflow-y: visible; /* Allow natural vertical scrolling */
-    height: auto; /* Allow natural height */
-    min-height: auto; /* Remove fixed height constraints */
-}
-
-/* Reset text alignment for specific elements that should be left-aligned */
-.document-count-container,
-.document-count-and-filters,
-.documents-grid,
-.document-card,
-.document-content,
-.document-info,
-.document-footer {
-    text-align: left;
 }
 
 body {
@@ -194,9 +169,6 @@ body {
     letter-spacing: -0.011em;
     overflow-x: hidden;
     position: relative;
-    max-width: 100vw;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 /* Ensure filters panel is never affected by parent container issues */
@@ -206,7 +178,6 @@ body.filters-open {
 
 html {
     height: auto; /* Allow natural height */
-    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Hide scrollbar for webkit browsers */
@@ -219,79 +190,14 @@ html {
     scrollbar-width: none;
 }
 
-/* Make iframe completely invisible and seamless - Allow glow to extend */
-iframe {
-    overflow: visible !important; /* Allow glow effects to extend beyond iframe boundaries */
-    scrolling: no !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    resize: none !important;
-    position: relative !important;
-    z-index: 1 !important;
-    vertical-align: top !important;
-    /* Make iframe invisible */
-    outline: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    /* Remove any visual indicators */
-    -webkit-appearance: none !important;
-    appearance: none !important;
-}
-
-/* Make iframe container divs invisible - Allow glow to extend */
-[id*="search-container"],
-[id*="main-search-container"],
-.iframe-container,
-.iframe-wrapper {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    outline: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important; /* Allow glow effects to extend beyond container boundaries */
-}
-
-/* Ensure iframe content allows glow effects to extend */
-iframe body {
-    overflow: visible !important; /* Allow glow effects to extend beyond body boundaries */
-    overflow-x: visible !important;
-    overflow-y: visible !important;
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-iframe html {
-    overflow: visible !important; /* Allow glow effects to extend beyond html boundaries */
-    overflow-x: visible !important;
-    overflow-y: visible !important;
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Background Image as Element */
-.background-image {
+/* Background Image as Element - only on search page */
+body[data-page="search"] .background-image {
     position: absolute;
-    left: 0; /* Remove the negative offset that was causing centering issues */
-    width: 100%; /* Use 100% instead of viewport width to respect iframe boundaries */
+    left: -1px; /* Offset left by 1px to center the extra 2px width */
+    width: calc(100vw + 2px); /* Span the full viewport width plus 2px */
     /* Height and top will be set immediately by JavaScript - no default values to avoid wrong positioning */
-    background-image: var(--bg-image-url, none);
-    background-size: cover; /* Use cover instead of 100% 100% for better scaling */
-    background-position: center; /* Center the background image */
+    background-image: url('../images/bg.png');
+    background-size: 100% 100%; /* Stretch to fill the element */
     background-repeat: no-repeat;
     z-index: -1;
     pointer-events: none;
@@ -688,43 +594,36 @@ iframe html {
     transition: transform 0.2s var(--ease-2);
 }
 
-/* Main Content - Dual Layout System - Allow glow to extend */
+.main-content {
+    /* --sticky-top-offset is set by JavaScript */
+    --sticky-top-offset: 10px; /* Default fallback value */
+    padding-top: 100px;
+    min-height: calc(100vh - 120px);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Main Content - Dual Layout System */
 .main-content {
     min-height: auto; /* Remove fixed height constraint */
     position: relative;
     width: 100%;
-    max-width: 100vw;
-    overflow-x: visible; /* Allow glow effects to extend horizontally */
-    overflow-y: visible; /* Allow natural vertical scrolling */
-    box-sizing: border-box;
-    /* Ensure proper centering */
-    margin: 20px auto 0 auto;
-    padding: 0;
-    height: auto; /* Allow natural height */
+    max-width: 100%;
 }
 
-/* Initial Search Section - Centered Layout - Allow glow to extend */
+/* Initial Search Section - Centered Layout */
 .search-section {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
+    margin-top: 0;
     padding: var(--space-12);
     text-align: center;
     position: relative;
     width: 100%;
     max-width: 100%;
-    overflow-x: visible; /* Allow glow effects to extend horizontally */
-    overflow-y: visible; /* Allow natural vertical scrolling */
-    box-sizing: border-box;
-    /* Ensure proper centering within iframe context */
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    height: auto; /* Allow natural height */
-    min-height: auto; /* Remove fixed height constraints */
 }
 
 /* Loading state - remove excess height */
@@ -748,18 +647,19 @@ iframe html {
 /* Base grid container - consistent for all states */
 .documents-grid {
     padding-top: 10px;
-    margin: var(--space-2) auto 40px auto;
+    margin-top: var(--space-2);
+    margin-bottom: 40px;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: var(--space-5);
-    max-width: min(2400px, 100%); /* Responsive max-width that doesn't exceed container */
+    max-width: 2400px; /* Increased max-width for 8 cards */
     position: relative;
     z-index: 2;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     contain: layout;
-    width: 100%;
-    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Loading state - remove min-height to prevent excess space */
@@ -1190,9 +1090,8 @@ iframe html {
 
 .search-container-wrapper {
     /* The wrapper is now back inside search-section. */
-    width: 100%;
-    max-width: 600px; /* Limit maximum width for better centering */
-    margin: 0 auto; /* Center the wrapper properly */
+    width: fit-content;
+    margin-top: 0px auto; /* Restore the original spacing between subtitle and search bar. */
 
     position: sticky;
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
@@ -1227,10 +1126,9 @@ iframe html {
     margin: 0 auto;
     flex-wrap: nowrap;
     z-index: 9997; /* High z-index for search container */
-    box-sizing: border-box; /* Ensure proper width calculations */
 }
 
-/* Animated Border Search Bar Container */
+/* Animated Border Search Bar Container - Allow glow to extend */
 .search-bar-container {
     position: relative;
     display: flex;
@@ -1240,11 +1138,11 @@ iframe html {
     max-width: 410px;
     height: 100%;
     width: 100%;
-    overflow: visible;
+    overflow: visible; /* Allow glow effects to extend beyond container boundaries */
     border-radius: 12px;
 }
 
-/* Border Animation Layers */
+/* Border Animation Layers - Allow glow to extend */
 .search-bar-container .glow,
 .search-bar-container .darkBorderBg,
 .search-bar-container .white,
@@ -1254,7 +1152,7 @@ iframe html {
     height: 100%;
     width: 100%;
     position: absolute;
-    overflow: visible;
+    overflow: visible; /* Allow glow effects to extend beyond layer boundaries */
     z-index: -1;
     border-radius: 12px;
     top: 0;
@@ -1319,7 +1217,7 @@ iframe html {
         #402fb5 5%,
         transparent 14%,
         transparent 50%,
-        #cf30aa,
+        #cf30aa 60%,
         transparent 64%
     );
     transition: all 2s;
@@ -1425,7 +1323,7 @@ iframe html {
         #402fb5 5%,
         transparent 38%,
         transparent 50%,
-        #cf30aa,
+        #cf30aa 60%,
         transparent 87%
     );
     transition: all 2s;
@@ -1876,17 +1774,14 @@ iframe html {
 /* Document Count and Filters Display */
 .document-count-container {
     margin-top: calc(var(--space-8) + 40px - var(--space-2)); /* Compensate for loading placeholder negative margin */
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 0;
     margin-bottom: var(--space-4);
     position: relative;
     z-index: 999; /* Higher than search wrapper to ensure clickability */
     width: 100%;
-    max-width: min(2400px, 100vw); /* Match documents grid max-width */
+    max-width: none;
     text-align: left !important;
     padding-left: 0;
-    padding-right: 0;
-    box-sizing: border-box;
 }
 
 /* When filters overlay is active, reduce z-index so it appears below the overlay */
@@ -2594,7 +2489,7 @@ body.filters-open .document-count-container {
 
 .rating-star {
     font-size: 14px;
-    color: #d1d5db;
+    color: #fbbf24;
 }
 
 .rating-star.filled {
@@ -3629,17 +3524,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: relative;
     height: 40px;
     margin: var(--space-4) 0;
-    overflow: visible;
-    padding: 0 10px; /* Add padding to prevent thumb from going outside container */
-    box-sizing: border-box;
  }
  
  .range-track {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: calc(100% - 20px); /* Account for container padding */
-    left: 10px; /* Align with container padding */
+    width: 100%;
     height: 6px;
     background: var(--gray-200);
     border-radius: 3px;
@@ -3648,10 +3539,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  
  .range-fill {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    left: 10px; /* Align with container padding */
-    height: 6px;
+    top: 0;
+    height: 100%;
     background: var(--gradient-primary);
     border-radius: 3px;
  }
@@ -3660,8 +3549,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: calc(100% - 20px); /* Account for container padding */
-    left: 10px; /* Align with container padding */
+    width: 100%;
     height: 6px;
     background: transparent;
     border: none;
@@ -3753,17 +3641,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     height: 32px;
     display: flex;
     align-items: center;
-    overflow: visible;
-    padding: 0 10px; /* Add padding to prevent thumb from going outside container */
-    box-sizing: border-box;
 }
 
 .pages-range-filter .range-track {
     position: absolute;
     height: 4px;
     background: var(--gray-300);
-    width: calc(100% - 20px); /* Account for container padding */
-    left: 10px; /* Align with container padding */
+    width: 100%;
     border-radius: 2px;
     z-index: 1;
 }
@@ -3772,15 +3656,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     position: absolute;
     height: 4px;
     background: var(--primary-500);
-    left: 10px; /* Align with container padding */
     border-radius: 2px;
     z-index: 2;
 }
 
 .pages-range-filter .range-slider {
     position: absolute;
-    width: calc(100% - 20px); /* Account for container padding */
-    left: 10px; /* Align with container padding */
+    width: 100%;
     height: 32px;
     background: none;
     pointer-events: all;
@@ -7952,18 +7834,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .stars-outer::before {
     content: "★★★★★";
-    color: #d1d5db;
+    color: var(--gray-300);
 }
 
 .stars-inner::before {
     content: "★★★★★";
     color: #fbbf24;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
 }
 
 .big-rating-score {
@@ -8065,8 +7941,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     margin-left: -2px;
 }
 
-.review-rating-overlay .rating-star {
+.review-rating-overlay .star {
     font-size: 16px;
+    color: #fbbf24;
 }
 
 .review-rating-overlay .rating-star.filled {
@@ -8075,10 +7952,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .review-rating-overlay .rating-star:not(.filled) {
     color: #d1d5db;
-}
-
-.review-rating-overlay .rating-star.partial {
-    /* Partial stars will use inline styles from JavaScript */
 }
 
 .review-date-overlay {

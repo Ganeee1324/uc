@@ -335,6 +335,10 @@ window.switchTab = async function switchTab(tabName) {
             } else {
                 console.error('❌ initializeReviewsSection not available in direct call');
             }
+            
+            // Also reinitialize the documents period filter when stats tab is shown
+            console.log('🔄 Reinitializing documents period filter for stats tab');
+            initializeDocumentsPeriodFilter();
         }, 1000); // Wait 1 second after tab switch
         
         // Initialize charts when stats tab is shown
@@ -837,16 +841,47 @@ function initializeTimeFilters() {
     });
 }
 
-function initializeDocumentsPeriodFilter() {
+function initializeDocumentsPeriodFilter(retryCount = 0) {
+    console.log('[DOCUMENTS] Attempting to initialize period filter... (retry:', retryCount, ')');
+    
     const periodBtn = document.getElementById('documentsPeriodBtn');
     const periodDropdown = document.getElementById('documentsPeriodDropdown');
     const periodOptions = document.querySelectorAll('.period-option');
     
-    if (!periodBtn || !periodDropdown) return;
+    console.log('[DOCUMENTS] Elements found:', {
+        periodBtn: !!periodBtn,
+        periodDropdown: !!periodDropdown,
+        periodOptionsCount: periodOptions.length
+    });
+    
+    if (!periodBtn || !periodDropdown) {
+        if (retryCount < 5) {
+            console.log('[DOCUMENTS] Period filter elements not found - will retry');
+            // Retry after a short delay
+            setTimeout(() => {
+                console.log('[DOCUMENTS] Retrying period filter initialization...');
+                initializeDocumentsPeriodFilter(retryCount + 1);
+            }, 500);
+        } else {
+            console.error('[DOCUMENTS] Period filter elements not found after 5 retries - giving up');
+        }
+        return;
+    }
+    
+    // Prevent duplicate event listeners
+    if (periodBtn.hasAttribute('data-initialized')) {
+        console.log('[DOCUMENTS] Period filter already initialized');
+        return;
+    }
+    
+    console.log('[DOCUMENTS] Initializing period filter dropdown');
     
     // Toggle dropdown on button click
     periodBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        console.log('[DOCUMENTS] Period button clicked');
+        
         const isOpen = periodDropdown.classList.contains('show');
         
         if (isOpen) {
@@ -896,15 +931,24 @@ function initializeDocumentsPeriodFilter() {
             closeDocumentsPeriodDropdown();
         }
     });
+    
+    // Mark as initialized
+    periodBtn.setAttribute('data-initialized', 'true');
+    console.log('[DOCUMENTS] Period filter dropdown initialized successfully');
 }
 
 function openDocumentsPeriodDropdown() {
     const periodBtn = document.getElementById('documentsPeriodBtn');
     const periodDropdown = document.getElementById('documentsPeriodDropdown');
     
+    console.log('[DOCUMENTS] Opening period dropdown');
+    
     if (periodBtn && periodDropdown) {
         periodBtn.classList.add('active');
         periodDropdown.classList.add('show');
+        console.log('[DOCUMENTS] Period dropdown opened successfully');
+    } else {
+        console.log('[DOCUMENTS] Failed to open dropdown - elements not found');
     }
 }
 
@@ -912,9 +956,14 @@ function closeDocumentsPeriodDropdown() {
     const periodBtn = document.getElementById('documentsPeriodBtn');
     const periodDropdown = document.getElementById('documentsPeriodDropdown');
     
+    console.log('[DOCUMENTS] Closing period dropdown');
+    
     if (periodBtn && periodDropdown) {
         periodBtn.classList.remove('active');
         periodDropdown.classList.remove('show');
+        console.log('[DOCUMENTS] Period dropdown closed successfully');
+    } else {
+        console.log('[DOCUMENTS] Failed to close dropdown - elements not found');
     }
 }
 
@@ -2801,10 +2850,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 // REVIEWS SECTION FUNCTIONALITY
 // ========================================
 
-// Global reviews variables
-let currentReviewsPage = 1;
-let reviewsPerPage = 10;
+// Global reviews variables  
 let currentReviewsFilter = 'all';
+let reviewsLoaded = 0;
+let allReviewsLoaded = false;
 let allReviews = [];
 let reviewsStats = {
     total: 0,
@@ -2832,9 +2881,9 @@ function initializeReviewsSection() {
     loadUserReviews();
     
     // Initialize other components
-    console.log('🔧 Initializing filters and pagination...');
+    console.log('🔧 Initializing filters and infinite scroll...');
     initializeReviewsFilters();
-    initializeReviewsPagination();
+    initializeInfiniteScroll();
     
     console.log('✅ Reviews section initialization completed');
 }
@@ -3109,12 +3158,10 @@ function displayReviews() {
     // Sort by date (newest first)
     filteredReviews.sort((a, b) => new Date(b.review_date) - new Date(a.review_date));
     
-    // Pagination
-    const startIndex = (currentReviewsPage - 1) * reviewsPerPage;
-    const endIndex = startIndex + reviewsPerPage;
-    const pageReviews = filteredReviews.slice(startIndex, endIndex);
+    // Show all filtered reviews for infinite scroll
+    const pageReviews = filteredReviews;
     
-    console.log('[REVIEWS] Showing', pageReviews.length, 'reviews on page', currentReviewsPage);
+    console.log('[REVIEWS] Showing', pageReviews.length, 'reviews');
     
     // Clear existing reviews
     if (reviewsList) {
@@ -3125,7 +3172,6 @@ function displayReviews() {
     if (pageReviews.length === 0) {
         console.log('[REVIEWS] No reviews to show, displaying empty state');
         showReviewsEmpty();
-        if (reviewsPagination) reviewsPagination.style.display = 'none';
         return;
     }
     
@@ -3143,11 +3189,9 @@ function displayReviews() {
         }
     });
     
-    // Update pagination
-    updateReviewsPagination(filteredReviews.length);
-    if (reviewsPagination) {
-        reviewsPagination.style.display = 'flex';
-    }
+    // Update scroll state
+    reviewsLoaded = pageReviews.length;
+    allReviewsLoaded = true;
     
     console.log('[REVIEWS] ✅ Reviews list displayed successfully!');
 }
@@ -3254,66 +3298,62 @@ function showReviewsEmpty(isError = false) {
 
 // Initialize Reviews Filters
 function initializeReviewsFilters() {
-    const reviewsFilter = document.getElementById('reviewsFilter');
+    const reviewsFilterBtn = document.getElementById('reviewsFilterBtn');
+    const reviewsFilterDropdown = document.getElementById('reviewsFilterDropdown');
+    const filterOptions = reviewsFilterDropdown?.querySelectorAll('.filter-option');
     
-    if (reviewsFilter) {
-        reviewsFilter.addEventListener('change', (e) => {
-            currentReviewsFilter = e.target.value;
-            currentReviewsPage = 1; // Reset to first page
-            displayReviews();
+    if (reviewsFilterBtn && reviewsFilterDropdown) {
+        // Toggle dropdown
+        reviewsFilterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            reviewsFilterBtn.classList.toggle('active');
+            reviewsFilterDropdown.classList.toggle('show');
+        });
+        
+        // Handle option selection
+        filterOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const value = e.target.dataset.value;
+                const text = e.target.textContent;
+                
+                // Update active state
+                filterOptions.forEach(opt => opt.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Update button text
+                const filterText = reviewsFilterBtn.querySelector('.filter-text');
+                if (filterText) filterText.textContent = text;
+                
+                // Update filter and refresh reviews
+                currentReviewsFilter = value;
+                reviewsLoaded = 0;
+                displayReviews();
+                
+                // Close dropdown
+                reviewsFilterBtn.classList.remove('active');
+                reviewsFilterDropdown.classList.remove('show');
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            reviewsFilterBtn.classList.remove('active');
+            reviewsFilterDropdown.classList.remove('show');
         });
     }
 }
 
-// Initialize Reviews Pagination
-function initializeReviewsPagination() {
-    const prevBtn = document.getElementById('prevReviewsBtn');
-    const nextBtn = document.getElementById('nextReviewsBtn');
+// Initialize Infinite Scroll for Reviews
+function initializeInfiniteScroll() {
+    const reviewsList = document.getElementById('reviewsList');
     
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => changePage(-1));
+    if (!reviewsList) {
+        console.warn('[REVIEWS] Reviews list container not found for infinite scroll');
+        return;
     }
     
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => changePage(1));
-    }
-}
-
-// Change Reviews Page
-function changePage(direction) {
-    let filteredReviews = allReviews;
-    if (currentReviewsFilter !== 'all') {
-        filteredReviews = allReviews.filter(review => review.rating == currentReviewsFilter);
-    }
-    
-    const totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
-    
-    currentReviewsPage += direction;
-    
-    if (currentReviewsPage < 1) currentReviewsPage = 1;
-    if (currentReviewsPage > totalPages) currentReviewsPage = totalPages;
-    
-    displayReviews();
-}
-
-// Update Reviews Pagination
-function updateReviewsPagination(totalFilteredReviews) {
-    const totalPages = Math.ceil(totalFilteredReviews / reviewsPerPage);
-    const currentPageEl = document.getElementById('currentPage');
-    const totalPagesEl = document.getElementById('totalPages');
-    const prevBtn = document.getElementById('prevReviewsBtn');
-    const nextBtn = document.getElementById('nextReviewsBtn');
-    
-    if (currentPageEl) currentPageEl.textContent = currentReviewsPage;
-    if (totalPagesEl) totalPagesEl.textContent = totalPages;
-    
-    if (prevBtn) {
-        prevBtn.disabled = currentReviewsPage <= 1;
-    }
-    
-    if (nextBtn) {
-        nextBtn.disabled = currentReviewsPage >= totalPages;
-    }
+    // Since we're showing all reviews at once, infinite scroll is automatically handled
+    console.log('[REVIEWS] Infinite scroll initialized - all reviews will be shown');
 }
 
 // Generate Placeholder Reviews for Demonstration

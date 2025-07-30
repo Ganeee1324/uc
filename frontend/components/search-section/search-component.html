@@ -1,108 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Section - Standalone</title>
-    
-    <!-- Resource hints for faster loading -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Critical CSS Files (load immediately) -->
-    <link rel="stylesheet" href="../../css/search.css">
-    <link rel="stylesheet" href="../../css/document-preview.css">
-    <link rel="stylesheet" href="search-section.css">
-    
-    <!-- Non-critical CSS Files (load asynchronously) -->
-    <link rel="preload" href="../../css/upload.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="../../css/profile.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="../../css/login.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="../../css/vendor-page.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    
-    <!-- Fallback for browsers that don't support preload -->
-    <noscript>
-        <link rel="stylesheet" href="../../css/upload.css">
-        <link rel="stylesheet" href="../../css/profile.css">
-        <link rel="stylesheet" href="../../css/login.css">
-        <link rel="stylesheet" href="../../css/vendor-page.css">
-    </noscript>
-    
-    <!-- Google Fonts - Optimized loading -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    
-    <!-- Fallback for browsers that don't support preload -->
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    </noscript>
-    
-    <!-- Improved Fallback Material Symbols Font -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-        
-        /* Force immediate font loading */
-        @font-face {
-            font-family: 'Material Symbols Outlined';
-            font-style: normal;
-            font-weight: 100 700;
-            font-display: block; /* Force blocking load */
-            src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v135/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1v-p_4MrImHCIJIZrDCvHOej.woff2) format('woff2');
-        }
-        
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined', 'Material Icons', 'Material Icons Outlined', -apple-system, BlinkMacSystemFont, sans-serif !important;
-            font-weight: normal;
-            font-style: normal;
-            font-size: 24px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            min-width: 1em;
-            min-height: 1em;
-            text-align: center;
-            vertical-align: middle;
-            opacity: 1;
-        }
-        
-        /* Force fallback if symbols don't load */
-        .material-symbols-outlined:before {
-            content: attr(data-fallback);
-        }
-    </style>
-    
-    <!-- Component-specific CSS -->
-    <link rel="stylesheet" href="search-section.css">
-</head>
-<body data-page="search">
-    <!-- Background Image Element -->
-    <div class="background-image" aria-hidden="true"></div>
-
-
-
-    <!-- Main Content - Centered Search Interface -->
+<!-- Main Content - Centered Search Interface -->
     <main class="main-content" id="mainContent">
         <!-- Search Section with integrated cards -->
         <div class="search-section has-results" id="searchSection">
+            <h1 class="search-title">Cerca.</h1>
+            <p class="search-subtitle">Pensato per chi vuole di più.</p>
             
             <div class="search-container-wrapper">
                 <div class="search-container">
@@ -842,92 +743,19 @@
         </div>
     </div>
 
-    <!-- External JavaScript Files - Optimized loading -->
-    <script src="../../js/config.js"></script>
-    <script src="../../js/performance-cache.js" defer></script>
-    
-    <!-- Improved Material Symbols Font Fallback -->
+    <!-- Load search component JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Function to check if font is loaded
-            function checkFontLoaded() {
-                return new Promise((resolve) => {
-                    const testElement = document.createElement('span');
-                    testElement.className = 'material-symbols-outlined';
-                    testElement.textContent = 'star';
-                    testElement.style.cssText = 'position: absolute; visibility: hidden; font-size: 24px; top: -9999px;';
-                    document.body.appendChild(testElement);
-                    
-                    // Check multiple times as fonts can take time to load
-                    let attempts = 0;
-                    const maxAttempts = 20;
-                    
-                    function check() {
-                        attempts++;
-                        const computed = window.getComputedStyle(testElement);
-                        const fontFamily = computed.fontFamily.toLowerCase();
-                        
-                        if (fontFamily.includes('material') || attempts >= maxAttempts) {
-                            document.body.removeChild(testElement);
-                            resolve(fontFamily.includes('material'));
-                        } else {
-                            setTimeout(check, 100);
-                        }
-                    }
-                    
-                    setTimeout(check, 100);
-                });
-            }
-            
-            // Check font loading and apply fallbacks
-            checkFontLoaded().then(isLoaded => {
-                if (!isLoaded) {
-                    console.warn('Material Symbols font not loaded, applying fallback');
-                    
-                    // Create comprehensive fallback
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        .material-symbols-outlined {
-                            font-family: 'Material Icons', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-                        }
-                        
-                        /* Specific icon mappings for common icons */
-                        .material-symbols-outlined[data-icon="tune"]:before { content: "\\e429"; }
-                        .material-symbols-outlined[data-icon="star"]:before { content: "\\e838"; }
-                        .material-symbols-outlined[data-icon="close"]:before { content: "\\e5cd"; }
-                        .material-symbols-outlined[data-icon="expand_more"]:before { content: "\\e5cf"; }
-                        .material-symbols-outlined[data-icon="keyboard_arrow_up"]:before { content: "\\e316"; }
-                        .material-symbols-outlined[data-icon="auto_awesome"]:before { content: "\\e6d7"; }
-                        .material-symbols-outlined[data-icon="trending_up"]:before { content: "\\e8e5"; }
-                        .material-symbols-outlined[data-icon="trending_down"]:before { content: "\\e8e3"; }
-                        .material-symbols-outlined[data-icon="schedule"]:before { content: "\\e8b5"; }
-                        .material-symbols-outlined[data-icon="history"]:before { content: "\\e889"; }
-                        .material-symbols-outlined[data-icon="clear_all"]:before { content: "\\e14b"; }
-                        .material-symbols-outlined[data-icon="school"]:before { content: "\\e80c"; }
-                        .material-symbols-outlined[data-icon="description"]:before { content: "\\e873"; }
-                        .material-symbols-outlined[data-icon="select_all"]:before { content: "\\e162"; }
-                        .material-symbols-outlined[data-icon="folder"]:before { content: "\\e2c7"; }
-                        .material-symbols-outlined[data-icon="calendar_month"]:before { content: "\\e435"; }
-                        .material-symbols-outlined[data-icon="payments"]:before { content: "\\e8a1"; }
-                        .material-symbols-outlined[data-icon="volunteer_activism"]:before { content: "\\e8d0"; }
-                        .material-symbols-outlined[data-icon="paid"]:before { content: "\\e8a1"; }
-                        .material-symbols-outlined[data-icon="rate_review"]:before { content: "\\e560"; }
-                        .material-symbols-outlined[data-icon="add"]:before { content: "\\e145"; }
-                    `;
-                    document.head.appendChild(style);
-                    
-                    // Add data-icon attributes to existing icons
-                    document.querySelectorAll('.material-symbols-outlined').forEach(icon => {
-                        const iconName = icon.textContent.trim();
-                        icon.setAttribute('data-icon', iconName);
-                        icon.textContent = '';
-                    });
-                }
-            });
-        });
+        // Only load the script if it hasn't been loaded already
+        if (!window.searchComponentLoaded) {
+            const script = document.createElement('script');
+            script.src = 'components/search-section/search-component.js';
+            script.onload = () => {
+                window.searchComponentLoaded = true;
+                console.log('✅ Search component JavaScript loaded');
+            };
+            document.head.appendChild(script);
+        } else {
+            console.log('ℹ️ Search component JavaScript already loaded');
+        }
     </script>
-    
-    <!-- Main JavaScript - Load with high priority -->
-    <script src="search-section.js" async></script>
-</body>
-</html>
+

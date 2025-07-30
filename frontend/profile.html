@@ -11,75 +11,77 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Preload critical iframe resources -->
-    <link rel="preload" href="components/search-section/search-section.html" as="document" crossorigin="anonymous">
-    <link rel="preload" href="components/search-section/search-section.css" as="style" crossorigin="anonymous">
-    <link rel="preload" href="components/search-section/search-section.js" as="script" crossorigin="anonymous">
-    <link rel="preload" href="css/search.css" as="style" crossorigin="anonymous">
-    <link rel="preload" href="css/document-preview.css" as="style" crossorigin="anonymous">
+    <!-- Preload search component resources -->
+    <link rel="preload" href="components/search-section/search-component.html" as="document" crossorigin="anonymous">
+    <link rel="preload" href="components/search-section/search-component.js" as="script" crossorigin="anonymous">
     
     <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="components/search-section/search-component.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
-    <!-- Iframe Search Section Styles - Made completely invisible -->
+    <!-- Search Component Integration Styles -->
     <style>
-        .search-section-container {
-            width: 100%;
-            border-radius: 0;
-            background: transparent;
-            box-shadow: none;
-            margin-bottom: 20px;
-            position: relative;
-            border: none;
-            /* Remove overflow hidden and height constraints for natural page flow */
-        }
-        
-        .search-section-container iframe {
-            width: 100%;
-            min-height: 600px; /* Minimum height instead of fixed */
-            height: auto; /* Allow iframe to expand naturally */
-            border: none;
-            border-radius: 0;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-            overflow: visible !important; /* Force visible overflow to prevent scrollbars */
-            scrolling: no; /* Disable scrolling within iframe */
-            background: transparent !important;
-            box-shadow: none !important;
-            outline: none !important;
-            /* Remove height: 100% to allow natural expansion */
-        }
-        
-        .search-section-container iframe.loaded {
-            opacity: 1;
-        }
-        
-        /* Loading state for iframe containers */
-        .search-section-container.loading {
+        /* Center search section relative to main-content area */
+        #searchSectionContainer,
+        #documentsSearchSectionContainer,
+        #favoritesSearchSectionContainer {
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: flex-start;
+            width: calc(100vw - 280px); /* Full viewport width minus sidebar */
+            margin-left: -20px; /* Compensate for main-content padding if any */
+            margin-right: -20px;
+            padding: 0 40px; /* Add generous padding for centering */
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        /* Search containers with proper centering within main-content */
+        #main-search-container,
+        #documents-search-container,
+        #favorites-search-container {
             background: transparent;
-            min-height: 400px;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
-        /* Faster loading animation for main search */
-        .search-section-container.loading::after {
-            content: "Caricamento...";
-            color: #666;
-            font-size: 14px;
-            animation: quickPulse 0.8s ease-in-out infinite;
+        /* Responsive centering for different screen sizes */
+        @media (max-width: 1600px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                padding: 0 30px;
+            }
         }
         
-        @keyframes quickPulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
+        @media (max-width: 1280px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                width: calc(100vw - 280px);
+                padding: 0 20px;
+            }
+            
+            #main-search-container,
+            #documents-search-container,
+            #favorites-search-container {
+                max-width: 100%;
+            }
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
+        @media (max-width: 768px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                width: 100vw;
+                margin-left: -280px; /* Compensate for sidebar on mobile */
+                padding: 0 10px;
+            }
         }
         
         /* Optimize image loading */
@@ -94,23 +96,8 @@
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
-        
-        /* Optimize main search container for immediate loading - Made invisible */
-        #main-search-container {
-            background: transparent;
-            border-radius: 0;
-            box-shadow: none;
-            border: none;
-        }
-        
-        #main-search-container.loading::after {
-            content: "Caricamento ricerca...";
-            animation: quickPulse 0.6s ease-in-out infinite;
-        }
     </style>
     
-    <!-- Load iframe wrapper for search sections -->
-    <script src="components/search-section/iframe-search-wrapper.js"></script>
 </head>
 <body data-page="dashboard">
     <!-- Mobile Menu Toggle Button -->
@@ -339,10 +326,22 @@
         </div>
 
         <!-- Search Section Component - Integrated under My space and Overview sections -->
-        <div id="searchSectionContainer" style="margin-top: 0; padding-top: 0; width: 100%; display: block; overflow: visible;">
+        <div id="searchSectionContainer">
             <!-- Main search component container -->
-            <div id="main-search-container" class="search-section-container">
-                <!-- SearchSectionComponent will be initialized here -->
+            <div id="main-search-container">
+                <!-- Include search component directly from search-component.html -->
+                <div id="search-component-include"></div>
+                <script>
+                    fetch('components/search-section/search-component.html')
+                        .then(response => response.text())
+                        .then(html => {
+                            document.getElementById('search-component-include').innerHTML = html;
+                            console.log('✅ Main search component HTML loaded');
+                        })
+                        .catch(error => {
+                            console.error('❌ Error loading search component HTML:', error);
+                        });
+                </script>
             </div>
         </div>
 
@@ -793,8 +792,20 @@
             <!-- Search Section Component for Documents -->
             <div id="documentsSearchSectionContainer">
                 <!-- User's own documents with management capabilities -->
-                <div id="documents-search-container" class="search-section-container">
-                    <!-- SearchSectionComponent will be initialized here -->
+                <div id="documents-search-container">
+                    <!-- Include search component for documents -->
+                    <div id="documents-search-component-include"></div>
+                    <script>
+                        fetch('components/search-section/search-component.html')
+                            .then(response => response.text())
+                            .then(html => {
+                                document.getElementById('documents-search-component-include').innerHTML = html;
+                                console.log('✅ Documents search component HTML loaded');
+                            })
+                            .catch(error => {
+                                console.error('❌ Error loading documents search component HTML:', error);
+                            });
+                    </script>
                 </div>
             </div>
         </div>
@@ -820,8 +831,20 @@
                 <h2 class="section-title">Documenti Preferiti</h2>
                 <div id="favoritesSearchSectionContainer">
                     <!-- User's favorite documents -->
-                    <div id="favorites-search-container" class="search-section-container">
-                        <!-- SearchSectionComponent will be initialized here -->
+                    <div id="favorites-search-container">
+                        <!-- Include search component for favorites -->
+                        <div id="favorites-search-component-include"></div>
+                        <script>
+                            fetch('components/search-section/search-component.html')
+                                .then(response => response.text())
+                                .then(html => {
+                                    document.getElementById('favorites-search-component-include').innerHTML = html;
+                                    console.log('✅ Favorites search component HTML loaded');
+                                })
+                                .catch(error => {
+                                    console.error('❌ Error loading favorites search component HTML:', error);
+                                });
+                        </script>
                     </div>
                 </div>
             </div>
@@ -1405,156 +1428,30 @@
     <script src="js/performance-cache.js" defer></script>
     <script src="js/profile.js" defer></script>
 
-<!-- Initialize IframeSearchWrapper instances -->
+<!-- Initialize Profile Page -->
 <script>
-    // Global variables to store iframe wrapper instances
-    let mainSearchWrapper = null;
-    let documentsSearchWrapper = null;
-    let favoritesSearchWrapper = null;
-    let initializationComplete = false;
-
-    // Debounce function to prevent multiple rapid initializations
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    // Initialize iframe wrappers immediately for faster loading
-    const initializeIframeWrappers = async function() {
-        if (initializationComplete) {
-            return; // Prevent multiple initializations
-        }
-        
-        console.log('🚀 Initializing IframeSearchWrapper instances immediately...');
-        
-        try {
-            // Check if IframeSearchWrapper class is available
-            if (typeof IframeSearchWrapper === 'undefined') {
-                console.error('❌ IframeSearchWrapper class is not defined');
-                console.error('Make sure iframe-search-wrapper.js is loaded properly');
-                return;
-            }
-            
-            console.log('✅ IframeSearchWrapper class is available');
-            
-            // Initialize Main Search Wrapper immediately (visible on profile page)
-            const mainContainer = document.getElementById('main-search-container');
-            if (mainContainer && !mainSearchWrapper) {
-                console.log('🚀 Loading main search iframe immediately...');
-                mainSearchWrapper = new IframeSearchWrapper('main-search-container', {
-                    context: 'default',
-                    title: 'Cerca Documenti',
-                    searchPlaceholder: 'Cerca una dispensa...',
-                    height: '600px',
-                    theme: 'default',
-                    apiEndpoint: 'https://symbia.it:5000',
-                    hideBackground: true
-                });
-                
-                // Set up event handlers for main search
-                mainSearchWrapper.onMessage('SEARCH_RESULTS', (data) => {
-                    console.log('Main search results:', data);
-                });
-                
-                mainSearchWrapper.onMessage('DOCUMENT_CLICKED', (data) => {
-                    console.log('Main search document clicked:', data);
-                });
-                
-                console.log('✅ Main Search Wrapper initialized');
-            }
-            
-            // Initialize Documents Search Wrapper (lazy load for tab switching)
-            const documentsContainer = document.getElementById('documents-search-container');
-            if (documentsContainer && !documentsSearchWrapper) {
-                console.log('📋 Setting up documents search wrapper (lazy load)...');
-                documentsSearchWrapper = new IframeSearchWrapper('documents-search-container', {
-                    context: 'user-documents',
-                    title: 'I Miei Documenti',
-                    searchPlaceholder: 'Cerca i tuoi documenti...',
-                    height: '500px',
-                    theme: 'default',
-                    apiEndpoint: 'https://symbia.it:5000',
-                    hideBackground: true,
-                    filters: {
-                        owned: true
-                    }
-                });
-                
-                // Set up event handlers for documents search
-                documentsSearchWrapper.onMessage('SEARCH_RESULTS', (data) => {
-                    console.log('Documents search results:', data);
-                });
-                
-                documentsSearchWrapper.onMessage('DOCUMENT_CLICKED', (data) => {
-                    console.log('Documents search document clicked:', data);
-                });
-                
-                console.log('✅ Documents Search Wrapper initialized (lazy load)');
-            }
-            
-            // Initialize Favorites Search Wrapper (lazy load for tab switching)
-            const favoritesContainer = document.getElementById('favorites-search-container');
-            if (favoritesContainer && !favoritesSearchWrapper) {
-                console.log('❤️ Setting up favorites search wrapper (lazy load)...');
-                favoritesSearchWrapper = new IframeSearchWrapper('favorites-search-container', {
-                    context: 'favorites',
-                    title: 'Documenti Preferiti',
-                    searchPlaceholder: 'Cerca nei preferiti...',
-                    height: '500px',
-                    theme: 'default',
-                    apiEndpoint: 'https://symbia.it:5000',
-                    hideBackground: true,
-                    filters: {
-                        favorite: true
-                    }
-                });
-                
-                // Set up event handlers for favorites search
-                favoritesSearchWrapper.onMessage('SEARCH_RESULTS', (data) => {
-                    console.log('Favorites search results:', data);
-                });
-                
-                favoritesSearchWrapper.onMessage('DOCUMENT_CLICKED', (data) => {
-                    console.log('Favorites search document clicked:', data);
-                });
-                
-                console.log('✅ Favorites Search Wrapper initialized (lazy load)');
-            }
-            
-            initializationComplete = true;
-            console.log('🎉 All IframeSearchWrapper instances initialized successfully');
-            console.log('Main search section should be visible immediately, others will load on demand');
-            
-        } catch (error) {
-            console.error('❌ Error initializing IframeSearchWrapper instances:', error);
-            // Retry initialization after a delay
-            setTimeout(() => {
-                initializationComplete = false;
-                initializeIframeWrappers();
-            }, 2000);
-        }
-    };
-
-    // Wait for the page to be ready
+    // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🚀 Profile Page Loaded');
         
-        // Initialize iframe wrappers immediately for faster loading
-        initializeIframeWrappers();
-        
-        // Initialize sidebar tab switching (fix for Impostazioni tab)
-        if (typeof initializeTabSwitching === 'function') {
-            initializeTabSwitching();
-        } else {
-            console.error('initializeTabSwitching is not defined');
-        }
+        // Wait a bit for all scripts to load, then initialize tab switching
+        setTimeout(() => {
+            if (typeof initializeTabSwitching === 'function') {
+                initializeTabSwitching();
+                console.log('✅ Tab switching initialized');
+            } else {
+                console.warn('⚠️ initializeTabSwitching is not defined - retrying...');
+                // Retry after another delay
+                setTimeout(() => {
+                    if (typeof initializeTabSwitching === 'function') {
+                        initializeTabSwitching();
+                        console.log('✅ Tab switching initialized (retry)');
+                    } else {
+                        console.error('❌ initializeTabSwitching still not defined');
+                    }
+                }, 1000);
+            }
+        }, 100);
     });
     
     // Add error handling for script loading

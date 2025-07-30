@@ -3911,7 +3911,7 @@ body {
     overflow: hidden;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    min-height: 400px;
+    height: 600px;
 }
 
 .reviews-section::before {
@@ -3962,9 +3962,9 @@ body {
 }
 
 .reviews-title::before {
-    content: '✨';
+    content: '⭐';
     font-size: 28px;
-    color: black;
+    color: #fbbf24;
 }
 
 @keyframes sparkle {
@@ -4519,7 +4519,7 @@ body {
 /* Reviews List */
 .reviews-list {
     min-height: 200px;
-    max-height: 500px;
+    max-height: 400px;
     overflow-y: auto;
     position: relative;
     scrollbar-width: thin;
@@ -4553,6 +4553,8 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    height: auto;
+    min-height: fit-content;
     box-shadow: 
         0 2px 8px rgba(0, 0, 0, 0.04),
         0 1px 2px rgba(0, 0, 0, 0.06),

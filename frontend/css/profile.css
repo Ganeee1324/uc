@@ -3898,7 +3898,7 @@ body {
 
 /* Reviews Section Container */
 .reviews-section {
-    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    background: linear-gradient(180deg, #f9fafb 0%, #e5e7eb 100%);
     border-radius: 24px;
     padding: 40px;
     margin-top: 32px;
@@ -3906,7 +3906,7 @@ body {
         0 1px 3px rgba(0, 0, 0, 0.12),
         0 8px 24px rgba(0, 0, 0, 0.06),
         0 16px 64px rgba(0, 0, 0, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(209, 213, 219, 0.3);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(20px);
@@ -4549,8 +4549,8 @@ body {
 }
 
 .review-item {
-    background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
-    border: 1px solid rgba(226, 232, 240, 0.4);
+    background: linear-gradient(145deg, #ffffff 0%, #f3f4f6 100%);
+    border: 1px solid rgba(209, 213, 219, 0.4);
     border-radius: 20px;
     padding: 28px;
     margin-bottom: 20px;
@@ -4561,7 +4561,7 @@ body {
         0 2px 8px rgba(0, 0, 0, 0.04),
         0 1px 2px rgba(0, 0, 0, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    min-height: auto;
+    min-height: fit-content;
     height: auto;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -4634,7 +4634,7 @@ body {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    /* Background gradient will be applied inline via JavaScript */
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -4696,12 +4696,10 @@ body {
 .review-star {
     color: #f59e0b;
     font-size: 16px;
-    transition: all 0.2s ease;
     text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
 }
 
 .review-star:hover {
-    transform: scale(1.2);
     color: #f97316;
 }
 

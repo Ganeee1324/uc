@@ -3280,12 +3280,15 @@ function createReviewElement(review) {
     // Document info
     const documentName = review.vetrina_name || review.file_name || 'Documento';
     const documentType = review.vetrina_id ? 'Vetrina' : 'File';
+    // Generate user-specific gradient
+    const userGradient = generateUserGradient(review.user.username || 'default');
+    
     reviewItem.innerHTML = `
         <div class="review-header">
             <div class="review-user-info">
-                <div class="review-user-avatar">${userInitials}</div>
+                <div class="review-user-avatar" style="background: ${userGradient};">${userInitials}</div>
                 <div class="review-user-details">
-                    <div class="review-username">${getReviewUserName(review.user)}</div>
+                    <div class="review-username">${review.user.username || getReviewUserName(review.user)}</div>
                     <div class="review-date">${formattedDate}</div>
                 </div>
             </div>
@@ -3324,12 +3327,42 @@ function createReviewElement(review) {
 
 // Generate User Initials
 function generateUserInitials(user) {
-    if (user.first_name && user.last_name) {
-        return (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase();
-    } else if (user.username) {
+    if (user.username) {
         return user.username.charAt(0).toUpperCase();
+    } else if (user.first_name && user.last_name) {
+        return (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase();
     }
     return 'U';
+}
+
+// Generate User-Specific Gradient
+function generateUserGradient(username) {
+    // Create a simple hash from username to ensure consistent colors
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        const char = username.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Professional color palette
+    const colors = [
+        ['#6366f1', '#8b5cf6'], // Blue to Purple
+        ['#8b5cf6', '#ec4899'], // Purple to Pink
+        ['#ec4899', '#f43f5e'], // Pink to Red
+        ['#f43f5e', '#f97316'], // Red to Orange
+        ['#f97316', '#eab308'], // Orange to Yellow
+        ['#eab308', '#84cc16'], // Yellow to Green
+        ['#84cc16', '#10b981'], // Green to Emerald
+        ['#10b981', '#06b6d4'], // Emerald to Cyan
+        ['#06b6d4', '#3b82f6'], // Cyan to Blue
+        ['#3b82f6', '#6366f1']  // Blue to Indigo
+    ];
+    
+    const colorIndex = Math.abs(hash) % colors.length;
+    const [color1, color2] = colors[colorIndex];
+    
+    return `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
 }
 
 // Get Review User Name

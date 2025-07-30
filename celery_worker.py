@@ -225,32 +225,31 @@ def process_pending_files(self):
             with conn.cursor() as cursor:
                 pending_file = None
                 try:
+                    cursor.execute(
+                        """
+                        SELECT * FROM file_processing_queue 
+                        WHERE failed = FALSE
+                        ORDER BY upload_date ASC 
+                        LIMIT 1
+                        """
+                    )
+                    pending_file = cursor.fetchone()
+                    if not pending_file:
+                        break
+
+                    with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:
+                        chunks = process_pdf_chunks(doc, pending_file["display_name"], "")
+                        logger.info(f"Generated {len(chunks)} chunks")
+                        num_pages = doc.page_count
+                        doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
+
+                        enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
+                        logger.info(f"Enriched {len(enriched_chunks)} chunks")
+
+                        redacted_doc = redact.blur_pages(doc, [1])
+                        redacted_doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"] + "_redacted.pdf"))
+
                     with conn.transaction():  # TODO: add error handling
-                        cursor.execute(
-                            """
-                            SELECT * FROM file_processing_queue 
-                            WHERE failed = FALSE
-                            ORDER BY upload_date ASC 
-                            LIMIT 1 FOR UPDATE SKIP LOCKED
-                            """
-                        )
-                        pending_file = cursor.fetchone()
-                        if not pending_file:
-                            break
-
-                        with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:
-                            chunks = process_pdf_chunks(doc, pending_file["display_name"], "")
-                            logger.info(f"Generated {len(chunks)} chunks")
-                            num_pages = doc.page_count
-                            doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
-
-                            enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
-                            logger.info(f"Enriched {len(enriched_chunks)} chunks")
-                            
-                            redacted_doc = redact.blur_pages(doc, [1])
-                            redacted_doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"] + "_redacted.pdf"))
-
-
                         db_file = database.add_file_to_vetrina(
                             cursor=cursor,
                             requester_id=pending_file["requester_id"],

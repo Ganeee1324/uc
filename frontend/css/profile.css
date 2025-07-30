@@ -4014,22 +4014,6 @@ body {
     border-color: rgba(99, 102, 241, 0.3);
 }
 
-.reviews-stat-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(from 0deg, transparent, rgba(99, 102, 241, 0.03), transparent);
-    animation: cardRotate 6s linear infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.reviews-stat-card:hover::before {
-    opacity: 1;
-}
 
 @keyframes cardRotate {
     0% { transform: rotate(0deg); }
@@ -4040,14 +4024,10 @@ body {
     font-size: 36px;
     font-weight: 900;
     margin-bottom: 8px;
-    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #000000;
     letter-spacing: -0.02em;
     position: relative;
     z-index: 1;
-    text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
 }
 
 .reviews-stat-label {

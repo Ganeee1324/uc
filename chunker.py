@@ -88,8 +88,8 @@ def process_pdf_chunks(doc: pymupdf.Document, file_name: str, collection_name: s
             except Exception:
                 pass
 
-            chat.add_assistant_response(response.result())
-            temp_chunks = json.loads(response.result().content)
+            chat.add_assistant_response(response)
+            temp_chunks = json.loads(response.content)
             
             # Update page_number for chunks from this page
             for chunk in temp_chunks:

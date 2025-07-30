@@ -273,10 +273,11 @@ def process_pending_files(self):
                 except Exception as e:
                     logger.error(f"Error processing file: {e}")
                     try:
-                        cursor.execute(
-                            "UPDATE file_processing_queue SET failed = TRUE WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],)
-                        )
-                        conn.commit()
+                        pass
+                        # cursor.execute(
+                        #     "UPDATE file_processing_queue SET failed = TRUE WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],)
+                        # )
+                        # conn.commit()
                     except Exception as e:
                         logger.error(f"Error marking file as failed in file processing queue: {e}")
                     finally:

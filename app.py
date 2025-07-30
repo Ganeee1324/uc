@@ -212,7 +212,6 @@ def new_search():
 
     query_embedding = get_sentence_embedding(query).squeeze()
 
-    # Get current user ID if authenticated
     current_user_id = get_jwt_identity()
 
     vetrine, chunks = database.new_search(query, query_embedding, filter_params, current_user_id)

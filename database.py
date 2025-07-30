@@ -42,9 +42,13 @@ def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector:
 def create_tables(debug: bool = False) -> None:
     with open("schema.sql", "r") as f:
         with connect(no_dict_row_factory=True) as conn:
+            logging.info("Connected to database")
             with conn.cursor() as cursor:
+                logging.info("Created cursor")
                 cursor.execute(f.read())
+                logging.info("Executed schema.sql")
                 conn.commit()
+                logging.info("Committed changes")
                 if debug:
                     # get all tables
                     cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
@@ -55,16 +59,20 @@ def create_tables(debug: bool = False) -> None:
 def fill_courses(debug: bool = False) -> None:
     df = pd.read_csv("data/courses.csv", encoding="latin1")
     with connect() as conn:
+        logging.info("Connected to database")
         with conn.cursor() as cursor:
+            logging.info("Created cursor")
             for _, row in df.iterrows():
+                logging.info(f"Inserting course instance {row['course_id']}")
                 # canale,date_year,year,language,course_id,course_name,semester,professors
                 _, canale, date_year, year, language, course_id, course_name, semester, professors, faculty = row
                 cursor.execute(
                     "INSERT INTO course_instances (course_code, faculty_name, course_year, date_year, course_semester, canale, professors, language, course_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
                     (course_id, faculty, year, date_year, semester, canale, professors.split(" / "), language, course_name),
                 )
-
+                logging.info(f"Inserted course instance {row['course_id']}")
                 conn.commit()
+                logging.info(f"Committed changes")
 
             if debug:
                 cursor.execute("SELECT * FROM course_instances")

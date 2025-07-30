@@ -3911,7 +3911,7 @@ body {
     overflow: hidden;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    height: 600px;
+    min-height: 400px;
 }
 
 .reviews-section::before {
@@ -4518,7 +4518,6 @@ body {
 /* Reviews List */
 .reviews-list {
     min-height: 200px;
-    max-height: 400px;
     overflow-y: auto;
     position: relative;
     scrollbar-width: thin;

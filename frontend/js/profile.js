@@ -2918,10 +2918,10 @@ async function loadUserReviews() {
             return;
         }
         
-        // Mock reviews data for UI testing
+        // Mock reviews data for UI testing - Use placeholder reviews for demonstration
         const response = {
             ok: true,
-            json: async () => ({ reviews: [] })
+            json: async () => ({ reviews: generatePlaceholderReviews() })
         };
         
         if (!response.ok) {

@@ -21,7 +21,7 @@ load_dotenv()
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 FILES_FOLDER = os.getenv("FILES_FOLDER")
 IMAGES_FOLDER = os.getenv("IMAGES_FOLDER")
 

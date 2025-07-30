@@ -3164,6 +3164,34 @@ function displayReviews() {
         console.log('[REVIEWS] ✅ reviewsList element found successfully');
     }
     
+    // DOM STRUCTURE DEBUGGING
+    console.log('[REVIEWS DEBUG] === DOM STRUCTURE ANALYSIS ===');
+    console.log('[REVIEWS DEBUG] reviewsList element found:', reviewsList);
+    console.log('[REVIEWS DEBUG] reviewsList.id:', reviewsList.id);
+    console.log('[REVIEWS DEBUG] reviewsList.className:', reviewsList.className);
+    console.log('[REVIEWS DEBUG] reviewsList.tagName:', reviewsList.tagName);
+    console.log('[REVIEWS DEBUG] reviewsList.innerHTML length:', reviewsList.innerHTML.length);
+    console.log('[REVIEWS DEBUG] reviewsList.outerHTML preview:', reviewsList.outerHTML.substring(0, 500) + '...');
+    
+    // Check parent hierarchy
+    console.log('[REVIEWS DEBUG] Parent hierarchy:');
+    let currentElement = reviewsList;
+    let depth = 0;
+    while (currentElement && depth < 8) {
+        console.log(`[REVIEWS DEBUG] Level ${depth}: ${currentElement.tagName}${currentElement.id ? '#' + currentElement.id : ''}${currentElement.className ? '.' + currentElement.className.replace(/\s+/g, '.') : ''}`);
+        currentElement = currentElement.parentElement;
+        depth++;
+    }
+    
+    // Check sibling elements
+    console.log('[REVIEWS DEBUG] Sibling elements:');
+    if (reviewsList.parentElement) {
+        Array.from(reviewsList.parentElement.children).forEach((child, index) => {
+            console.log(`[REVIEWS DEBUG] Sibling ${index}: ${child.tagName}${child.id ? '#' + child.id : ''}${child.className ? '.' + child.className.replace(/\s+/g, '.') : ''}`);
+        });
+    }
+    console.log('[REVIEWS DEBUG] === END DOM STRUCTURE ===');
+    
     // Hide loading indicator
     if (reviewsLoading) {
         reviewsLoading.style.display = 'none';
@@ -3206,7 +3234,24 @@ function displayReviews() {
         console.log(`[REVIEWS] Creating review ${index + 1}:`, review.user?.first_name, review.user?.last_name);
         const reviewElement = createReviewElement(review);
         if (reviewsList && reviewElement) {
+            console.log(`[REVIEWS DEBUG] About to append review ${index + 1} to reviewsList`);
+            console.log(`[REVIEWS DEBUG] reviewsList container:`, reviewsList);
+            console.log(`[REVIEWS DEBUG] reviewsList display style:`, getComputedStyle(reviewsList).display);
+            console.log(`[REVIEWS DEBUG] reviewsList visibility:`, getComputedStyle(reviewsList).visibility);
+            console.log(`[REVIEWS DEBUG] reviewsList opacity:`, getComputedStyle(reviewsList).opacity);
+            console.log(`[REVIEWS DEBUG] reviewsList clientHeight:`, reviewsList.clientHeight);
+            console.log(`[REVIEWS DEBUG] reviewsList scrollHeight:`, reviewsList.scrollHeight);
+            console.log(`[REVIEWS DEBUG] reviewsList children count before append:`, reviewsList.children.length);
+            
             reviewsList.appendChild(reviewElement);
+            
+            console.log(`[REVIEWS DEBUG] After append - children count:`, reviewsList.children.length);
+            console.log(`[REVIEWS DEBUG] Appended element parent:`, reviewElement.parentElement);
+            console.log(`[REVIEWS DEBUG] Appended element clientHeight:`, reviewElement.clientHeight);
+            console.log(`[REVIEWS DEBUG] Appended element scrollHeight:`, reviewElement.scrollHeight);
+            console.log(`[REVIEWS DEBUG] Appended element computed display:`, getComputedStyle(reviewElement).display);
+            console.log(`[REVIEWS DEBUG] Appended element computed visibility:`, getComputedStyle(reviewElement).visibility);
+            console.log(`[REVIEWS DEBUG] Appended element computed opacity:`, getComputedStyle(reviewElement).opacity);
             console.log(`[REVIEWS] ✅ Review ${index + 1} added to DOM`);
         } else {
             console.error(`[REVIEWS] ❌ Failed to add review ${index + 1} to DOM:`, review.user?.first_name);
@@ -3216,6 +3261,80 @@ function displayReviews() {
     });
     
     console.log('[REVIEWS] Final reviewsList children count:', reviewsList.children.length);
+    
+    // Comprehensive CSS and visibility debugging
+    console.log('[REVIEWS DEBUG] === CSS AND VISIBILITY ANALYSIS ===');
+    console.log('[REVIEWS DEBUG] reviewsList container styles:');
+    const reviewsListStyles = getComputedStyle(reviewsList);
+    console.log('[REVIEWS DEBUG] - display:', reviewsListStyles.display);
+    console.log('[REVIEWS DEBUG] - visibility:', reviewsListStyles.visibility);
+    console.log('[REVIEWS DEBUG] - opacity:', reviewsListStyles.opacity);
+    console.log('[REVIEWS DEBUG] - height:', reviewsListStyles.height);
+    console.log('[REVIEWS DEBUG] - maxHeight:', reviewsListStyles.maxHeight);
+    console.log('[REVIEWS DEBUG] - overflow:', reviewsListStyles.overflow);
+    console.log('[REVIEWS DEBUG] - position:', reviewsListStyles.position);
+    console.log('[REVIEWS DEBUG] - zIndex:', reviewsListStyles.zIndex);
+    
+    // Check parent containers
+    let parent = reviewsList.parentElement;
+    let level = 0;
+    while (parent && level < 5) {
+        console.log(`[REVIEWS DEBUG] Parent ${level} (${parent.tagName}.${parent.className}):`);
+        const parentStyles = getComputedStyle(parent);
+        console.log(`[REVIEWS DEBUG] - display: ${parentStyles.display}, visibility: ${parentStyles.visibility}, opacity: ${parentStyles.opacity}`);
+        parent = parent.parentElement;
+        level++;
+    }
+    
+    // Check individual review items
+    console.log('[REVIEWS DEBUG] === INDIVIDUAL REVIEW ITEMS ===');
+    for (let i = 0; i < reviewsList.children.length; i++) {
+        const child = reviewsList.children[i];
+        const childStyles = getComputedStyle(child);
+        console.log(`[REVIEWS DEBUG] Review ${i + 1} styles:`);
+        console.log(`[REVIEWS DEBUG] - classList: ${child.classList.toString()}`);
+        console.log(`[REVIEWS DEBUG] - display: ${childStyles.display}`);
+        console.log(`[REVIEWS DEBUG] - visibility: ${childStyles.visibility}`);
+        console.log(`[REVIEWS DEBUG] - opacity: ${childStyles.opacity}`);
+        console.log(`[REVIEWS DEBUG] - height: ${childStyles.height}`);
+        console.log(`[REVIEWS DEBUG] - clientHeight: ${child.clientHeight}`);
+        console.log(`[REVIEWS DEBUG] - offsetHeight: ${child.offsetHeight}`);
+        console.log(`[REVIEWS DEBUG] - scrollHeight: ${child.scrollHeight}`);
+        console.log(`[REVIEWS DEBUG] - background: ${childStyles.background}`);
+        console.log(`[REVIEWS DEBUG] - border: ${childStyles.border}`);
+    }
+    console.log('[REVIEWS DEBUG] === END CSS ANALYSIS ===');
+    
+    // Delayed visibility check (to catch any async CSS issues)
+    setTimeout(() => {
+        console.log('[REVIEWS DEBUG] === DELAYED VISIBILITY CHECK (1000ms) ===');
+        console.log('[REVIEWS DEBUG] reviewsList final visibility check:');
+        console.log('[REVIEWS DEBUG] - clientHeight:', reviewsList.clientHeight);
+        console.log('[REVIEWS DEBUG] - offsetHeight:', reviewsList.offsetHeight);
+        console.log('[REVIEWS DEBUG] - scrollHeight:', reviewsList.scrollHeight);
+        console.log('[REVIEWS DEBUG] - getBoundingClientRect:', reviewsList.getBoundingClientRect());
+        
+        const finalStyles = getComputedStyle(reviewsList);
+        console.log('[REVIEWS DEBUG] Final computed styles:');
+        console.log('[REVIEWS DEBUG] - display:', finalStyles.display);
+        console.log('[REVIEWS DEBUG] - visibility:', finalStyles.visibility);
+        console.log('[REVIEWS DEBUG] - opacity:', finalStyles.opacity);
+        console.log('[REVIEWS DEBUG] - height:', finalStyles.height);
+        console.log('[REVIEWS DEBUG] - maxHeight:', finalStyles.maxHeight);
+        
+        // Check each review item visibility
+        for (let i = 0; i < reviewsList.children.length; i++) {
+            const item = reviewsList.children[i];
+            const itemRect = item.getBoundingClientRect();
+            console.log(`[REVIEWS DEBUG] Review ${i + 1} final check:`, {
+                clientHeight: item.clientHeight,
+                offsetHeight: item.offsetHeight,
+                rect: itemRect,
+                visible: itemRect.height > 0 && itemRect.width > 0
+            });
+        }
+        console.log('[REVIEWS DEBUG] === END DELAYED CHECK ===');
+    }, 1000);
     
     // Update scroll state
     reviewsLoaded = pageReviews.length;
@@ -3231,9 +3350,13 @@ function createReviewElement(review) {
     
     const reviewItem = document.createElement('div');
     reviewItem.className = 'review-item';
+    console.log('[REVIEWS DEBUG] Created div element with className:', reviewItem.className);
+    console.log('[REVIEWS DEBUG] Element classList:', reviewItem.classList.toString());
+    
     if (review.placeholder) {
         reviewItem.classList.add('placeholder-review');
         console.log('[REVIEWS] Added placeholder-review class');
+        console.log('[REVIEWS DEBUG] Final classList after placeholder:', reviewItem.classList.toString());
     }
     // Format date
     const reviewDate = new Date(review.review_date);
@@ -3269,6 +3392,25 @@ function createReviewElement(review) {
             <div class="review-document-type">${documentType}</div>
         </div>
     `;
+    
+    // Comprehensive debugging for created element
+    console.log('[REVIEWS DEBUG] Element innerHTML set, length:', reviewItem.innerHTML.length);
+    console.log('[REVIEWS DEBUG] Element outerHTML preview:', reviewItem.outerHTML.substring(0, 200) + '...');
+    console.log('[REVIEWS DEBUG] Element computed styles check:');
+    
+    // Add temporary style debugging
+    reviewItem.style.border = '2px solid red';
+    reviewItem.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+    reviewItem.style.minHeight = '100px';
+    reviewItem.style.display = 'block';
+    reviewItem.style.visibility = 'visible';
+    reviewItem.style.opacity = '1';
+    
+    console.log('[REVIEWS DEBUG] Added temporary debug styles to make element visible');
+    console.log('[REVIEWS DEBUG] Element style.display:', reviewItem.style.display);
+    console.log('[REVIEWS DEBUG] Element style.visibility:', reviewItem.style.visibility);
+    console.log('[REVIEWS DEBUG] Element style.opacity:', reviewItem.style.opacity);
+    
     return reviewItem;
 }
 

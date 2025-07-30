@@ -221,35 +221,38 @@ def process_pending_files(self):
     logger.info("Starting periodic file processing - checking for pending files...")
 
     while True:
-        with database.connect(vector=True) as conn:
+        with database.connect() as conn:
             with conn.cursor() as cursor:
-                pending_file = None
-                try:
-                    cursor.execute(
-                        """
-                        SELECT * FROM file_processing_queue 
-                        WHERE failed = FALSE
-                        ORDER BY upload_date ASC 
-                        LIMIT 1
-                        """
-                    )
-                    pending_file = cursor.fetchone()
-                    if not pending_file:
-                        break
+                cursor.execute(
+                    """
+                    SELECT * FROM file_processing_queue 
+                    WHERE failed = FALSE
+                    ORDER BY upload_date ASC 
+                    LIMIT 1
+                    """
+                )
+                pending_file = cursor.fetchone()
+                if not pending_file:
+                    break
+    
+        # Process the PDF file (outside database transaction to avoid timeouts)
+        try:
+            with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:
+                chunks = process_pdf_chunks(doc, pending_file["display_name"], "")
+                logger.info(f"Generated {len(chunks)} chunks")
+                num_pages = doc.page_count
+                doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
 
-                    with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:
-                        chunks = process_pdf_chunks(doc, pending_file["display_name"], "")
-                        logger.info(f"Generated {len(chunks)} chunks")
-                        num_pages = doc.page_count
-                        doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
+                enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
+                logger.info(f"Enriched {len(enriched_chunks)} chunks")
 
-                        enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
-                        logger.info(f"Enriched {len(enriched_chunks)} chunks")
+                redacted_doc = redact.blur_pages(doc, [1])
+                redacted_doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"] + "_redacted.pdf"))
 
-                        redacted_doc = redact.blur_pages(doc, [1])
-                        redacted_doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"] + "_redacted.pdf"))
-
-                    with conn.transaction():  # TODO: add error handling
+            # Now save to database with vector support
+            with database.connect(vector=True) as conn:
+                with conn.cursor() as cursor:
+                    with conn.transaction():
                         db_file = database.add_file_to_vetrina(
                             cursor=cursor,
                             requester_id=pending_file["requester_id"],
@@ -266,20 +269,19 @@ def process_pending_files(self):
                         )
 
                         database.insert_chunk_embeddings(pending_file["vetrina_id"], db_file.file_id, enriched_chunks, cursor)
-
                         cursor.execute("DELETE FROM file_processing_queue WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],))
-                        pending_file = None
-                except Exception as e:
-                    logger.error(f"Error processing file: {e}")
-                    try:
+                    
+        except Exception as e:
+            logger.error(f"Error processing file: {e}")
+            try:
+                with database.connect() as conn:
+                    with conn.cursor() as cursor:
                         cursor.execute(
                             "UPDATE file_processing_queue SET failed = TRUE WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],)
                         )
                         conn.commit()
-                    except Exception as e:
-                        logger.error(f"Error marking file as failed in file processing queue: {e}")
-                    finally:
-                        pending_file = None
+            except Exception as mark_failed_error:
+                logger.error(f"Error marking file as failed in file processing queue: {mark_failed_error}")
 
     logger.info("No pending files found in queue")
     return {"message": "No pending files"}

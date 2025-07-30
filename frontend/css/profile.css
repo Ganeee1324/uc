@@ -3911,6 +3911,7 @@ body {
     overflow: hidden;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    height: 600px;
 }
 
 .reviews-section::before {
@@ -3963,11 +3964,7 @@ body {
 .reviews-title::before {
     content: '✨';
     font-size: 28px;
-    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 2px 4px rgba(107, 114, 128, 0.2));
+    color: black;
 }
 
 @keyframes sparkle {

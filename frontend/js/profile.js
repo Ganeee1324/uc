@@ -2928,108 +2928,56 @@ async function loadUserReviews() {
         reviewsEmpty.style.display = 'none';
     }
     
-    // For demonstration purposes, always use placeholder data
-    console.log('[REVIEWS] Using placeholder data for demonstration...');
-    
-    // Simulate loading delay for realistic experience
-    setTimeout(() => {
-        console.log('[REVIEWS] Processing reviews data...');
-        try {
-            // Use placeholder data for demonstration
-            allReviews = generatePlaceholderReviews();
-            console.log('[REVIEWS] Generated', allReviews.length, 'reviews');
-            
-            // Calculate statistics
-            calculateReviewsStats();
-            console.log('[REVIEWS] Stats calculated:', {
-                total: reviewsStats.total,
-                average: reviewsStats.average,
-                recent: reviewsStats.recent30Days
-            });
-            
-            // Update UI
-            updateReviewsStats();
-            updateRatingDistribution();
-            displayReviews();
-            
-            console.log('[REVIEWS] ✅ Reviews loaded successfully!');
-            
-        } catch (error) {
-            console.error('[REVIEWS] Error processing reviews:', error);
-            showReviewsEmpty(true);
-        } finally {
-            const loadingEl = document.getElementById('reviewsLoading');
-            if (loadingEl) {
-                loadingEl.style.display = 'none';
-                console.log('[REVIEWS] Loading indicator hidden');
-            } else {
-                console.error('[REVIEWS] Could not hide loading indicator - element not found');
-            }
-        }
-    }, 800); // 800ms delay to show loading animation
-}
-
-// Real API integration function (commented out for demonstration)
-// Uncomment and use this when the backend API is ready
-/*
-async function loadUserReviewsFromAPI() {
-    const reviewsLoading = document.getElementById('reviewsLoading');
-    const reviewsEmpty = document.getElementById('reviewsEmpty');
-    
-    // Show loading state
-    if (reviewsLoading) reviewsLoading.style.display = 'flex';
-    if (reviewsEmpty) reviewsEmpty.style.display = 'none';
-    
     try {
         // Get current user info
         const currentUserId = await getCurrentUserId();
         
         if (!currentUserId) {
             console.error('No current user ID found');
-            allReviews = generatePlaceholderReviews(); // Fallback to placeholder
-        } else {
-            // Fetch reviews for documents authored by this user
-            const response = await fetch(`${API_BASE}/users/${currentUserId}/author-reviews`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to fetch reviews');
+            showReviewsEmpty(true);
+            return;
+        }
+        
+        // Fetch reviews for documents authored by this user
+        const response = await fetch(`${API_BASE}/users/${currentUserId}/author-reviews`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
             }
-            
-            const data = await response.json();
-            allReviews = data.reviews || [];
-            
-            // If no reviews found, optionally use placeholder data
-            if (allReviews.length === 0) {
-                allReviews = generatePlaceholderReviews();
-            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch reviews');
+        }
+        
+        const data = await response.json();
+        allReviews = data.reviews || [];
+        
+        // If no reviews found, show empty state
+        if (allReviews.length === 0) {
+            showReviewsEmpty(true);
+            return;
         }
         
         // Calculate statistics
         calculateReviewsStats();
+        console.log('[REVIEWS] Stats calculated:', {
+            total: reviewsStats.total,
+            average: reviewsStats.average,
+            recent: reviewsStats.recent30Days
+        });
         
         // Update UI
         updateReviewsStats();
         updateRatingDistribution();
         displayReviews();
+        
+        console.log('[REVIEWS] ✅ Reviews loaded successfully!');
         
     } catch (error) {
         console.error('Error loading reviews:', error);
-        // Use placeholder data instead of showing empty state
-        allReviews = generatePlaceholderReviews();
-        
-        // Calculate statistics
-        calculateReviewsStats();
-        
-        // Update UI
-        updateReviewsStats();
-        updateRatingDistribution();
-        displayReviews();
+        showReviewsEmpty(true);
     } finally {
         if (reviewsLoading) reviewsLoading.style.display = 'none';
     }
@@ -3065,8 +3013,6 @@ async function getCurrentUserId() {
     
     return null;
 }
-*/
-
 
 // Calculate Reviews Statistics
 function calculateReviewsStats() {

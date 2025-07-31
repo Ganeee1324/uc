@@ -500,7 +500,6 @@ function updateHeaderUserInfo(user) {
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
     if (!userAvatar) {
-        console.error('❌ userAvatar element not found!');
         return;
     }
     

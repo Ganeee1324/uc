@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
+const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
 
 // Global variables for chart functionality
 let currentChartType = 'revenue'; // Track current chart type

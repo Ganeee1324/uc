@@ -1,7 +1,7 @@
 // Add cache-busting timestamp to force browser refresh
 const CACHE_BUSTER = Date.now();
 
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
+const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
 let authToken = localStorage.getItem('authToken');
 
 // Hierarchy Cache Management

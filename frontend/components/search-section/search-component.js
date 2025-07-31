@@ -4,7 +4,7 @@ const CACHE_BUSTER = Date.now();
 // 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
 const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it:5000';
+const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
 let authToken = localStorage.getItem('authToken');
 
 // DOM element cache for performance optimization

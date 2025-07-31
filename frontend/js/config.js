@@ -2,11 +2,11 @@
 const config = {
     // Development
     development: {
-        API_BASE: 'https://symbia.it:5000'
+        API_BASE: 'https://symbia.it'
     },
     // Production - update this with your actual backend URL
     production: {
-        API_BASE: 'https://symbia.it:5000' // Use HTTPS for production
+        API_BASE: 'https://symbia.it' // Use HTTPS for production
     }
 };
 

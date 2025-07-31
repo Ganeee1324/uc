@@ -1,5 +1,5 @@
 from celery import Celery
-import config
+import workers.config as config
 
 # Create Celery app
 celery_app = Celery(

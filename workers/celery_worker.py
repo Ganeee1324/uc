@@ -30,10 +30,10 @@ logger = logging.getLogger(__name__)
 FILES_FOLDER = os.getenv("FILES_FOLDER")
 
 # Configuration
-import config
+import workers.config as config
 
 # Import the Celery app from celery_config
-from celery_config import celery_app as app
+from workers.celery_config import celery_app as app
 
 # Model configuration
 model_path = config.MODEL_PATH
@@ -244,7 +244,7 @@ def process_pending_files(self):
                 num_pages = doc.page_count
                 doc.save(os.path.join(FILES_FOLDER, pending_file["file_name"]))
 
-                enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.35)
+                enriched_chunks = retrieve_snippet_images(doc, chunks, num_windows=8, window_height_percentage=0.42)
                 logger.info(f"Enriched {len(enriched_chunks)} chunks")
 
                 redacted_doc = redact.blur_pages(doc, [1])

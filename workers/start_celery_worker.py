@@ -8,10 +8,10 @@ import sys
 import time
 import tempfile
 from threading import Thread
-from celery_config import celery_app
+from workers.celery_config import celery_app
 
 # Explicitly import the celery_worker module to register tasks
-import celery_worker
+import workers.celery_worker as celery_worker
 
 def ensure_temp_dir():
     """Ensure the temporary directory exists for PID files"""

@@ -3,8 +3,8 @@
 Manual test script to trigger the file processing task
 """
 
-from celery_config import celery_app
-import celery_worker
+from workers.celery_config import celery_app
+import workers.celery_worker as celery_worker
 
 def test_task():
     """Test the file processing task manually"""

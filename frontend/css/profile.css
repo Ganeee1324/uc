@@ -6009,9 +6009,8 @@ body {
 /* Center the header relative to the main-profile-content area */
 .page-header {
     text-align: center;
-    margin: 40px auto 60px auto;
+    margin: 40px auto 0px auto;
     max-width: 800px;
-    padding: 0 20px;
 }
 
 .page-title {

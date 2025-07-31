@@ -358,10 +358,10 @@ function initializeSearchComponent(pageType) {
             hideSubtitle: false
         },
         'favorites': {
-            title: '',
-            subtitle: '',
-            hideTitle: true,
-            hideSubtitle: true
+            title: 'I Tuoi Preferiti',
+            subtitle: 'Tutti i documenti che hai salvato nei preferiti',
+            hideTitle: false,
+            hideSubtitle: false
         },
         'profile': {
             title: 'I Tuoi Documenti Caricati',

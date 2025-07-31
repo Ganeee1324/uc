@@ -4,8 +4,15 @@ const CACHE_BUSTER = Date.now();
 // 🚀 DEVELOPMENT MODE: Set to true to bypass backend and always show no results
 const DEV_MODE_NO_RESULTS = false; // Change to true to test no-results state
 
-// API_BASE is already defined in profile.js - use that instead
-let authToken = localStorage.getItem('authToken');
+// Avoid variable conflicts - use existing API_BASE if defined, otherwise define it
+if (typeof API_BASE === 'undefined') {
+    var API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+}
+
+// Avoid authToken conflict - reuse existing or create new
+if (typeof authToken === 'undefined') {
+    var authToken = localStorage.getItem('authToken');
+}
 
 // DOM element cache for performance optimization
 const DOM_CACHE = {
@@ -306,10 +313,19 @@ function checkAuthentication() {
     return !!authToken;
 }
 
-let currentVetrine = [];
-let currentFiles = [];
-let originalFiles = []; // Keep original unfiltered data
-let isFiltersOpen = false;
+// Avoid variable conflicts - use existing or create new
+if (typeof currentVetrine === 'undefined') {
+    var currentVetrine = [];
+}
+if (typeof currentFiles === 'undefined') {
+    var currentFiles = [];
+}
+if (typeof originalFiles === 'undefined') {
+    var originalFiles = []; // Keep original unfiltered data
+}
+if (typeof isFiltersOpen === 'undefined') {
+    var isFiltersOpen = false;
+}
 
 // File metadata caching removed - now using only vetrina-level data
 
@@ -342,8 +358,8 @@ function initializeSearchComponent(title = null, subtitle = null) {
 }
 
 
-    // Initialize the page
-    window.onload = async function() {
+    // Initialize the search component - check if we're on a standalone search page
+    async function initializeSearchPage() {
         // Show loading cards immediately when page loads
         showLoadingCards();
         
@@ -443,10 +459,15 @@ function initializeSearchComponent(title = null, subtitle = null) {
     // Handle browser back/forward navigation
     window.addEventListener('popstate', async (event) => {
         if (currentFiles && currentFiles.length > 0) {
-            // Favorite status is already included in vetrine data, no need for separate refresh
+            // Favorite status is already included in vetrina data, no need for separate refresh
         }
     });
-};
+}
+
+// Only initialize automatically if we're on a search page (not when used as component)
+if (document.body.getAttribute('data-page') === 'search') {
+    window.onload = initializeSearchPage;
+}
 
 async function initializeUserInfo() {
     const user = await fetchCurrentUserData();

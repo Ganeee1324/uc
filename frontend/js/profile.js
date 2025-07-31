@@ -325,13 +325,13 @@ window.switchTab = async function switchTab(tabName) {
         
         currentTab = 'stats';
         
-        // DIRECT REVIEWS INITIALIZATION - Fallback method
-        console.log('🎯 Stats tab shown - attempting direct reviews initialization...');
+        // INITIALIZE REVIEWS SECTION
+        console.log('🎯 Stats tab shown - attempting reviews initialization...');
         setTimeout(() => {
-            console.log('🔄 Direct reviews initialization timeout reached');
-            if (typeof initializeReviewsSection === 'function') {
-                console.log('✅ Calling initializeReviewsSection directly from stats tab switch');
-                initializeReviewsSection();
+            console.log('🔄 Reviews initialization timeout reached');
+            if (typeof initializeReviewsOnStatsTab === 'function') {
+                console.log('✅ Calling initializeReviewsOnStatsTab');
+                initializeReviewsOnStatsTab();
                 
                 // Force reviews to show if they're not visible after 2 seconds
                 setTimeout(() => {
@@ -3583,4 +3583,481 @@ function generatePlaceholderReviews() {
         }
     ];
     return placeholderReviews;
+}
+
+// ============================
+// Reviews Section Functionality
+// ============================
+
+// Initialize Reviews Section
+function initializeReviewsSection() {
+    // Animate rating bars on load
+    animateRatingBars();
+    
+    // Add load more functionality
+    setupLoadMoreReviews();
+    
+    // Add rating bar hover effects
+    setupRatingBarInteractions();
+    
+    // Add review item animations
+    setupReviewAnimations();
+    
+    // Initialize dropdown functionality
+    setupReviewsDropdown();
+}
+
+// Animate rating bars fill
+function animateRatingBars() {
+    const ratingFills = document.querySelectorAll('.rating-fill');
+    
+    ratingFills.forEach((fill, index) => {
+        const percentage = fill.getAttribute('data-percentage');
+        if (percentage) {
+            // Set initial width to 0
+            fill.style.width = '0%';
+            fill.style.transition = 'none';
+            
+            // Animate to target width with delay - goes straight to end position
+            setTimeout(() => {
+                fill.style.transition = 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+                fill.style.width = percentage + '%';
+            }, 500 + (index * 100));
+        }
+    });
+}
+
+// Setup load more reviews functionality
+function setupLoadMoreReviews() {
+    const loadMoreBtn = document.querySelector('.load-more-btn');
+    
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+            loadMoreReviews();
+        });
+    }
+}
+
+// Load more reviews (placeholder functionality)
+function loadMoreReviews() {
+    const reviewsList = document.querySelector('.reviews-list-container');
+    const loadMoreBtn = document.querySelector('.load-more-btn');
+    
+    if (!reviewsList || !loadMoreBtn) return;
+    
+    // Show loading state
+    loadMoreBtn.innerHTML = `
+        <span>Caricamento...</span>
+        <span class="material-symbols-outlined">hourglass_empty</span>
+    `;
+    loadMoreBtn.style.pointerEvents = 'none';
+    
+    // Simulate API call delay
+    setTimeout(() => {
+        // Add new reviews (placeholder data)
+        const newReviews = [
+            {
+                name: "Roberto C.",
+                time: "1 mese fa",
+                rating: 4,
+                document: "Statistica Applicata",
+                text: "Molto utile per comprendere i concetti base. Qualche esempio in più sarebbe stato apprezzato."
+            },
+            {
+                name: "Elena P.",
+                time: "1 mese fa", 
+                rating: 5,
+                document: "Microeconomia",
+                text: "Perfetto! Spiegazioni chiare e esempi pratici. Lo consiglio a tutti gli studenti di economia."
+            }
+        ];
+        
+        newReviews.forEach((review, index) => {
+            const reviewElement = createReviewElement(review);
+            reviewElement.style.opacity = '0';
+            reviewElement.style.transform = 'translateY(20px)';
+            reviewsList.appendChild(reviewElement);
+            
+            // Animate in
+            setTimeout(() => {
+                reviewElement.style.transition = 'all 0.4s ease-out';
+                reviewElement.style.opacity = '1';
+                reviewElement.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+        
+        // Reset button
+        setTimeout(() => {
+            loadMoreBtn.innerHTML = `
+                <span class="material-symbols-outlined">expand_more</span>
+                <span>Mostra altre recensioni</span>
+            `;
+            loadMoreBtn.style.pointerEvents = 'auto';
+        }, 800);
+        
+    }, 1000);
+}
+
+// Create review element
+function createReviewElement(review) {
+    const reviewDiv = document.createElement('div');
+    reviewDiv.className = 'review-card';
+    
+    const stars = Array.from({length: 5}, (_, i) => 
+        `<span class="material-symbols-outlined star ${i < review.rating ? 'filled' : ''}">star</span>`
+    ).join('');
+    
+    // Get initials from name
+    const initials = review.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
+    
+    reviewDiv.innerHTML = `
+        <div class="review-meta">
+            <div class="reviewer-avatar">
+                <span class="avatar-text">${initials}</span>
+            </div>
+            <div class="reviewer-info">
+                <div class="reviewer-name">${review.name}</div>
+                <div class="review-date">${review.time}</div>
+            </div>
+            <div class="review-rating">
+                ${stars}
+            </div>
+        </div>
+        <div class="review-content">
+            <div class="review-document-tag">${review.document}</div>
+            <p class="review-text">${review.text}</p>
+        </div>
+    `;
+    
+    return reviewDiv;
+}
+
+// Setup rating bar hover interactions
+function setupRatingBarInteractions() {
+    const ratingBars = document.querySelectorAll('.rating-bar-item');
+    
+    ratingBars.forEach(bar => {
+        const fill = bar.querySelector('.rating-fill');
+        const count = bar.querySelector('.rating-count');
+        const label = bar.querySelector('.stars-text');
+        
+        bar.addEventListener('mouseenter', () => {
+            // Add glow effect
+            if (fill) {
+                fill.style.boxShadow = `
+                    0 2px 4px rgba(251, 191, 36, 0.6),
+                    0 0 20px rgba(251, 191, 36, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4)
+                `;
+            }
+            
+            // Highlight text
+            if (count) count.style.color = '#d97706';
+            if (label) label.style.color = '#1e293b';
+        });
+        
+        bar.addEventListener('mouseleave', () => {
+            // Remove effects
+            if (fill) {
+                fill.style.boxShadow = `
+                    0 2px 4px rgba(251, 191, 36, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3)
+                `;
+            }
+            
+            if (count) count.style.color = '#64748b';
+            if (label) label.style.color = '#475569';
+        });
+    });
+}
+
+// Setup review item animations
+function setupReviewAnimations() {
+    const reviewItems = document.querySelectorAll('.review-card');
+    
+    // Create intersection observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+            }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    });
+    
+    reviewItems.forEach(item => {
+        observer.observe(item);
+    });
+}
+
+// Update overall rating dynamically
+function updateOverallRating(newRating, totalReviews) {
+    const scoreElement = document.querySelector('.overall-rating-score');
+    const countElement = document.querySelector('.reviews-count');
+    const starsContainer = document.querySelector('.overall-rating-stars');
+    
+    if (scoreElement) {
+        // Animate score change
+        const currentScore = parseFloat(scoreElement.textContent);
+        animateNumber(scoreElement, currentScore, newRating, 1000);
+    }
+    
+    if (countElement) {
+        countElement.textContent = `${totalReviews} recensioni`;
+    }
+    
+    if (starsContainer) {
+        updateStarRating(starsContainer, newRating);
+    }
+}
+
+// Animate number changes
+function animateNumber(element, start, end, duration) {
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = start + (end - start) * easeOut;
+        
+        element.textContent = current.toFixed(1);
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+// Update star rating display
+function updateStarRating(container, rating) {
+    const stars = container.querySelectorAll('.star');
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    stars.forEach((star, index) => {
+        star.classList.remove('filled', 'half');
+        
+        if (index < fullStars) {
+            star.classList.add('filled');
+        } else if (index === fullStars && hasHalfStar) {
+            star.classList.add('half');
+        }
+    });
+}
+
+// Setup professional dropdown functionality
+function setupReviewsDropdown() {
+    const dropdownTrigger = document.getElementById('reviewsFilterDropdown');
+    const dropdownMenu = document.getElementById('reviewsFilterMenu');
+    const dropdownLabel = dropdownTrigger?.querySelector('.dropdown-label');
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+    
+    if (!dropdownTrigger || !dropdownMenu) return;
+    
+    // Toggle dropdown on trigger click
+    dropdownTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+    });
+    
+    // Handle dropdown item clicks
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectDropdownItem(item);
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!dropdownTrigger.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+    
+    // Close dropdown on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeDropdown();
+        }
+    });
+    
+    function toggleDropdown() {
+        const isOpen = dropdownMenu.classList.contains('show');
+        if (isOpen) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    }
+    
+    function openDropdown() {
+        dropdownMenu.classList.add('show');
+        dropdownTrigger.classList.add('active');
+        
+        // Focus first item for keyboard navigation
+        const firstItem = dropdownMenu.querySelector('.dropdown-item');
+        if (firstItem) {
+            firstItem.focus();
+        }
+    }
+    
+    function closeDropdown() {
+        dropdownMenu.classList.remove('show');
+        dropdownTrigger.classList.remove('active');
+    }
+    
+    function selectDropdownItem(selectedItem) {
+        // Remove active class from all items
+        dropdownItems.forEach(item => item.classList.remove('active'));
+        
+        // Add active class to selected item
+        selectedItem.classList.add('active');
+        
+        // Update dropdown label
+        const itemText = selectedItem.querySelector('span:nth-child(2)').textContent;
+        if (dropdownLabel) {
+            dropdownLabel.textContent = itemText;
+        }
+        
+        // Get filter value
+        const filterValue = selectedItem.getAttribute('data-filter');
+        
+        // Apply filter (placeholder functionality)
+        filterReviews(filterValue);
+        
+        // Close dropdown
+        closeDropdown();
+        
+        // Add subtle feedback animation
+        selectedItem.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            selectedItem.style.transform = '';
+        }, 150);
+    }
+    
+    // Keyboard navigation for dropdown
+    dropdownMenu.addEventListener('keydown', (e) => {
+        const items = Array.from(dropdownItems);
+        const currentIndex = items.findIndex(item => item === document.activeElement);
+        
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+                items[nextIndex].focus();
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+                items[prevIndex].focus();
+                break;
+            case 'Enter':
+            case ' ':
+                e.preventDefault();
+                if (document.activeElement.classList.contains('dropdown-item')) {
+                    selectDropdownItem(document.activeElement);
+                }
+                break;
+        }
+    });
+}
+
+// Filter reviews based on selected option (placeholder functionality)
+function filterReviews(filterValue) {
+    const reviewCards = document.querySelectorAll('.review-card');
+    
+    console.log(`Filtering reviews by: ${filterValue}`);
+    
+    // Add loading state
+    const reviewsContainer = document.querySelector('.reviews-list-container');
+    if (reviewsContainer) {
+        reviewsContainer.style.opacity = '0.6';
+        reviewsContainer.style.pointerEvents = 'none';
+    }
+    
+    // Simulate filtering delay
+    setTimeout(() => {
+        // Reset container
+        if (reviewsContainer) {
+            reviewsContainer.style.opacity = '1';
+            reviewsContainer.style.pointerEvents = 'auto';
+        }
+        
+        // Placeholder filter logic - in real implementation this would filter based on actual review data
+        reviewCards.forEach((card, index) => {
+            card.style.display = 'block';
+            card.style.animation = `fadeIn 0.4s ease-out ${index * 0.1}s both`;
+        });
+        
+        // Show feedback message
+        showFilterFeedback(filterValue);
+    }, 300);
+}
+
+// Show filter feedback message
+function showFilterFeedback(filterValue) {
+    const filterMessages = {
+        'all': 'Showing all reviews',
+        '5-stars': 'Showing 5-star reviews',
+        '4-stars': 'Showing 4-star reviews', 
+        'critical': 'Showing critical reviews',
+        'recent': 'Sorted by most recent',
+        'oldest': 'Sorted by oldest first'
+    };
+    
+    const message = filterMessages[filterValue] || 'Filter applied';
+    
+    // Create temporary feedback element
+    const feedback = document.createElement('div');
+    feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.3);
+        z-index: 10000;
+        opacity: 0;
+        transform: translateX(100px);
+        transition: all 0.3s ease;
+    `;
+    feedback.textContent = message;
+    
+    document.body.appendChild(feedback);
+    
+    // Animate in
+    setTimeout(() => {
+        feedback.style.opacity = '1';
+        feedback.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Remove after delay
+    setTimeout(() => {
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translateX(100px)';
+        setTimeout(() => {
+            document.body.removeChild(feedback);
+        }, 300);
+    }, 2000);
+}
+
+// Initialize reviews when stats tab is shown
+function initializeReviewsOnStatsTab() {
+    // Check if reviews section exists and initialize
+    const reviewsSection = document.querySelector('.reviews-section');
+    if (reviewsSection) {
+        initializeReviewsSection();
+    }
 } 

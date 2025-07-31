@@ -1524,7 +1524,6 @@
 <script>
     // Check authentication before initializing page
     function checkAuthenticationAndRedirect() {
-        const authToken = localStorage.getItem('authToken');
         if (!authToken) {
             console.log('No auth token found, redirecting to login...');
             // Save current page URL for redirect after login

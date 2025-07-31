@@ -4431,7 +4431,21 @@ function renderDocuments(files) {
                             }
                         }
                         
-                        return '<div class="document-type-badge">Documento</div>';
+                        // For vetrine, try to use the document_type if available
+                        // Check if the vetrina has a document_type that maps to known tags
+                        if (item.document_type) {
+                            const displayName = getTagDisplayName(item.document_type.toLowerCase());
+                            return `<div class="document-type-badge">${displayName}</div>`;
+                        }
+                        
+                        // If it's a vetrina with document_types array, use the first one
+                        if (item.document_types && item.document_types.length > 0) {
+                            const displayName = getTagDisplayName(item.document_types[0].toLowerCase());
+                            return `<div class="document-type-badge">${displayName}</div>`;
+                        }
+                        
+                        // Default fallback
+                        return `<div class="document-type-badge">${item.isVetrina ? 'Vetrina' : 'Documento'}</div>`;
                     })()}
                 </div>
                 <div class="rating-badge" data-action="open-reviews" data-vetrina-id="${item.id}" data-rating="${rating}" data-review-count="${reviewCount}" title="Mostra recensioni" style="cursor: pointer;">

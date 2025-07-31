@@ -1848,7 +1848,7 @@ function renderDocumentViewerMode(docData) {
         const vetrinaFiles = docData.vetrinaFiles || [];
     const currentDocument = docData.document;
 
-    const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, currentDocument.file_id);
+    const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, currentDocument.file_id || null);
         
         // Replace the entire main container content with the document viewer structure
         mainContainer.innerHTML = `

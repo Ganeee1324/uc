@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Miei Preferiti - Uniclarity</title>
+    
+    <!-- Resource hints for faster loading -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preload search component resources -->
+    <link rel="preload" href="components/search-section/search-component.html" as="document" crossorigin="anonymous">
+    <link rel="preload" href="components/search-section/search-component.js" as="script" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="components/search-section/search-component.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    
+    <!-- Search Component Integration Styles -->
+    <style>
+        /* Center search section relative to main-content area */
+        #searchSectionContainer,
+        #documentsSearchSectionContainer,
+        #favoritesSearchSectionContainer {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding-top: 20px;
+        }
+        
+        #main-search-container,
+        #documents-search-container,
+        #favorites-search-container {
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 1200px) {
+            #main-search-container,
+            #documents-search-container,
+            #favorites-search-container {
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                width: 100vw;
+                margin-left: -280px; /* Compensate for sidebar on mobile */
+                padding: 0 10px;
+            }
+        }
+        
+        /* Optimize image loading */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>Uniclarity</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Dashboard</h3>
+                    <div class="menu-item" onclick="window.location.href='profile.html';">
+                        <span class="menu-icon material-symbols-outlined">person</span>
+                        <span class="menu-text">Profilo</span>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Contenuti</h3>
+                    <div class="menu-item" onclick="window.location.href='documenti.html';">
+                        <span class="menu-icon material-symbols-outlined">folder</span>
+                        <span class="menu-text">I Miei Documenti</span>
+                    </div>
+                    <div class="menu-item active">
+                        <span class="menu-icon material-symbols-outlined">favorite</span>
+                        <span class="menu-text">Preferiti</span>
+                    </div>
+                    <div class="menu-item" onclick="window.location.href='upload.html';">
+                        <span class="menu-icon material-symbols-outlined">upload</span>
+                        <span class="menu-text">Carica</span>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Impostazioni</h3>
+                    <div class="menu-item">
+                        <span class="menu-icon material-symbols-outlined">settings</span>
+                        <span class="menu-text">Impostazioni</span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Favorites Dashboard -->
+            <div class="favorites-dashboard" id="favoritesDashboard">
+                <!-- Favorites Header -->
+                <div class="favorites-header">
+                    <h1 class="favorites-title">I Miei Preferiti</h1>
+                    <p class="favorites-subtitle">Utenti e documenti che hai salvato nei preferiti</p>
+                </div>
+                
+                <!-- Favorite Users Section -->
+                <div class="favorites-users-section">
+                    <h2 class="section-title">Utenti Preferiti</h2>
+                    <div class="favorites-users-container" id="favoritesUsersContainer">
+                        <!-- Favorite users will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Search Section Component for Favorites -->
+                <div class="favorites-search-section">
+                    <h2 class="section-title">Documenti Preferiti</h2>
+                    <div id="favoritesSearchSectionContainer">
+                        <!-- User's favorite documents -->
+                        <div id="favorites-search-container">
+                            <!-- Include search component for favorites -->
+                            <div id="favorites-search-component-include"></div>
+                            <script>
+                                fetch('components/search-section/search-component.html')
+                                    .then(response => response.text())
+                                    .then(html => {
+                                        document.getElementById('favorites-search-component-include').innerHTML = html;
+                                        console.log('✅ Favorites search component HTML loaded');
+                                    })
+                                    .catch(error => {
+                                        console.error('❌ Error loading favorites search component HTML:', error);
+                                    });
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/profile.js"></script>
+    <script>
+        // Initialize favorites page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load favorites data
+            if (typeof loadFavoriteUsers === 'function') {
+                loadFavoriteUsers();
+            }
+            
+            // Initialize search component for favorites
+            if (typeof initializeSearchComponent === 'function') {
+                initializeSearchComponent('favorites');
+            }
+        });
+    </script>
+</body>
+</html>

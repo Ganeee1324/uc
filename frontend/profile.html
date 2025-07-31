@@ -136,11 +136,11 @@
             
             <div class="nav-section">
                 <h3 class="nav-section-title">Contenuti</h3>
-                <div class="menu-item">
+                <div class="menu-item" onclick="window.location.href='documenti.html';">
                     <span class="menu-icon material-symbols-outlined">folder</span>
                     <span class="menu-text">I Miei Documenti</span>
                 </div>
-                <div class="menu-item">
+                <div class="menu-item" onclick="window.location.href='preferiti.html';">
                     <span class="menu-icon material-symbols-outlined">favorite</span>
                     <span class="menu-text">Preferiti</span>
                 </div>
@@ -909,74 +909,7 @@
             </div>
         </div>
 
-        <!-- My Documents Dashboard -->
-        <div class="documents-dashboard" id="documentsDashboard" style="display: none;">
-            <!-- Header for My Documents -->
-            <div class="dashboard-header">
-                <h1 class="dashboard-title">I Miei Documenti</h1>
-                <p class="dashboard-subtitle">Gestisci e visualizza tutti i tuoi documenti caricati</p>
-            </div>
-            
-            <!-- Search Section Component for Documents -->
-            <div id="documentsSearchSectionContainer">
-                <!-- User's own documents with management capabilities -->
-                <div id="documents-search-container">
-                    <!-- Include search component for documents -->
-                    <div id="documents-search-component-include"></div>
-                    <script>
-                        fetch('components/search-section/search-component.html')
-                            .then(response => response.text())
-                            .then(html => {
-                                document.getElementById('documents-search-component-include').innerHTML = html;
-                                console.log('✅ Documents search component HTML loaded');
-                            })
-                            .catch(error => {
-                                console.error('❌ Error loading documents search component HTML:', error);
-                            });
-                    </script>
-                </div>
-            </div>
-        </div>
 
-        <!-- Favorites Dashboard -->
-        <div class="favorites-dashboard" id="favoritesDashboard" style="display: none;">
-            <!-- Favorites Header -->
-            <div class="favorites-header">
-                <h1 class="favorites-title">I Miei Preferiti</h1>
-                <p class="favorites-subtitle">Utenti e documenti che hai salvato nei preferiti</p>
-            </div>
-            
-            <!-- Favorite Users Section -->
-            <div class="favorites-users-section">
-                <h2 class="section-title">Utenti Preferiti</h2>
-                <div class="favorites-users-container" id="favoritesUsersContainer">
-                    <!-- Favorite users will be loaded here -->
-                </div>
-            </div>
-            
-            <!-- Search Section Component for Favorites -->
-            <div class="favorites-search-section">
-                <h2 class="section-title">Documenti Preferiti</h2>
-                <div id="favoritesSearchSectionContainer">
-                    <!-- User's favorite documents -->
-                    <div id="favorites-search-container">
-                        <!-- Include search component for favorites -->
-                        <div id="favorites-search-component-include"></div>
-                        <script>
-                            fetch('components/search-section/search-component.html')
-                                .then(response => response.text())
-                                .then(html => {
-                                    document.getElementById('favorites-search-component-include').innerHTML = html;
-                                    console.log('✅ Favorites search component HTML loaded');
-                                })
-                                .catch(error => {
-                                    console.error('❌ Error loading favorites search component HTML:', error);
-                                });
-                        </script>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Professional Settings Dashboard -->
         <div class="settings-dashboard" id="settingsDashboard" style="display: none;">

@@ -10,10 +10,7 @@ try:
 except ImportError:
     has_distributed = False
 
-try:
-    import horovod.torch as hvd
-except ImportError:
-    hvd = None
+hvd = None
 
 from timm.loss import LabelSmoothingCrossEntropy
 

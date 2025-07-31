@@ -7076,11 +7076,12 @@ const aiSuggestions = [
 ];
 
 // Performance optimization variables
-let typewriterActive = true;
-let typewriterPaused = false;
-let currentTypewriterIndex = 0;
-let currentTypewriterSuggestions = standardSuggestions;
-let typewriterCursorVisible = true;
+// Note: typewriterActive and related variables are defined in search-component.js to avoid conflicts
+// let typewriterActive = true; // Commented out to prevent duplicate declaration
+// let typewriterPaused = false; // Commented out to prevent duplicate declaration  
+// let currentTypewriterIndex = 0; // Commented out to prevent duplicate declaration
+// let currentTypewriterSuggestions = standardSuggestions; // Commented out to prevent duplicate declaration
+// let typewriterCursorVisible = true; // Commented out to prevent duplicate declaration
 let typewriterCursorInterval = null;
 const TYPEWRITER_CURSOR_CHAR = '\u258F'; // ▍ Unicode block for a thick caret
 

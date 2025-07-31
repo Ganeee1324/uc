@@ -13,16 +13,7 @@ from timm.layers import trunc_normal_
 from .rope import VisionRotaryEmbedding, VisionRotaryEmbeddingFast
 from .utils import to_2tuple
 
-if os.getenv('ENV_TYPE') == 'deepspeed':
-    try:
-        import deepspeed
-        from deepspeed.runtime.activation_checkpointing.checkpointing import checkpoint
-    except:
-        print("Please 'pip install deepspeed'")
-        deepspeed = None
-        from torch.utils.checkpoint import checkpoint
-else:
-    from torch.utils.checkpoint import checkpoint
+from torch.utils.checkpoint import checkpoint
 
 try:
     import xformers.ops as xops

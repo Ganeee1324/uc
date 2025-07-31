@@ -12,13 +12,7 @@ from timm.layers import drop_path, to_2tuple, trunc_normal_
 from .transformer import PatchDropout
 from .rope import VisionRotaryEmbedding, VisionRotaryEmbeddingFast
 
-if os.getenv('ENV_TYPE') == 'deepspeed':
-    try:
-        from deepspeed.runtime.activation_checkpointing.checkpointing import checkpoint
-    except:
-        from torch.utils.checkpoint import checkpoint
-else:
-    from torch.utils.checkpoint import checkpoint
+from torch.utils.checkpoint import checkpoint
 
 try:
     import xformers.ops as xops

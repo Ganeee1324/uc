@@ -2025,21 +2025,6 @@ function getCurrentUser() {
     return null;
 }
 
-// Strong gradient definitions - matches search.js exactly
-const STRONG_GRADIENTS = [
-    'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',      // Deep Blue to Blue
-    'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',      // Purple to Pink
-    'linear-gradient(135deg, #059669 0%, #10b981 100%)',      // Green to Emerald
-    'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',      // Red to Red
-    'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',      // Orange to Orange
-    'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',      // Cyan to Cyan
-    'linear-gradient(135deg, #be185d 0%, #ec4899 100%)',      // Pink to Pink
-    'linear-gradient(135deg, #166534 0%, #22c55e 100%)',      // Green to Green
-    'linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%)',      // Dark Red to Red
-    'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',      // Dark Blue to Blue
-    'linear-gradient(135deg, #6b21a8 0%, #a855f7 100%)',      // Dark Purple to Purple
-    'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)'       // Teal to Teal
-];
 
 // Create gradient avatar function (matches search.js exactly)
 function getConsistentGradient(username) {

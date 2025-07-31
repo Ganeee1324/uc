@@ -1,4 +1,7 @@
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+// API Configuration - use existing API_BASE if defined, otherwise define it
+if (typeof API_BASE === 'undefined') {
+    var API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+}
 
 // DOM Elements
 const toggleBtns = document.querySelectorAll('.toggle-btn');

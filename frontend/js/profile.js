@@ -1,5 +1,7 @@
-// API Configuration
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+// API Configuration - use existing API_BASE if defined, otherwise define it
+if (typeof API_BASE === 'undefined') {
+    var API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+}
 
 // Global variables for chart functionality
 let currentChartType = 'revenue'; // Track current chart type

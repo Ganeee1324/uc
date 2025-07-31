@@ -1,5 +1,8 @@
 // Configuration
-const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+// API Configuration - use existing API_BASE if defined, otherwise define it
+if (typeof API_BASE === 'undefined') {
+    var API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+}
 let authToken = localStorage.getItem('authToken');
 let selectedFiles = [];
 let currentVetrine = [];

@@ -11,7 +11,7 @@ def test_redis_connection():
     """Test Redis connection"""
     try:
         import redis
-        import config
+        import workers.config as config
         
         r = redis.from_url(config.REDIS_URL)
         r.ping()
@@ -24,8 +24,8 @@ def test_redis_connection():
 def test_celery_import():
     """Test Celery imports"""
     try:
-        from celery_config import celery_app
-        from celery_worker import get_sentence_embedding_task, enrich_snippets_task
+        from workers.celery_config import celery_app
+        from workers.celery_worker import get_sentence_embedding_task, enrich_snippets_task
         print("✓ Celery imports successful")
         return True
     except Exception as e:
@@ -35,7 +35,7 @@ def test_celery_import():
 def test_sentence_embedding():
     """Test sentence embedding task"""
     try:
-        from celery_worker import get_sentence_embedding_task
+        from workers.celery_worker import get_sentence_embedding_task
         
         print("Testing sentence embedding task...")
         print("Note: This requires a running Celery worker")
@@ -61,7 +61,7 @@ def test_sentence_embedding():
 def test_model_paths():
     """Test if model files exist"""
     import os
-    import config
+    import workers.config as config
     
     if os.path.exists(config.MODEL_PATH):
         print(f"✓ Model file found: {config.MODEL_PATH}")

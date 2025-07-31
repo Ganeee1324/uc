@@ -30,10 +30,10 @@ logger = logging.getLogger(__name__)
 FILES_FOLDER = os.getenv("FILES_FOLDER")
 
 # Configuration
-import config
+import workers.config as config
 
 # Import the Celery app from celery_config
-from celery_config import celery_app as app
+from workers.celery_config import celery_app as app
 
 # Model configuration
 model_path = config.MODEL_PATH

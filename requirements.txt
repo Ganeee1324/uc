@@ -6,7 +6,6 @@ Flask_JWT_Extended==4.7.1
 ftfy==6.3.1
 huggingface_hub==0.33.2
 langdetect_py==1.1.1
-lmstudio==1.4.1
 numpy==2.3.2
 pandas==2.3.1
 pgvector==0.4.1

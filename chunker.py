@@ -43,7 +43,7 @@ def process_pdf_chunks(doc: pymupdf.Document, file_name: str, collection_name: s
         model.unload()
 
     try:
-        model = lms.llm("google/gemma-3-12b", config={"contextLength": 6000, "gpu": {"ratio": 0.59}})
+        model = lms.llm("google/gemma-3-12b", config={"contextLength": 6000, "gpu": {"ratio": 0.75}})
         chat = lms.Chat()
 
         schema = {

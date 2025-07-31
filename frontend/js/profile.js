@@ -1957,42 +1957,47 @@ window.selectChartType = function(option, type, label) {
 // USER PERSONALIZATION FUNCTIONALITY
 // ===========================
 
-// Get current user data - return mock data for UI testing
+// Get current user data from localStorage (matches search.js exactly)
 function getCurrentUser() {
-    return {
-        user_id: 'mock-user-123',
-        first_name: 'Test',
-        last_name: 'User',
-        email: 'test@example.com',
-        username: 'testuser'
-    };
+    const cachedUser = localStorage.getItem('currentUser');
+    if (cachedUser) {
+        return JSON.parse(cachedUser);
+    }
+    return null;
 }
 
-// Create gradient avatar function (copied from search.js)
+// Strong gradient definitions - matches search.js exactly
+const STRONG_GRADIENTS = [
+    'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',      // Deep Blue to Blue
+    'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',      // Purple to Pink
+    'linear-gradient(135deg, #059669 0%, #10b981 100%)',      // Green to Emerald
+    'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',      // Red to Red
+    'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',      // Orange to Orange
+    'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',      // Cyan to Cyan
+    'linear-gradient(135deg, #be185d 0%, #ec4899 100%)',      // Pink to Pink
+    'linear-gradient(135deg, #166534 0%, #22c55e 100%)',      // Green to Green
+    'linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%)',      // Dark Red to Red
+    'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',      // Dark Blue to Blue
+    'linear-gradient(135deg, #6b21a8 0%, #a855f7 100%)',      // Dark Purple to Purple
+    'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)'       // Teal to Teal
+];
+
+// Create gradient avatar function (matches search.js exactly)
 function getConsistentGradient(username) {
-    if (!username) return 'linear-gradient(135deg, #49c5eb 0%, #3b82f6 100%)';
-    
-    // Simple hash function for consistent colors
+    if (!username) return STRONG_GRADIENTS[0];
     let hash = 0;
     for (let i = 0; i < username.length; i++) {
-        const char = username.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32-bit integer
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
-    // Use hash to generate consistent colors
-    const hue1 = Math.abs(hash) % 360;
-    const hue2 = (hue1 + 60) % 360;
-    
-    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 50%) 100%)`;
+    return STRONG_GRADIENTS[Math.abs(hash) % STRONG_GRADIENTS.length];
 }
 
-// Get user initials from username
-function getInitials(username) {
-    if (!username) return 'U';
+// Get single initial from username (profile page specific - always one character)
+function getInitials(fullName) {
+    if (!fullName) return 'U';
     
-    // For usernames, take the first character
-    return username[0].toUpperCase();
+    // For profile page, always show just the first character of username
+    return fullName.charAt(0).toUpperCase();
 }
 
 // Personalize the dashboard with user information
@@ -2005,14 +2010,12 @@ function personalizeDashboard(user) {
     const userAvatarSmall = document.querySelector('.user-avatar-gradient-small');
     const userNameSmall = document.querySelector('.user-name-small');
     
-    // Use username for avatar
-    let fullName = user.username || 'User';
-    
     // Update main profile avatar
     if (profileImage) {
         const gradient = getConsistentGradient(user.username);
+        const initials = getInitials(user.username || 'User');
         profileImage.style.background = gradient;
-        profileImage.textContent = getInitials(fullName);
+        profileImage.textContent = initials;
     }
     
     // Update username display
@@ -2023,8 +2026,9 @@ function personalizeDashboard(user) {
     // Update sidebar user info
     if (userAvatarSmall) {
         const gradient = getConsistentGradient(user.username);
+        const initials = getInitials(user.username || 'User');
         userAvatarSmall.style.background = gradient;
-        userAvatarSmall.textContent = getInitials(fullName);
+        userAvatarSmall.textContent = initials;
     }
     
     if (userNameSmall) {
@@ -2074,19 +2078,20 @@ function updateUserStatistics(user) {
     }
 }
 
-// Initialize user personalization
+// Initialize user personalization (matches search.js pattern)
 async function initializeUserPersonalization() {
-    // Create mock user data for UI testing
-    const mockUser = {
-        user_id: 'mock-user-123',
-        first_name: 'Test',
-        last_name: 'User',
-        email: 'test@example.com',
-        username: 'testuser'
-    };
+    // Get current user data from localStorage
+    const user = getCurrentUser();
     
-    // Always show personalized dashboard with mock data
-    personalizeDashboard(mockUser);
+    if (user) {
+        // User is authenticated, personalize the dashboard
+        personalizeDashboard(user);
+    } else {
+        // User is not authenticated, redirect to login
+        console.log('User not authenticated, redirecting to login...');
+        window.location.href = 'index.html';
+        return;
+    }
 }
 
 // Fetch complete user profile from backend
@@ -2108,32 +2113,20 @@ async function fetchCompleteUserProfile(userId) {
 function initializeLogout() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async function(e) {
+        logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-            
-            // Show confirmation dialog
-            if (confirm('Sei sicuro di voler disconnetterti?')) {
-                try {
-                    // Clear all stored data
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('userProfile');
-                    
-                    // Clear any other session data
-                    sessionStorage.clear();
-                    
-                    // Redirect to login page
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error('Error during logout:', error);
-                    // Even if there's an error, redirect to login page
-                    window.location.href = 'index.html';
-                }
-            }
+            logout();
         });
     }
+}
+
+function logout() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUser');
+    showStatus('Logout effettuato con successo');
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1000);
 }
 
 // ===========================
@@ -2620,8 +2613,9 @@ function loadUserDataIntoSettings() {
     const profilePicturePreview = document.querySelector('.settings-profile-picture');
     if (profilePicturePreview && user.username) {
         const gradient = getConsistentGradient(user.username);
+        const initials = getInitials(user.username);
         profilePicturePreview.style.background = gradient;
-        profilePicturePreview.textContent = getInitials(user.username);
+        profilePicturePreview.textContent = initials;
     }
 }
 
@@ -2961,8 +2955,9 @@ async function loadUserReviews() {
 }
 
 async function getCurrentUserId() {
-    // Return a mock user ID for UI testing without authentication
-    return 'mock-user-123';
+    // Get current user ID from localStorage
+    const user = getCurrentUser();
+    return user ? user.user_id : null;
 }
 
 // Calculate Reviews Statistics
@@ -4060,4 +4055,69 @@ function initializeReviewsOnStatsTab() {
     if (reviewsSection) {
         initializeReviewsSection();
     }
-} 
+}
+
+// Rating Progress Animation with Intersection Observer
+function initializeRatingProgressAnimations() {
+    const ratingFills = document.querySelectorAll('.rating-fill');
+    
+    // Set up each rating fill for animation
+    ratingFills.forEach((fill, index) => {
+        const percentage = fill.getAttribute('data-percentage');
+        if (percentage) {
+            // Set CSS custom property for target width
+            fill.style.setProperty('--target-width', percentage + '%');
+            
+            // Add staggered delay based on index for smooth sequential animation
+            const delay = index * 0.08;
+            fill.style.transitionDelay = delay + 's';
+        }
+    });
+
+    // Create intersection observer to trigger animations when visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                const ratingSection = entry.target;
+                const fills = ratingSection.querySelectorAll('.rating-fill');
+                
+                // Trigger animation immediately when section becomes visible
+                setTimeout(() => {
+                    fills.forEach((fill) => {
+                        if (!fill.classList.contains('animate')) {
+                            fill.classList.add('animate');
+                        }
+                    });
+                }, 100); // Short delay for immediate response when visible
+                
+                // Stop observing this section once animated
+                observer.unobserve(ratingSection);
+            }
+        });
+    }, {
+        threshold: 0.3, // Trigger when 30% of the element is visible
+        rootMargin: '0px 0px -50px 0px' // Trigger slightly before fully in view
+    });
+
+    // Observe rating sections
+    const ratingSections = document.querySelectorAll('.rating-distribution-card, .rating-bars-container');
+    ratingSections.forEach(section => {
+        if (section.querySelector('.rating-fill')) {
+            observer.observe(section);
+        }
+    });
+}
+
+// Initialize rating animations when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRatingProgressAnimations();
+});
+
+// Re-initialize animations when switching tabs (in case ratings are in different tabs)
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.tab-button')) {
+        setTimeout(() => {
+            initializeRatingProgressAnimations();
+        }, 100);
+    }
+}); 

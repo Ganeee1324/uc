@@ -1227,7 +1227,7 @@ search-section {
     justify-content: center;
 }
 
-.logout-btn {
+.profile-logout-btn {
     width: auto;
     min-width: 120px;
     display: flex;
@@ -1240,27 +1240,24 @@ search-section {
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    /* Removed transition and border-radius for no animation */
+    outline: none;
     margin: 0;
 }
 
-.logout-btn:hover {
+.profile-logout-btn:hover {
     background: none;
     color: #ef4444;
     /* No background or color change on hover */
 }
 
-.logout-btn:active {
-    /* Removed transform for no animation */
-}
 
-.logout-btn .menu-icon {
+.profile-logout-btn .menu-icon {
     color: #ef4444;
     margin-right: 12px;
     font-size: 20px;
 }
 
-.logout-btn .menu-text {
+.profile-logout-btn .menu-text {
     color: inherit;
     font-weight: 500;
 }
@@ -1694,7 +1691,7 @@ search-section {
         padding-top: 12px;
     }
     
-    .logout-btn {
+    .profile-logout-btn {
         padding: 10px 16px;
         margin: 0 4px;
     }
@@ -4146,12 +4143,13 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
     border-radius: 6px;
-    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    width: 0%;
+    width: 0% !important;
     box-shadow: 
         0 0 12px rgba(251, 191, 36, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: width 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition-delay: 0s;
 }
 
 .rating-fill::after {
@@ -4161,21 +4159,31 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
-    animation: ratingShimmer 3s infinite ease-in-out;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent 100%
+    );
+    animation: cleanShine 2.5s ease-in-out infinite;
+    mix-blend-mode: soft-light;
+    width: 30%;
     border-radius: 6px;
+    opacity: 0;
 }
 
-@keyframes ratingShimmer {
+@keyframes cleanShine {
     0% { 
         transform: translateX(-100%);
         opacity: 0;
     }
-    50% {
+    10% {
+        opacity: 1;
+    }
+    90% {
         opacity: 1;
     }
     100% { 
-        transform: translateX(100%);
+        transform: translateX(300%);
         opacity: 0;
     }
 }
@@ -5161,9 +5169,9 @@ body {
 /* Main Content Area */
 .reviews-main-content {
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 300px 1fr;
     gap: 28px;
-    padding: 28px 32px 32px;
+    padding: 0px 32px 32px;
     align-items: start;
     min-height: 440px;
 }
@@ -5183,6 +5191,9 @@ body {
     box-shadow: 
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    height: 380px;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-header {
@@ -5261,10 +5272,22 @@ body {
     background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
     border-radius: 8px;
     position: relative;
-    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0% !important;
     box-shadow: 
         0 2px 4px rgba(251, 191, 36, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: width 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition-delay: 0s;
+}
+
+.rating-fill.animate {
+    width: var(--target-width) !important;
+}
+
+/* Show shine effect only when animating */
+.rating-fill.animate::after {
+    opacity: 1;
+    animation-delay: 0.8s;
 }
 
 .rating-fill::after {
@@ -5275,11 +5298,15 @@ body {
     right: 0;
     bottom: 0;
     background: linear-gradient(90deg, 
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0) 100%
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent 100%
     );
+    animation: cleanShine 2.5s ease-in-out infinite;
+    mix-blend-mode: soft-light;
+    width: 30%;
     border-radius: 8px;
+    opacity: 0;
 }
 
 .rating-count {

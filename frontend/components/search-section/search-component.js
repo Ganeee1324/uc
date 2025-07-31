@@ -364,8 +364,8 @@ function initializeSearchComponent(pageType) {
             hideSubtitle: true
         },
         'profile': {
-            title: 'I Tuoi Documenti',
-            subtitle: 'Consulta e gestisci i documenti che hai caricato sulla piattaforma',
+            title: 'I Tuoi Documenti Caricati',
+            subtitle: 'Gestisci i documenti che hai caricato sulla piattaforma',
             hideTitle: false,
             hideSubtitle: false
         }

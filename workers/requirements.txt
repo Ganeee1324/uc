@@ -1,5 +1,4 @@
 celery==5.5.3
-database==0.6.0
 lmstudio==1.4.1
 numpy==2.3.2
 Pillow==11.3.0

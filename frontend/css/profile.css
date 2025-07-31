@@ -1321,13 +1321,14 @@ search-section {
     font-weight: 500;
 }
 
-.main-content {
+.main-profile-content {
     flex: 1;
     padding-top: 10px;
     margin-left: 280px;
     min-height: 100vh;
     background-color: #ffffff;
-    overflow: visible; /* Allow search section glow to extend beyond main content boundaries */
+    overflow: visible; 
+    width: calc(100% - 280px); /* Adjust width to account for sidebar */
 }
 
 .profile-section {
@@ -1658,7 +1659,7 @@ search-section {
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
     }
     
-    .main-content {
+    .main-profile-content {
         margin-left: 0;
         padding: 0;
         width: 100%;
@@ -1976,7 +1977,7 @@ search-section {
         overflow-x: hidden;
     }
     
-    .main-content {
+    .main-profile-content {
         overflow-x: hidden;
     } */
 }
@@ -2239,7 +2240,7 @@ search-section {
 }
 
 /* Main Content Layout */
-.stats-main-content {
+.stats-main-profile-content {
     display: grid;
     grid-template-columns: 1fr;
     gap: 32px;
@@ -5278,7 +5279,7 @@ body {
 }
 
 /* Main Content Area */
-.reviews-main-content {
+.reviews-main-profile-content {
     display: grid;
     grid-template-columns: 300px 1fr;
     gap: 28px;
@@ -5824,7 +5825,7 @@ body {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .reviews-main-content {
+    .reviews-main-profile-content {
         grid-template-columns: 300px 1fr;
         gap: 24px;
         padding: 24px 28px 28px;
@@ -5832,7 +5833,7 @@ body {
 }
 
 @media (max-width: 1024px) {
-    .reviews-main-content {
+    .reviews-main-profile-content {
         grid-template-columns: 1fr;
         gap: 24px;
         min-height: 400px;
@@ -5860,7 +5861,7 @@ body {
         gap: 16px;
     }
     
-    .reviews-main-content {
+    .reviews-main-profile-content {
         padding: 24px 20px;
         gap: 20px;
         min-height: 360px;
@@ -5899,7 +5900,7 @@ body {
         padding: 16px 20px;
     }
     
-    .reviews-main-content {
+    .reviews-main-profile-content {
         padding: 20px 16px;
         min-height: 320px;
     }
@@ -5964,5 +5965,63 @@ body {
 .review-card:nth-child(2) { animation-delay: 0.2s; }
 .review-card:nth-child(3) { animation-delay: 0.3s; }
 .review-card:nth-child(4) { animation-delay: 0.4s; }
+
+
+/* Center the header relative to the main-profile-content area */
+.page-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%; /* Full width minus the left menu's width */
+    margin-left: 280px; /* Offset by the left menu's width */
+    box-sizing: border-box;
+    padding: 20px 0; /* Optional: Add padding for spacing */
+}
+
+.page-title {
+    font-size: 48px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 16px 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 20px;
+    font-weight: 400;
+    color: #666666;
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.5;
+    max-width: 600px;
+}
+
+/* Responsive adjustments for profile page */
+@media (max-width: 768px) {
+    .page-header {
+        margin: 20px auto 40px auto;
+        padding: 0 15px;
+    }
+    
+    .page-title {
+        font-size: 36px;
+    }
+    
+    .page-subtitle {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 28px;
+    }
+    
+    .page-subtitle {
+        font-size: 16px;
+    }
+}
 
 

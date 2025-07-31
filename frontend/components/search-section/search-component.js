@@ -91,37 +91,6 @@ function debugPensatoTextPosition() {
     window.debugPensatoTextPosition = debugPensatoTextPosition;
     console.log('🔍 === DEBUGGING "Pensato per chi vuole di più" TEXT POSITION ===');
     
-    // Find the search subtitle element
-    const searchSubtitle = document.querySelector('.search-subtitle');
-    if (searchSubtitle) {
-        const rect = searchSubtitle.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(searchSubtitle);
-        
-        console.log('📍 Search Subtitle ("Pensato per chi vuole di più"):');
-        console.log('  - Text content:', searchSubtitle.textContent.trim());
-        console.log('  - Position:', {
-            top: rect.top,
-            left: rect.left,
-            bottom: rect.bottom,
-            right: rect.right,
-            width: rect.width,
-            height: rect.height
-        });
-        console.log('  - CSS Properties:', {
-            margin: computedStyle.margin,
-            padding: computedStyle.padding,
-            position: computedStyle.position,
-            top: computedStyle.top,
-            left: computedStyle.left,
-            transform: computedStyle.transform,
-            display: computedStyle.display,
-            visibility: computedStyle.visibility,
-            opacity: computedStyle.opacity
-        });
-        console.log('  - Parent container:', searchSubtitle.parentElement?.className);
-    } else {
-        console.log('❌ Search subtitle element not found');
-    }
     
     // Check search section
     const searchSection = document.querySelector('.search-section');
@@ -344,62 +313,34 @@ let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
-// Initialize search component with page-specific configuration
-function initializeSearchComponent(pageType) {
+// Initialize search component with dynamic title and subtitle
+function initializeSearchComponent(title = null, subtitle = null) {
     const searchTitle = document.getElementById('searchTitle');
     const searchSubtitle = document.getElementById('searchSubtitle');
     
-    // Page-specific configurations
-    const pageConfigs = {
-        'documents': {
-            title: 'I Miei Documenti',
-            subtitle: 'Gestisci e visualizza tutti i tuoi documenti caricati',
-            hideTitle: false,
-            hideSubtitle: false
-        },
-        'favorites': {
-            title: 'I Tuoi Preferiti',
-            subtitle: 'Tutti i documenti che hai salvato nei preferiti',
-            hideTitle: false,
-            hideSubtitle: false
-        },
-        'profile': {
-            title: 'I Tuoi Documenti Caricati',
-            subtitle: 'Gestisci i documenti che hai caricato sulla piattaforma',
-            hideTitle: false,
-            hideSubtitle: false
-        },
-        'search': {
-            title: 'Cerca.',
-            subtitle: 'Pensato per chi vuole di più.',
-            hideTitle: false,
-            hideSubtitle: false
-        }
-    };
-    
-    const config = pageConfigs[pageType] || pageConfigs['documents'];
-    
-    // Update title and subtitle
+    // Update title
     if (searchTitle) {
-        if (config.hideTitle) {
+        if (title === null || title === '') {
             searchTitle.style.display = 'none';
         } else {
-            searchTitle.textContent = config.title;
+            searchTitle.textContent = title;
             searchTitle.style.display = 'block';
         }
     }
     
+    // Update subtitle
     if (searchSubtitle) {
-        if (config.hideSubtitle) {
+        if (subtitle === null || subtitle === '') {
             searchSubtitle.style.display = 'none';
         } else {
-            searchSubtitle.textContent = config.subtitle;
+            searchSubtitle.textContent = subtitle;
             searchSubtitle.style.display = 'block';
         }
     }
     
-    console.log(`✅ Search component initialized for page type: ${pageType}`);
+    console.log(`✅ Search component initialized with title: "${title || 'hidden'}", subtitle: "${subtitle || 'hidden'}"`);
 }
+
 
     // Initialize the page
     window.onload = async function() {

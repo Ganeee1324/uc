@@ -597,7 +597,7 @@ body[data-page="search"] .background-image {
 .main-content {
     /* --sticky-top-offset is set by JavaScript */
     --sticky-top-offset: 10px; /* Default fallback value */
-    padding-top: 100px;
+    padding-top: 0;
     min-height: calc(100vh - 120px);
     position: relative;
     width: 100%;
@@ -998,10 +998,6 @@ body[data-page="search"] .background-image {
         min-height: auto; /* Let natural height prevail */
     }
     
-    .search-section.no-results-state .search-title,
-    .search-section.no-results-state .search-subtitle {
-        margin-bottom: var(--space-4);
-    }
     
     .search-section.no-results-state .search-container {
         margin-bottom: var(--space-4);
@@ -4808,21 +4804,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        transform: translateY(15px); /* Adjust for mobile layout */
    }
    
-   .search-title {
-       font-size: 42px;
-       font-weight: 800;
-       letter-spacing: -0.03em;
-       line-height: 1.1;
-       margin-bottom: var(--space-2);
-   }
-   
-   .search-subtitle {
-       font-size: 18px;
-       font-weight: 500;
-       color: rgba(77, 77, 77, 0.8);
-       margin-bottom: var(--space-8);
-       line-height: 1.4;
-   }
    
    .search-container {
        max-width: 500px;
@@ -4862,6 +4843,22 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    /* Search bar maintains default size at 900px */
+   
+   .search-title {
+       font-size: 42px;
+       font-weight: 800;
+       letter-spacing: -0.03em;
+       text-align: center;
+       margin-bottom: var(--space-2);
+   }
+   
+   .search-subtitle {
+       font-size: 18px;
+       font-weight: 500;
+       color: rgba(77, 77, 77, 0.8);
+       text-align: center;
+       margin-bottom: var(--space-8);
+   }
    
    .search-input {
        font-size: 17px;

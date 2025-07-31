@@ -22,7 +22,7 @@
     
     <!-- Search Component Integration Styles -->
     <style>
-        /* Center search section relative to main-content area */
+        /* Center search section relative to main-profile-content area */
         #searchSectionContainer,
         #documentsSearchSectionContainer,
         #favoritesSearchSectionContainer {
@@ -30,14 +30,14 @@
             justify-content: center;
             align-items: flex-start;
             width: calc(100vw - 280px); /* Full viewport width minus sidebar */
-            margin-left: -20px; /* Compensate for main-content padding if any */
+            margin-left: -20px; /* Compensate for main-profile-content padding if any */
             margin-right: -20px;
             padding: 0 40px; /* Add generous padding for centering */
-            box-sizing: border-box;
+            box-sizing:border-box;
             position: relative;
         }
         
-        /* Search containers with proper centering within main-content */
+        /* Search containers with proper centering within main-profile-content */
         #main-search-container,
         #documents-search-container,
         #favorites-search-container {
@@ -180,7 +180,7 @@
         </div>
     </div>
 
-    <div class="main-content">
+    <div class="main-profile-content">
         <div class="profile-section">
             <button class="edit-btn">
                 Modifica 
@@ -326,6 +326,12 @@
         </div>
 
         <!-- Search Section Component - Integrated under My space and Overview sections -->
+        <!-- Page Title and Subtitle -->
+        <div class="page-header">
+            <h1 class="page-title">I Tuoi Documenti Caricati</h1>
+            <p class="page-subtitle">Visualizza e gestisci tutti i documenti che hai caricato</p>
+        </div>
+        
         <div id="searchSectionContainer">
             <!-- Main search component container -->
             <div id="main-search-container">
@@ -337,10 +343,6 @@
                         .then(html => {
                             document.getElementById('search-component-include').innerHTML = html;
                             console.log('✅ Main search component HTML loaded');
-                            // Initialize with profile configuration
-                            if (typeof initializeSearchComponent === 'function') {
-                                initializeSearchComponent('profile');
-                            }
                         })
                         .catch(error => {
                             console.error('❌ Error loading search component HTML:', error);
@@ -417,7 +419,7 @@
             </div>
 
             <!-- Main Charts Section -->
-            <div class="stats-main-content">
+            <div class="stats-main-profile-content">
                 <!-- Dual Charts Container -->
                 <div class="dual-charts-container">
                     <!-- Primary Chart with Dropdown (Left Side) -->
@@ -691,7 +693,7 @@
                     </div>
                     
                     <!-- Main Content -->
-                    <div class="reviews-main-content">
+                    <div class="reviews-main-profile-content">
                         
                         <!-- Left Column: Rating Distribution -->
                         <div class="reviews-left-column">

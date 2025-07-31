@@ -355,6 +355,15 @@ function initializeSearchComponent(title = null, subtitle = null) {
     }
     
     console.log(`✅ Search component initialized with title: "${title || 'hidden'}", subtitle: "${subtitle || 'hidden'}"`);
+    
+    // When used as a component, also initialize the search functionality
+    if (document.body.getAttribute('data-page') !== 'search') {
+        // Initialize DOM cache and search functionality for component usage
+        setTimeout(() => {
+            DOM_CACHE.init(); // Ensure DOM elements are cached
+            initializeSearchPage();
+        }, 100);
+    }
 }
 
 

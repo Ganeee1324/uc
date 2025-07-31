@@ -368,6 +368,12 @@ function initializeSearchComponent(pageType) {
             subtitle: 'Gestisci i documenti che hai caricato sulla piattaforma',
             hideTitle: false,
             hideSubtitle: false
+        },
+        'search': {
+            title: 'Cerca.',
+            subtitle: 'Pensato per chi vuole di più.',
+            hideTitle: false,
+            hideSubtitle: false
         }
     };
     

@@ -3613,16 +3613,15 @@ search-section {
 }
 
 .favorites-users-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: flex;
     gap: 16px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 16px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     width: 100%;
-    max-height: 400px;
+    height: auto;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border-radius: 12px;
     border: 1px solid #e2e8f0;
@@ -3651,14 +3650,13 @@ search-section {
 /* Responsive design for favorites users */
 @media (max-width: 768px) {
     .favorites-users-container {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 12px;
         padding: 12px;
-        max-height: 350px;
     }
     
     .favorite-user-card {
         padding: 12px;
+        min-width: 160px;
     }
     
     .favorite-user-avatar {
@@ -3683,14 +3681,13 @@ search-section {
 
 @media (max-width: 480px) {
     .favorites-users-container {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 8px;
         padding: 8px;
-        max-height: 300px;
     }
     
     .favorite-user-card {
         padding: 10px;
+        min-width: 140px;
     }
     
     .favorite-user-avatar {
@@ -3724,6 +3721,8 @@ search-section {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     position: relative;
     overflow: hidden;
+    min-width: 200px;
+    flex-shrink: 0;
 }
 
 .favorite-user-card::before {

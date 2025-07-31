@@ -15,10 +15,22 @@
     <link rel="preload" href="components/search-section/search-component.html" as="document" crossorigin="anonymous">
     <link rel="preload" href="components/search-section/search-component.js" as="script" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="css/profile.css">
-    <link rel="stylesheet" href="components/search-section/search-component.css">
+    <!-- Preload critical assets -->
+    <link rel="preload" href="images/bg.png" as="image" type="image/png">
+    <link rel="preload" href="images/Logo.png" as="image" type="image/png">
+    <link rel="preload" href="css/search.css?v=1.2" as="style">
+    
+    <!-- Load fonts with display=swap for better performance -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="css/search.css?v=1.2">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="components/search-section/search-component.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="images/favicon.png" type="image/png">
     
     <!-- Search Component Integration Styles -->
     <style>
@@ -39,6 +51,12 @@
             max-width: 1200px;
         }
         
+        /* Main content adjustment for header */
+        .main-content {
+            margin-top: 72px; /* Account for fixed header */
+            padding: 20px;
+        }
+        
         /* Mobile responsiveness */
         @media (max-width: 1200px) {
             #main-search-container,
@@ -53,7 +71,6 @@
             #documentsSearchSectionContainer,
             #favoritesSearchSectionContainer {
                 width: 100vw;
-                margin-left: -280px; /* Compensate for sidebar on mobile */
                 padding: 0 10px;
             }
         }
@@ -65,51 +82,59 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Sidebar Navigation -->
-        <div class="sidebar">
-            <div class="logo">
-                <h2>Uniclarity</h2>
-            </div>
-            
-            <nav class="nav-menu">
-                <div class="nav-section">
-                    <h3 class="nav-section-title">Dashboard</h3>
-                    <div class="menu-item" onclick="window.location.href='profile.html';">
-                        <span class="menu-icon material-symbols-outlined">person</span>
-                        <span class="menu-text">Profilo</span>
-                    </div>
-                </div>
-                
-                <div class="nav-section">
-                    <h3 class="nav-section-title">Contenuti</h3>
-                    <div class="menu-item active">
-                        <span class="menu-icon material-symbols-outlined">folder</span>
-                        <span class="menu-text">I Miei Documenti</span>
-                    </div>
-                    <div class="menu-item" onclick="window.location.href='preferiti.html';">
-                        <span class="menu-icon material-symbols-outlined">favorite</span>
-                        <span class="menu-text">Preferiti</span>
-                    </div>
-                    <div class="menu-item" onclick="window.location.href='upload.html';">
-                        <span class="menu-icon material-symbols-outlined">upload</span>
-                        <span class="menu-text">Carica</span>
-                    </div>
-                </div>
-                
-                <div class="nav-section">
-                    <h3 class="nav-section-title">Impostazioni</h3>
-                    <div class="menu-item">
-                        <span class="menu-icon material-symbols-outlined">settings</span>
-                        <span class="menu-text">Impostazioni</span>
-                    </div>
-                </div>
-            </nav>
-        </div>
+<body data-page="documenti">
+    <!-- Background Image Element -->
+    <div class="background-image" aria-hidden="true"></div>
 
-        <!-- Main Content -->
-        <div class="main-content">
+    <!-- Header matching the search page -->
+    <header class="header">
+        <a href="search.html" class="logo">
+            <img src="images/Logo.png" alt="Uniclarity">
+        </a>
+        
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <a href="search.html" class="nav-link">Cerca</a>
+            <a href="documenti.html" class="nav-link">I Miei Documenti</a>
+            <a href="#forum" class="nav-link">Forum</a>
+        </nav>
+        
+        <div class="auth-buttons">
+            <div class="divider"></div>
+            <a href="upload.html" class="nav-link">Carica</a>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">
+                    <!-- Login button will be inserted here by JavaScript when user is not authenticated -->
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-user-info">
+                        <div class="dropdown-avatar" id="dropdownAvatar"></div>
+                        <div class="dropdown-user-details">
+                            <span class="dropdown-user-name" id="dropdownUserName"></span>
+                            <span class="dropdown-user-email" id="dropdownUserEmail"></span>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="upload.html" class="dropdown-item">
+                        <i class="material-symbols-outlined">upload</i>
+                        <span>Upload File</span>
+                    </a>
+                    <a href="preferiti.html" class="dropdown-item" id="userFavorites">
+                        <i class="material-symbols-outlined">favorite</i>
+                        <span>My Favorites</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item" id="logoutBtn">
+                        <i class="material-symbols-outlined">logout</i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
             <!-- My Documents Dashboard -->
             <div class="documents-dashboard" id="documentsDashboard">
                 <!-- Header for My Documents -->
@@ -138,8 +163,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+    </main>
 
     <!-- Scripts -->
     <script src="js/profile.js"></script>

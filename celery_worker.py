@@ -1,5 +1,6 @@
 import hashlib
 import os
+import traceback
 from chunker import process_pdf_chunks
 import redact
 import torch
@@ -272,7 +273,7 @@ def process_pending_files(self):
                         cursor.execute("DELETE FROM file_processing_queue WHERE uploading_file_id = %s", (pending_file["uploading_file_id"],))
                         pending_file = None
         except Exception as e:
-            logger.error(f"Error processing file: {e}")
+            logger.error(f"Error processing file: {e} {traceback.format_exc()}")
             try:
                 pass
                 # cursor.execute(

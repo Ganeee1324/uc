@@ -1331,6 +1331,21 @@ search-section {
     width: calc(100% - 280px); /* Adjust width to account for sidebar */
 }
 
+/* Responsive adjustments for main-profile-content */
+@media (max-width: 1200px) {
+    .main-profile-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+    }
+}
+
+@media (max-width: 1024px) {
+    .main-profile-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+    }
+}
+
 .profile-section {
     background: white;
     border-radius: 12px;
@@ -1644,6 +1659,30 @@ search-section {
 
 
 /* Comprehensive Mobile Responsive Design */
+
+/* Large screens - ensure consistent margin */
+@media (min-width: 1400px) {
+    .main-profile-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+    }
+}
+
+/* Medium to large screens */
+@media (max-width: 1399px) and (min-width: 1024px) {
+    .main-profile-content {
+        margin-left: 280px; 
+        width: calc(100% - 280px);
+    }
+}
+
+/* Tablet screens */
+@media (max-width: 1023px) and (min-width: 769px) {
+    .main-profile-content {
+        margin-left: 280px;
+        width: calc(100% - 280px);
+    }
+}
 
 /* Tablet and Large Mobile (768px and below) */
 @media (max-width: 768px) {
@@ -5969,13 +6008,10 @@ body {
 
 /* Center the header relative to the main-profile-content area */
 .page-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%; /* Full width minus the left menu's width */
-    margin-left: 280px; /* Offset by the left menu's width */
-    box-sizing: border-box;
-    padding: 20px 0; /* Optional: Add padding for spacing */
+    text-align: center;
+    margin: 40px auto 60px auto;
+    max-width: 800px;
+    padding: 0 20px;
 }
 
 .page-title {
@@ -5992,7 +6028,7 @@ body {
     font-size: 20px;
     font-weight: 400;
     color: #666666;
-    margin: 0;
+    margin: 0 auto;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.5;
     max-width: 600px;

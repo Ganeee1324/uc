@@ -82,6 +82,215 @@
             max-width: 100%;
             height: auto;
         }
+
+        /* User Cards Styles */
+        .favorites-users-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .favorites-users-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            border-color: #e2e8f0;
+        }
+
+        .user-avatar {
+            flex-shrink: 0;
+        }
+
+        .user-avatar img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f8fafc;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 4px 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .user-title {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0 0 12px 0;
+            font-weight: 500;
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stat i {
+            font-size: 16px;
+            color: #94a3b8;
+        }
+
+        .favorite-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #94a3b8;
+        }
+
+        .favorite-btn:hover {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .favorite-btn.active {
+            color: #ef4444;
+        }
+
+        .favorite-btn.active:hover {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Empty State Styles */
+        .empty-favorites-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 20px;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .empty-state-icon {
+            margin-bottom: 24px;
+        }
+
+        .empty-state-icon i {
+            font-size: 64px;
+            color: #cbd5e1;
+        }
+
+        .empty-state-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0 0 12px 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .empty-state-description {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0 0 32px 0;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .empty-state-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .empty-state-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+
+        .empty-state-button i {
+            font-size: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .favorites-users-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .user-card {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+
+            .empty-favorites-state {
+                padding: 40px 16px;
+            }
+
+            .empty-state-title {
+                font-size: 20px;
+            }
+
+            .empty-state-description {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body data-page="preferiti">
@@ -140,16 +349,100 @@
             <!-- Favorites Dashboard -->
             <div class="favorites-dashboard" id="favoritesDashboard">
                 <!-- Favorites Header -->
-                <div class="favorites-header">
-                    <h1 class="favorites-title">I Miei Preferiti</h1>
-                    <p class="favorites-subtitle">Utenti e documenti che hai salvato nei preferiti</p>
+                <div class="page-header">
+                    <h1 class="page-title">I Miei Preferiti</h1>
+                    <p class="page-subtitle">Utenti e documenti che hai salvato nei preferiti</p>
                 </div>
                 
                 <!-- Favorite Users Section -->
                 <div class="favorites-users-section">
                     <h2 class="section-title">Utenti Preferiti</h2>
                     <div class="favorites-users-container" id="favoritesUsersContainer">
-                        <!-- Favorite users will be loaded here -->
+                        <!-- User Card Placeholders -->
+                        <div class="user-card">
+                            <div class="user-avatar">
+                                <img src="https://i.pravatar.cc/150?img=1" alt="Marco Rossi">
+                            </div>
+                            <div class="user-info">
+                                <h3 class="user-name">Marco Rossi</h3>
+                                <p class="user-title">Ingegnere Software</p>
+                                <div class="user-stats">
+                                    <span class="stat">
+                                        <i class="material-symbols-outlined">description</i>
+                                        <span>12 documenti</span>
+                                    </span>
+                                    <span class="stat">
+                                        <i class="material-symbols-outlined">star</i>
+                                        <span>4.8 rating</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="favorite-btn active" title="Rimuovi dai preferiti">
+                                <i class="material-symbols-outlined">favorite</i>
+                            </button>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-avatar">
+                                <img src="https://i.pravatar.cc/150?img=2" alt="Anna Bianchi">
+                            </div>
+                            <div class="user-info">
+                                <h3 class="user-name">Anna Bianchi</h3>
+                                <p class="user-title">Designer UX/UI</p>
+                                <div class="user-stats">
+                                    <span class="stat">
+                                        <i class="material-symbols-outlined">description</i>
+                                        <span>8 documenti</span>
+                                    </span>
+                                    <span class="stat">
+                                        <i class="material-symbols-outlined">star</i>
+                                        <span>4.9 rating</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="favorite-btn active" title="Rimuovi dai preferiti">
+                                <i class="material-symbols-outlined">favorite</i>
+                            </button>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="user-avatar">
+                                <img src="https://i.pravatar.cc/150?img=3" alt="Luca Verde">
+                            </div>
+                            <div class="user-info">
+                                <h3 class="user-name">Luca Verde</h3>
+                                <p class="user-title">Data Scientist</p>
+                                <div class="user-stats">
+                                    <span class="stat">
+                                        <i class="material-symbols-outlined">description</i>
+                                        <span>15 documenti</span>
+                                    </span>
+                                    <span class="stat">
+                                        <i class="material-symbols-outlined">star</i>
+                                        <span>4.7 rating</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="favorite-btn active" title="Rimuovi dai preferiti">
+                                <i class="material-symbols-outlined">favorite</i>
+                            </button>
+                        </div>
+
+                        <!-- Empty State (hidden when users are present) -->
+                        <div class="empty-favorites-state" id="emptyFavoritesState" style="display: none;">
+                            <div class="empty-state-icon">
+                                <i class="material-symbols-outlined">favorite_border</i>
+                            </div>
+                            <h3 class="empty-state-title">Nessun utente nei preferiti</h3>
+                            <p class="empty-state-description">
+                                Non hai ancora aggiunto nessun utente ai tuoi preferiti. 
+                                Esplora i documenti e aggiungi gli autori che più ti interessano!
+                            </p>
+                            <a href="search.html" class="empty-state-button">
+                                <i class="material-symbols-outlined">search</i>
+                                Esplora Documenti
+                            </a>
+                        </div>
                     </div>
                 </div>
                 

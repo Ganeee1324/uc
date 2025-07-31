@@ -2,16 +2,18 @@
 """
 Script to start the Celery worker and beat scheduler for file processing.
 """
-
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).absolute().parent.parent))
 import os
 import sys
 import time
 import tempfile
 from threading import Thread
-from workers.celery_config import celery_app
+from celery_config import celery_app
 
 # Explicitly import the celery_worker module to register tasks
-import workers.celery_worker as celery_worker
+import celery_worker as celery_worker
 
 def ensure_temp_dir():
     """Ensure the temporary directory exists for PID files"""

@@ -1,0 +1,11 @@
+celery==5.5.3
+chunker==1.1
+database==0.6.0
+numpy==2.3.2
+Pillow==11.3.0
+pymupdf==1.26.3
+python-dotenv==1.1.1
+redact==0.1.1
+redis==6.2.0
+torch==2.6.0+cu126
+transformers==4.54.0

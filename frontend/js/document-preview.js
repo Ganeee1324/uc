@@ -2034,7 +2034,12 @@ function renderDocumentViewerMode(docData) {
             console.log('Loading PDF with file_id:', currentDocument.file_id);
             loadRedactedPdf(currentDocument.file_id, 'documentViewer');
         } else {
-            console.error('No file_id found in currentDocument:', currentDocument);
+            console.log('No file_id found in currentDocument (vetrina has no files):', currentDocument);
+            // Show message that this vetrina has no associated files
+            const documentViewer = document.getElementById('documentViewer');
+            if (documentViewer) {
+                documentViewer.innerHTML = '<div class="no-files-message">Questa vetrina non ha file associati.</div>';
+            }
         }
 
         // Populate file format badge

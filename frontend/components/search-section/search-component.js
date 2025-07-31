@@ -499,6 +499,11 @@ function updateHeaderUserInfo(user) {
     const dropdownUserName = document.getElementById('dropdownUserName');
     const dropdownUserEmail = document.getElementById('dropdownUserEmail');
     
+    if (!userAvatar) {
+        console.error('❌ userAvatar element not found!');
+        return;
+    }
+    
     if (user) {
         // Construct the user's full name for the avatar
         let fullName = '';
@@ -1406,9 +1411,22 @@ function populateDropdownOptions() {
 
 function populateOptions(type, items) {
     const options = document.getElementById(`${type}Options`);
-    const currentValue = document.getElementById(`${type}Filter`).value;
+    const filterElement = document.getElementById(`${type}Filter`);
     
     if (!options) {
+        console.error(`❌ ${type}Options element not found!`);
+        return;
+    }
+    
+    if (!filterElement) {
+        console.error(`❌ ${type}Filter element not found!`);
+        return;
+    }
+    
+    const currentValue = filterElement.value;
+    
+    if (!options) {
+        console.error(`❌ ${type}Options element not found!`);
         return;
     }
     

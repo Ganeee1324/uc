@@ -167,6 +167,10 @@
                                     .then(html => {
                                         document.getElementById('favorites-search-component-include').innerHTML = html;
                                         console.log('✅ Favorites search component HTML loaded');
+                                        // Initialize with favorites configuration (hides title/subtitle)
+                                        if (typeof initializeSearchComponent === 'function') {
+                                            initializeSearchComponent('favorites');
+                                        }
                                     })
                                     .catch(error => {
                                         console.error('❌ Error loading favorites search component HTML:', error);
@@ -186,11 +190,6 @@
             // Load favorites data
             if (typeof loadFavoriteUsers === 'function') {
                 loadFavoriteUsers();
-            }
-            
-            // Initialize search component for favorites
-            if (typeof initializeSearchComponent === 'function') {
-                initializeSearchComponent('favorites');
             }
         });
     </script>

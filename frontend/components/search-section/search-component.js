@@ -344,6 +344,57 @@ let isFiltersOpen = false;
 
 // File metadata caching removed - now using only vetrina-level data
 
+// Initialize search component with page-specific configuration
+function initializeSearchComponent(pageType) {
+    const searchTitle = document.getElementById('searchTitle');
+    const searchSubtitle = document.getElementById('searchSubtitle');
+    
+    // Page-specific configurations
+    const pageConfigs = {
+        'documents': {
+            title: 'I Miei Documenti',
+            subtitle: 'Gestisci e visualizza tutti i tuoi documenti caricati',
+            hideTitle: false,
+            hideSubtitle: false
+        },
+        'favorites': {
+            title: '',
+            subtitle: '',
+            hideTitle: true,
+            hideSubtitle: true
+        },
+        'profile': {
+            title: 'I Tuoi Documenti',
+            subtitle: 'Consulta e gestisci i documenti che hai caricato sulla piattaforma',
+            hideTitle: false,
+            hideSubtitle: false
+        }
+    };
+    
+    const config = pageConfigs[pageType] || pageConfigs['documents'];
+    
+    // Update title and subtitle
+    if (searchTitle) {
+        if (config.hideTitle) {
+            searchTitle.style.display = 'none';
+        } else {
+            searchTitle.textContent = config.title;
+            searchTitle.style.display = 'block';
+        }
+    }
+    
+    if (searchSubtitle) {
+        if (config.hideSubtitle) {
+            searchSubtitle.style.display = 'none';
+        } else {
+            searchSubtitle.textContent = config.subtitle;
+            searchSubtitle.style.display = 'block';
+        }
+    }
+    
+    console.log(`✅ Search component initialized for page type: ${pageType}`);
+}
+
     // Initialize the page
     window.onload = async function() {
         // Show loading cards immediately when page loads

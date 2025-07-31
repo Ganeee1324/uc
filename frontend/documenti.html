@@ -157,6 +157,10 @@
                                 .then(html => {
                                     document.getElementById('documents-search-component-include').innerHTML = html;
                                     console.log('✅ Documents search component HTML loaded');
+                                    // Initialize with documents configuration
+                                    if (typeof initializeSearchComponent === 'function') {
+                                        initializeSearchComponent('documents');
+                                    }
                                 })
                                 .catch(error => {
                                     console.error('❌ Error loading documents search component HTML:', error);
@@ -172,11 +176,6 @@
     <script>
         // Initialize documents page
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize search component for documents
-            if (typeof initializeSearchComponent === 'function') {
-                initializeSearchComponent('documents');
-            }
-            
             // Load user's documents
             if (typeof loadUserDocuments === 'function') {
                 loadUserDocuments();

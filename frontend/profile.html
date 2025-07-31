@@ -337,6 +337,10 @@
                         .then(html => {
                             document.getElementById('search-component-include').innerHTML = html;
                             console.log('✅ Main search component HTML loaded');
+                            // Initialize with profile configuration
+                            if (typeof initializeSearchComponent === 'function') {
+                                initializeSearchComponent('profile');
+                            }
                         })
                         .catch(error => {
                             console.error('❌ Error loading search component HTML:', error);

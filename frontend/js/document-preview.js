@@ -21,6 +21,10 @@ let currentUser = null; // Store current user data for review comparisons
 let currentPage = 1;
 let totalPages = 1;
 
+// File Review State Management
+let currentFileForReviews = null; // Store current file ID for reviews
+let currentFileReviews = []; // Store file reviews data
+
 // PDF.js state
 let pdfDoc = null; 
 let pdfPageNum = 1;
@@ -1630,8 +1634,13 @@ function renderDocumentListView(docData) {
         const fileSize = file.size ? formatFileSize(file.size) : null;
         const uploadDate = file.created_at ? formatRelativeDate(file.created_at) : null;
         
+        // Generate star rating for file reviews
+        const rating = file.average_rating || 0;
+        const reviewCount = file.reviews_count || 0;
+        const stars = generateStars(rating);
+        
         return `
-            <div class="document-list-item" data-file-id="${file.file_id}" data-action="preview-document" data-action-file-id="${file.file_id}">
+            <div class="document-list-item" data-file-id="${file.file_id}" data-action="view-single-document" data-action-file-id="${file.file_id}">
                 <div class="document-list-preview">
                     <div class="document-list-thumbnail">
                         <div class="document-thumbnail-icon">
@@ -1641,6 +1650,30 @@ function renderDocumentListView(docData) {
                             <span class="material-symbols-outlined">visibility</span>
                             <span class="preview-text">Anteprima</span>
                         </div>
+                        
+                        <!-- File Review Rating Badge -->
+                        ${rating > 0 || reviewCount > 0 ? `
+                        <div class="file-rating-badge" 
+                             data-action="open-file-reviews" 
+                             data-file-id="${file.file_id}" 
+                             data-rating="${rating}" 
+                             data-review-count="${reviewCount}" 
+                             title="Mostra recensioni documento" 
+                             style="cursor: pointer;">
+                            <div class="rating-stars">${stars}</div>
+                            <span class="rating-count">(${reviewCount})</span>
+                        </div>
+                        ` : `
+                        <div class="file-rating-badge no-reviews" 
+                             data-action="open-file-reviews" 
+                             data-file-id="${file.file_id}" 
+                             data-rating="0" 
+                             data-review-count="0" 
+                             title="Aggiungi recensione" 
+                             style="cursor: pointer;">
+                            <span class="material-symbols-outlined">rate_review</span>
+                        </div>
+                        `}
                     </div>
                 </div>
                 <div class="document-list-content">
@@ -1649,6 +1682,24 @@ function renderDocumentListView(docData) {
                         <div class="document-title-section">
                             <h3 class="document-list-title">${displayFilename}</h3>
                             <div class="document-list-description">${file.description || 'Nessuna descrizione disponibile'}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Document metadata footer -->
+                    <div class="document-metadata-footer">
+                        <div class="document-stats">
+                            ${file.num_pages > 0 ? `
+                            <div class="stat-item">
+                                <span class="material-symbols-outlined">description</span>
+                                <span class="stat-value">${file.num_pages} ${file.num_pages === 1 ? 'pagina' : 'pagine'}</span>
+                            </div>
+                            ` : ''}
+                            ${fileSize ? `
+                            <div class="stat-item">
+                                <span class="material-symbols-outlined">storage</span>
+                                <span class="stat-value">${fileSize}</span>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -2187,6 +2238,11 @@ function initializeReviewsOverlay(reviews = []) {
         if (e.target.closest('[data-action="delete-review"]')) {
             deleteUserReview();
         }
+        
+        if (e.target.closest('[data-action="delete-file-review"]')) {
+            const fileId = e.target.closest('[data-action="delete-file-review"]').getAttribute('data-file-id');
+            deleteFileReview(fileId);
+        }
     });
 
     // Initialize star rating functionality
@@ -2636,7 +2692,11 @@ function highlightStars(rating) {
 
 // Submit review
 async function submitReview() {
-    if (!currentVetrinaForReviews || selectedRating === 0) {
+    // Check if we're reviewing a file or a vetrina
+    const isFileReview = currentFileForReviews !== null;
+    const reviewTarget = isFileReview ? currentFileForReviews : currentVetrinaForReviews;
+    
+    if (!reviewTarget || selectedRating === 0) {
         showNotification('Seleziona una valutazione prima di inviare la recensione.', 'error');
         return;
     }
@@ -2656,7 +2716,12 @@ async function submitReview() {
         return;
     }
     
-        const response = await fetch(`${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`, {
+        // Determine API endpoint based on review type
+        const endpoint = isFileReview 
+            ? `${API_BASE}/files/${currentFileForReviews}/reviews`
+            : `${API_BASE}/vetrine/${currentVetrinaForReviews}/reviews`;
+            
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -2694,28 +2759,47 @@ async function submitReview() {
             
             console.log('Created new review object:', newReview);
             
-            // Update currentReviews immediately with the new review
+            // Update reviews array based on review type
+            const reviewsArray = isFileReview ? currentFileReviews : currentReviews;
+            const updateFunction = isFileReview ? updateFileReviewsOverlay : updateReviewsOverlay;
+            
             if (data.msg === 'Review updated') {
                 // Update existing review
-                const existingIndex = currentReviews.findIndex(review => 
+                const existingIndex = reviewsArray.findIndex(review => 
                     review.user?.user_id === currentUser.user_id
                 );
                 if (existingIndex !== -1) {
-                    currentReviews[existingIndex] = newReview;
+                    reviewsArray[existingIndex] = newReview;
                 }
             } else {
                 // Add new review
-                currentReviews.push(newReview);
+                reviewsArray.push(newReview);
             }
             
-            // Update currentUserReview
-            currentUserReview = newReview;
+            // Update currentUserReview based on review type
+            if (isFileReview) {
+                // For file reviews, we might not have a global currentUserReview
+                // Instead, update the file's rating data in the currentVetrinaFiles array
+                const fileIndex = currentVetrinaFiles.findIndex(f => f.file_id == currentFileForReviews);
+                if (fileIndex !== -1) {
+                    currentVetrinaFiles[fileIndex].reviews_count = reviewsArray.length;
+                    const avgRating = reviewsArray.reduce((sum, r) => sum + r.rating, 0) / reviewsArray.length;
+                    currentVetrinaFiles[fileIndex].average_rating = avgRating;
+                }
+            } else {
+                currentUserReview = newReview;
+            }
             
             // Update the UI immediately
-            updateReviewsOverlay();
+            updateFunction();
             
             // Update the rating display immediately
-            updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            if (isFileReview) {
+                // Update file rating badge in the document list
+                updateFileRatingBadge(currentFileForReviews);
+            } else {
+                updateVetrinaRatingInSearch(currentVetrinaForReviews);
+            }
             
             // Clear cache and reload in background to ensure data consistency
             const cacheKey = `reviews_${currentVetrinaForReviews}_${localStorage.getItem('authToken') || 'guest'}`;
@@ -3215,6 +3299,22 @@ function handlePreviewActions(e) {
                 openDocumentPreview(fileId);
             }
             break;
+        case 'view-single-document':
+            e.preventDefault();
+            e.stopPropagation();
+            const singleDocFileId = e.target.closest('[data-file-id]')?.getAttribute('data-file-id');
+            if (singleDocFileId) {
+                viewSingleDocument(singleDocFileId);
+            }
+            break;
+        case 'open-file-reviews':
+            e.preventDefault();
+            e.stopPropagation();
+            const reviewFileId = e.target.closest('[data-file-id]')?.getAttribute('data-file-id');
+            if (reviewFileId) {
+                openFileReviewsOverlay(reviewFileId);
+            }
+            break;
         case 'close-preview':
             closeDocumentPreview();
             break;
@@ -3309,6 +3409,244 @@ function closeDocumentPreview() {
             content.classList.remove('loaded');
         }
     }, 300);
+}
+
+// View single document (without descrizione section)
+function viewSingleDocument(fileId) {
+    const file = currentVetrinaFiles.find(f => f.file_id == fileId);
+    if (!file) return;
+    
+    // Construct URL for single document view
+    const params = new URLSearchParams({
+        id: currentVetrina?.id || currentVetrina?.vetrina_id,
+        file: fileId,
+        single: 'true' // Flag to indicate single document view
+    });
+    
+    // Navigate to single document view
+    window.location.href = `document-preview.html?${params.toString()}`;
+}
+
+// Open file reviews overlay
+async function openFileReviewsOverlay(fileId) {
+    const file = currentVetrinaFiles.find(f => f.file_id == fileId);
+    if (!file) return;
+    
+    // Store current file for reviews
+    currentFileForReviews = fileId;
+    
+    const overlay = document.getElementById('reviewsOverlay');
+    if (overlay) {
+        // Update overlay title to show it's for a specific file
+        const overlayTitle = overlay.querySelector('h2');
+        if (overlayTitle) {
+            const displayFilename = extractOriginalFilename(file.filename);
+            overlayTitle.innerHTML = `
+                <span class="material-symbols-outlined">rate_review</span>
+                Recensioni - ${displayFilename}
+            `;
+        }
+        
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Show initial rating data from file object
+        showInitialFileRatingData(file);
+        
+        // Load detailed reviews data in background
+        await loadReviewsForFile(fileId);
+        updateFileReviewsOverlay();
+    }
+}
+
+// Show initial file rating data
+function showInitialFileRatingData(file) {
+    const rating = file.average_rating || 0;
+    const reviewCount = file.reviews_count || 0;
+    
+    // Update big stars display
+    const bigStars = document.querySelector('.big-stars');
+    if (bigStars) {
+        bigStars.innerHTML = generateStars(rating);
+    }
+    
+    // Update big rating score
+    const bigRatingScore = document.querySelector('.big-rating-score');
+    if (bigRatingScore) {
+        bigRatingScore.textContent = rating.toFixed(1);
+    }
+    
+    // Update total reviews text
+    const totalReviews = document.querySelector('.total-reviews');
+    if (totalReviews) {
+        totalReviews.textContent = `Basato su ${reviewCount} ${reviewCount === 1 ? 'recensione' : 'recensioni'}`;
+    }
+}
+
+// Load reviews for specific file
+async function loadReviewsForFile(fileId) {
+    try {
+        const response = await makeRequest(`${API_BASE}/files/${fileId}/reviews`);
+        if (response && response.reviews) {
+            currentFileReviews = response.reviews;
+        } else {
+            currentFileReviews = [];
+        }
+    } catch (error) {
+        console.error('Error loading file reviews:', error);
+        currentFileReviews = [];
+    }
+}
+
+// Update file reviews overlay
+function updateFileReviewsOverlay() {
+    const reviewsList = document.getElementById('reviewsList');
+    if (!reviewsList) return;
+    
+    if (!currentFileReviews || currentFileReviews.length === 0) {
+        reviewsList.innerHTML = `
+            <div class="no-reviews-message">
+                <span class="material-symbols-outlined">rate_review</span>
+                <p>Nessuna recensione ancora</p>
+                <span>Sii il primo a recensire questo documento!</span>
+            </div>
+        `;
+        return;
+    }
+    
+    // Sort reviews by date (newest first)
+    const sortedReviews = [...currentFileReviews].sort((a, b) => 
+        new Date(b.review_date) - new Date(a.review_date)
+    );
+    
+    reviewsList.innerHTML = sortedReviews.map(review => {
+        const reviewDate = new Date(review.review_date);
+        const formattedDate = reviewDate.toLocaleDateString('it-IT', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        const isOwnReview = currentUser && review.user && 
+            (review.user.user_id === currentUser.user_id || 
+             review.user.username === currentUser.username);
+        
+        return `
+            <div class="review-item ${isOwnReview ? 'own-review' : ''}">
+                <div class="review-header">
+                    <div class="review-author">
+                        <div class="review-avatar">
+                            ${createGradientAvatar(review.user.full_name, review.user.username)}
+                        </div>
+                        <div class="review-author-info">
+                            <span class="review-author-name">${review.user.full_name || review.user.username}</span>
+                            <span class="review-date">${formattedDate}</span>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="review-stars">${generateStars(review.rating)}</div>
+                        ${isOwnReview ? `
+                        <button class="delete-review-btn" data-action="delete-file-review" data-file-id="${currentFileForReviews}" title="Elimina recensione">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="review-content">
+                    <p>${review.review_text}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Delete file review
+async function deleteFileReview(fileId) {
+    if (!fileId) return;
+    
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showNotification('Sessione scaduta. Effettua nuovamente l\'accesso.', 'error');
+            return;
+        }
+        
+        const response = await fetch(`${API_BASE}/files/${fileId}/reviews`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('Recensione eliminata con successo!', 'success');
+            
+            // Remove from currentFileReviews array
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (currentUser && currentFileReviews) {
+                currentFileReviews = currentFileReviews.filter(review => 
+                    review.user?.user_id !== currentUser.user_id
+                );
+            }
+            
+            // Update file rating data
+            const fileIndex = currentVetrinaFiles.findIndex(f => f.file_id == fileId);
+            if (fileIndex !== -1) {
+                currentVetrinaFiles[fileIndex].reviews_count = currentFileReviews.length;
+                if (currentFileReviews.length > 0) {
+                    const avgRating = currentFileReviews.reduce((sum, r) => sum + r.rating, 0) / currentFileReviews.length;
+                    currentVetrinaFiles[fileIndex].average_rating = avgRating;
+                } else {
+                    currentVetrinaFiles[fileIndex].average_rating = 0;
+                }
+            }
+            
+            // Update UI
+            updateFileReviewsOverlay();
+            updateFileRatingBadge(fileId);
+            
+        } else {
+            const errorData = await response.json();
+            showNotification(errorData.message || 'Errore durante l\'eliminazione della recensione.', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting file review:', error);
+        showNotification('Errore durante l\'eliminazione della recensione.', 'error');
+    }
+}
+
+// Update file rating badge in document list
+function updateFileRatingBadge(fileId) {
+    const fileCard = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (!fileCard) return;
+    
+    const ratingBadge = fileCard.querySelector('.file-rating-badge');
+    if (!ratingBadge) return;
+    
+    const file = currentVetrinaFiles.find(f => f.file_id == fileId);
+    if (!file) return;
+    
+    const rating = file.average_rating || 0;
+    const reviewCount = file.reviews_count || 0;
+    
+    if (rating > 0 || reviewCount > 0) {
+        const stars = generateStars(rating);
+        ratingBadge.className = 'file-rating-badge';
+        ratingBadge.innerHTML = `
+            <div class="rating-stars">${stars}</div>
+            <span class="rating-count">(${reviewCount})</span>
+        `;
+    } else {
+        ratingBadge.className = 'file-rating-badge no-reviews';
+        ratingBadge.innerHTML = `
+            <span class="material-symbols-outlined">rate_review</span>
+        `;
+    }
+    
+    // Update data attributes
+    ratingBadge.setAttribute('data-rating', rating);
+    ratingBadge.setAttribute('data-review-count', reviewCount);
 }
 
 // Load redacted preview for document

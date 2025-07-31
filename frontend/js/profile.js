@@ -640,12 +640,53 @@ function renderFavoritesUsers(container, users) {
         const fullName = getFullName(user.first_name, user.last_name, user.username);
         const statsText = `${user.favorite_vetrine_count} preferit${user.favorite_vetrine_count === 1 ? 'o' : 'i'} • ${user.uploaded_documents_count} document${user.uploaded_documents_count === 1 ? 'o' : 'i'}`;
         
+        // Generate rating stars
+        const rating = user.rating || 4.5; // Default rating if not available
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 !== 0;
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        
+        let starsHtml = '';
+        for (let i = 0; i < fullStars; i++) {
+            starsHtml += '<span class="material-symbols-outlined star filled">star</span>';
+        }
+        if (hasHalfStar) {
+            starsHtml += '<span class="material-symbols-outlined star half">star_half</span>';
+        }
+        for (let i = 0; i < emptyStars; i++) {
+            starsHtml += '<span class="material-symbols-outlined star empty">star</span>';
+        }
+        
+        // Get faculty and channel info
+        const faculty = user.faculty || 'Non specificata';
+        const channel = user.channel || 'Generale';
+        
         return `
-            <div class="favorite-user-card" onclick="goToUserProfile(${user.user_id})">
-                <div class="favorite-user-avatar">${initials}</div>
-                <div class="favorite-user-name">${fullName}</div>
-                <div class="favorite-user-email">${user.email}</div>
-                <div class="favorite-user-stats">${statsText}</div>
+            <div class="favorite-user-card">
+                <div class="favorite-user-header">
+                    <div class="favorite-user-avatar">${initials}</div>
+                    <button class="save-user-btn" onclick="event.stopPropagation(); toggleSaveUser(${user.user_id}, this)">
+                        <span class="material-symbols-outlined">bookmark_add</span>
+                    </button>
+                </div>
+                <div class="favorite-user-content" onclick="goToUserProfile(${user.user_id})">
+                    <div class="favorite-user-name">${fullName}</div>
+                    <div class="favorite-user-rating">
+                        <div class="rating-stars">${starsHtml}</div>
+                        <span class="rating-value">${rating.toFixed(1)}</span>
+                    </div>
+                    <div class="favorite-user-info">
+                        <div class="info-item">
+                            <span class="material-symbols-outlined">school</span>
+                            <span>${faculty}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="material-symbols-outlined">tag</span>
+                            <span>${channel}</span>
+                        </div>
+                    </div>
+                    <div class="favorite-user-stats">${statsText}</div>
+                </div>
             </div>
         `;
     }).join('');
@@ -678,6 +719,24 @@ function getFullName(firstName, lastName, username) {
 function goToUserProfile(userId) {
     // Navigate to user profile page - using the same pattern as other parts of the app
     window.location.href = `vendor-page.html?userId=${userId}`;
+}
+
+function toggleSaveUser(userId, button) {
+    const isSaved = button.classList.contains('saved');
+    
+    if (isSaved) {
+        // Remove from saved users
+        button.classList.remove('saved');
+        button.innerHTML = '<span class="material-symbols-outlined">bookmark_add</span>';
+        // TODO: Make API call to remove user from favorites
+        console.log('Removing user from favorites:', userId);
+    } else {
+        // Add to saved users
+        button.classList.add('saved');
+        button.innerHTML = '<span class="material-symbols-outlined">bookmark_added</span>';
+        // TODO: Make API call to add user to favorites
+        console.log('Adding user to favorites:', userId);
+    }
 }
 
 function generatePlaceholderUsers() {

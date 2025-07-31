@@ -745,13 +745,20 @@
     <script>
         // Only load the script if it hasn't been loaded already
         if (!window.searchComponentLoaded) {
-            const script = document.createElement('script');
-            script.src = 'components/search-section/search-component.js';
-            script.onload = () => {
+            // Check if the script is already included via script tag
+            const existingScript = document.querySelector('script[src*="search-component.js"]');
+            if (existingScript) {
                 window.searchComponentLoaded = true;
-                console.log('✅ Search component JavaScript loaded');
-            };
-            document.head.appendChild(script);
+                console.log('ℹ️ Search component JavaScript already included via script tag');
+            } else {
+                const script = document.createElement('script');
+                script.src = 'components/search-section/search-component.js';
+                script.onload = () => {
+                    window.searchComponentLoaded = true;
+                    console.log('✅ Search component JavaScript loaded dynamically');
+                };
+                document.head.appendChild(script);
+            }
         } else {
             console.log('ℹ️ Search component JavaScript already loaded');
         }

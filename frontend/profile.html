@@ -349,6 +349,24 @@
                         .then(html => {
                             document.getElementById('search-component-include').innerHTML = html;
                             console.log('✅ Main search component HTML loaded');
+                            
+                            // After HTML is loaded, ensure the JS is loaded and initialize
+                            if (typeof initializeSearchComponent === 'function') {
+                                initializeSearchComponent('I miei documenti', 'Gestisci e monitora le tue dispense');
+                                console.log('✅ Search component initialized');
+                            } else {
+                                // If function not available yet, wait for script to load
+                                console.log('⏳ Waiting for search component JS to load...');
+                                const checkAndInit = () => {
+                                    if (typeof initializeSearchComponent === 'function') {
+                                        initializeSearchComponent('I miei documenti', 'Gestisci e monitora le tue dispense');
+                                        console.log('✅ Search component initialized (delayed)');
+                                    } else {
+                                        setTimeout(checkAndInit, 100);
+                                    }
+                                };
+                                checkAndInit();
+                            }
                         })
                         .catch(error => {
                             console.error('❌ Error loading search component HTML:', error);
@@ -1499,6 +1517,7 @@
     <!-- Professional Performance & Caching System -->
     <script src="js/config.js" defer></script>
     <script src="js/performance-cache.js" defer></script>
+    <script src="components/search-section/search-component.js" defer></script>
     <script src="js/profile.js" defer></script>
 
 <!-- Initialize Profile Page -->

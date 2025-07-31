@@ -7,5 +7,5 @@ pymupdf==1.26.3
 python-dotenv==1.1.1
 redact==0.1.1
 redis==6.2.0
-torch==2.6.0+cu126
+torch==2.7.1
 transformers==4.54.0

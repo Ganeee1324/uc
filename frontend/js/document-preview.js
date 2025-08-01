@@ -984,12 +984,24 @@ async function fetchDocumentData(vetrinaId) {
         }
 
         // The rest of the page logic needs a "primary document" object for context.
-        // If the vetrina has files, we use the first one.
-        // If not, we create a fallback object from the vetrina data itself.
+        // Determine which file to use based on URL parameters or default to first file.
         let primaryDocument;
         if (vetrinaFiles.length > 0) {
-            // Use the first file as the primary document context
-            primaryDocument = vetrinaFiles[0];
+            // Check if a specific file is requested via URL parameter
+            const specificFileId = getSpecificFileIdFromUrl();
+            if (specificFileId) {
+                // Find the specific file by ID
+                const specificFile = vetrinaFiles.find(file => file.file_id == specificFileId);
+                if (specificFile) {
+                    primaryDocument = specificFile;
+                } else {
+                    console.warn(`Requested file ID ${specificFileId} not found in vetrina files, using first file`);
+                    primaryDocument = vetrinaFiles[0];
+                }
+            } else {
+                // Use the first file as the primary document context
+                primaryDocument = vetrinaFiles[0];
+            }
         } else {
             // Create a fallback "document" from vetrina data if no files exist
             primaryDocument = {

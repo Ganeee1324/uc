@@ -3861,7 +3861,7 @@ async function loadRedactedPreview(file, contentContainer) {
 
 // Load redacted PDF preview
 async function loadRedactedPdfPreview(file, contentContainer) {
-    // Create iframe for PDF preview
+    // Create iframe for PDF preview using the redacted endpoint
     const iframe = document.createElement('iframe');
     iframe.style.width = '100%';
     iframe.style.height = '500px';
@@ -3869,63 +3869,9 @@ async function loadRedactedPdfPreview(file, contentContainer) {
     iframe.style.borderRadius = 'var(--radius-lg)';
     iframe.style.background = 'var(--neutral-25)';
     
-    // In a real implementation, this would load a redacted version of the PDF
-    // For now, we'll show a placeholder that indicates it's redacted
-    const placeholderContent = `
-        <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 500px;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: var(--radius-lg);
-            text-align: center;
-            padding: 2rem;
-            color: #64748b;
-            font-family: system-ui, -apple-system, sans-serif;
-        ">
-            <div style="
-                width: 80px;
-                height: 100px;
-                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                border-radius: 8px;
-                margin-bottom: 1.5rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 2rem;
-            ">📄</div>
-            <h3 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.25rem;">Anteprima Redatta</h3>
-            <p style="margin: 0 0 1rem 0; font-size: 0.875rem; max-width: 300px;">
-                Questa è una versione redatta del documento per proteggere il contenuto originale.
-            </p>
-            <div style="
-                background: #fee2e2;
-                color: #dc2626;
-                padding: 0.5rem 1rem;
-                border-radius: 6px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-            ">Contenuto Protetto</div>
-        </div>
-    `;
-    
-    iframe.srcdoc = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Redacted Preview</title>
-        </head>
-        <body style="margin: 0; padding: 0;">
-            ${placeholderContent}
-        </body>
-        </html>
-    `;
+    // Use the redacted PDF URL
+    const redactedUrl = getRedactedPdfUrl(file.file_id);
+    iframe.src = redactedUrl;
     
     contentContainer.appendChild(iframe);
 }

@@ -296,6 +296,7 @@ class Chunk:
     file_id: int
     page_number: int
     chunk_description: str
+    image_path: str
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Chunk):
@@ -316,6 +317,7 @@ class Chunk:
             "file_id": self.file_id,
             "page_number": self.page_number,
             "chunk_description": self.chunk_description,
+            "image_path": self.image_path,
         }
 
     @classmethod

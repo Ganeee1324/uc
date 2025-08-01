@@ -1,36 +1,25 @@
 from datetime import timedelta
 import logging
-import time
-
-# import threading
 import random
 import traceback
 
-# from bge import get_document_embedding
-from chunker import process_pdf_chunks
+from bge import get_sentence_embedding, load_model
 import werkzeug
 import database
-import redact
 from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
-import hashlib
 from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, ForbiddenError
 
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import uuid
-import pymupdf
-from io import BytesIO
-import threading
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", force=True)
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s", force=True)
 
 load_dotenv()
 
-file_uploaded = False
-file_uploaded_lock = threading.Lock()
 
 # Check if JWT secret key exists in environment
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
@@ -40,6 +29,7 @@ if not jwt_secret_key:
     print("Warning: Using default JWT secret key. This is not secure for production.")
 
 app = Flask(__name__)
+load_model()
 
 # Enable CORS for all origins (prototype only)
 CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
@@ -49,14 +39,11 @@ app.config["JWT_VERIFY_SUB"] = False
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
 
-# file folder
-files_folder = os.getenv("FILES_FOLDER")
-if not files_folder:
-    files_folder = "files"
-    print("Warning: Using default files folder. This is not secure for production.")
+FILES_FOLDER = os.getenv("FILES_FOLDER")
+IMAGES_FOLDER = os.getenv("IMAGES_FOLDER")
 
-files_folder_path = os.path.join(os.path.dirname(__file__), files_folder)
-os.makedirs(files_folder_path, exist_ok=True)
+os.makedirs(FILES_FOLDER, exist_ok=True)
+os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
 # Valid file tags
 VALID_TAGS = ["dispense", "appunti", "esercizi"]
@@ -296,11 +283,7 @@ def delete_vetrina(vetrina_id):
 def get_vetrina(vetrina_id):
     user_id = get_jwt_identity()
     vetrina, files, reviews = database.get_vetrina_by_id(vetrina_id, user_id)
-    return jsonify({
-        "vetrina": vetrina.to_dict(),
-        "files": [f.to_dict() for f in files],
-        "reviews": [r.to_dict() for r in reviews]
-    }), 200
+    return jsonify({"vetrina": vetrina.to_dict(), "files": [f.to_dict() for f in files], "reviews": [r.to_dict() for r in reviews]}), 200
 
 
 @app.route("/vetrine", methods=["GET"])
@@ -336,10 +319,11 @@ def new_search():
         if value:
             filter_params[key] = value
 
-    # Get current user ID if authenticated
+    query_embedding = get_sentence_embedding(query).squeeze()
+
     current_user_id = get_jwt_identity()
 
-    vetrine, chunks = database.new_search(query, filter_params, current_user_id)
+    vetrine, chunks = database.new_search(query, query_embedding, filter_params, current_user_id)
     return (
         jsonify(
             {
@@ -383,77 +367,36 @@ def upload_file(vetrina_id):
     if tag and tag not in VALID_TAGS:
         return jsonify({"error": "invalid_tag", "msg": f"Invalid tag. Valid tags are: {', '.join(VALID_TAGS)}"}), 400
 
-    # Get display_name if provided
-    display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
-
     # Read file content into memory for processing
     file_content = file.read()
-    file_size = len(file_content)
-    file_hash = hashlib.sha256(file_content).hexdigest()
+    # file_size = len(file_content)
 
     new_file_name = "-".join([str(uuid.uuid4()), str(requester_id), file.filename])
-    new_file_path = os.path.join(files_folder_path, new_file_name)
+    new_file_path = os.path.join(FILES_FOLDER, new_file_name)
 
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
+    
+    display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
 
-    # Get number of pages for PDF files using PyMuPDF from memory
-    num_pages = 0
-    if extension == "pdf":
-        try:
-            # Process PDF from memory using BytesIO
-            pdf_stream = BytesIO(file_content)
-            with pymupdf.open(stream=pdf_stream, filetype="pdf") as doc:
-                num_pages = doc.page_count
-        except Exception as e:
-            logging.error(f"Error processing PDF with PyMuPDF: {e}")
-            return jsonify({"error": "pdf_processing_failed", "msg": "Failed to process PDF file"}), 500
-
-    # Add file to database with size and tag
-    db_file = database.add_file_to_vetrina(
+    database.add_file_to_processing_queue(
         requester_id=requester_id,
         vetrina_id=vetrina_id,
         file_name=new_file_name,
-        sha256=file_hash,
         extension=extension,
         price=random.uniform(0.5, 1.0),
-        size=file_size,
         tag=tag,
-        num_pages=num_pages,
+        file_data=file_content,
         display_name=display_name,
     )
 
-    try:
-        # Save file content to disk
-        with open(new_file_path, "wb") as f:
-            f.write(file_content)
+    with open(new_file_path, "wb") as f:
+        f.write(file_content)
 
-        # Create redacted version for PDFs
-        if extension == "pdf":
-            redact.blur_pages(new_file_path, [1])
-
-    except Exception as e:
-        try:
-            os.remove(new_file_path)
-        except Exception as e:
-            logging.error(f"Error deleting file: {e}")
-        try:
-            os.remove(new_file_path.replace(".pdf", "_redacted.pdf"))
-        except Exception as e:
-            logging.error(f"Error deleting redacted file: {e}")
-        try:
-            database.delete_file(requester_id, db_file.file_id)
-        except Exception as e:
-            logging.error(f"Error deleting file from database: {e}")
-        return jsonify({"error": "redaction_failed", "msg": str(e)}), 500
     try:
         file.close()
     except Exception as e:
         logging.error(f"Error closing file: {e}")
-
-    with file_uploaded_lock:
-        file_uploaded = True
-        database.insert_embedding_queue(db_file.file_id, vetrina_id)
 
     return jsonify({"msg": "File uploaded"}), 200
 
@@ -463,14 +406,14 @@ def upload_file(vetrina_id):
 def download_file(file_id):
     user_id = get_jwt_identity()
     file = database.check_file_ownership(user_id, file_id)
-    return send_file(os.path.join(files_folder_path, file.filename), as_attachment=True)
+    return send_file(os.path.join(FILES_FOLDER, file.filename), as_attachment=True)
 
 
 @app.route("/files/<int:file_id>/download/redacted", methods=["GET"])
 @jwt_required()
 def download_file_redacted(file_id):
     file = database.get_file(file_id)
-    return send_file(os.path.join(files_folder_path, file.filename.replace(".pdf", "_redacted.pdf")), as_attachment=True)
+    return send_file(os.path.join(FILES_FOLDER, file.filename.replace(".pdf", "_redacted.pdf")), as_attachment=True)
 
 
 @app.route("/files/<int:file_id>", methods=["DELETE"])
@@ -479,7 +422,7 @@ def delete_file(file_id):
     user_id = get_jwt_identity()
     db_file = database.delete_file(user_id, file_id)
     try:
-        os.remove(os.path.join(files_folder_path, db_file.filename))
+        os.remove(os.path.join(FILES_FOLDER, db_file.filename))
     except Exception as e:
         print(f"Error deleting file: {e}")
     return jsonify({"msg": "File deleted"}), 200
@@ -741,12 +684,8 @@ def serve_image(filename):
         filename: The name of the image file to serve
     """
 
-    # Get the directory where the script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    images_folder = os.path.join(script_dir, "images")
-
     # Check if the requested file exists
-    file_path = os.path.join(images_folder, filename)
+    file_path = os.path.join(IMAGES_FOLDER, filename)
     if not os.path.exists(file_path):
         return jsonify({"error": "image_not_found", "msg": f"Image '{filename}' not found"}), 404
 
@@ -755,7 +694,7 @@ def serve_image(filename):
         return jsonify({"error": "not_a_file", "msg": f"'{filename}' is not a file"}), 400
 
     # Serve the image file
-    return send_from_directory(images_folder, filename)
+    return send_from_directory(IMAGES_FOLDER, filename)
 
 
 # ---------------------------------------------
@@ -783,58 +722,5 @@ def get_valid_tags():
     return jsonify({"tags": VALID_TAGS}), 200
 
 
-def process_embedding_queue():
-    global file_uploaded
-    while True:
-        try:
-            time.sleep(10)
-            with database.connect() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        SELECT eq.file_id, eq.vetrina_id, f.filename, f.display_name, v.name
-                        FROM embedding_queue eq
-                        JOIN files f ON eq.file_id = f.file_id
-                        JOIN vetrina v ON eq.vetrina_id = v.vetrina_id
-                        """
-                    )
-                    rows = cursor.fetchall()
-                    if not rows:
-                        continue
-            logging.info(f"Processing {len(rows)} files from embedding queue.")
-            for i, row in enumerate(rows):
-                logging.info(f"Generating embeddings for file '{row['display_name']}' (remaining: {len(rows) - i})")
-                chunks = process_pdf_chunks(os.path.join(files_folder_path, row["filename"]), row["display_name"], row["name"])
-                database.insert_chunk_embeddings(row["vetrina_id"], row["file_id"], chunks)
-                logging.info(f"Processed {len(chunks)} chunks for file '{row['display_name']}' in vetrina '{row['name']}'")
-                with database.connect() as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute("DELETE FROM embedding_queue WHERE file_id = %s AND vetrina_id = %s", (row["file_id"], row["vetrina_id"]))
-                        conn.commit()
-        except Exception as e:
-            logging.error(f"Error processing embedding queue: {e}")
-            time.sleep(1)
-
-
 if __name__ == "__main__":
-    threading.Thread(target=process_embedding_queue, daemon=False).start()
-    if os.name == "nt":  # Windows
-        app.run(host="0.0.0.0", debug=False)
-    else:
-        import ssl
-
-        # Use Let's Encrypt certificate (copied to local directory)
-        cert_path = os.path.join(os.path.dirname(__file__), "certs", "fullchain.pem")
-        key_path = os.path.join(os.path.dirname(__file__), "certs", "privkey.pem")
-
-        # Check if certificate files exist
-        if os.path.exists(cert_path) and os.path.exists(key_path):
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(cert_path, key_path)
-            print(f"Using Let's Encrypt certificate from {cert_path}")
-            ssl_context = context
-        else:
-            print("Warning: Let's Encrypt certificate files not found, falling back to adhoc SSL")
-            ssl_context = "adhoc"
-
-        app.run(host="0.0.0.0", debug=False, ssl_context=ssl_context)
+    app.run(host="0.0.0.0", debug=True)

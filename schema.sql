@@ -8,7 +8,8 @@ DROP TABLE IF EXISTS favourite_vetrine CASCADE;
 DROP TABLE IF EXISTS favourite_file CASCADE;
 DROP TABLE IF EXISTS chunk_embeddings CASCADE;
 DROP TABLE IF EXISTS review CASCADE;
-DROP TABLE IF EXISTS embedding_queue CASCADE;
+DROP TABLE IF EXISTS file_processing_queue CASCADE;
+
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -85,6 +86,21 @@ CREATE TABLE IF NOT EXISTS files (
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS file_processing_queue (
+    uploading_file_id SERIAL PRIMARY KEY,
+    requester_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    extension VARCHAR(10) NOT NULL,
+    price REAL NOT NULL DEFAULT 0,
+    tag VARCHAR(50),
+    language VARCHAR(15) NOT NULL DEFAULT 'it',
+    file_data BYTEA,
+    upload_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    failed BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(user_id) NOT NULL,
@@ -117,6 +133,7 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
     page_number INTEGER NOT NULL,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
     embedding vector(1024) NOT NULL
 );
 
@@ -138,12 +155,6 @@ CREATE TABLE IF NOT EXISTS follow (
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
     followed_user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (user_id, followed_user_id)
-);
-
-CREATE TABLE IF NOT EXISTS embedding_queue (
-    file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
-    vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
-    PRIMARY KEY (file_id, vetrina_id)
 );
 
 

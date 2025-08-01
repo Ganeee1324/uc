@@ -5,3 +5,6 @@ files/
 .pytest_cache/
 .cursorignore
 *.pdf
+images/*
+*.whl
+*.log

@@ -953,6 +953,18 @@ function getFileIdFromUrl() {
     return params.get('id');
 }
 
+// Get specific file ID from URL (for single document view)
+function getSpecificFileIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('file');
+}
+
+// Check if this is a single document view (without descrizione)
+function isSingleDocumentView() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('single') === 'true';
+}
+
 // Document Data Fetcher - Enhanced to get complete information
 async function fetchDocumentData(vetrinaId) {
     try {
@@ -1574,10 +1586,15 @@ async function initializeDocumentPreview() {
 
         // Debug logging removed
 
-        // Check if this vetrina has multiple files
+        // Check viewing mode and file count
         const hasMultipleFiles = currentVetrinaFiles.length > 1;
+        const isSingleView = isSingleDocumentView();
+        const specificFileId = getSpecificFileIdFromUrl();
         
-        if (hasMultipleFiles) {
+        if (isSingleView && specificFileId) {
+            // Show single document viewer without descrizione section
+            renderSingleDocumentView(docData, specificFileId);
+        } else if (hasMultipleFiles) {
             // Show document list instead of viewer for multiple files
             renderDocumentListView(docData);
         } else {
@@ -1891,6 +1908,201 @@ function renderDocumentListView(docData) {
     
     // Setup document preview functionality
     setupDocumentPreview();
+}
+
+// New function to render single document view without descrizione section
+function renderSingleDocumentView(docData, fileId) {
+    const mainContainer = document.querySelector('.preview-main');
+    const vetrinaFiles = docData.vetrinaFiles || [];
+    
+    // Find the specific file
+    const specificFile = vetrinaFiles.find(f => f.file_id == fileId);
+    if (!specificFile) {
+        console.error(`File with ID ${fileId} not found in vetrina files`);
+        return;
+    }
+    
+    // Create a modified docData with the specific file as current document
+    const singleDocData = {
+        ...docData,
+        document: specificFile
+    };
+    
+    const viewerLeftControlsHTML = renderViewerLeftControls(vetrinaFiles, fileId);
+        
+    // Replace the entire main container content with single document viewer (no descrizione)
+    mainContainer.innerHTML = `
+        <div class="document-viewer-section">
+            <div class="document-viewer" id="documentViewer">
+            <div class="pdf-loading">
+                <div class="loader-spinner"></div>
+                <p>Caricamento documento...</p>
+                </div>
+            </div>
+
+            <!-- New Bottom Elements -->
+            <div class="viewer-bottom-overlay">
+                <span class="bottom-page-indicator" id="bottomPageIndicator"></span>
+                <div class="file-format-badge" id="fileFormatBadge"></div>
+            </div>
+        </div>
+        
+        <div class="document-info-sidebar" style="margin-left: 32px;">
+            <div class="doc-info-content">
+                <!-- Main Info & CTA -->
+                <div class="doc-main-info">
+                    <div class="doc-header-actions">
+                        <div class="doc-type-tag">Caricamento...</div>
+                        <div class="doc-header-buttons">
+                        <button class="action-btn secondary" id="favoriteBtn" title="Aggiungi ai Preferiti">
+                            <span class="material-symbols-outlined">favorite</span>
+                        </button>
+                        <button class="action-btn secondary" id="shareBtn" title="Condividi">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
+                        </div>
+                    </div>
+                    <div class="doc-title-container">
+                        <h1 class="doc-title">Caricamento...</h1>
+                    </div>
+                    <div class="doc-meta-header">
+                        <div class="doc-rating-display" data-action="open-reviews" data-vetrina-id="${currentVetrina?.id || currentVetrina?.vetrina_id}" title="Mostra recensioni">
+                            <div class="rating-stars"></div>
+                            <div class="rating-details">
+                                <span class="rating-score">0.0</span>
+                                <span class="rating-count">(0)</span>
+                            </div>
+                        </div>
+                        <div class="doc-price">
+                            <span class="price-value">€0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Author Profile Section -->
+                ${generateAuthorProfile(currentVetrina)}
+
+                <!-- Premium Action Buttons -->
+                <div class="doc-actions">
+                    <button class="action-btn cart" id="addToCartBtn">
+                        Aggiungi al Carrello
+                    </button>
+                    <button class="action-btn primary" id="purchaseBtn">
+                        Acquista Ora
+                    </button>
+                    <!-- Download functionality removed -->
+                </div>
+
+                <!-- Document Details Section (no descrizione) -->
+                <div class="doc-details-section">
+                    <h3>
+                        <span class="material-symbols-outlined">info</span>
+                        Dettagli Documento
+                    </h3>
+                    <div class="doc-details">
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Facoltà</span>
+                            <span class="detail-value">Caricamento...</span>
+                        </div>
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Corso</span>
+                            <span class="detail-value">Caricamento...</span>
+                        </div>
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Lingua</span>
+                            <span class="detail-value">Caricamento...</span>
+                        </div>
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Canale</span>
+                            <span class="detail-value">Caricamento...</span>
+                        </div>
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Anno Accademico</span>
+                            <span class="detail-value">Caricamento...</span>
+                        </div>
+                        <div class="detail-item-vertical">
+                            <span class="detail-label">Pagine</span>
+                            <span class="detail-value">Caricamento...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Documents Section -->
+                <div class="related-docs-section">
+                    <div class="related-docs">
+                        <!-- Content will be populated by renderRelatedDocuments -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Overlay -->
+        <div class="reviews-overlay" id="reviewsOverlay">
+            <div class="reviews-overlay-content">
+                <div class="reviews-overlay-header">
+                    <h2>
+                        <span class="material-symbols-outlined">rate_review</span>
+                        Recensioni
+                    </h2>
+                    <button class="close-overlay-btn" data-action="close-reviews">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <div class="reviews-overlay-body">
+                    <div class="reviews-summary">
+                        <div class="overall-rating">
+                            <div class="rating-display">
+                                <div class="rating-stars" id="overlayRatingStars"></div>
+                                <div class="rating-number" id="overlayRatingNumber">0.0</div>
+                            </div>
+                            <div class="rating-breakdown" id="ratingBreakdown">
+                                <!-- Populated by renderRatingBreakdown -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="add-review-section" id="addReviewSection">
+                        <!-- Populated by renderAddReviewSection -->
+                    </div>
+                    
+                    <div class="reviews-list" id="reviewsList">
+                        <!-- Populated by renderReviewsList -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Side Overlay for larger previews -->
+        <div class="side-overlay" id="sideOverlay">
+            <div class="side-overlay-content">
+                <div class="side-overlay-header">
+                    <h2>Anteprima Documento</h2>
+                    <button class="close-overlay-btn" data-action="close-preview">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="side-overlay-body">
+                    <div class="preview-viewer" id="previewViewer">
+                        <!-- Populated with document preview -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Initialize document data with the specific file
+    currentDocument = specificFile;
+    
+    // Continue with the same setup as normal viewer
+    updateDocumentInfo(singleDocData);
+    updatePriceDisplay(currentVetrina);
+    populateDocumentDetails(currentVetrina, specificFile);
+    updateRatingDisplay(docData.reviews || []);
+    updateFavoriteButton(currentVetrina?.is_favorite || false, currentVetrina?.id || currentVetrina?.vetrina_id);
+
+    // Setup document preview functionality for the specific file
+    setupDocumentPreview(specificFile);
 }
 
 // New function to handle normal single-file viewer mode

@@ -979,6 +979,11 @@ async function fetchDocumentData(vetrinaId) {
         const vetrinaFiles = vetrinaResponse.files || [];
         const reviewsData = vetrinaResponse.reviews || [];
 
+        // Console log the vetrina_id object and related files for debugging
+        console.log('🔍 Vetrina ID Object:', vetrinaData);
+        console.log('📁 Related Files Found:', vetrinaFiles);
+        console.log('📊 Number of files:', vetrinaFiles.length);
+
         if (!vetrinaData) {
             throw new Error(`Vetrina with ID ${vetrinaId} not found.`);
         }

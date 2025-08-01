@@ -6,5 +6,3 @@ files/
 .cursorignore
 *.pdf
 images/*
-*.whl
-*.log

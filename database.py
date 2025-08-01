@@ -1,39 +1,33 @@
 import random
 from typing import Any, Dict, List, Optional, Tuple
-import uuid
 import psycopg
 import os
 from pgvector.psycopg import register_vector
 
 # from bge import get_document_embedding
-from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina
+from bge import get_sentence_embedding
+from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina, ForumThread, ForumPost
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
 import numpy as np
 from langdetect import detect
-from PIL import Image
 import json
-import secrets
-import string
-from datetime import datetime, timedelta
 
 load_dotenv()
 
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-FILES_FOLDER = os.getenv("FILES_FOLDER")
-IMAGES_FOLDER = os.getenv("IMAGES_FOLDER")
 
 
 def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector: bool = False) -> psycopg.Connection:
     conn = psycopg.connect(
-        f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD} host={DB_HOST}",
+        f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
         autocommit=autocommit,
         row_factory=psycopg.rows.dict_row if not no_dict_row_factory else None,
+        connect_timeout=5,
     )
     # Register vector extension for this connection
     if vector:
@@ -44,13 +38,9 @@ def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector:
 def create_tables(debug: bool = False) -> None:
     with open("schema.sql", "r") as f:
         with connect(no_dict_row_factory=True) as conn:
-            logging.info("Connected to database")
             with conn.cursor() as cursor:
-                logging.info("Created cursor")
                 cursor.execute(f.read())
-                logging.info("Executed schema.sql")
                 conn.commit()
-                logging.info("Committed changes")
                 if debug:
                     # get all tables
                     cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
@@ -61,20 +51,16 @@ def create_tables(debug: bool = False) -> None:
 def fill_courses(debug: bool = False) -> None:
     df = pd.read_csv("data/courses.csv", encoding="latin1")
     with connect() as conn:
-        logging.info("Connected to database")
         with conn.cursor() as cursor:
-            logging.info("Created cursor")
             for _, row in df.iterrows():
-                logging.info(f"Inserting course instance {row['course_id']}")
                 # canale,date_year,year,language,course_id,course_name,semester,professors
                 _, canale, date_year, year, language, course_id, course_name, semester, professors, faculty = row
                 cursor.execute(
                     "INSERT INTO course_instances (course_code, faculty_name, course_year, date_year, course_semester, canale, professors, language, course_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
                     (course_id, faculty, year, date_year, semester, canale, professors.split(" / "), language, course_name),
                 )
-                logging.info(f"Inserted course instance {row['course_id']}")
+
                 conn.commit()
-                logging.info(f"Committed changes")
 
             if debug:
                 cursor.execute("SELECT * FROM course_instances")
@@ -82,14 +68,21 @@ def fill_courses(debug: bool = False) -> None:
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
 
 
+def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
+            conn.commit()
+
+
 # ---------------------------------------------
 # User management
 # ---------------------------------------------
 
 
-def create_user(username: str, email: str, password: str, name: str, surname: str, require_email_verification: bool = True) -> Tuple[User, Optional[str], Optional[str]]:
+def create_user(username: str, email: str, password: str, name: str, surname: str) -> User:
     """
-    Create a new user with optional email verification.
+    Create a new user.
 
     Args:
         username: The username for the new user
@@ -97,39 +90,28 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
         password: The password for the new user
         name: The name for the new user
         surname: The surname for the new user
-        require_email_verification: Whether to require email verification
 
     Returns:
-        Tuple[User, Optional[str], Optional[str]]: The newly created user object, verification token, and verification code
+        User: The newly created user object
 
     Raises:
         UniqueViolation: If the username or email already exists
     """
-    verification_token = None
-    verification_code = None
-    
-    if require_email_verification:
-        verification_token = secrets.token_urlsafe(32)
-        verification_code = ''.join(random.choices(string.digits, k=6))
-        expires_at = datetime.utcnow() + timedelta(hours=24)
-    else:
-        expires_at = None
-    
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO users (username, email, password, first_name, last_name, email_verified, email_verification_token, email_verification_code, email_verification_expires)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO users (username, email, password, first_name, last_name)
+                VALUES (%s, %s, %s, %s, %s)
                 RETURNING *
                 """,
-                (username, email, password, name, surname, not require_email_verification, verification_token, verification_code, expires_at),
+                (username, email, password, name, surname),
             )
             user_data = cursor.fetchone()
             conn.commit()
-            logging.info(f"User {user_data['user_id']} created with email verification: {require_email_verification}")
+            logging.info(f"User {user_data['user_id']} created")
 
-            return User.from_dict(user_data), verification_token, verification_code
+            return User.from_dict(user_data)
 
 
 def verify_user(email: str, password: str) -> User:
@@ -144,7 +126,7 @@ def verify_user(email: str, password: str) -> User:
         User: The user object if the credentials are valid
 
     Raises:
-        UnauthorizedError: If the email or password is invalid or email not verified
+        UnauthorizedError: If the email or password is invalid
     """
     with connect() as conn:
         with conn.cursor() as cursor:
@@ -152,8 +134,6 @@ def verify_user(email: str, password: str) -> User:
             user_data = cursor.fetchone()
             if not user_data or password != user_data["password"]:
                 raise UnauthorizedError("Invalid email or password")
-            if not user_data.get("email_verified", True):  # Default to True for backward compatibility
-                raise UnauthorizedError("Email not verified. Please check your email and verify your account.")
             logging.info(f"User {user_data['user_id']} verified")
             return User.from_dict(user_data)
 
@@ -172,7 +152,7 @@ def delete_user(user_id: int) -> None:
             logging.info(f"User {user_id} deleted")
 
 
-def get_user_by_id(user_id: int) -> Optional[User]:
+def get_user_by_id(user_id: int) -> User:
     """
     Get a user by their ID.
 
@@ -306,9 +286,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(
-    query: str, query_embedding: np.ndarray, params: Dict[str, Any] = {}, user_id: Optional[int] = None
-) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
+def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
     with connect(vector=True) as conn:
         with conn.cursor() as cursor:
             try:
@@ -366,6 +344,8 @@ def new_search(
 
             where_clause = " AND ".join(filter_conditions)
 
+            # --- 2. Prepare Embeddings and Parameters ---
+            embedding = get_sentence_embedding(query).squeeze()
             k = 60  # Reciprocal rank constant
 
             # --- 3. Construct the Main SQL Query (No changes here) ---
@@ -378,7 +358,6 @@ def new_search(
                         ce.file_id,
                         ce.page_number,
                         ce.description, -- Pass description through for grouping
-                        ce.image_path,
                         1.0 / (%s::integer + RANK() OVER (ORDER BY ce.embedding <#> %s)) AS semantic_score,
                         0.0 AS keyword_score
                     {base_from_clause}
@@ -396,7 +375,6 @@ def new_search(
                         ce.file_id,
                         ce.page_number,
                         ce.description, -- Pass description through for grouping
-                        ce.image_path,
                         0.0 AS semantic_score,
                         1.0 / (%s::integer + RANK() OVER (ORDER BY ts_rank_cd(
                             CASE WHEN v.language = 'en' THEN to_tsvector('english', ce.description) ELSE to_tsvector('italian', ce.description) END,
@@ -415,12 +393,11 @@ def new_search(
                     file_id,
                     page_number,
                     description, -- Keep description for the final join/select
-                    image_path,
                     SUM(semantic_score) as semantic_score,
                     SUM(keyword_score) as keyword_score,
                     (SUM(semantic_score) + SUM(keyword_score)) as score
                 FROM combined_results
-                GROUP BY vetrina_id, file_id, page_number, description, image_path -- Include image_path in GROUP BY
+                GROUP BY vetrina_id, file_id, page_number, description -- Correctly group by the full chunk key
             )
             -- Final Selection with Late Joins
             SELECT
@@ -428,7 +405,6 @@ def new_search(
                 r.semantic_score,
                 r.keyword_score,
                 r.description as chunk_description, -- Get description from our ranked results
-                r.image_path,
                 r.page_number,
                 v.*, u.*, f.*, ci.*
             FROM ranked_results r
@@ -441,7 +417,7 @@ def new_search(
             """
 
             # --- 4. Assemble Parameters and Execute ---
-            semantic_params = [k, query_embedding] + filter_params + [query_embedding]
+            semantic_params = [k, embedding] + filter_params + [embedding]
             keyword_params = [k, query] + filter_params + [query]
             all_params = semantic_params + keyword_params
 
@@ -625,7 +601,6 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
-    cursor: psycopg.Cursor,
     requester_id: int,
     vetrina_id: int,
     file_name: str,
@@ -657,43 +632,6 @@ def add_file_to_vetrina(
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
     """
-
-    # First check if the vetrina exists
-    cursor.execute("SELECT author_id FROM vetrina WHERE vetrina_id = %s", (vetrina_id,))
-    vetrina = cursor.fetchone()
-
-    if not vetrina:
-        raise NotFoundException("Vetrina not found")
-
-    # Then check if the requester is the author
-    if vetrina["author_id"] != requester_id:
-        raise ForbiddenError("Only the author can add files to this vetrina")
-
-    # If all checks pass, insert the file
-    cursor.execute(
-        "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-        (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
-    )
-    file_data = cursor.fetchone()
-    file = File.from_dict(file_data)
-    logging.info(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
-    return file
-
-
-def add_file_to_processing_queue(
-    requester_id: int,
-    vetrina_id: int,
-    file_name: str,
-    display_name: str,
-    extension: str,
-    price: int = 0,
-    tag: str | None = None,
-    language: str = "it",
-    file_data: bytes | None = None,
-) -> File:
-    """
-    Add a file to the processing queue.
-    """
     with connect() as conn:
         with conn.cursor() as cursor:
             with conn.transaction():
@@ -709,31 +647,36 @@ def add_file_to_processing_queue(
                 if vetrina["author_id"] != requester_id:
                     raise ForbiddenError("Only the author can add files to this vetrina")
 
-                # insert the file into the processing queue
+                # If all checks pass, insert the file
                 cursor.execute(
-                    "INSERT INTO file_processing_queue (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data),
+                    "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
                 )
+                file_data = cursor.fetchone()
+                file = File.from_dict(file_data)
+
+                logging.info(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
+            return File.from_dict(file_data)
 
 
-def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]], cursor: psycopg.Cursor) -> None:
+def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]]) -> None:
     """Insert chunk embeddings into the database"""
-    for chunk in chunks:
-        page_number = chunk["page_number"]
-        description = chunk["description"]
-        embedding = chunk["embedding"]
-        image: Image.Image = chunk["image"]
-        image_name = f"{uuid.uuid4()}.png"
-        image.save(os.path.join(IMAGES_FOLDER, image_name))
+    with connect(vector=True) as conn:
+        with conn.cursor() as cursor:
+            for chunk in chunks:
+                page_number = chunk["page_number"]
+                description = chunk["description"]
+                embedding = chunk["embedding"]
 
-        embedding = embedding.squeeze()
-        cursor.execute(
-            """INSERT INTO chunk_embeddings 
-            (vetrina_id, file_id, page_number, description, image_path, embedding) 
-            VALUES (%s, %s, %s, %s, %s, %s)""",
-            (vetrina_id, file_id, page_number, description, image_name, embedding),
-        )
-    logging.info(f"Inserted {len(chunks)} chunk embeddings")
+                pg_vector_data = embedding.squeeze()
+                cursor.execute(
+                    """INSERT INTO chunk_embeddings 
+                       (vetrina_id, file_id, page_number, description, embedding) 
+                       VALUES (%s, %s, %s, %s, %s)""",
+                    (vetrina_id, file_id, page_number, description, pg_vector_data),
+                )
+                conn.commit()
+            logging.info(f"Inserted {len(chunks)} chunk embeddings")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:
@@ -1458,170 +1401,238 @@ def get_user_following(user_id: int) -> List[User]:
 
 
 # ---------------------------------------------
-# Email verification management
+# Forum management
 # ---------------------------------------------
 
 
-def verify_email_token(token: str) -> User:
+def forum_create_thread(user_id: int, title: str, tag: str | None = None) -> ForumThread:
     """
-    Verify an email verification token and activate the user account.
+    Create a new forum thread.
 
     Args:
-        token: The email verification token
+        user_id: ID of the user creating the thread
+        title: Title of the thread
+        tag: Optional tag for the thread
 
     Returns:
-        User: The verified user object
-
-    Raises:
-        UnauthorizedError: If the token is invalid or expired
+        ForumThread: The newly created thread object
     """
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT * FROM users 
-                WHERE email_verification_token = %s 
-                AND email_verification_expires > %s
-                AND email_verified = FALSE
+                WITH new_thread AS (
+                    INSERT INTO forum_threads (author_id, title, tag) 
+                    VALUES (%s, %s, %s) 
+                    RETURNING *
+                )
+                SELECT t.*, u.*
+                FROM new_thread t
+                JOIN users u ON t.author_id = u.user_id
                 """,
-                (token, datetime.utcnow())
+                (user_id, title, tag),
             )
-            user_data = cursor.fetchone()
-            
-            if not user_data:
-                raise UnauthorizedError("Invalid or expired verification token")
-            
-            # Mark email as verified and clear verification data
+            thread_data = cursor.fetchone()
+            conn.commit()
+            logging.info(f"Thread {thread_data['thread_id']} created by user {user_id}")
+
+            return ForumThread.from_dict(thread_data)
+
+
+def forum_get_all_threads() -> List[ForumThread]:
+    """
+    Get all threads ordered by last message timestamp (most recent first).
+
+    Returns:
+        List[ForumThread]: List of all threads
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
             cursor.execute(
                 """
-                UPDATE users 
-                SET email_verified = TRUE, 
-                    email_verification_token = NULL, 
-                    email_verification_code = NULL,
-                    email_verification_expires = NULL
-                WHERE user_id = %s
+                SELECT t.*, u.*
+                FROM forum_threads t
+                JOIN users u ON t.author_id = u.user_id
+                ORDER BY COALESCE(t.last_post_timestamp, t.created_at) DESC
+                """
+            )
+            threads_data = cursor.fetchall()
+            return [ForumThread.from_dict(thread_data) for thread_data in threads_data]
+
+
+def forum_edit_thread(user_id: int, thread_id: int, title: str, tag: str | None = None) -> None:
+    """
+    Update a thread (only the author can update it).
+
+    Args:
+        user_id: ID of the user updating the thread
+        thread_id: ID of the thread to update
+        title: New title for the thread
+        tag: New tag for the thread
+
+    Returns:
+        Thread: The updated thread object
+
+    Raises:
+        NotFoundException: If the thread is not found
+        ForbiddenError: If the user is not the author of the thread
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE forum_threads 
+                SET title = %s, tag = %s
+                WHERE thread_id = %s AND author_id = %s
                 RETURNING *
                 """,
-                (user_data['user_id'],)
+                (title, tag, thread_id, user_id),
             )
-            
-            updated_user_data = cursor.fetchone()
+            if cursor.rowcount == 0:
+                raise NotFoundException("Thread not found")
+
             conn.commit()
-            logging.info(f"Email verified for user {user_data['user_id']}")
-            
-            return User.from_dict(updated_user_data)
+            logging.info(f"Thread {thread_id} updated by user {user_id}")
 
 
-def verify_email_code(email: str, code: str) -> User:
+def forum_delete_thread(user_id: int, thread_id: int) -> None:
     """
-    Verify an email verification code and activate the user account.
+    Delete a thread (only the author can delete it).
 
     Args:
-        email: The user's email address
-        code: The 6-digit verification code
-
-    Returns:
-        User: The verified user object
+        user_id: ID of the user deleting the thread
+        thread_id: ID of the thread to delete
 
     Raises:
-        UnauthorizedError: If the code is invalid or expired
+        NotFoundException: If the thread is not found
+        ForbiddenError: If the user is not the author of the thread
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM forum_threads WHERE thread_id = %s AND author_id = %s",
+                (thread_id, user_id),
+            )
+            
+            conn.commit()
+            logging.info(f"Thread {thread_id} deleted by user {user_id}")
+
+
+def forum_create_post(user_id: int, thread_id: int, text: str) -> ForumPost:
+    """
+    Create a new message in a thread.
+
+    Args:
+        user_id: ID of the user creating the message
+        thread_id: ID of the thread to post in
+        text: Text content of the message
+
+    Returns:
+        ForumPost: The newly created message object
+
+    Raises:
+        NotFoundException: If the thread is not found
     """
     with connect() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT * FROM users 
-                WHERE email = %s 
-                AND email_verification_code = %s 
-                AND email_verification_expires > %s
-                AND email_verified = FALSE
+                WITH new_message AS (
+                    INSERT INTO forum_posts (thread_id, user_id, text) 
+                    VALUES (%s, %s, %s) 
+                    RETURNING *
+                )
+                SELECT m.*, u.*
+                FROM new_message m
+                JOIN users u ON m.user_id = u.user_id
                 """,
-                (email, code, datetime.utcnow())
+                (thread_id, user_id, text),
             )
-            user_data = cursor.fetchone()
-            
-            if not user_data:
-                raise UnauthorizedError("Invalid or expired verification code")
-            
-            # Mark email as verified and clear verification data
+            message_data = cursor.fetchone()
+            conn.commit()
+            logging.info(f"Message {message_data['post_id']} created by user {user_id} in thread {thread_id}")
+
+            return ForumPost.from_dict(message_data)
+
+
+def forum_get_thread_posts(thread_id: int) -> List[ForumPost]:
+    """
+    Get all messages in a thread ordered by timestamp (oldest first).
+
+    Args:
+        thread_id: ID of the thread
+
+    Returns:
+        List[ForumPost]: List of messages in the thread
+
+    Raises:
+        NotFoundException: If the thread is not found
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
             cursor.execute(
                 """
-                UPDATE users 
-                SET email_verified = TRUE, 
-                    email_verification_token = NULL, 
-                    email_verification_code = NULL,
-                    email_verification_expires = NULL
-                WHERE user_id = %s
+                SELECT m.*, u.*
+                FROM forum_posts m
+                JOIN users u ON m.user_id = u.user_id
+                WHERE m.thread_id = %s
+                ORDER BY m.post_timestamp ASC
+                """,
+                (thread_id,),
+            )
+            messages_data = cursor.fetchall()
+            return [ForumPost.from_dict(message_data) for message_data in messages_data]
+
+
+def forum_edit_post(user_id: int, post_id: int, text: str) -> None:
+    """
+    Update a message (only the author can update it).
+
+    Args:
+        user_id: ID of the user updating the message
+        post_id: ID of the message to update
+        text: New text content for the message
+
+    Raises:
+        NotFoundException: If the message is not found
+        ForbiddenError: If the user is not the author of the message
+    """
+    with connect() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE forum_posts 
+                SET text = %s, edited = TRUE, edited_at = CURRENT_TIMESTAMP
+                WHERE post_id = %s AND user_id = %s
                 RETURNING *
                 """,
-                (user_data['user_id'],)
+                (text, post_id, user_id),
             )
-            
-            updated_user_data = cursor.fetchone()
+            if cursor.rowcount == 0:
+                raise NotFoundException("Message not found")
+
             conn.commit()
-            logging.info(f"Email verified with code for user {user_data['user_id']}")
-            
-            return User.from_dict(updated_user_data)
+            logging.info(f"Message {post_id} updated by user {user_id}")
 
 
-def resend_verification_email(email: str) -> Tuple[str, str]:
+def forum_delete_post(user_id: int, post_id: int) -> None:
     """
-    Generate and store new verification token and code for a user.
+    Delete a message (only the author can delete it).
 
     Args:
-        email: The user's email address
-
-    Returns:
-        Tuple[str, str]: New verification token and code
+        user_id: ID of the user deleting the message
+        post_id: ID of the message to delete
 
     Raises:
-        NotFoundException: If the user doesn't exist
-        ValueError: If the email is already verified
+        NotFoundException: If the message is not found
+        ForbiddenError: If the user is not the author of the message
     """
-    verification_token = secrets.token_urlsafe(32)
-    verification_code = ''.join(random.choices(string.digits, k=6))
-    expires_at = datetime.utcnow() + timedelta(hours=24)
-    
     with connect() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT user_id, email_verified FROM users WHERE email = %s", (email,))
-            user_data = cursor.fetchone()
-            
-            if not user_data:
-                raise NotFoundException("User not found")
-            
-            if user_data['email_verified']:
-                raise ValueError("Email already verified")
-            
             cursor.execute(
-                """
-                UPDATE users 
-                SET email_verification_token = %s, 
-                    email_verification_code = %s,
-                    email_verification_expires = %s
-                WHERE user_id = %s
-                """,
-                (verification_token, verification_code, expires_at, user_data['user_id'])
+                "DELETE FROM forum_posts WHERE post_id = %s AND user_id = %s",
+                (post_id, user_id),
             )
             
             conn.commit()
-            logging.info(f"Verification email resent for user {user_data['user_id']}")
-            
-            return verification_token, verification_code
-
-
-def get_user_by_email(email: str) -> Optional[User]:
-    """
-    Get a user by their email address.
-
-    Args:
-        email: The email address to search for
-
-    Returns:
-        User: The user object if found, None otherwise
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-            user_data = cursor.fetchone()
-            return User.from_dict(user_data) if user_data else None
+            logging.info(f"Message {post_id} deleted by user {user_id}")

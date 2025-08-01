@@ -331,6 +331,90 @@ class Chunk:
         return cls(**args)
 
 
+@dataclass
+class ForumThread:
+    thread_id: int
+    title: str
+    author: User
+    tag: str | None
+    posts_count: int
+    last_post_timestamp: datetime | None
+    created_at: datetime
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ForumThread):
+            return False
+        return self.thread_id == other.thread_id
+
+    def __hash__(self) -> int:
+        return hash("thread" + str(self.thread_id))
+
+    def to_dict(self) -> dict:
+        return {
+            "thread_id": self.thread_id,
+            "title": self.title,
+            "author": self.author.to_dict(),
+            "tag": self.tag,
+            "posts_count": self.posts_count,
+            "last_post_timestamp": self.last_post_timestamp,
+            "created_at": self.created_at,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ForumThread":
+        """
+        Create a ForumThread object from a dictionary.
+        Requires:
+            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
+            - ForumThread object fields: thread_id, title, author, tag, posts_count, last_post_timestamp, created_at
+        """
+        args = {key: data[key] for key in forum_thread_fields if key in data and key != "author"}
+        args["author"] = User.from_dict(data)
+        return cls(**args)
+
+
+@dataclass
+class ForumPost:
+    post_id: int
+    thread_id: int
+    user: User
+    text: str
+    edited: bool
+    edited_at: datetime | None
+    post_timestamp: datetime
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ForumPost):
+            return False
+        return self.post_id == other.post_id
+
+    def __hash__(self) -> int:
+        return hash("forum_post" + str(self.post_id))
+
+    def to_dict(self) -> dict:
+        return {
+            "post_id": self.post_id,
+            "thread_id": self.thread_id,
+            "user": self.user.to_dict(),
+            "text": self.text,
+            "edited": self.edited,
+            "edited_at": self.edited_at,
+            "post_timestamp": self.post_timestamp,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ForumPost":
+        """
+        Create a ForumPost object from a dictionary.
+        Requires:
+            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
+            - ForumPost object fields: post_id, thread_id, user, text, edited, edited_at, post_timestamp
+        """
+        args = {key: data[key] for key in forum_post_fields if key in data and key != "user"}
+        args["user"] = User.from_dict(data)
+        return cls(**args)
+
+
 file_fields = [key for key in inspect.signature(File.__init__).parameters.keys() if key != "self"]
 user_fields = [key for key in inspect.signature(User.__init__).parameters.keys() if key != "self"]
 course_instance_fields = [key for key in inspect.signature(CourseInstance.__init__).parameters.keys() if key != "self"]
@@ -339,3 +423,5 @@ vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.
 transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != "self"]
 review_fields = [key for key in inspect.signature(Review.__init__).parameters.keys() if key != "self"]
 chunk_fields = [key for key in inspect.signature(Chunk.__init__).parameters.keys() if key != "self"]
+forum_thread_fields = [key for key in inspect.signature(ForumThread.__init__).parameters.keys() if key != "self"]
+forum_post_fields = [key for key in inspect.signature(ForumPost.__init__).parameters.keys() if key != "self"]

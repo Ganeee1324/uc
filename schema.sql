@@ -8,8 +8,7 @@ DROP TABLE IF EXISTS favourite_vetrine CASCADE;
 DROP TABLE IF EXISTS favourite_file CASCADE;
 DROP TABLE IF EXISTS chunk_embeddings CASCADE;
 DROP TABLE IF EXISTS review CASCADE;
-DROP TABLE IF EXISTS file_processing_queue CASCADE;
-
+DROP TABLE IF EXISTS embedding_queue CASCADE;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -26,13 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     bio TEXT,
     profile_picture VARCHAR(255),
     password VARCHAR(255) NOT NULL,
-    uploaded_documents_count INTEGER NOT NULL DEFAULT 0,
-    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    email_verification_token VARCHAR(255),
-    email_verification_code VARCHAR(6),
-    email_verification_expires TIMESTAMP,
-    password_reset_token VARCHAR(255),
-    password_reset_expires TIMESTAMP
+    uploaded_documents_count INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS course_instances (
@@ -86,21 +79,6 @@ CREATE TABLE IF NOT EXISTS files (
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS file_processing_queue (
-    uploading_file_id SERIAL PRIMARY KEY,
-    requester_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
-    vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
-    file_name VARCHAR(255) NOT NULL,
-    display_name VARCHAR(255) NOT NULL,
-    extension VARCHAR(10) NOT NULL,
-    price REAL NOT NULL DEFAULT 0,
-    tag VARCHAR(50),
-    language VARCHAR(15) NOT NULL DEFAULT 'it',
-    file_data BYTEA,
-    upload_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    failed BOOLEAN NOT NULL DEFAULT FALSE
-);
-
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(user_id) NOT NULL,
@@ -133,7 +111,6 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
     page_number INTEGER NOT NULL,
     vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
     file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
-    image_path VARCHAR(255) NOT NULL,
     embedding vector(1024) NOT NULL
 );
 
@@ -155,6 +132,32 @@ CREATE TABLE IF NOT EXISTS follow (
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
     followed_user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (user_id, followed_user_id)
+);
+
+CREATE TABLE IF NOT EXISTS embedding_queue (
+    file_id INTEGER REFERENCES files(file_id) ON DELETE CASCADE NOT NULL,
+    vetrina_id INTEGER REFERENCES vetrina(vetrina_id) ON DELETE CASCADE NOT NULL,
+    PRIMARY KEY (file_id, vetrina_id)
+);
+
+CREATE TABLE IF NOT EXISTS forum_threads (
+    thread_id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    author_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+    tag VARCHAR(50),
+    posts_count INTEGER NOT NULL DEFAULT 0,
+    last_post_timestamp TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS forum_posts (
+    post_id SERIAL PRIMARY KEY,
+    thread_id INTEGER REFERENCES forum_threads(thread_id) ON DELETE CASCADE NOT NULL,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+    text TEXT NOT NULL,
+    edited BOOLEAN NOT NULL DEFAULT FALSE,
+    edited_at TIMESTAMP,
+    post_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -370,6 +373,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to update thread statistics
+CREATE OR REPLACE FUNCTION update_thread_stats()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Handle INSERT and UPDATE operations
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        UPDATE forum_threads 
+        SET 
+            posts_count = (
+                SELECT COUNT(*) 
+                FROM forum_posts 
+                WHERE thread_id = NEW.thread_id
+            ),
+            last_post_timestamp = (
+                SELECT MAX(post_timestamp) 
+                FROM forum_posts 
+                WHERE thread_id = NEW.thread_id
+            )
+        WHERE thread_id = NEW.thread_id;
+        RETURN NEW;
+    END IF;
+    
+    -- Handle DELETE operation
+    IF TG_OP = 'DELETE' THEN
+        UPDATE forum_threads 
+        SET 
+            posts_count = (
+                SELECT COUNT(*) 
+                FROM forum_posts 
+                WHERE thread_id = OLD.thread_id
+            ),
+            last_post_timestamp = (
+                SELECT MAX(post_timestamp) 
+                FROM forum_posts 
+                WHERE thread_id = OLD.thread_id
+            )
+        WHERE thread_id = OLD.thread_id;
+        RETURN OLD;
+    END IF;
+    
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create triggers for review table
 DROP TRIGGER IF EXISTS trigger_update_vetrina_stats_insert ON review;
 DROP TRIGGER IF EXISTS trigger_update_vetrina_stats_update ON review;
@@ -448,4 +495,24 @@ CREATE TRIGGER trigger_update_user_document_count_delete
     FOR EACH ROW
     EXECUTE FUNCTION update_user_document_count();
 
-INSERT INTO users (username, first_name, last_name, email, password, email_verified) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin', TRUE);
+-- Create triggers for messages table to update thread statistics
+DROP TRIGGER IF EXISTS trigger_update_thread_stats_insert ON forum_posts;
+DROP TRIGGER IF EXISTS trigger_update_thread_stats_update ON forum_posts;
+DROP TRIGGER IF EXISTS trigger_update_thread_stats_delete ON forum_posts;
+
+CREATE TRIGGER trigger_update_thread_stats_insert
+    AFTER INSERT ON forum_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_thread_stats();
+
+CREATE TRIGGER trigger_update_thread_stats_update
+    AFTER UPDATE ON forum_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_thread_stats();
+
+CREATE TRIGGER trigger_update_thread_stats_delete
+    AFTER DELETE ON forum_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_thread_stats();
+
+INSERT INTO users (username, first_name, last_name, email, password) VALUES ('admin', 'admin', 'admin', 'admin@admin.com', 'admin');

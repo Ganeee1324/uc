@@ -671,6 +671,131 @@ def get_following(user_id):
 
 
 # ---------------------------------------------
+# Forum routes
+# ---------------------------------------------
+
+
+@app.route("/forum/threads", methods=["POST"])
+@jwt_required()
+def create_thread():
+    """
+    Create a new forum thread.
+    """
+    user_id = get_jwt_identity()
+    data = request.json
+    
+    title = str(data.get("title", "")).strip()
+    if not title:
+        return jsonify({"error": "missing_title", "msg": "Title is required"}), 400
+    
+    tag = data.get("tag")
+    if tag:
+        tag = str(tag).strip()
+        if not tag:
+            tag = None
+    
+    thread = database.forum_create_thread(user_id, title, tag)
+    return jsonify({"msg": "Thread created", "thread": thread.to_dict()}), 201
+
+
+@app.route("/forum/threads", methods=["GET"])
+def get_all_threads():
+    """
+    Get all forum threads ordered by last post timestamp.
+    """
+    threads = database.forum_get_all_threads()
+    return jsonify({"threads": [thread.to_dict() for thread in threads], "count": len(threads)}), 200
+
+
+@app.route("/forum/threads/<int:thread_id>", methods=["PUT"])
+@jwt_required()
+def update_thread(thread_id):
+    """
+    Update a forum thread (only the author can update it).
+    """
+    user_id = get_jwt_identity()
+    data = request.json
+    
+    title = str(data.get("title", "")).strip()
+    if not title:
+        return jsonify({"error": "missing_title", "msg": "Title is required"}), 400
+    
+    tag = data.get("tag")
+    if tag:
+        tag = str(tag).strip()
+        if not tag:
+            tag = None
+    
+    database.forum_edit_thread(user_id, thread_id, title, tag)
+    return jsonify({"msg": "Thread updated"}), 200
+
+
+@app.route("/forum/threads/<int:thread_id>", methods=["DELETE"])
+@jwt_required()
+def delete_thread(thread_id):
+    """
+    Delete a forum thread (only the author can delete it).
+    """
+    user_id = get_jwt_identity()
+    database.forum_delete_thread(user_id, thread_id)
+    return jsonify({"msg": "Thread deleted"}), 200
+
+
+@app.route("/forum/threads/<int:thread_id>/posts", methods=["POST"])
+@jwt_required()
+def create_post(thread_id):
+    """
+    Create a new post in a forum thread.
+    """
+    user_id = get_jwt_identity()
+    data = request.json
+    
+    text = str(data.get("text", "")).strip()
+    if not text:
+        return jsonify({"error": "missing_text", "msg": "Text content is required"}), 400
+    
+    post = database.forum_create_post(user_id, thread_id, text)
+    return jsonify({"msg": "Post created", "post": post.to_dict()}), 201
+
+
+@app.route("/forum/threads/<int:thread_id>/posts", methods=["GET"])
+def get_thread_posts(thread_id):
+    """
+    Get all posts in a forum thread.
+    """
+    posts = database.forum_get_thread_posts(thread_id)
+    return jsonify({"posts": [post.to_dict() for post in posts], "count": len(posts)}), 200
+
+
+@app.route("/forum/threads/<int:thread_id>/posts/<int:post_id>", methods=["PUT"])
+@jwt_required()
+def update_post(thread_id, post_id):
+    """
+    Update a forum post (only the author can update it).
+    """
+    user_id = get_jwt_identity()
+    data = request.json
+    
+    text = str(data.get("text", "")).strip()
+    if not text:
+        return jsonify({"error": "missing_text", "msg": "Text content is required"}), 400
+    
+    database.forum_edit_post(user_id, post_id, text)
+    return jsonify({"msg": "Post updated"}), 200
+
+
+@app.route("/forum/threads/<int:thread_id>/posts/<int:post_id>", methods=["DELETE"])
+@jwt_required()
+def delete_post(thread_id, post_id):
+    """
+    Delete a forum post (only the author can delete it).
+    """
+    user_id = get_jwt_identity()
+    database.forum_delete_post(user_id, post_id)
+    return jsonify({"msg": "Post deleted"}), 200
+
+
+# ---------------------------------------------
 # Images routes
 # ---------------------------------------------
 

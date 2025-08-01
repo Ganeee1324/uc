@@ -18,6 +18,8 @@ tags:
     description: Operations related to review management
   - name: Courses
     description: Operations related to courses and faculty hierarchy
+  - name: Forum
+    description: Operations related to forum threads and posts
 
 paths:
   /register:
@@ -1389,6 +1391,308 @@ paths:
                     description: Number of reviews
                     example: 3
 
+  /forum/threads:
+    post:
+      tags:
+        - Forum
+      summary: Create a new forum thread
+      description: Create a new forum thread with title and optional tag
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: Title of the thread
+                  example: "Help with Calculus Derivatives"
+                tag:
+                  type: string
+                  nullable: true
+                  description: Optional tag for categorizing the thread
+                  example: "math"
+      responses:
+        "201":
+          description: Thread created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Thread created
+                  thread:
+                    $ref: "#/components/schemas/ForumThread"
+
+    get:
+      tags:
+        - Forum
+      summary: Get all forum threads
+      description: Retrieve all forum threads ordered by last post timestamp (most recent first)
+      responses:
+        "200":
+          description: Threads retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  threads:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ForumThread"
+                    description: List of all forum threads
+                  count:
+                    type: integer
+                    description: Number of threads
+                    example: 25
+
+  /forum/threads/{thread_id}:
+    put:
+      tags:
+        - Forum
+      summary: Update a forum thread
+      description: Update a forum thread (only the author can update it)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: thread_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the thread to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  description: New title for the thread
+                  example: "Updated Calculus Help Thread"
+                tag:
+                  type: string
+                  nullable: true
+                  description: New tag for the thread
+                  example: "advanced-math"
+      responses:
+        "200":
+          description: Thread updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Thread updated
+        "404":
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Forum
+      summary: Delete a forum thread
+      description: Delete a forum thread (only the author can delete it)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: thread_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the thread to delete
+      responses:
+        "200":
+          description: Thread deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Thread deleted
+
+  /forum/threads/{thread_id}/posts:
+    post:
+      tags:
+        - Forum
+      summary: Create a new post in a thread
+      description: Create a new post in a forum thread
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: thread_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the thread to post in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Text content of the post
+                  example: "I'm having trouble with the chain rule. Can anyone help?"
+      responses:
+        "201":
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Post created
+                  post:
+                    $ref: "#/components/schemas/ForumPost"
+        "404":
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      tags:
+        - Forum
+      summary: Get all posts in a thread
+      description: Retrieve all posts in a forum thread ordered by timestamp (oldest first)
+      parameters:
+        - in: path
+          name: thread_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the thread
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ForumPost"
+                    description: List of posts in the thread
+                  count:
+                    type: integer
+                    description: Number of posts
+                    example: 15
+
+  /forum/threads/{thread_id}/posts/{post_id}:
+    put:
+      tags:
+        - Forum
+      summary: Update a forum post
+      description: Update a forum post (only the author can update it)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: thread_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the thread containing the post
+        - in: path
+          name: post_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the post to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: New text content for the post
+                  example: "Updated post content with more details"
+      responses:
+        "200":
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Post updated
+        "404":
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Forum
+      summary: Delete a forum post
+      description: Delete a forum post (only the author can delete it)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: thread_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the thread containing the post
+        - in: path
+          name: post_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the post to delete
+      responses:
+        "200":
+          description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Post deleted
+
 components:
   schemas:
     ErrorResponse:
@@ -1676,6 +1980,81 @@ components:
         - file_id
         - page_number
         - chunk_description
+
+    ForumThread:
+      type: object
+      properties:
+        thread_id:
+          type: integer
+          description: Unique identifier for the forum thread
+        title:
+          type: string
+          description: Title of the thread
+          example: "Help with Calculus Derivatives"
+        author:
+          $ref: "#/components/schemas/User"
+          description: User who authored the thread
+        tag:
+          type: string
+          nullable: true
+          description: Optional tag for categorizing the thread
+          example: "math"
+        posts_count:
+          type: integer
+          description: Number of posts in the thread
+          example: 15
+        last_post_timestamp:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of the most recent post (null if no posts)
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the thread was created
+      required:
+        - thread_id
+        - title
+        - author
+        - posts_count
+        - created_at
+
+    ForumPost:
+      type: object
+      properties:
+        post_id:
+          type: integer
+          description: Unique identifier for the forum post
+        thread_id:
+          type: integer
+          description: ID of the thread this post belongs to
+        user:
+          $ref: "#/components/schemas/User"
+          description: User who authored the post
+        text:
+          type: string
+          description: Text content of the post
+          example: "I'm having trouble with the chain rule. Can anyone help?"
+        edited:
+          type: boolean
+          description: Whether the post has been edited
+          example: false
+        edited_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the post was last edited (null if never edited)
+        post_timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the post was created
+      required:
+        - post_id
+        - thread_id
+        - user
+        - text
+        - edited
+        - post_timestamp
 
   securitySchemes:
     BearerAuth:

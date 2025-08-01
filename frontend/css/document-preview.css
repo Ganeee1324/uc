@@ -4885,6 +4885,31 @@ button:focus-visible,
     font-size: 12px;
 }
 
+/* Document List Reviews Button */
+.document-list-reviews-button {
+    margin: var(--space-3) 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.document-list-reviews-button .doc-rating-display {
+    font-size: var(--text-sm);
+    padding: var(--space-2) var(--space-3);
+}
+
+.document-list-reviews-button .doc-rating-display .rating-stars .stars-outer,
+.document-list-reviews-button .doc-rating-display .rating-stars .stars-inner {
+    font-size: 14px;
+}
+
+.document-list-reviews-button .doc-rating-display .rating-score {
+    font-size: var(--text-sm);
+}
+
+.document-list-reviews-button .doc-rating-display .rating-count {
+    font-size: var(--text-xs);
+}
+
 /* Document Metadata Footer */
 .document-metadata-footer {
     margin-top: var(--space-3);

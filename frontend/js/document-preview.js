@@ -968,25 +968,22 @@ function isSingleDocumentView() {
 // Document Data Fetcher - Enhanced to get complete information
 async function fetchDocumentData(vetrinaId) {
     try {
-        // The ID from the URL is a vetrinaId.
-
-        // 1. Fetch all files for this vetrina.
-        const vetrinaFilesResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/files`);
-        const vetrinaFiles = (vetrinaFilesResponse && vetrinaFilesResponse.files) ? vetrinaFilesResponse.files : [];
-
-        // 2. Fetch the details for this specific vetrina.
-        // The backend doesn't have /vetrine/<id>, so we must fetch all and filter.
-                const allVetrineResponse = await makeRequest(`${API_BASE}/vetrine`);
-        if (!allVetrineResponse || !allVetrineResponse.vetrine) {
-            throw new Error('Could not fetch vetrine list.');
+        // Use the single comprehensive endpoint that returns vetrina, files, and reviews
+        const vetrinaResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}`);
+        
+        if (!vetrinaResponse) {
+            throw new Error('Could not fetch vetrina data.');
         }
-        const vetrinaData = allVetrineResponse.vetrine.find(v => v.id == vetrinaId || v.vetrina_id == vetrinaId);
-                    
-                    if (!vetrinaData) {
+
+        const vetrinaData = vetrinaResponse.vetrina;
+        const vetrinaFiles = vetrinaResponse.files || [];
+        const reviewsData = vetrinaResponse.reviews || [];
+
+        if (!vetrinaData) {
             throw new Error(`Vetrina with ID ${vetrinaId} not found.`);
         }
 
-        // 3. The rest of the page logic needs a "primary document" object for context.
+        // The rest of the page logic needs a "primary document" object for context.
         // If the vetrina has files, we use the first one.
         // If not, we create a fallback object from the vetrina data itself.
         let primaryDocument;
@@ -1004,11 +1001,7 @@ async function fetchDocumentData(vetrinaId) {
             };
         }
 
-        // 4. Fetch reviews for the vetrina.
-                const reviewsResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}/reviews`);
-        const reviewsData = (reviewsResponse && reviewsResponse.reviews) ? reviewsResponse.reviews : [];
-
-        // 5. Assemble the final data structure that the rest of the page expects.
+        // Assemble the final data structure that the rest of the page expects.
         return {
             document: primaryDocument,
             vetrina: vetrinaData,
@@ -1667,30 +1660,6 @@ function renderDocumentListView(docData) {
                             <span class="material-symbols-outlined">visibility</span>
                             <span class="preview-text">Anteprima</span>
                         </div>
-                        
-                        <!-- File Review Rating Badge -->
-                        ${rating > 0 || reviewCount > 0 ? `
-                        <div class="file-rating-badge" 
-                             data-action="open-file-reviews" 
-                             data-file-id="${file.file_id}" 
-                             data-rating="${rating}" 
-                             data-review-count="${reviewCount}" 
-                             title="Mostra recensioni documento" 
-                             style="cursor: pointer;">
-                            <div class="rating-stars">${stars}</div>
-                            <span class="rating-count">(${reviewCount})</span>
-                        </div>
-                        ` : `
-                        <div class="file-rating-badge no-reviews" 
-                             data-action="open-file-reviews" 
-                             data-file-id="${file.file_id}" 
-                             data-rating="0" 
-                             data-review-count="0" 
-                             title="Aggiungi recensione" 
-                             style="cursor: pointer;">
-                            <span class="material-symbols-outlined">rate_review</span>
-                        </div>
-                        `}
                     </div>
                 </div>
                 <div class="document-list-content">
@@ -1699,6 +1668,22 @@ function renderDocumentListView(docData) {
                         <div class="document-title-section">
                             <h3 class="document-list-title">${displayFilename}</h3>
                             <div class="document-list-description">${file.description || 'Nessuna descrizione disponibile'}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reviews Button -->
+                    <div class="document-list-reviews-button">
+                        <div class="doc-rating-display" 
+                             data-action="open-file-reviews" 
+                             data-file-id="${file.file_id}" 
+                             data-rating="${rating}" 
+                             data-review-count="${reviewCount}" 
+                             title="Mostra recensioni documento">
+                            <div class="rating-stars">${stars}</div>
+                            <div class="rating-details">
+                                <span class="rating-score">${rating.toFixed(1)}</span>
+                                <span class="rating-count">(${reviewCount})</span>
+                            </div>
                         </div>
                     </div>
                     

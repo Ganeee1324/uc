@@ -4018,6 +4018,7 @@ async function loadVetrinaFiles(vetrinaId) {
     try {
         // Always fetch fresh data from the redacted endpoint
         const filesResponse = await makeAuthenticatedRequest(`/vetrine/${vetrinaId}/files`);
+        console.log(`[DEBUG] /vetrine/${vetrinaId}/files returned:`, filesResponse);
         const realFiles = filesResponse?.files || [];
         
         if (realFiles.length === 0) {

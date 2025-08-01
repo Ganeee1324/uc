@@ -4335,9 +4335,9 @@ button:focus-visible,
 /* Document List Thumbnail - Professional Preview */
 .document-list-preview {
     flex-shrink: 0;
-    width: 48px;
-    height: 60px;
+    width: 10%;
     position: relative;
+    align-self: stretch;
 }
 
 /* Move document type badge to be positioned as a flex item on the right */
@@ -4383,18 +4383,7 @@ button:focus-visible,
     cursor: pointer;
 }
 
-.document-list-preview:hover .document-list-thumbnail {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-    border-color: var(--primary-300);
-    background: linear-gradient(135deg, var(--primary-75) 0%, var(--primary-100) 100%);
-}
 
-.document-list-preview:hover .document-thumbnail-icon .document-icon {
-    transform: scale(1.1);
-    opacity: 1;
-    color: var(--primary-700);
-}
 
 .document-thumbnail-icon {
     width: 100%;
@@ -4452,7 +4441,7 @@ button:focus-visible,
     align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
-    margin-bottom: var(--space-2);
+    margin-bottom: 0;
     position: relative;
     flex: 1;
     min-width: 0;
@@ -4565,9 +4554,6 @@ button:focus-visible,
     border-radius: var(--radius-lg);
 }
 
-.document-list-preview:hover .preview-overlay-hint {
-    opacity: 1;
-}
 
 .preview-overlay-hint .material-symbols-outlined {
     font-size: 24px;
@@ -4885,9 +4871,20 @@ button:focus-visible,
     font-size: 12px;
 }
 
+/* Document List Reviews and Stats Container */
+.document-list-reviews-and-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 1px solid var(--neutral-150);
+}
+
 /* Document List Reviews Button */
 .document-list-reviews-button {
-    margin: var(--space-3) 0;
+    margin: 0;
     display: flex;
     justify-content: flex-start;
 }
@@ -4912,8 +4909,8 @@ button:focus-visible,
 
 /* Document Metadata Footer */
 .document-metadata-footer {
-    margin-top: var(--space-3);
-    padding-top: var(--space-2);
+    margin-top: 0;
+    padding-top: 0;
     border-top: 1px solid var(--neutral-150);
 }
 
@@ -4970,9 +4967,10 @@ button:focus-visible,
 }
 
 @media (max-width: 640px) {
-    .document-metadata-footer {
-        margin-top: var(--space-2);
-        padding-top: var(--space-2);
+    .document-list-reviews-and-stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
     }
     
     .document-stats {

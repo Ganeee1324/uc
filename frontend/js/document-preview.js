@@ -970,6 +970,7 @@ async function fetchDocumentData(vetrinaId) {
     try {
         // Use the single comprehensive endpoint that returns vetrina, files, and reviews
         const vetrinaResponse = await makeRequest(`${API_BASE}/vetrine/${vetrinaId}`);
+        console.log(`[DEBUG] /vetrine/${vetrinaId} returned:`, JSON.stringify(vetrinaResponse, null, 2));
         
         if (!vetrinaResponse) {
             throw new Error('Could not fetch vetrina data.');
@@ -1080,6 +1081,13 @@ function renderDocumentInfo(docData) {
     if (ratingBadge) {
         ratingBadge.setAttribute('data-rating', rating.toString());
         ratingBadge.setAttribute('data-review-count', reviewCount.toString());
+        
+        // Ensure stars are visible in the rating badge
+        const badgeStarsContainer = ratingBadge.querySelector('.rating-stars');
+        if (badgeStarsContainer) {
+            badgeStarsContainer.innerHTML = generateFractionalStars(rating);
+        }
+        
         console.log('Updated rating badge data attributes:', {
             rating: rating,
             reviewCount: reviewCount,
@@ -1310,7 +1318,7 @@ function formatDate(dateString) {
 // Utility Functions
 function generateStars(rating) {
     return Array.from({ length: 5 }, (_, i) => 
-        `<span class="star ${i < rating ? 'filled' : ''}">★</span>`
+        `<span class="star ${i < Math.round(rating) ? 'filled' : ''}">★</span>`
     ).join('');
 }
 
@@ -1664,7 +1672,7 @@ function renderDocumentListView(docData) {
         // Generate star rating for file reviews
         const rating = file.average_rating || 0;
         const reviewCount = file.reviews_count || 0;
-        const stars = generateStars(rating);
+        const stars = generateFractionalStars(rating);
         
         return `
             <div class="document-list-item" data-file-id="${file.file_id}" data-action="view-single-document" data-action-file-id="${file.file_id}">
@@ -1688,24 +1696,23 @@ function renderDocumentListView(docData) {
                         </div>
                     </div>
                     
-                    <!-- Reviews Button -->
-                    <div class="document-list-reviews-button">
-                        <div class="doc-rating-display" 
-                             data-action="open-file-reviews" 
-                             data-file-id="${file.file_id}" 
-                             data-rating="${rating}" 
-                             data-review-count="${reviewCount}" 
-                             title="Mostra recensioni documento">
-                            <div class="rating-stars">${stars}</div>
-                            <div class="rating-details">
-                                <span class="rating-score">${rating.toFixed(1)}</span>
-                                <span class="rating-count">(${reviewCount})</span>
+                    <!-- Reviews Button and Document Stats -->
+                    <div class="document-list-reviews-and-stats">
+                        <div class="document-list-reviews-button">
+                            <div class="doc-rating-display" 
+                                 data-action="open-file-reviews" 
+                                 data-file-id="${file.file_id}" 
+                                 data-rating="${rating}" 
+                                 data-review-count="${reviewCount}" 
+                                 title="Mostra recensioni documento">
+                                <div class="rating-stars">${stars}</div>
+                                <div class="rating-details">
+                                    <span class="rating-score">${rating.toFixed(1)}</span>
+                                    <span class="rating-count">(${reviewCount})</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Document metadata footer -->
-                    <div class="document-metadata-footer">
+                        
                         <div class="document-stats">
                             ${file.num_pages > 0 ? `
                             <div class="stat-item">
@@ -2096,15 +2103,26 @@ function renderSingleDocumentView(docData, fileId) {
     // Initialize document data with the specific file
     currentDocument = specificFile;
     
-    // Continue with the same setup as normal viewer
-    updateDocumentInfo(singleDocData);
-    updatePriceDisplay(currentVetrina);
-    populateDocumentDetails(currentVetrina, specificFile);
-    updateRatingDisplay(docData.reviews || []);
-    updateFavoriteButton(currentVetrina?.is_favorite || false, currentVetrina?.id || currentVetrina?.vetrina_id);
-
-    // Setup document preview functionality for the specific file
-    setupDocumentPreview(specificFile);
+    // Now render the content into the newly created structure
+    renderDocumentInfo(singleDocData);
+    
+    // Load the redacted PDF for the current document
+    console.log('About to load PDF for currentDocument:', currentDocument);
+    if (currentDocument && currentDocument.file_id) {
+        console.log('Loading PDF with file_id:', currentDocument.file_id);
+        loadRedactedPdf(currentDocument.file_id, 'documentViewer');
+    } else {
+        console.log('No file_id found in currentDocument (vetrina has no files):', currentDocument);
+        // Show message that this vetrina has no associated files
+        const documentViewer = document.getElementById('documentViewer');
+        if (documentViewer) {
+            documentViewer.innerHTML = `
+                <div class="no-files-message">
+                    <p>Questa vetrina non contiene file visualizzabili.</p>
+                </div>
+            `;
+        }
+    }
 }
 
 // New function to handle normal single-file viewer mode
@@ -3845,7 +3863,7 @@ function updateFileRatingBadge(fileId) {
     const reviewCount = file.reviews_count || 0;
     
     if (rating > 0 || reviewCount > 0) {
-        const stars = generateStars(rating);
+        const stars = generateFractionalStars(rating);
         ratingBadge.className = 'file-rating-badge';
         ratingBadge.innerHTML = `
             <div class="rating-stars">${stars}</div>

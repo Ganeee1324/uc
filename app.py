@@ -412,8 +412,22 @@ def download_file(file_id):
 @app.route("/files/<int:file_id>/download/redacted", methods=["GET"])
 @jwt_required()
 def download_file_redacted(file_id):
-    file = database.get_file(file_id)
-    return send_file(os.path.join(FILES_FOLDER, file.filename.replace(".pdf", "_redacted.pdf")), as_attachment=True)
+    try:
+        file = database.get_file(file_id)
+        redacted_filename = file.filename.replace(".pdf", "_redacted.pdf")
+        redacted_path = os.path.join(FILES_FOLDER, redacted_filename)
+        
+        # Check if the redacted file exists
+        if not os.path.exists(redacted_path):
+            print(f"Redacted file not found: {redacted_path}")
+            return jsonify({"error": "Redacted file not found"}), 404
+            
+        return send_file(redacted_path, as_attachment=True)
+    except database.NotFoundException:
+        return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        print(f"Error serving redacted file {file_id}: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 @app.route("/files/<int:file_id>", methods=["DELETE"])

@@ -3,6 +3,7 @@
 Wraps HuggingFace transformers (https://github.com/huggingface/transformers) models for use as a text tower in CLIP model.
 """
 
+import os
 import re
 
 import torch
@@ -26,6 +27,8 @@ except ImportError as e:
         pass
 
 from .hf_configs import arch_dict
+
+MODELS_FOLDER = os.getenv("MODELS_FOLDER")
 
 # utils
 def _camel2snake(s):
@@ -134,7 +137,11 @@ class HFTextEncoder(nn.Module):
 
         # self.itm_proj = nn.Linear(d_model, 2, bias=False)
         # self.mlm_proj = nn.Linear(d_model, self.config.vocab_size), bias=False)
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(MODELS_FOLDER, tokenizer_name), local_files_only=True)
+        except:
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+            self.tokenizer.save_pretrained(os.path.join(MODELS_FOLDER, tokenizer_name))
 
     # def forward_itm(self, x:TensorType, image_embeds:TensorType) -> TensorType:
     #     image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(x.device)  

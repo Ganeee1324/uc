@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any
 
 # Configuration
-BASE_URL = "https://symbia.it"
+BASE_URL = "https://symbia.it:5000"
 SEARCH_ENDPOINT = f"{BASE_URL}/vetrine/search"
 
 

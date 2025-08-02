@@ -65,7 +65,7 @@ class VisionRotaryEmbedding(nn.Module):
         self.register_buffer("freqs_cos", freqs.cos())
         self.register_buffer("freqs_sin", freqs.sin())
 
-        logging.info(f'Shape of rope freq: {self.freqs_cos.shape}')
+        logging.debug(f'Shape of rope freq: {self.freqs_cos.shape}')
 
     def forward(self, t, start_index = 0):
         rot_dim = self.freqs_cos.shape[-1]
@@ -116,7 +116,7 @@ class VisionRotaryEmbeddingFast(nn.Module):
         self.register_buffer("freqs_cos", freqs_cos)
         self.register_buffer("freqs_sin", freqs_sin)
 
-        logging.info(f'Shape of rope freq: {self.freqs_cos.shape}')
+        logging.debug(f'Shape of rope freq: {self.freqs_cos.shape}')
 
     def forward(self, t, patch_indices_keep=None):
         if patch_indices_keep is not None:

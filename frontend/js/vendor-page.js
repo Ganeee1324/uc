@@ -3296,15 +3296,16 @@ async function loadAllFiles() {
         // Loading cards are already shown from HTML
         showStatus('Caricamento vetrine... 📚');
         
-        // Get vendor username from URL parameters
+        // Get vendor ID or username from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
+        const vendorUserId = urlParams.get('userId');
         const vendorUsername = urlParams.get('user') || urlParams.get('username');
         
-        if (!vendorUsername) {
-            throw new Error('No vendor username provided in URL');
+        if (!vendorUserId && !vendorUsername) {
+            throw new Error('No vendor ID or username provided in URL');
         }
         
-        // Extract vendor information from vetrine data
+        // Fetch vendor data from backend if we have a user ID
         let vendorData = {
             username: vendorUsername,
             faculty: '',
@@ -3312,6 +3313,37 @@ async function loadAllFiles() {
             averageRating: 0,
             reviewsCount: 0
         };
+
+        // If we have a user ID, fetch user data from backend
+        if (vendorUserId) {
+            try {
+                const authToken = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE}/users/${vendorUserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    vendorData = {
+                        username: userData.username || vendorUsername,
+                        faculty: userData.user_faculty || '',
+                        canale: userData.user_canale || '',
+                        bio: userData.bio || '',
+                        averageRating: 0,
+                        reviewsCount: 0,
+                        user_id: userData.user_id
+                    };
+                } else {
+                    console.warn('Failed to fetch user data from backend, falling back to vetrine extraction');
+                }
+            } catch (error) {
+                console.warn('Error fetching user data from backend:', error);
+            }
+        }
         
         // Get vetrine metadata to extract vendor information with enhanced error handling
         let vetrineResponse;
@@ -3337,24 +3369,31 @@ async function loadAllFiles() {
         if (vetrineResponse && vetrineResponse.vetrine) {
             const allVetrine = vetrineResponse.vetrine || [];
             
-            // Filter vetrine by the specific vendor
+            // Filter vetrine by the specific vendor (using user_id if available, otherwise username)
             const vendorVetrine = allVetrine.filter(vetrina => {
-                const username = vetrina.author?.username || vetrina.owner?.username;
-                return username === vendorUsername;
+                if (vendorUserId) {
+                    const authorId = vetrina.author?.user_id || vetrina.owner?.user_id;
+                    return authorId && authorId.toString() === vendorUserId.toString();
+                } else {
+                    const username = vetrina.author?.username || vetrina.owner?.username;
+                    return username === vendorUsername;
+                }
             });
             
             if (vendorVetrine.length > 0) {
-                // Extract vendor information from the first vetrina
-                const firstVetrina = vendorVetrine[0];
-                const author = firstVetrina.author || firstVetrina.owner;
-                
-                vendorData = {
-                    username: vendorUsername,
-                    faculty: firstVetrina.course_instance?.faculty_name || '',
-                    canale: firstVetrina.course_instance?.canale || '',
-                    averageRating: firstVetrina.average_rating || 0,
-                    reviewsCount: firstVetrina.reviews_count || 0
-                };
+                // Extract vendor information from the first vetrina (only if we don't already have backend data)
+                if (!vendorUserId) {
+                    const firstVetrina = vendorVetrine[0];
+                    const author = firstVetrina.author || firstVetrina.owner;
+                    
+                    vendorData = {
+                        username: vendorUsername,
+                        faculty: firstVetrina.course_instance?.faculty_name || '',
+                        canale: firstVetrina.course_instance?.canale || '',
+                        averageRating: firstVetrina.average_rating || 0,
+                        reviewsCount: firstVetrina.reviews_count || 0
+                    };
+                }
                 
                 // Store vendor vetrine for later use
                 currentVetrine = vendorVetrine;

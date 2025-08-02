@@ -1,51 +1,44 @@
 from datetime import datetime
-import inspect
-from typing import Any, List
-from dataclasses import dataclass
+import logging
+from typing import Any, List, Optional
+from pydantic import BaseModel, Field, validator, ConfigDict
 
-
-@dataclass
-class File:
+class File(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     file_id: int
-    filename: str
-    display_name: str
+    filename: str = Field(..., min_length=1, max_length=255)
+    display_name: str = Field(..., min_length=1, max_length=200)
     upload_date: datetime
-    size: int
+    size: int = Field(..., gt=0)
     vetrina_id: int
-    sha256: str
+    sha256: str = Field(..., min_length=64, max_length=64)
     extension: str
-    tag: str | None
-    download_count: int
-    price: float
-    language: str
-    num_pages: int
-    fact_mark: int | None
-    fact_mark_updated_at: datetime | None
-    thumbnail: str | None
+    tag: Optional[str] = None
+    download_count: int = Field(default=0, ge=0)
+    price: float = Field(..., ge=0)
+    language: str = Field(..., min_length=2, max_length=15)
+    num_pages: int = Field(..., ge=1)
+    fact_mark: Optional[int] = Field(None, ge=0, le=100)
+    fact_mark_updated_at: Optional[datetime] = None
+    thumbnail: Optional[str] = None
     owned: bool = False
     favorite: bool = False
 
+    @validator('extension')
+    def validate_extension(cls, v):
+        if v not in ['pdf', 'docx', 'txt', 'xlsx']:
+            raise ValueError('Invalid extension')
+        return v
+
+    @validator('tag')
+    def validate_tag(cls, v):
+        if v is not None and v not in ['dispense', 'appunti', 'esercizi']:
+            raise ValueError('Invalid tag')
+        return v
+
     def to_dict(self) -> dict:
-        return {
-            "file_id": self.file_id,
-            "filename": self.filename,
-            "display_name": self.display_name,
-            "upload_date": self.upload_date,
-            "vetrina_id": self.vetrina_id,
-            "sha256": self.sha256,
-            "fact_mark": self.fact_mark,
-            "fact_mark_updated_at": self.fact_mark_updated_at,
-            "size": self.size,
-            "download_count": self.download_count,
-            "owned": self.owned,
-            "price": self.price,
-            "favorite": self.favorite,
-            "tag": self.tag,
-            "extension": self.extension,
-            "language": self.language,
-            "num_pages": self.num_pages,
-            "thumbnail": self.thumbnail,
-        }
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict) -> "File":
@@ -56,47 +49,48 @@ class File:
         """
         return cls(**{key: data[key] for key in file_fields if key in data})
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, File):
+            return False
+        return self.file_id == other.file_id
 
-@dataclass
-class User:
+    def __hash__(self) -> int:
+        return hash(self.file_id)
+
+
+class User(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     user_id: int
-    username: str
-    first_name: str
-    last_name: str
-    email: str
+    username: str = Field(..., min_length=3, max_length=50)
+    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    email: Optional[str] = Field(None, pattern=r'^[^@]+@[^@]+\.[^@]+$')
     last_login: datetime
     registration_date: datetime
-    user_faculty: str | None
-    user_enrollment_year: int | None
-    user_canale: str | None
-    bio: str | None
-    profile_picture: str | None
-    uploaded_documents_count: int
+    user_faculty: Optional[str] = None
+    user_enrollment_year: Optional[int] = Field(None, ge=2000, le=2030)
+    user_canale: Optional[str] = None
+    bio: Optional[str] = Field(None, max_length=500)
+    profile_picture: Optional[str] = None
+    uploaded_documents_count: int = Field(default=0, ge=0)
 
     def to_dict(self) -> dict:
-        return {
-            "user_id": self.user_id,
-            "username": self.username,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "last_login": self.last_login,
-            "registration_date": self.registration_date,
-            "user_faculty": self.user_faculty,
-            "user_enrollment_year": self.user_enrollment_year,
-            "user_canale": self.user_canale,
-            "bio": self.bio,
-            "profile_picture": self.profile_picture,
-            "uploaded_documents_count": self.uploaded_documents_count,
-        }
+        return self.model_dump()
 
     @classmethod
-    def from_dict(cls, data: dict) -> "User":
+    def from_dict(cls, data: dict, sensitive_data: bool = False, profile_data: bool = False) -> "User":
         """
         Create a User object from a dictionary.
         Requires:
             - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
         """
-        return cls(**{key: data[key] for key in user_fields if key in data})
+        excluded = []
+        if not profile_data:
+            excluded.extend(["bio"])
+        if not sensitive_data:
+            excluded.extend(["email", "first_name", "last_name"])
+        return cls(**{key: data[key] for key in user_fields if key in data and key not in excluded})
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, User):
@@ -107,18 +101,19 @@ class User:
         return hash(self.user_id)
 
 
-@dataclass
-class CourseInstance:
+class CourseInstance(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     instance_id: int
-    course_code: str
-    course_name: str
-    faculty_name: str
-    course_year: int
-    date_year: int
-    language: str
+    course_code: str = Field(..., min_length=1, max_length=20)
+    course_name: str = Field(..., min_length=1, max_length=200)
+    faculty_name: str = Field(..., min_length=1, max_length=100)
+    course_year: int = Field(..., ge=1, le=6)
+    date_year: int = Field(..., ge=2000, le=2030)
+    language: str = Field(..., min_length=2, max_length=15)
     course_semester: str
-    canale: str
-    professors: List[str]
+    canale: str = Field(..., min_length=1, max_length=10)
+    professors: List[str] = Field(default_factory=list)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, CourseInstance):
@@ -138,38 +133,30 @@ class CourseInstance:
         return cls(**{key: data[key] for key in course_instance_fields if key in data})
 
     def to_dict(self) -> dict:
-        return {
-            "instance_id": self.instance_id,
-            "course_code": self.course_code,
-            "course_name": self.course_name,
-            "faculty_name": self.faculty_name,
-            "course_year": self.course_year,
-            "date_year": self.date_year,
-            "language": self.language,
-            "course_semester": self.course_semester,
-            "canale": self.canale,
-            "professors": self.professors,
-        }
+        return self.model_dump()
 
 
-@dataclass
-class Vetrina:
+class Vetrina(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     vetrina_id: int
-    name: str
+    name: str = Field(..., min_length=1, max_length=200)
     author: User
-    description: str
+    description: str = Field(..., min_length=1, max_length=1000)
     course_instance: CourseInstance
-    average_rating: float | None
-    reviews_count: int
-    tags: List[str]
-    file_count: int
-    price: float
-    copertina: str | None
+    average_rating: Optional[float] = Field(None, ge=0, le=5)
+    reviews_count: int = Field(default=0, ge=0)
+    tags: List[str] = Field(default_factory=list)
+    file_count: int = Field(default=0, ge=0)
+    price: float = Field(..., ge=0)
+    copertina: Optional[str] = None
     favorite: bool = False
 
-    def __post_init__(self):
-        if self.tags is None:
-            self.tags = []
+    @validator('tags', pre=True)
+    def validate_tags(cls, v):
+        if v is None:
+            return []
+        return v
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Vetrina):
@@ -180,21 +167,7 @@ class Vetrina:
         return hash("vetrina" + str(self.vetrina_id))
 
     def to_dict(self) -> dict:
-        res = {
-            "vetrina_id": self.vetrina_id,
-            "name": self.name,
-            "author": self.author.to_dict(),
-            "description": self.description,
-            "course_instance": self.course_instance.to_dict(),
-            "favorite": self.favorite,
-            "average_rating": self.average_rating,
-            "reviews_count": self.reviews_count,
-            "tags": self.tags,
-            "file_count": self.file_count,
-            "price": self.price,
-            "copertina": self.copertina,
-        }
-        return res
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict) -> "Vetrina":
@@ -210,12 +183,12 @@ class Vetrina:
         args["course_instance"] = CourseInstance.from_dict(data)
         return cls(**args)
 
-
-@dataclass
-class Transaction:
+class Transaction(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     transaction_id: int
     user_id: int
-    amount: int
+    amount: int = Field(..., gt=0)
     transaction_date: datetime
 
     def __eq__(self, other: Any) -> bool:
@@ -227,12 +200,7 @@ class Transaction:
         return hash("transaction" + str(self.transaction_id))
 
     def to_dict(self) -> dict:
-        return {
-            "transaction_id": self.transaction_id,
-            "user_id": self.user_id,
-            "amount": self.amount,
-            "transaction_date": self.transaction_date,
-        }
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict) -> "Transaction":
@@ -244,17 +212,17 @@ class Transaction:
         args = {key: data[key] for key in transaction_fields if key in data}
         return cls(**args)
 
-
-@dataclass
-class Review:
+class Review(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     user: User
-    rating: int
-    review_text: str
+    rating: int = Field(..., ge=1, le=5)
+    review_text: str = Field(..., min_length=1, max_length=1000)
     review_date: datetime
     vetrina_id: int
-    file_id: int | None
-    vetrina_name: str | None
-    file_name: str | None
+    file_id: Optional[int] = None
+    vetrina_name: Optional[str] = None
+    file_name: Optional[str] = None
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Review):
@@ -267,16 +235,7 @@ class Review:
         return hash("review" + str(self.user.user_id) + target_type + str(target_id))
 
     def to_dict(self) -> dict:
-        return {
-            "user": self.user.to_dict(),
-            "vetrina_id": self.vetrina_id,
-            "file_id": self.file_id,
-            "rating": self.rating,
-            "review_text": self.review_text,
-            "review_date": self.review_date,
-            "vetrina_name": self.vetrina_name,
-            "file_name": self.file_name,
-        }
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict) -> "Review":
@@ -289,14 +248,14 @@ class Review:
         args["user"] = User.from_dict(data)
         return cls(**args)
 
-
-@dataclass
-class Chunk:
+class Chunk(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     vetrina_id: int
     file_id: int
-    page_number: int
-    chunk_description: str
-    image_path: str
+    page_number: int = Field(..., ge=1)
+    chunk_description: str = Field(..., min_length=1, max_length=2000)
+    image_path: str = Field(..., min_length=1, max_length=500)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Chunk):
@@ -312,13 +271,7 @@ class Chunk:
         return hash("chunk" + str(self.vetrina_id) + str(self.file_id) + str(self.page_number) + self.chunk_description)
 
     def to_dict(self) -> dict:
-        return {
-            "vetrina_id": self.vetrina_id,
-            "file_id": self.file_id,
-            "page_number": self.page_number,
-            "chunk_description": self.chunk_description,
-            "image_path": self.image_path,
-        }
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict) -> "Chunk":
@@ -331,97 +284,10 @@ class Chunk:
         return cls(**args)
 
 
-@dataclass
-class ForumThread:
-    thread_id: int
-    title: str
-    author: User
-    tag: str | None
-    posts_count: int
-    last_post_timestamp: datetime | None
-    created_at: datetime
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, ForumThread):
-            return False
-        return self.thread_id == other.thread_id
-
-    def __hash__(self) -> int:
-        return hash("thread" + str(self.thread_id))
-
-    def to_dict(self) -> dict:
-        return {
-            "thread_id": self.thread_id,
-            "title": self.title,
-            "author": self.author.to_dict(),
-            "tag": self.tag,
-            "posts_count": self.posts_count,
-            "last_post_timestamp": self.last_post_timestamp,
-            "created_at": self.created_at,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "ForumThread":
-        """
-        Create a ForumThread object from a dictionary.
-        Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
-            - ForumThread object fields: thread_id, title, author, tag, posts_count, last_post_timestamp, created_at
-        """
-        args = {key: data[key] for key in forum_thread_fields if key in data and key != "author"}
-        args["author"] = User.from_dict(data)
-        return cls(**args)
-
-
-@dataclass
-class ForumPost:
-    post_id: int
-    thread_id: int
-    user: User
-    text: str
-    edited: bool
-    edited_at: datetime | None
-    post_timestamp: datetime
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, ForumPost):
-            return False
-        return self.post_id == other.post_id
-
-    def __hash__(self) -> int:
-        return hash("forum_post" + str(self.post_id))
-
-    def to_dict(self) -> dict:
-        return {
-            "post_id": self.post_id,
-            "thread_id": self.thread_id,
-            "user": self.user.to_dict(),
-            "text": self.text,
-            "edited": self.edited,
-            "edited_at": self.edited_at,
-            "post_timestamp": self.post_timestamp,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "ForumPost":
-        """
-        Create a ForumPost object from a dictionary.
-        Requires:
-            - User object fields: user_id, username, first_name, last_name, email, last_login, registration_date, uploaded_documents_count
-            - ForumPost object fields: post_id, thread_id, user, text, edited, edited_at, post_timestamp
-        """
-        args = {key: data[key] for key in forum_post_fields if key in data and key != "user"}
-        args["user"] = User.from_dict(data)
-        return cls(**args)
-
-
-file_fields = [key for key in inspect.signature(File.__init__).parameters.keys() if key != "self"]
-user_fields = [key for key in inspect.signature(User.__init__).parameters.keys() if key != "self"]
-course_instance_fields = [key for key in inspect.signature(CourseInstance.__init__).parameters.keys() if key != "self"]
-vetrina_fields = [key for key in inspect.signature(Vetrina.__init__).parameters.keys() if key != "self"]
-
-transaction_fields = [key for key in inspect.signature(Transaction.__init__).parameters.keys() if key != "self"]
-review_fields = [key for key in inspect.signature(Review.__init__).parameters.keys() if key != "self"]
-chunk_fields = [key for key in inspect.signature(Chunk.__init__).parameters.keys() if key != "self"]
-forum_thread_fields = [key for key in inspect.signature(ForumThread.__init__).parameters.keys() if key != "self"]
-forum_post_fields = [key for key in inspect.signature(ForumPost.__init__).parameters.keys() if key != "self"]
+file_fields = list(File.model_fields.keys())
+user_fields = list(User.model_fields.keys())
+course_instance_fields = list(CourseInstance.model_fields.keys())
+vetrina_fields = list(Vetrina.model_fields.keys())
+transaction_fields = list(Transaction.model_fields.keys())
+review_fields = list(Review.model_fields.keys())
+chunk_fields = list(Chunk.model_fields.keys())

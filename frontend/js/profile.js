@@ -2161,14 +2161,41 @@ async function initializeUserPersonalization() {
 
 // Fetch complete user profile from backend
 async function fetchCompleteUserProfile(userId) {
-    // Return mock user data for UI testing
-    return {
-        user_id: 'mock-user-123',
-        first_name: 'Test',
-        last_name: 'User',
-        email: 'test@example.com',
-        username: 'testuser'
-    };
+    try {
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            throw new Error('No auth token found');
+        }
+
+        const response = await fetch(`${API_BASE}/user`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const userData = await response.json();
+        return userData;
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        // Return mock user data for UI testing as fallback
+        return {
+            user_id: 'mock-user-123',
+            first_name: 'Test',
+            last_name: 'User',
+            email: 'test@example.com',
+            username: 'testuser',
+            bio: '',
+            user_canale: '',
+            user_faculty: '',
+            user_enrollment_year: null
+        };
+    }
 }
 
 // ===========================
@@ -4370,5 +4397,92 @@ document.addEventListener('DOMContentLoaded', function() {
     // Wait a bit for other initializations to complete
     setTimeout(() => {
         initializeCustomDropdowns();
+        initializeBioCharacterCounter();
     }, 100);
-}); 
+});
+
+// Initialize bio character counter
+function initializeBioCharacterCounter() {
+    const bioInput = document.getElementById('bioInput');
+    const bioCharCount = document.getElementById('bioCharCount');
+    
+    if (bioInput && bioCharCount) {
+        // Update character count on input
+        bioInput.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            bioCharCount.textContent = currentLength;
+            
+            // Optional: Add visual feedback when approaching limit
+            if (currentLength > 450) {
+                bioCharCount.style.color = '#e74c3c';
+            } else if (currentLength > 400) {
+                bioCharCount.style.color = '#f39c12';
+            } else {
+                bioCharCount.style.color = '';
+            }
+        });
+        
+        // Initialize with current value
+        bioCharCount.textContent = bioInput.value.length;
+    }
+}
+
+// ===========================
+// PROFILE SETTINGS SAVE FUNCTIONALITY
+// ===========================
+
+async function saveProfileSettings() {
+    try {
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            throw new Error('No auth token found');
+        }
+
+        // Get form values
+        const bioInput = document.getElementById('bioInput');
+        const bio = bioInput ? bioInput.value.trim() : '';
+        
+        // Get custom dropdown values
+        const userCanale = getCustomDropdownValue('canale');
+        const userFaculty = getCustomDropdownValue('course'); // course maps to faculty in backend
+        const userEnrollmentYear = getCustomDropdownValue('startYear');
+
+        // Prepare update data according to backend schema
+        const updateData = {};
+        
+        if (bio !== undefined) updateData.bio = bio;
+        if (userCanale) updateData.user_canale = userCanale;
+        if (userFaculty) updateData.user_faculty = userFaculty;
+        if (userEnrollmentYear) updateData.user_enrollment_year = parseInt(userEnrollmentYear);
+
+        console.log('Sending profile update:', updateData);
+
+        const response = await fetch(`${API_BASE}/user`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const updatedUser = await response.json();
+        
+        // Update localStorage with new user data
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        
+        // Show success message
+        showStatus('Profilo aggiornato con successo!', 'success');
+        
+        // Refresh profile display
+        await loadUserProfile();
+        
+    } catch (error) {
+        console.error('Error saving profile settings:', error);
+        showStatus('Errore nel salvare le modifiche. Riprova più tardi.', 'error');
+    }
+} 

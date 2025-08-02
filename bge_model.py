@@ -8,11 +8,12 @@ from torch import nn, Tensor
 from transformers import AutoModel, AutoTokenizer, AutoConfig
 from transformers.file_utils import ModelOutput
 
-
+MODELS_FOLDER = os.getenv("MODELS_FOLDER")
 from eva_clip import create_eva_vision_and_transforms
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
 
 
 @dataclass
@@ -26,48 +27,44 @@ class EncoderOutput(ModelOutput):
 class Visualized_BGE(nn.Module):
     def __init__(
         self,
-        model_name_bge: str = "bge-m3",
         model_weight=None,  # "/path/to/your/weight/file/"
-        normlized: bool = True,
+        normalized: bool = True,
         sentence_pooling_method: str = "cls",
         negatives_cross_device: bool = False,
         temperature: float = 0.02,  # 1.0
-        from_pretrained=None,  # local config file and model
-        device: str = "cpu"
+        device: str = "cpu",
     ):
         super().__init__()
 
-        assert "bge" in model_name_bge
         assert model_weight is not None
 
-        self.model_name_bge = model_name_bge
-
-        model_name_eva = "EVA02-CLIP-L-14"
         self.hidden_dim = 1024
         self.depth = 24
 
-        if not from_pretrained:
-            bge_config = AutoConfig.from_pretrained(model_name_bge)
+        try:
+            bge_config = AutoConfig.from_pretrained(os.path.join(MODELS_FOLDER, "bge-m3"), local_files_only=True)
             bge = AutoModel.from_config(bge_config)
-        else:
-            print("Loading from local path.")
-            bge_config = AutoConfig.from_pretrained(from_pretrained, local_files_only=True)
+            logging.info(f"BGE model loaded from {os.path.join(MODELS_FOLDER, 'bge-m3')}")
+        except:
+            bge_config = AutoConfig.from_pretrained("BAAI/bge-m3")
             bge = AutoModel.from_config(bge_config)
+            bge.save_pretrained(os.path.join(MODELS_FOLDER, "bge-m3"))
+            logging.info(f"Saved BGE model to {os.path.join(MODELS_FOLDER, 'bge-m3')}")
 
         self.bge_encoder = bge.encoder
         self.bge_embeddings = bge.embeddings
         self.bge_pooler = bge.pooler
 
-        self.model_visual, self.preprocess_train, self.preprocess_val = create_eva_vision_and_transforms(model_name_eva, force_custom_clip=True)
+        self.model_visual, self.preprocess_train, self.preprocess_val = create_eva_vision_and_transforms("EVA02-CLIP-L-14", force_custom_clip=True)
 
         self.visual_proj = nn.Linear(self.hidden_dim, self.hidden_dim)
 
         self.cross_entropy = nn.CrossEntropyLoss(reduction="mean")
 
-        self.normlized = normlized
+        self.normalized = normalized
         self.sentence_pooling_method = sentence_pooling_method
         self.temperature = temperature
-        if not normlized:
+        if not normalized:
             self.temperature = 1.0
             logger.info("reset temperature = 1.0 due to using inner product to compute similarity")
 
@@ -81,10 +78,13 @@ class Visualized_BGE(nn.Module):
 
         self.load_model(model_weight)
 
-        if not from_pretrained:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name_bge, use_fast=False)
-        else:
-            self.tokenizer = AutoTokenizer.from_pretrained(from_pretrained, use_fast=False)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(MODELS_FOLDER, "bge-m3_tokenizer"), use_fast=False, local_files_only=True)
+            logging.info(f"Tokenizer loaded from {os.path.join(MODELS_FOLDER, 'bge-m3_tokenizer')}")
+        except:
+            self.tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3", use_fast=False)
+            self.tokenizer.save_pretrained(os.path.join(MODELS_FOLDER, "bge-m3_tokenizer"))
+            logging.info(f"Tokenizer saved to {os.path.join(MODELS_FOLDER, 'bge-m3_tokenizer')}")
 
         self.device = torch.device(device)
         self.to(self.device)
@@ -116,7 +116,7 @@ class Visualized_BGE(nn.Module):
                 return None
 
     def get_extended_attention_mask(
-        self, attention_mask: Tensor, input_shape: Tuple[int], device: torch.device = None, dtype: torch.float = torch.float16 # type: ignore
+        self, attention_mask: Tensor, input_shape: Tuple[int], device: torch.device = None, dtype: torch.float = torch.float16  # type: ignore
     ) -> Tensor:
         """
         Makes broadcastable attention and causal masks so that future and masked tokens are ignored.
@@ -200,7 +200,7 @@ class Visualized_BGE(nn.Module):
         # pooled_output = self.bge_pooler(sequence_output) if self.bge_pooler is not None else None
 
         t_reps, t_reps_colbert = self.sentence_embedding(sequence_output, texts["attention_mask"])  # tensor: reps with pooling
-        if self.normlized:
+        if self.normalized:
             t_reps = torch.nn.functional.normalize(t_reps, dim=-1)
             t_reps_colbert = torch.nn.functional.normalize(t_reps_colbert, dim=-1)
         return t_reps, t_reps_colbert
@@ -273,7 +273,7 @@ class Visualized_BGE(nn.Module):
         sequence_output = encoder_outputs[0]
 
         prompt_img_reps, prompt_img_reps_colbert = self.sentence_embedding(sequence_output, prom_img_attention_mask)  # tensor: reps with pooling
-        if self.normlized:
+        if self.normalized:
             prompt_img_reps = torch.nn.functional.normalize(prompt_img_reps, dim=-1)
             prompt_img_reps_colbert = torch.nn.functional.normalize(prompt_img_reps_colbert, dim=-1)
         return prompt_img_reps, prompt_img_reps_colbert
@@ -331,7 +331,7 @@ class Visualized_BGE(nn.Module):
             loss_edit = self.compute_loss(scores, target)
             loss = loss_edit
 
-            logging.info("task types: %s; loss: %s" % (task_type, str(loss_edit)))
+            logging.debug("task types: %s; loss: %s" % (task_type, str(loss_edit)))
         else:
             scores = self.compute_similarity(query_reps, candi_reps)
             loss = None

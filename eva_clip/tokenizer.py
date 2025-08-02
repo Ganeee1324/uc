@@ -16,6 +16,8 @@ import torch
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+MODELS_FOLDER = os.getenv("MODELS_FOLDER")
+
 
 @lru_cache()
 def default_bpe():
@@ -189,7 +191,11 @@ class HFTokenizer:
     "HuggingFace tokenizer wrapper"
     def __init__(self, tokenizer_name:str):
         from transformers import AutoTokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(MODELS_FOLDER, tokenizer_name), local_files_only=True)
+        except:
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+            self.tokenizer.save_pretrained(os.path.join(MODELS_FOLDER, tokenizer_name))
 
     def __call__(self, texts:Union[str, List[str]], context_length:int=77) -> torch.Tensor:
         # same cleaning as for default tokenizer, except lowercasing

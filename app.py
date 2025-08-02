@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from datetime import timedelta
 import logging
 import random
@@ -5,10 +9,10 @@ import traceback
 
 from bge import get_sentence_embedding, load_model
 import werkzeug
+from werkzeug.middleware.proxy_fix import ProxyFix
 import database
 from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
-from dotenv import load_dotenv
 import os
 from psycopg.errors import UniqueViolation, ForeignKeyViolation
 from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, ForbiddenError
@@ -16,9 +20,21 @@ from db_errors import AlreadyOwnedError, NotFoundException, UnauthorizedError, F
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import uuid
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s", force=True)
+# Import Pydantic validation schemas and utilities
+from schemas import (
+    UserRegistrationRequest,
+    UserLoginRequest,
+    UserUpdateRequest,
+    VetrinaCreateRequest,
+    ReviewCreateRequest,
+    FileDisplayNameUpdateRequest,
+    SearchRequest,
+    FileUploadRequest,
+)
+from validation import validate_json
+from pydantic import ValidationError
 
-load_dotenv()
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s", force=True)
 
 
 # Check if JWT secret key exists in environment
@@ -29,6 +45,13 @@ if not jwt_secret_key:
     print("Warning: Using default JWT secret key. This is not secure for production.")
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,  # Number of proxies that set X-Forwarded-For
+    x_proto=1,  # Number of proxies that set X-Forwarded-Proto
+    x_host=1,  # Number of proxies that set X-Forwarded-Host
+    x_prefix=1,  # Number of proxies that set X-Forwarded-Prefix
+)
 load_model()
 
 # Enable CORS for all origins (prototype only)
@@ -71,6 +94,7 @@ def not_found_error(e):
 
 @app.errorhandler(ForeignKeyViolation)
 def foreign_key_violation_error(e):
+    logging.error(f"Foreign key violation error: {e} {traceback.format_exc()}")
     return jsonify({"error": "foreign_key_violation", "msg": str(e)}), 404
 
 
@@ -86,6 +110,7 @@ def not_found_error(e):
 
 @app.errorhandler(UniqueViolation)
 def unique_violation_error(e):
+    logging.error(f"Unique violation error: {e} {traceback.format_exc()}")
     diag = e.diag
     if diag.constraint_name == "users_email_key":
         return jsonify({"error": "email_already_exists", "msg": "Email already exists"}), 409
@@ -105,151 +130,51 @@ def unauthorized_error(e):
 
 @app.errorhandler(AlreadyOwnedError)
 def already_owned_error(e):
+    logging.error(f"Already owned error: {e} {traceback.format_exc()}")
     return jsonify({"error": "already_owned", "msg": str(e)}), 409
 
 
 @app.errorhandler(ValueError)
 def value_error(e):
+    logging.error(f"Value error: {e} {traceback.format_exc()}")
     return jsonify({"error": "bad_parameter", "msg": str(e)}), 400
+
+
+@app.errorhandler(ValidationError)
+def validation_error(e):
+    logging.error(f"Validation error: {e} {traceback.format_exc()}")
+    errors = []
+    for error in e.errors():
+        field = " -> ".join(str(loc) for loc in error["loc"])
+        errors.append(f"{field}: {error['msg']}")
+    return jsonify({"error": "validation_error", "msg": "Validation error", "details": errors}), 400
 
 
 # ---------------------------------------------
 # Auth routes
 # ---------------------------------------------
 
-# Email sending configuration (implement with your preferred email service)
-# For production, integrate with services like SendGrid, AWS SES, etc.
-def send_verification_email(email: str, verification_token: str, verification_code: str):
-    """
-    Send verification email to user.
-    This is a placeholder - implement with your email service.
-    """
-    # Example verification link
-    verification_link = f"https://your-domain.com/verify-email?token={verification_token}"
-    
-    # Log for development (replace with actual email sending)
-    logging.info(f"Sending verification email to {email}")
-    logging.info(f"Verification link: {verification_link}")
-    logging.info(f"Verification code: {verification_code}")
-    
-    # TODO: Implement actual email sending
-    # email_service.send_verification_email(email, verification_link, verification_code)
-    pass
-
 
 @app.route("/register", methods=["POST"])
-def register():
-    data = request.json
-    email = str(data.get("email"))
-    
-    # Check if email verification is enabled (default: True)
-    require_verification = os.getenv("REQUIRE_EMAIL_VERIFICATION", "true").lower() == "true"
-    
-    user, verification_token, verification_code = database.create_user(
-        username=str(data.get("username")),
-        email=email,
-        password=str(data.get("password")),
-        name=str(data.get("name")),
-        surname=str(data.get("surname")),
-        require_email_verification=require_verification
+@validate_json(UserRegistrationRequest)
+def register(validated_data: UserRegistrationRequest):
+    user = database.create_user(
+        username=validated_data.username,
+        email=validated_data.email,
+        password=validated_data.password,
+        name=validated_data.name,
+        surname=validated_data.surname,
     )
-    
-    if require_verification:
-        # Send verification email here (implement email sending service)
-        # For now, we'll just log the verification details
-        logging.info(f"Email verification required for {email}")
-        logging.info(f"Verification token: {verification_token}")
-        logging.info(f"Verification code: {verification_code}")
-        
-        return jsonify({
-            "email_verification_required": True,
-            "message": "Please check your email and verify your account to complete registration.",
-            "user": user.to_dict()
-        }), 200
-    else:
-        # Legacy behavior - direct login
-        access_token = create_access_token(identity=user.user_id)
-        return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
-
-
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.json
-    email = data.get("email")
-    password = data.get("password")
-
-    user = database.verify_user(email, password)
     access_token = create_access_token(identity=user.user_id)
     return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
 
 
-@app.route("/verify-email", methods=["GET"])
-def verify_email():
-    token = request.args.get("token")
-    if not token:
-        return jsonify({"error": "missing_token", "msg": "Verification token is required"}), 400
-    
-    try:
-        user = database.verify_email_token(token)
-        return jsonify({
-            "message": "Email verified successfully",
-            "user": user.to_dict()
-        }), 200
-    except UnauthorizedError as e:
-        return jsonify({"error": "invalid_token", "msg": str(e)}), 401
-
-
-@app.route("/verify-email-code", methods=["POST"])
-def verify_email_code():
-    data = request.json
-    email = data.get("email")
-    code = data.get("code")
-    
-    if not email or not code:
-        return jsonify({"error": "missing_data", "msg": "Email and code are required"}), 400
-    
-    try:
-        user = database.verify_email_code(email, code)
-        access_token = create_access_token(identity=user.user_id)
-        return jsonify({
-            "message": "Email verified successfully",
-            "access_token": access_token,
-            "user": user.to_dict()
-        }), 200
-    except UnauthorizedError as e:
-        return jsonify({"error": "invalid_code", "msg": str(e)}), 401
-
-
-@app.route("/resend-verification", methods=["POST"])
-def resend_verification():
-    data = request.json
-    email = data.get("email")
-    
-    if not email:
-        return jsonify({"error": "missing_email", "msg": "Email is required"}), 400
-    
-    try:
-        verification_token, verification_code = database.resend_verification_email(email)
-        
-        # Send verification email here (implement email sending service)
-        # For now, we'll just log the verification details
-        logging.info(f"Resending verification for {email}")
-        logging.info(f"New verification token: {verification_token}")
-        logging.info(f"New verification code: {verification_code}")
-        
-        return jsonify({
-            "message": "Verification email sent successfully"
-        }), 200
-    except NotFoundException as e:
-        return jsonify({"error": "user_not_found", "msg": str(e)}), 404
-    except ValueError as e:
-        return jsonify({"error": "already_verified", "msg": str(e)}), 400
-
-
-@app.route("/resend-verification-code", methods=["POST"])
-def resend_verification_code():
-    """Alias for resend-verification for code-based verification"""
-    return resend_verification()
+@app.route("/login", methods=["POST"])
+@validate_json(UserLoginRequest)
+def login(validated_data: UserLoginRequest):
+    user = database.verify_user(validated_data.email, validated_data.password)
+    access_token = create_access_token(identity=user.user_id)
+    return jsonify({"access_token": access_token, "user": user.to_dict()}), 200
 
 
 # ---------------------------------------------
@@ -259,14 +184,16 @@ def resend_verification_code():
 
 @app.route("/vetrine", methods=["POST"])
 @jwt_required()
-def create_vetrina():
+@validate_json(VetrinaCreateRequest)
+def create_vetrina(validated_data: VetrinaCreateRequest):
     user_id = get_jwt_identity()
-    data = request.json
-    course_instance_id = int(data.get("course_instance_id"))
-    name = str(data.get("name"))
-    description = str(data.get("description"))
-    price = float(data.get("price", 0.0))  # Default to 0.0 if not provided
-    database.create_vetrina(user_id=user_id, course_instance_id=course_instance_id, name=name, description=description, price=price)
+    database.create_vetrina(
+        user_id=user_id,
+        course_instance_id=validated_data.course_instance_id,
+        name=validated_data.name,
+        description=validated_data.description,
+        price=validated_data.price,
+    )
     return jsonify({"msg": "Vetrina created"}), 200
 
 
@@ -307,30 +234,26 @@ def new_search():
     Query parameter: 'q' - the search query string
     Additional filter parameters: course_name, faculty, canale, language, date_year, course_year, tag, extension
     """
-    query = request.args.get("q", "").strip()
-    if not query:
-        return jsonify({"error": "missing_query", "msg": "Query parameter 'q' is required"}), 400
+    query_data = request.args.to_dict()
+    for key, value in query_data.items():
+        if value == "":
+            query_data[key] = None
 
-    # Extract filter parameters from request
-    filter_params = {}
-    filter_keys = ["course_name", "faculty", "canale", "language", "date_year", "course_year", "tag", "extension"]
-    for key in filter_keys:
-        value = request.args.get(key)
-        if value:
-            filter_params[key] = value
+    validated_params = SearchRequest(**query_data)
+    filter_params = {k: v for k, v in validated_params.model_dump().items() if k != "q" and v is not None}
 
-    query_embedding = get_sentence_embedding(query).squeeze()
-
+    query_embedding = get_sentence_embedding(validated_params.q).squeeze()
     current_user_id = get_jwt_identity()
 
-    vetrine, chunks = database.new_search(query, query_embedding, filter_params, current_user_id)
+    vetrine, chunks = database.new_search(validated_params.q, query_embedding, filter_params, current_user_id)
+
     return (
         jsonify(
             {
                 "vetrine": [vetrina.to_dict() for vetrina in vetrine],
                 "chunks": {vetrina_id: [chunk.to_dict() for chunk in vetrina_chunks] for vetrina_id, vetrina_chunks in chunks.items()},
                 "count": len(vetrine),
-                "query": query,
+                "query": validated_params.q,
                 "filters": filter_params,
             }
         ),
@@ -376,7 +299,7 @@ def upload_file(vetrina_id):
 
     if os.path.exists(new_file_path):
         return jsonify({"error": "file_already_exists", "msg": "File already exists"}), 500
-    
+
     display_name = request.form.get("display_name", file.filename[: -len(extension) - 1]).strip()
 
     database.add_file_to_processing_queue(
@@ -412,22 +335,8 @@ def download_file(file_id):
 @app.route("/files/<int:file_id>/download/redacted", methods=["GET"])
 @jwt_required()
 def download_file_redacted(file_id):
-    try:
-        file = database.get_file(file_id)
-        redacted_filename = file.filename.replace(".pdf", "_redacted.pdf")
-        redacted_path = os.path.join(FILES_FOLDER, redacted_filename)
-        
-        # Check if the redacted file exists
-        if not os.path.exists(redacted_path):
-            print(f"Redacted file not found: {redacted_path}")
-            return jsonify({"error": "Redacted file not found"}), 404
-            
-        return send_file(redacted_path, as_attachment=True)
-    except database.NotFoundException:
-        return jsonify({"error": "File not found"}), 404
-    except Exception as e:
-        print(f"Error serving redacted file {file_id}: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+    file = database.get_file(file_id)
+    return send_file(os.path.join(FILES_FOLDER, file.filename + "_redacted.pdf"), as_attachment=True)
 
 
 @app.route("/files/<int:file_id>", methods=["DELETE"])
@@ -466,18 +375,10 @@ def buy_file(file_id):
 
 @app.route("/files/<int:file_id>/display-name", methods=["PUT"])
 @jwt_required()
-def update_file_display_name(file_id):
+@validate_json(FileDisplayNameUpdateRequest)
+def update_file_display_name(validated_data: FileDisplayNameUpdateRequest, file_id):
     user_id = get_jwt_identity()
-    data = request.json
-
-    if not data or "display_name" not in data:
-        return jsonify({"error": "missing_display_name", "msg": "display_name is required"}), 400
-
-    new_display_name = str(data.get("display_name")).strip()
-    if not new_display_name:
-        return jsonify({"error": "invalid_display_name", "msg": "display_name cannot be empty"}), 400
-
-    updated_file = database.update_file_display_name(user_id, file_id, new_display_name)
+    updated_file = database.update_file_display_name(user_id, file_id, validated_data.display_name)
     return jsonify({"msg": "Display name updated", "file": updated_file.to_dict()}), 200
 
 
@@ -526,6 +427,30 @@ def get_favorites():
     return jsonify({"vetrine": [vetrina.to_dict() for vetrina in vetrine_with_favorites], "count": len(vetrine_with_favorites)}), 200
 
 
+@app.route("/user", methods=["GET"])
+@jwt_required()
+def get_authenticated_user():
+    user_id = get_jwt_identity()
+    user = database.get_user_by_id(user_id, sensitive_data=True, profile_data=True)
+    return jsonify(user.to_dict()), 200
+
+
+@app.route("/user", methods=["PUT"])
+@jwt_required()
+@validate_json(UserUpdateRequest)
+def update_user(validated_data: UserUpdateRequest):
+    user_id = get_jwt_identity()
+    user = database.update_user(user_id, validated_data)
+    return jsonify(user.to_dict()), 200
+
+
+@app.route("/users/<int:user_id>", methods=["GET"])
+@jwt_required()
+def get_user(user_id):
+    user = database.get_user_by_id(user_id, sensitive_data=False, profile_data=True)
+    return jsonify(user.to_dict()), 200
+
+
 # ---------------------------------------------
 # Owned files routes
 # ---------------------------------------------
@@ -546,17 +471,10 @@ def get_owned_vetrine():
 
 @app.route("/vetrine/<int:vetrina_id>/reviews", methods=["POST"])
 @jwt_required()
-def add_vetrina_review(vetrina_id):
+@validate_json(ReviewCreateRequest)
+def add_vetrina_review(validated_data: ReviewCreateRequest, vetrina_id):
     user_id = get_jwt_identity()
-    data = request.json
-
-    rating = int(data.get("rating"))
-    if not 1 <= rating <= 5:
-        return jsonify({"error": "invalid_rating", "msg": "Rating must be between 1 and 5"}), 400
-
-    review_text = str(data.get("review_text"))
-
-    review = database.add_vetrina_review(user_id, rating, review_text, vetrina_id)
+    review = database.add_vetrina_review(user_id, validated_data.rating, validated_data.review_text, vetrina_id)
     return jsonify({"msg": "Review added", "review": review.to_dict()}), 200
 
 
@@ -685,131 +603,6 @@ def get_following(user_id):
 
 
 # ---------------------------------------------
-# Forum routes
-# ---------------------------------------------
-
-
-@app.route("/forum/threads", methods=["POST"])
-@jwt_required()
-def create_thread():
-    """
-    Create a new forum thread.
-    """
-    user_id = get_jwt_identity()
-    data = request.json
-    
-    title = str(data.get("title", "")).strip()
-    if not title:
-        return jsonify({"error": "missing_title", "msg": "Title is required"}), 400
-    
-    tag = data.get("tag")
-    if tag:
-        tag = str(tag).strip()
-        if not tag:
-            tag = None
-    
-    thread = database.forum_create_thread(user_id, title, tag)
-    return jsonify({"msg": "Thread created", "thread": thread.to_dict()}), 201
-
-
-@app.route("/forum/threads", methods=["GET"])
-def get_all_threads():
-    """
-    Get all forum threads ordered by last post timestamp.
-    """
-    threads = database.forum_get_all_threads()
-    return jsonify({"threads": [thread.to_dict() for thread in threads], "count": len(threads)}), 200
-
-
-@app.route("/forum/threads/<int:thread_id>", methods=["PUT"])
-@jwt_required()
-def update_thread(thread_id):
-    """
-    Update a forum thread (only the author can update it).
-    """
-    user_id = get_jwt_identity()
-    data = request.json
-    
-    title = str(data.get("title", "")).strip()
-    if not title:
-        return jsonify({"error": "missing_title", "msg": "Title is required"}), 400
-    
-    tag = data.get("tag")
-    if tag:
-        tag = str(tag).strip()
-        if not tag:
-            tag = None
-    
-    database.forum_edit_thread(user_id, thread_id, title, tag)
-    return jsonify({"msg": "Thread updated"}), 200
-
-
-@app.route("/forum/threads/<int:thread_id>", methods=["DELETE"])
-@jwt_required()
-def delete_thread(thread_id):
-    """
-    Delete a forum thread (only the author can delete it).
-    """
-    user_id = get_jwt_identity()
-    database.forum_delete_thread(user_id, thread_id)
-    return jsonify({"msg": "Thread deleted"}), 200
-
-
-@app.route("/forum/threads/<int:thread_id>/posts", methods=["POST"])
-@jwt_required()
-def create_post(thread_id):
-    """
-    Create a new post in a forum thread.
-    """
-    user_id = get_jwt_identity()
-    data = request.json
-    
-    text = str(data.get("text", "")).strip()
-    if not text:
-        return jsonify({"error": "missing_text", "msg": "Text content is required"}), 400
-    
-    post = database.forum_create_post(user_id, thread_id, text)
-    return jsonify({"msg": "Post created", "post": post.to_dict()}), 201
-
-
-@app.route("/forum/threads/<int:thread_id>/posts", methods=["GET"])
-def get_thread_posts(thread_id):
-    """
-    Get all posts in a forum thread.
-    """
-    posts = database.forum_get_thread_posts(thread_id)
-    return jsonify({"posts": [post.to_dict() for post in posts], "count": len(posts)}), 200
-
-
-@app.route("/forum/threads/<int:thread_id>/posts/<int:post_id>", methods=["PUT"])
-@jwt_required()
-def update_post(thread_id, post_id):
-    """
-    Update a forum post (only the author can update it).
-    """
-    user_id = get_jwt_identity()
-    data = request.json
-    
-    text = str(data.get("text", "")).strip()
-    if not text:
-        return jsonify({"error": "missing_text", "msg": "Text content is required"}), 400
-    
-    database.forum_edit_post(user_id, post_id, text)
-    return jsonify({"msg": "Post updated"}), 200
-
-
-@app.route("/forum/threads/<int:thread_id>/posts/<int:post_id>", methods=["DELETE"])
-@jwt_required()
-def delete_post(thread_id, post_id):
-    """
-    Delete a forum post (only the author can delete it).
-    """
-    user_id = get_jwt_identity()
-    database.forum_delete_post(user_id, post_id)
-    return jsonify({"msg": "Post deleted"}), 200
-
-
-# ---------------------------------------------
 # Images routes
 # ---------------------------------------------
 
@@ -845,11 +638,11 @@ def serve_image(filename):
 def get_hierarchy():
     if database.faculties_courses_cache is None:
         database.faculties_courses_cache = database.scrape_faculties_courses()
-        logging.info(
+        logging.debug(
             f"Added {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses to cache"
         )
     else:
-        logging.info(
+        logging.debug(
             f"Retrieved {len(database.faculties_courses_cache)} faculties and {sum(len(courses) for courses in list(database.faculties_courses_cache.values()))} courses from cache"
         )
     return jsonify(database.faculties_courses_cache), 200

@@ -12,8 +12,10 @@ import logging
 import torch
 import threading
 
+MODELS_FOLDER = os.getenv("MODELS_FOLDER")
 
-model_path = r"C:\Users\fdimo\Downloads\Visualized_m3.pth" if os.name == "nt" else r"/home/ubuntu/Visualized_m3.pth"
+
+model_path = os.path.join(MODELS_FOLDER, "Visualized_m3.pth")
 model = None
 model_lock = threading.Lock()
 
@@ -24,19 +26,17 @@ def load_model():
     with model_lock:
         if model is None:
             logging.debug(f"Loading BGE model...")
-            model = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path)
+            model = Visualized_BGE(model_weight=model_path)
             model.eval()
     return model
 
 
 def get_sentence_embedding(sentence: str) -> np.ndarray:
-    load_model()
     with torch.no_grad():
         return model.encode(text=sentence)[0].detach().cpu().numpy()
 
 
 def get_chunk_embeddings(description: str, image: Image.Image, context: str) -> np.ndarray:
-    load_model()
     with torch.no_grad():
         return model.encode(image=image, text=f"{description} {context}")[0].detach().cpu().numpy()
 

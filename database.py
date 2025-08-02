@@ -1,30 +1,66 @@
-import random
 from typing import Any, Dict, List, Optional, Tuple
+import uuid
 import psycopg
+from psycopg_pool import ConnectionPool
 import os
 from pgvector.psycopg import register_vector
+import atexit
 
-# from bge import get_document_embedding
-from bge import get_sentence_embedding
-from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina, ForumThread, ForumPost
+from common import Chunk, CourseInstance, File, Review, Transaction, User, Vetrina
 from db_errors import UnauthorizedError, NotFoundException, ForbiddenError, AlreadyOwnedError
 from dotenv import load_dotenv
 import logging
 import pandas as pd
 import numpy as np
 from langdetect import detect
-import json
+from PIL import Image
 
 load_dotenv()
 
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
+FILES_FOLDER = os.getenv("FILES_FOLDER")
+IMAGES_FOLDER = os.getenv("IMAGES_FOLDER")
 
+
+def configure_connection(conn: psycopg.Connection) -> psycopg.Connection:
+    """Configure each connection with vector support and dict row factory."""
+    register_vector(conn)
+    conn.row_factory = psycopg.rows.dict_row
+    return conn
+
+
+pool: ConnectionPool = ConnectionPool(
+    f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD} host={DB_HOST}",
+    min_size=2,
+    max_size=10,
+    configure=configure_connection,
+    timeout=30,
+)
+logging.info(f"Initialized connection pool with min_size={2}, max_size={10}")
+
+
+def cleanup_connection_pool():
+    """Clean up the connection pool on application exit."""
+    try:
+        if pool and not pool.closed:
+            pool.close()
+            logging.info("Connection pool closed successfully")
+    except Exception as e:
+        logging.error(f"Error closing connection pool: {e}")
+
+atexit.register(cleanup_connection_pool)
 
 def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector: bool = False) -> psycopg.Connection:
+    """
+    Legacy connection function for backwards compatibility.
+    Note: The pool automatically provides vector capabilities and dict row factory.
+    """
+    # Get connection from pool
     conn = psycopg.connect(
-        f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
+        f"dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD} host={DB_HOST}",
         autocommit=autocommit,
         row_factory=psycopg.rows.dict_row if not no_dict_row_factory else None,
         connect_timeout=5,
@@ -38,9 +74,13 @@ def connect(autocommit: bool = False, no_dict_row_factory: bool = False, vector:
 def create_tables(debug: bool = False) -> None:
     with open("schema.sql", "r") as f:
         with connect(no_dict_row_factory=True) as conn:
+            logging.info("Connected to database")
             with conn.cursor() as cursor:
+                logging.info("Created cursor")
                 cursor.execute(f.read())
+                logging.info("Executed schema.sql")
                 conn.commit()
+                logging.info("Committed changes")
                 if debug:
                     # get all tables
                     cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
@@ -51,28 +91,25 @@ def create_tables(debug: bool = False) -> None:
 def fill_courses(debug: bool = False) -> None:
     df = pd.read_csv("data/courses.csv", encoding="latin1")
     with connect() as conn:
+        logging.info("Connected to database")
         with conn.cursor() as cursor:
+            logging.info("Created cursor")
             for _, row in df.iterrows():
+                logging.info(f"Inserting course instance {row['course_id']}")
                 # canale,date_year,year,language,course_id,course_name,semester,professors
                 _, canale, date_year, year, language, course_id, course_name, semester, professors, faculty = row
                 cursor.execute(
                     "INSERT INTO course_instances (course_code, faculty_name, course_year, date_year, course_semester, canale, professors, language, course_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
                     (course_id, faculty, year, date_year, semester, canale, professors.split(" / "), language, course_name),
                 )
-
+                logging.info(f"Inserted course instance {row['course_id']}")
                 conn.commit()
+                logging.info(f"Committed changes")
 
             if debug:
                 cursor.execute("SELECT * FROM course_instances")
                 course_instances = cursor.fetchall()
                 logging.info(f"Course instances loaded successfully: {len(course_instances)}")
-
-
-def insert_embedding_queue(file_id: int, vetrina_id: int) -> None:
-    with connect(vector=True) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("INSERT INTO embedding_queue (file_id, vetrina_id) VALUES (%s, %s)", (file_id, vetrina_id))
-            conn.commit()
 
 
 # ---------------------------------------------
@@ -97,7 +134,7 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
     Raises:
         UniqueViolation: If the username or email already exists
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -109,9 +146,9 @@ def create_user(username: str, email: str, password: str, name: str, surname: st
             )
             user_data = cursor.fetchone()
             conn.commit()
-            logging.info(f"User {user_data['user_id']} created")
+            logging.debug(f"User {user_data['user_id']} created")
 
-            return User.from_dict(user_data)
+            return User.from_dict(user_data, sensitive_data=True)
 
 
 def verify_user(email: str, password: str) -> User:
@@ -128,14 +165,14 @@ def verify_user(email: str, password: str) -> User:
     Raises:
         UnauthorizedError: If the email or password is invalid
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             user_data = cursor.fetchone()
             if not user_data or password != user_data["password"]:
                 raise UnauthorizedError("Invalid email or password")
-            logging.info(f"User {user_data['user_id']} verified")
-            return User.from_dict(user_data)
+            logging.debug(f"User {user_data['user_id']} verified")
+            return User.from_dict(user_data, sensitive_data=True)
 
 
 def delete_user(user_id: int) -> None:
@@ -145,14 +182,14 @@ def delete_user(user_id: int) -> None:
     Args:
         user_id: ID of the user to delete
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
             conn.commit()
-            logging.info(f"User {user_id} deleted")
+            logging.debug(f"User {user_id} deleted")
 
 
-def get_user_by_id(user_id: int) -> User:
+def get_user_by_id(user_id: int, sensitive_data: bool = False, profile_data: bool = False) -> User:
     """
     Get a user by their ID.
 
@@ -162,15 +199,77 @@ def get_user_by_id(user_id: int) -> User:
     Returns:
         User: The user object if found, None otherwise
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT * FROM users WHERE user_id = %s",
                 (user_id,),
             )
             user_data = cursor.fetchone()
-            logging.info(f"User {user_id} retrieved")
-            return User.from_dict(user_data) if user_data else None
+            if not user_data:
+                raise NotFoundException(f"User {user_id} not found")
+            logging.debug(f"User {user_id} retrieved")
+            return User.from_dict(user_data, sensitive_data=sensitive_data, profile_data=profile_data)
+
+
+def update_user(user_id: int, user_update_data) -> User:
+    """
+    Update user profile information.
+    
+    Args:
+        user_id: The ID of the user to update
+        user_update_data: UserUpdateRequest object containing the fields to update
+        
+    Returns:
+        User: The updated user object
+        
+    Raises:
+        NotFoundException: If the user doesn't exist
+    """
+    
+    # Build dynamic update query with only provided fields
+    update_fields = []
+    update_values = []
+    
+    if user_update_data.user_enrollment_year is not None:
+        update_fields.append("user_enrollment_year = %s")
+        update_values.append(user_update_data.user_enrollment_year)
+    
+    if user_update_data.user_canale is not None:
+        update_fields.append("user_canale = %s")
+        update_values.append(user_update_data.user_canale)
+        
+    if user_update_data.bio is not None:
+        update_fields.append("bio = %s")
+        update_values.append(user_update_data.bio)
+        
+    if user_update_data.user_faculty is not None:
+        update_fields.append("user_faculty = %s")
+        update_values.append(user_update_data.user_faculty)
+    
+    if not update_fields:
+        raise ValueError("No fields to update")
+    
+    # Add user_id to the end of values for WHERE clause
+    update_values.append(user_id)
+    
+    with pool.connection() as conn:
+        with conn.cursor() as cursor:
+            query = f"""
+                UPDATE users 
+                SET {', '.join(update_fields)}
+                WHERE user_id = %s
+                RETURNING *
+            """
+            cursor.execute(query, update_values)
+            updated_user_data = cursor.fetchone()
+            conn.commit()
+            
+            if not updated_user_data:
+                raise NotFoundException(f"User {user_id} not found")
+                
+            logging.debug(f"User {user_id} updated with fields: {', '.join([field.split(' = ')[0] for field in update_fields])}")
+            return User.from_dict(updated_user_data, sensitive_data=True, profile_data=True)
 
 
 # ---------------------------------------------
@@ -260,7 +359,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
             value = type_(value)
             where_parts.append(f"{field_name} = %s")
             where_params.append(value)
-            logging.info(f"Added vetrina filter {param_name} = {value} to query")
+            logging.debug(f"Added vetrina filter {param_name} = {value} to query")
 
     # Add file filters (only when files are joined)
     if has_file_filters:
@@ -269,7 +368,7 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
                 value = type_(value)
                 where_parts.append(f"{field_name} = %s")
                 where_params.append(value)
-                logging.info(f"Added file filter {param_name} = {value} to query")
+                logging.debug(f"Added file filter {param_name} = {value} to query")
 
     # Build final query with proper parameter order
     where_clause = " AND ".join(where_parts)
@@ -278,16 +377,18 @@ def search_vetrine(params: Dict[str, Any], user_id: Optional[int] = None) -> Lis
     # Combine parameters in the correct order: base + where + order
     all_params = base_params + where_params + order_params
 
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(final_query, tuple(all_params))
             vetrine_data = cursor.fetchall()
-            logging.info(f"Retrieved {len(vetrine_data)} vetrine for user {user_id}")
+            logging.debug(f"Retrieved {len(vetrine_data)} vetrine for user {user_id}")
             return [Vetrina.from_dict(row) for row in vetrine_data]
 
 
-def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] = None) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
-    with connect(vector=True) as conn:
+def new_search(
+    query: str, query_embedding: np.ndarray, params: Dict[str, Any] = {}, user_id: Optional[int] = None
+) -> Tuple[List[Vetrina], Dict[int, List[Chunk]]]:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             try:
                 lang = detect(query)
@@ -344,8 +445,6 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
 
             where_clause = " AND ".join(filter_conditions)
 
-            # --- 2. Prepare Embeddings and Parameters ---
-            embedding = get_sentence_embedding(query).squeeze()
             k = 60  # Reciprocal rank constant
 
             # --- 3. Construct the Main SQL Query (No changes here) ---
@@ -358,6 +457,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                         ce.file_id,
                         ce.page_number,
                         ce.description, -- Pass description through for grouping
+                        ce.image_path,
                         1.0 / (%s::integer + RANK() OVER (ORDER BY ce.embedding <#> %s)) AS semantic_score,
                         0.0 AS keyword_score
                     {base_from_clause}
@@ -375,6 +475,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                         ce.file_id,
                         ce.page_number,
                         ce.description, -- Pass description through for grouping
+                        ce.image_path,
                         0.0 AS semantic_score,
                         1.0 / (%s::integer + RANK() OVER (ORDER BY ts_rank_cd(
                             CASE WHEN v.language = 'en' THEN to_tsvector('english', ce.description) ELSE to_tsvector('italian', ce.description) END,
@@ -393,11 +494,12 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                     file_id,
                     page_number,
                     description, -- Keep description for the final join/select
+                    image_path,
                     SUM(semantic_score) as semantic_score,
                     SUM(keyword_score) as keyword_score,
                     (SUM(semantic_score) + SUM(keyword_score)) as score
                 FROM combined_results
-                GROUP BY vetrina_id, file_id, page_number, description -- Correctly group by the full chunk key
+                GROUP BY vetrina_id, file_id, page_number, description, image_path -- Include image_path in GROUP BY
             )
             -- Final Selection with Late Joins
             SELECT
@@ -405,6 +507,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 r.semantic_score,
                 r.keyword_score,
                 r.description as chunk_description, -- Get description from our ranked results
+                r.image_path,
                 r.page_number,
                 v.*, u.*, f.*, ci.*
             FROM ranked_results r
@@ -417,7 +520,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
             """
 
             # --- 4. Assemble Parameters and Execute ---
-            semantic_params = [k, embedding] + filter_params + [embedding]
+            semantic_params = [k, query_embedding] + filter_params + [query_embedding]
             keyword_params = [k, query] + filter_params + [query]
             all_params = semantic_params + keyword_params
 
@@ -435,7 +538,7 @@ def new_search(query: str, params: Dict[str, Any] = {}, user_id: Optional[int] =
                 if vetrina not in vetrine:
                     vetrine.append(vetrina)
                 chunks.setdefault(vetrina.vetrina_id, []).append(chunk)
-                logging.info(
+                logging.debug(
                     f"{chunk.chunk_description[:min(len(chunk.chunk_description), 120)]}..., [{file.display_name} (p. {chunk.page_number})], score: {round(row['score'], 4)} (sem: {round(row['semantic_score'], 4)}, key: {round(row['keyword_score'], 4)})"
                 )
             print(f"----------------------------------")
@@ -456,7 +559,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
     Returns:
         Vetrina: The newly created vetrina object
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -474,7 +577,7 @@ def create_vetrina(user_id: int, course_instance_id: int, name: str, description
             )
             vetrina_data = cursor.fetchone()
             conn.commit()
-            logging.info(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id} with price {price}")
+            logging.debug(f"Vetrina {vetrina_data['vetrina_id']} created by user {user_id} with price {price}")
 
             return Vetrina.from_dict(vetrina_data)
 
@@ -495,7 +598,7 @@ def delete_vetrina(user_id: int, vetrina_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM vetrina WHERE vetrina_id = %s AND author_id = %s", (vetrina_id, user_id))
             conn.commit()
-            logging.info(f"Vetrina {vetrina_id} deleted by user {user_id}")
+            logging.debug(f"Vetrina {vetrina_id} deleted by user {user_id}")
 
 
 def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetrina, List[File], List[Review]]:
@@ -535,6 +638,7 @@ def get_vetrina_by_id(vetrina_id: int, user_id: int | None = None) -> Tuple[Vetr
             cursor.execute("SELECT * FROM review WHERE vetrina_id = %s", (vetrina_id,))
             reviews_data = cursor.fetchall()
             reviews = [Review.from_dict(review_data) for review_data in reviews_data]
+            logging.debug(f"Vetrina {vetrina_id} retrieved with {len(files)} files and {len(reviews)} reviews")
 
             return vetrina, files, reviews
 
@@ -589,7 +693,7 @@ def get_course_by_id(course_id: int) -> CourseInstance:
             if not course_data:
                 raise NotFoundException("Course not found")
 
-            logging.info(f"Course {course_id} retrieved")
+            logging.debug(f"Course {course_id} retrieved")
             return CourseInstance(**course_data)
 
 
@@ -601,6 +705,7 @@ faculties_courses_cache = None
 
 
 def add_file_to_vetrina(
+    cursor: psycopg.Cursor,
     requester_id: int,
     vetrina_id: int,
     file_name: str,
@@ -632,6 +737,43 @@ def add_file_to_vetrina(
         NotFoundException: If the vetrina doesn't exist
         ForbiddenError: If the requester is not the author of the vetrina
     """
+
+    # First check if the vetrina exists
+    cursor.execute("SELECT author_id FROM vetrina WHERE vetrina_id = %s", (vetrina_id,))
+    vetrina = cursor.fetchone()
+
+    if not vetrina:
+        raise NotFoundException("Vetrina not found")
+
+    # Then check if the requester is the author
+    if vetrina["author_id"] != requester_id:
+        raise ForbiddenError("Only the author can add files to this vetrina")
+
+    # If all checks pass, insert the file
+    cursor.execute(
+        "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+        (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
+    )
+    file_data = cursor.fetchone()
+    file = File.from_dict(file_data)
+    logging.debug(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
+    return file
+
+
+def add_file_to_processing_queue(
+    requester_id: int,
+    vetrina_id: int,
+    file_name: str,
+    display_name: str,
+    extension: str,
+    price: int = 0,
+    tag: str | None = None,
+    language: str = "it",
+    file_data: bytes | None = None,
+) -> File:
+    """
+    Add a file to the processing queue.
+    """
     with connect() as conn:
         with conn.cursor() as cursor:
             with conn.transaction():
@@ -647,36 +789,31 @@ def add_file_to_vetrina(
                 if vetrina["author_id"] != requester_id:
                     raise ForbiddenError("Only the author can add files to this vetrina")
 
-                # If all checks pass, insert the file
+                # insert the file into the processing queue
                 cursor.execute(
-                    "INSERT INTO files (vetrina_id, filename, display_name, sha256, price, size, tag, extension, language, num_pages) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
-                    (vetrina_id, file_name, display_name, sha256, price, size, tag, extension, language, num_pages),
+                    "INSERT INTO file_processing_queue (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING *",
+                    (requester_id, vetrina_id, file_name, display_name, extension, price, tag, language, file_data),
                 )
-                file_data = cursor.fetchone()
-                file = File.from_dict(file_data)
-
-                logging.info(f'File "{file_name}" added to vetrina {vetrina_id} by user {requester_id}, display_name: {display_name}, tag: {tag}')
-            return File.from_dict(file_data)
 
 
-def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]]) -> None:
+def insert_chunk_embeddings(vetrina_id: int, file_id: int, chunks: list[dict[str, str | int | np.ndarray]], cursor: psycopg.Cursor) -> None:
     """Insert chunk embeddings into the database"""
-    with connect(vector=True) as conn:
-        with conn.cursor() as cursor:
-            for chunk in chunks:
-                page_number = chunk["page_number"]
-                description = chunk["description"]
-                embedding = chunk["embedding"]
+    for chunk in chunks:
+        page_number = chunk["page_number"]
+        description = chunk["description"]
+        embedding = chunk["embedding"]
+        image: Image.Image = chunk["image"]
+        image_name = f"{uuid.uuid4()}.png"
+        image.save(os.path.join(IMAGES_FOLDER, image_name))
 
-                pg_vector_data = embedding.squeeze()
-                cursor.execute(
-                    """INSERT INTO chunk_embeddings 
-                       (vetrina_id, file_id, page_number, description, embedding) 
-                       VALUES (%s, %s, %s, %s, %s)""",
-                    (vetrina_id, file_id, page_number, description, pg_vector_data),
-                )
-                conn.commit()
-            logging.info(f"Inserted {len(chunks)} chunk embeddings")
+        embedding = embedding.squeeze()
+        cursor.execute(
+            """INSERT INTO chunk_embeddings 
+            (vetrina_id, file_id, page_number, description, image_path, embedding) 
+            VALUES (%s, %s, %s, %s, %s, %s)""",
+            (vetrina_id, file_id, page_number, description, image_name, embedding),
+        )
+    logging.debug(f"Inserted {len(chunks)} chunk embeddings")
 
 
 def update_file_display_name(user_id: int, file_id: int, new_display_name: str) -> File:
@@ -712,7 +849,7 @@ def update_file_display_name(user_id: int, file_id: int, new_display_name: str) 
             if cursor.rowcount == 0:
                 raise NotFoundException("File not found or you don't have permission to update it")
             file_data = cursor.fetchone()
-            logging.info(f"File {file_id} display name updated to '{new_display_name}' by user {user_id}")
+            logging.debug(f"File {file_id} display name updated to '{new_display_name}' by user {user_id}")
             return File.from_dict(file_data)
 
 
@@ -752,7 +889,7 @@ def get_files_from_vetrina(vetrina_id: int, user_id: int | None = None) -> List[
                     (vetrina_id,),
                 )
             files_data = cursor.fetchall()
-            # logging.info(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
+            # logging.debug(f"Retrieved {len(files_data)} files for vetrina {vetrina_id}, user {user_id}")
             return [File.from_dict(data) for data in files_data]
 
 
@@ -785,7 +922,7 @@ def delete_file(requester_id: int, file_id: int) -> File:
                 (file_id, requester_id),
             )
             conn.commit()
-            logging.info(f"File {file_id} deleted by user {requester_id}")
+            logging.debug(f"File {file_id} deleted by user {requester_id}")
 
 
 def get_file(file_id: int) -> File:
@@ -843,7 +980,7 @@ def check_file_ownership(user_id: int, file_id: int) -> File:
 
             file = File.from_dict(file_data)
             file.owned = True
-            logging.info(f"File {file_id} is owned by user {user_id}")
+            logging.debug(f"File {file_id} is owned by user {user_id}")
             return file
 
 
@@ -860,7 +997,7 @@ def add_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO owned_files (owner_id, file_id) VALUES (%s, %s)", (user_id, file_id))
             conn.commit()
-            logging.info(f"File {file_id} added to owned files of user {user_id}")
+            logging.debug(f"File {file_id} added to owned files of user {user_id}")
 
 
 def remove_owned_file(user_id: int, file_id: int) -> None:
@@ -871,7 +1008,7 @@ def remove_owned_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM owned_files WHERE owner_id = %s AND file_id = %s", (user_id, file_id))
             conn.commit()
-            logging.info(f"File {file_id} removed from owned files of user {user_id}")
+            logging.debug(f"File {file_id} removed from owned files of user {user_id}")
 
 
 # ---------------------------------------------
@@ -894,7 +1031,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
         NotFoundException: If the file is not found
         AlreadyOwnedError: If the user already owns the file
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             with conn.transaction():
                 cursor.execute(
@@ -907,7 +1044,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 if cursor.fetchone():
                     raise AlreadyOwnedError("You already own this file")
 
-                logging.info(f"File {file_id} not owned by user {user_id}")
+                logging.debug(f"File {file_id} not owned by user {user_id}")
 
                 cursor.execute(
                     "SELECT * FROM files WHERE file_id = %s",
@@ -915,7 +1052,7 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 )
                 file_data = cursor.fetchone()
 
-                logging.info(f"File {file_id} retrieved for transaction")
+                logging.debug(f"File {file_id} retrieved for transaction")
 
                 if not file_data:
                     raise NotFoundException("File not found")
@@ -928,13 +1065,13 @@ def buy_file_transaction(user_id: int, file_id: int) -> Tuple[Transaction, File]
                 )
                 transaction_data = cursor.fetchone()
                 transaction = Transaction.from_dict(transaction_data)
-                logging.info(f"Transaction {transaction.transaction_id} created for file {file_id} bought by user {user_id}")
+                logging.debug(f"Transaction {transaction.transaction_id} created for file {file_id} bought by user {user_id}")
 
                 cursor.execute(
                     "INSERT INTO owned_files (owner_id, file_id, transaction_id) VALUES (%s, %s, %s)", (user_id, file_id, transaction.transaction_id)
                 )
                 cursor.execute("UPDATE files SET download_count = download_count + 1 WHERE file_id = %s", (file_id,))
-                logging.info(f"File {file_id} bought by user {user_id} with transaction {transaction.transaction_id}")
+                logging.debug(f"File {file_id} bought by user {user_id} with transaction {transaction.transaction_id}")
             return transaction, file
 
 
@@ -954,11 +1091,11 @@ def add_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
     Raises:
         NotFoundException: If the vetrina doesn't exist
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO favourite_vetrine (user_id, vetrina_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, vetrina_id))
             conn.commit()
-            logging.info(f"Vetrina {vetrina_id} added to favorites of user {user_id}")
+            logging.debug(f"Vetrina {vetrina_id} added to favorites of user {user_id}")
 
 
 def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
@@ -978,7 +1115,7 @@ def remove_favorite_vetrina(user_id: int, vetrina_id: int) -> None:
             if cursor.rowcount == 0:
                 raise NotFoundException("Favorite vetrina not found")
             conn.commit()
-            logging.info(f"Vetrina {vetrina_id} removed from favorites of user {user_id}")
+            logging.debug(f"Vetrina {vetrina_id} removed from favorites of user {user_id}")
 
 
 def add_favorite_file(user_id: int, file_id: int) -> None:
@@ -996,7 +1133,7 @@ def add_favorite_file(user_id: int, file_id: int) -> None:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO favourite_file (user_id, file_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, file_id))
             conn.commit()
-            logging.info(f"File {file_id} added to favorites of user {user_id}")
+            logging.debug(f"File {file_id} added to favorites of user {user_id}")
 
 
 def remove_favorite_file(user_id: int, file_id: int) -> None:
@@ -1010,13 +1147,13 @@ def remove_favorite_file(user_id: int, file_id: int) -> None:
     Raises:
         NotFoundException: If the favorite doesn't exist
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM favourite_file WHERE user_id = %s AND file_id = %s", (user_id, file_id))
             if cursor.rowcount == 0:
                 raise NotFoundException("Favorite file not found")
             conn.commit()
-            logging.info(f"File {file_id} removed from favorites of user {user_id}")
+            logging.debug(f"File {file_id} removed from favorites of user {user_id}")
 
 
 def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
@@ -1048,7 +1185,7 @@ def get_vetrine_with_owned_files(user_id: int) -> List[Vetrina]:
                 (user_id, user_id),
             )
             results = cursor.fetchall()
-            logging.info(f"Retrieved {len(results)} vetrine with owned files for user {user_id}")
+            logging.debug(f"Retrieved {len(results)} vetrine with owned files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
 
 
@@ -1062,7 +1199,7 @@ def get_favorites(user_id: int) -> List[Vetrina]:
     Returns:
         List[Vetrina]: List of Vetrina objects (without files) with favorite=True if the vetrina itself is favorited
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -1081,7 +1218,7 @@ def get_favorites(user_id: int) -> List[Vetrina]:
                 (user_id, user_id, user_id),
             )
             results = cursor.fetchall()
-            logging.info(f"Retrieved {len(results)} vetrine with favorite files for user {user_id}")
+            logging.debug(f"Retrieved {len(results)} vetrine with favorite files for user {user_id}")
             return [Vetrina.from_dict(row) for row in results]
 
 
@@ -1100,7 +1237,7 @@ def get_reviews_for_user_vetrine(user_id: int) -> List[Review]:
     Returns:
         List[Review]: List of Review objects for vetrine and files authored by the user
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -1115,7 +1252,7 @@ def get_reviews_for_user_vetrine(user_id: int) -> List[Review]:
                 (user_id,),
             )
             reviews_data = cursor.fetchall()
-            logging.info(f"Retrieved {len(reviews_data)} reviews for vetrine and files authored by user {user_id}")
+            logging.debug(f"Retrieved {len(reviews_data)} reviews for vetrine and files authored by user {user_id}")
             return [Review.from_dict(row) for row in reviews_data]
 
 
@@ -1129,7 +1266,7 @@ def get_reviews_authored_by_user(user_id: int) -> List[Review]:
     Returns:
         List[Review]: List of Review objects authored by the user
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -1144,7 +1281,7 @@ def get_reviews_authored_by_user(user_id: int) -> List[Review]:
                 (user_id,),
             )
             reviews_data = cursor.fetchall()
-            logging.info(f"Retrieved {len(reviews_data)} reviews authored by user {user_id}")
+            logging.debug(f"Retrieved {len(reviews_data)} reviews authored by user {user_id}")
             return [Review.from_dict(row) for row in reviews_data]
 
 
@@ -1179,7 +1316,7 @@ def add_vetrina_review(user_id: int, rating: int, review_text: str, vetrina_id: 
             )
             review_data = cursor.fetchone()
             review = Review.from_dict(review_data)
-            logging.info(f"Review added by user {user_id} for vetrina {vetrina_id}")
+            logging.debug(f"Review added by user {user_id} for vetrina {vetrina_id}")
             return review
 
 
@@ -1196,7 +1333,7 @@ def add_file_review(user_id: int, rating: int, review_text: str, file_id: int) -
     Returns:
         Review: The created review object
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -1216,7 +1353,7 @@ def add_file_review(user_id: int, rating: int, review_text: str, file_id: int) -
             )
             review_data = cursor.fetchone()
             review = Review.from_dict(review_data)
-            logging.info(f"Review added by user {user_id} for file {file_id}")
+            logging.debug(f"Review added by user {user_id} for file {file_id}")
             return review
 
 
@@ -1238,7 +1375,7 @@ def get_vetrina_reviews(vetrina_id: int) -> List[Review]:
                 (vetrina_id,),
             )
             reviews_data = cursor.fetchall()
-            logging.info(f"Retrieved {len(reviews_data)} reviews for vetrina {vetrina_id}")
+            logging.debug(f"Retrieved {len(reviews_data)} reviews for vetrina {vetrina_id}")
             return [Review.from_dict(row) for row in reviews_data]
 
 
@@ -1246,7 +1383,7 @@ def get_file_reviews(file_id: int) -> List[Review]:
     """
     Get all reviews for a file.
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -1260,7 +1397,7 @@ def get_file_reviews(file_id: int) -> List[Review]:
                 (file_id,),
             )
             reviews_data = cursor.fetchall()
-            logging.info(f"Retrieved {len(reviews_data)} reviews for file {file_id}")
+            logging.debug(f"Retrieved {len(reviews_data)} reviews for file {file_id}")
             return [Review.from_dict(row) for row in reviews_data]
 
 
@@ -1281,7 +1418,7 @@ def delete_review(user_id: int, file_id: int | None = None, vetrina_id: int | No
     if file_id is None and vetrina_id is None:
         raise ValueError("Either file_id or vetrina_id must be provided")
 
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             if file_id is not None:
                 # Delete file review
@@ -1293,7 +1430,7 @@ def delete_review(user_id: int, file_id: int | None = None, vetrina_id: int | No
             if cursor.rowcount == 0:
                 raise NotFoundException("Review not found")
             conn.commit()
-            logging.info(f"Review deleted by user {user_id} for {'file' if file_id else 'vetrina'} {file_id or vetrina_id}")
+            logging.debug(f"Review deleted by user {user_id} for {'file' if file_id else 'vetrina'} {file_id or vetrina_id}")
 
 
 # ---------------------------------------------
@@ -1323,7 +1460,7 @@ def follow_user(user_id: int, followed_user_id: int) -> None:
                 (user_id, followed_user_id),
             )
             conn.commit()
-            logging.info(f"User {user_id} started following user {followed_user_id}")
+            logging.debug(f"User {user_id} started following user {followed_user_id}")
 
 
 def unfollow_user(user_id: int, followed_user_id: int) -> None:
@@ -1337,11 +1474,11 @@ def unfollow_user(user_id: int, followed_user_id: int) -> None:
     Raises:
         NotFoundException: If the follow relationship doesn't exist
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM follow WHERE user_id = %s AND followed_user_id = %s", (user_id, followed_user_id))
             conn.commit()
-            logging.info(f"User {user_id} unfollowed user {followed_user_id}")
+            logging.debug(f"User {user_id} unfollowed user {followed_user_id}")
 
 
 def get_user_followers(user_id: int) -> List[User]:
@@ -1367,7 +1504,7 @@ def get_user_followers(user_id: int) -> List[User]:
                 (user_id,),
             )
             followers_data = cursor.fetchall()
-            logging.info(f"Found {len(followers_data)} followers for user {user_id}")
+            logging.debug(f"Found {len(followers_data)} followers for user {user_id}")
 
             return [User.from_dict(follower_row) for follower_row in followers_data]
 
@@ -1382,7 +1519,7 @@ def get_user_following(user_id: int) -> List[User]:
     Returns:
         List[User]: List of User objects containing followed user information
     """
-    with connect() as conn:
+    with pool.connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
@@ -1395,244 +1532,6 @@ def get_user_following(user_id: int) -> List[User]:
                 (user_id,),
             )
             following_data = cursor.fetchall()
-            logging.info(f"Found {len(following_data)} users that user {user_id} is following")
+            logging.debug(f"Found {len(following_data)} users that user {user_id} is following")
 
             return [User.from_dict(following_row) for following_row in following_data]
-
-
-# ---------------------------------------------
-# Forum management
-# ---------------------------------------------
-
-
-def forum_create_thread(user_id: int, title: str, tag: str | None = None) -> ForumThread:
-    """
-    Create a new forum thread.
-
-    Args:
-        user_id: ID of the user creating the thread
-        title: Title of the thread
-        tag: Optional tag for the thread
-
-    Returns:
-        ForumThread: The newly created thread object
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                WITH new_thread AS (
-                    INSERT INTO forum_threads (author_id, title, tag) 
-                    VALUES (%s, %s, %s) 
-                    RETURNING *
-                )
-                SELECT t.*, u.*
-                FROM new_thread t
-                JOIN users u ON t.author_id = u.user_id
-                """,
-                (user_id, title, tag),
-            )
-            thread_data = cursor.fetchone()
-            conn.commit()
-            logging.info(f"Thread {thread_data['thread_id']} created by user {user_id}")
-
-            return ForumThread.from_dict(thread_data)
-
-
-def forum_get_all_threads() -> List[ForumThread]:
-    """
-    Get all threads ordered by last message timestamp (most recent first).
-
-    Returns:
-        List[ForumThread]: List of all threads
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT t.*, u.*
-                FROM forum_threads t
-                JOIN users u ON t.author_id = u.user_id
-                ORDER BY COALESCE(t.last_post_timestamp, t.created_at) DESC
-                """
-            )
-            threads_data = cursor.fetchall()
-            return [ForumThread.from_dict(thread_data) for thread_data in threads_data]
-
-
-def forum_edit_thread(user_id: int, thread_id: int, title: str, tag: str | None = None) -> None:
-    """
-    Update a thread (only the author can update it).
-
-    Args:
-        user_id: ID of the user updating the thread
-        thread_id: ID of the thread to update
-        title: New title for the thread
-        tag: New tag for the thread
-
-    Returns:
-        Thread: The updated thread object
-
-    Raises:
-        NotFoundException: If the thread is not found
-        ForbiddenError: If the user is not the author of the thread
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                UPDATE forum_threads 
-                SET title = %s, tag = %s
-                WHERE thread_id = %s AND author_id = %s
-                RETURNING *
-                """,
-                (title, tag, thread_id, user_id),
-            )
-            if cursor.rowcount == 0:
-                raise NotFoundException("Thread not found")
-
-            conn.commit()
-            logging.info(f"Thread {thread_id} updated by user {user_id}")
-
-
-def forum_delete_thread(user_id: int, thread_id: int) -> None:
-    """
-    Delete a thread (only the author can delete it).
-
-    Args:
-        user_id: ID of the user deleting the thread
-        thread_id: ID of the thread to delete
-
-    Raises:
-        NotFoundException: If the thread is not found
-        ForbiddenError: If the user is not the author of the thread
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM forum_threads WHERE thread_id = %s AND author_id = %s",
-                (thread_id, user_id),
-            )
-            
-            conn.commit()
-            logging.info(f"Thread {thread_id} deleted by user {user_id}")
-
-
-def forum_create_post(user_id: int, thread_id: int, text: str) -> ForumPost:
-    """
-    Create a new message in a thread.
-
-    Args:
-        user_id: ID of the user creating the message
-        thread_id: ID of the thread to post in
-        text: Text content of the message
-
-    Returns:
-        ForumPost: The newly created message object
-
-    Raises:
-        NotFoundException: If the thread is not found
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                WITH new_message AS (
-                    INSERT INTO forum_posts (thread_id, user_id, text) 
-                    VALUES (%s, %s, %s) 
-                    RETURNING *
-                )
-                SELECT m.*, u.*
-                FROM new_message m
-                JOIN users u ON m.user_id = u.user_id
-                """,
-                (thread_id, user_id, text),
-            )
-            message_data = cursor.fetchone()
-            conn.commit()
-            logging.info(f"Message {message_data['post_id']} created by user {user_id} in thread {thread_id}")
-
-            return ForumPost.from_dict(message_data)
-
-
-def forum_get_thread_posts(thread_id: int) -> List[ForumPost]:
-    """
-    Get all messages in a thread ordered by timestamp (oldest first).
-
-    Args:
-        thread_id: ID of the thread
-
-    Returns:
-        List[ForumPost]: List of messages in the thread
-
-    Raises:
-        NotFoundException: If the thread is not found
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT m.*, u.*
-                FROM forum_posts m
-                JOIN users u ON m.user_id = u.user_id
-                WHERE m.thread_id = %s
-                ORDER BY m.post_timestamp ASC
-                """,
-                (thread_id,),
-            )
-            messages_data = cursor.fetchall()
-            return [ForumPost.from_dict(message_data) for message_data in messages_data]
-
-
-def forum_edit_post(user_id: int, post_id: int, text: str) -> None:
-    """
-    Update a message (only the author can update it).
-
-    Args:
-        user_id: ID of the user updating the message
-        post_id: ID of the message to update
-        text: New text content for the message
-
-    Raises:
-        NotFoundException: If the message is not found
-        ForbiddenError: If the user is not the author of the message
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                UPDATE forum_posts 
-                SET text = %s, edited = TRUE, edited_at = CURRENT_TIMESTAMP
-                WHERE post_id = %s AND user_id = %s
-                RETURNING *
-                """,
-                (text, post_id, user_id),
-            )
-            if cursor.rowcount == 0:
-                raise NotFoundException("Message not found")
-
-            conn.commit()
-            logging.info(f"Message {post_id} updated by user {user_id}")
-
-
-def forum_delete_post(user_id: int, post_id: int) -> None:
-    """
-    Delete a message (only the author can delete it).
-
-    Args:
-        user_id: ID of the user deleting the message
-        post_id: ID of the message to delete
-
-    Raises:
-        NotFoundException: If the message is not found
-        ForbiddenError: If the user is not the author of the message
-    """
-    with connect() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM forum_posts WHERE post_id = %s AND user_id = %s",
-                (post_id, user_id),
-            )
-            
-            conn.commit()
-            logging.info(f"Message {post_id} deleted by user {user_id}")

@@ -28,6 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 FILES_FOLDER = os.getenv("FILES_FOLDER")
+MODELS_FOLDER = os.getenv("MODELS_FOLDER")
 
 # Configuration
 import config as config
@@ -35,11 +36,10 @@ import config as config
 # Import the Celery app from celery_config
 from celery_config import celery_app as app
 
-# Model configuration
-model_path = config.MODEL_PATH
+model_path = os.path.join(MODELS_FOLDER, "Visualized_m3.pth")
 
 # Global model instances - embedder always loaded, reranker loaded on demand
-embedder = Visualized_BGE(model_name_bge="BAAI/bge-m3", model_weight=model_path, device="cpu")
+embedder = Visualized_BGE(model_weight=model_path, device="cpu")
 reranker = None
 reranker_processor = None
 
@@ -53,13 +53,23 @@ def load_reranker():
 
     logger.info("Loading reranker model...")
 
-    reranker_processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
-    logger.info("Reranker processor loaded successfully")
-    reranker = Qwen2VLForConditionalGeneration.from_pretrained(
-        "lightonai/MonoQwen2-VL-v0.1",
-        device_map="auto",
-    )
-    logger.info("Reranker model loaded successfully")
+    try:
+        reranker_processor = AutoProcessor.from_pretrained(os.path.join(MODELS_FOLDER, "Qwen2-VL-2B-Instruct_processor"), local_files_only=True)
+        reranker = Qwen2VLForConditionalGeneration.from_pretrained(
+            os.path.join(MODELS_FOLDER, "Qwen2-VL-2B-Instruct"),
+            device_map="auto",
+            local_files_only=True,
+        )
+        logger.info("Reranker model loaded successfully from local path")
+    except:
+        reranker_processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
+        reranker = Qwen2VLForConditionalGeneration.from_pretrained(
+            "lightonai/MonoQwen2-VL-v0.1",
+            device_map="auto",
+        )
+        reranker_processor.save_pretrained(os.path.join(MODELS_FOLDER, "Qwen2-VL-2B-Instruct_processor"))
+        reranker.save_pretrained(os.path.join(MODELS_FOLDER, "Qwen2-VL-2B-Instruct"))
+        logger.info("Reranker model loaded successfully from HuggingFace and saved to local path")
 
 
 def unload_reranker():
@@ -235,7 +245,7 @@ def process_pending_files(self):
                 pending_file = cursor.fetchone()
                 if not pending_file:
                     break
-    
+
         # Process the PDF file (outside database transaction to avoid timeouts)
         try:
             with pymupdf.open(stream=BytesIO(pending_file["file_data"]), filetype="pdf") as doc:

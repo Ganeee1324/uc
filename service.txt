@@ -6,7 +6,7 @@ After=network.target postgresql.service
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/home/ubuntu/marketplace-backend
-ExecStart=/home/ubuntu/pyvenv/bin/gunicorn --bind 0.0.0.0:5000 --workers 1 'app:app'
+ExecStart=/home/ubuntu/pyvenv/bin/gunicorn --bind 127.0.0.1:8000 --timeout 120 --workers 1 --worker-class gevent --forwarded-allow-ips="*" --access-logfile - --access-logformat '%({x-forwarded-for}i)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(L)s' 'app:app'
 Restart=on-failure
 
 [Install]

@@ -232,7 +232,7 @@ def create_model(
         device = torch.device(device)
 
     if pretrained and pretrained.lower() == 'openai':
-        logging.info(f'Loading pretrained {model_name} from OpenAI.')
+        logging.debug(f'Loading pretrained {model_name} from OpenAI.')
         model = load_openai_model(
             model_name,
             precision=precision,
@@ -243,7 +243,7 @@ def create_model(
     else:
         model_cfg = get_model_config(model_name)
         if model_cfg is not None:
-            logging.info(f'Loaded {model_name} model config.')
+            logging.debug(f'Loaded {model_name} model config.')
         else:
             logging.error(f'Model config for {model_name} not found; available models {list_models()}.')
             raise RuntimeError(f'Model config for {model_name} not found.')

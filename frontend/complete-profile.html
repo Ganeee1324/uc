@@ -193,21 +193,22 @@
             font-size: 16px;
         }
 
-        .profile-preview {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 24px;
-            background: var(--background-light);
-            border-radius: var(--border-radius);
+        .banner-profile-container {
             margin-bottom: 24px;
-            border: 2px dashed var(--border-color);
-            transition: var(--transition);
+            position: relative;
         }
 
-        .profile-preview:hover {
-            border-color: var(--accent-color);
-            background: rgba(37, 99, 235, 0.02);
+        .banner-profile-container .banner-preview {
+            position: relative;
+            margin-bottom: 0;
+        }
+
+        .banner-profile-container .profile-avatar {
+            position: absolute;
+            bottom: -20px;
+            left: 24px;
+            z-index: 10;
+            border: 4px solid var(--white);
         }
 
         .profile-avatar {
@@ -248,7 +249,7 @@
 
         .banner-preview {
             width: 100%;
-            height: 120px;
+            height: 150px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: var(--border-radius);
             position: relative;
@@ -261,6 +262,11 @@
         .banner-preview:hover {
             transform: scale(1.02);
             box-shadow: var(--shadow-lg);
+        }
+
+        .banner-preview:hover .color-picker-popup {
+            opacity: 1;
+            pointer-events: all;
         }
 
         .banner-upload-overlay {
@@ -328,6 +334,70 @@
 
         .color-option.selected::after {
             opacity: 1;
+        }
+
+        .color-picker-popup {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+
+        .color-picker-popup .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 0;
+        }
+
+        .color-picker-popup .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .profile-avatar:hover .avatar-color-picker {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .avatar-color-picker {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: var(--shadow-lg);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .avatar-color-picker .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin: 0;
+        }
+
+        .avatar-color-picker .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
         }
 
         .upload-area {
@@ -548,9 +618,14 @@
                 height: 50px;
             }
 
-            .profile-preview {
-                flex-direction: column;
-                text-align: center;
+            .banner-profile-container .profile-avatar {
+                position: static;
+                margin: 20px auto 0;
+                border: 3px solid var(--white);
+            }
+
+            .banner-preview {
+                height: 120px;
             }
         }
     </style>
@@ -588,18 +663,37 @@
                             Aspetto del Profilo
                         </h2>
 
-                        <div class="profile-preview">
-                            <div class="profile-avatar" id="profileAvatar">
-                                <span id="avatarInitials">U</span>
-                                <div class="avatar-upload-overlay">
-                                    <span class="material-symbols-outlined">add_a_photo</span>
+                        <!-- Combined Banner and Profile Container -->
+                        <div class="banner-profile-container">
+                            <div class="banner-preview" id="bannerPreview">
+                                <div class="banner-upload-overlay">
+                                    <span class="material-symbols-outlined" style="font-size: 32px;">add_photo_alternate</span>
+                                    <span style="font-weight: 500;">Clicca per aggiungere banner</span>
                                 </div>
-                                <input type="file" id="avatarUpload" class="hidden" accept="image/*">
-                            </div>
-                            <div>
-                                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Il tuo Profilo</h3>
-                                <p style="color: var(--text-secondary); margin-bottom: 12px;">Clicca sull'avatar per caricare un'immagine</p>
-                                <p style="font-size: 14px; color: var(--text-secondary);">Formati supportati: JPG, PNG (max 5MB)</p>
+                                <input type="file" id="bannerUpload" class="hidden" accept="image/*">
+                                
+                                <!-- Banner Color Picker Popup -->
+                                <div class="color-picker-popup" id="bannerColorPicker">
+                                    <div class="color-picker-grid" id="bannerColorsPopup">
+                                        <!-- Banner colors will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Profile avatar positioned on banner -->
+                                <div class="profile-avatar" id="profileAvatar">
+                                    <span id="avatarInitials">U</span>
+                                    <div class="avatar-upload-overlay">
+                                        <span class="material-symbols-outlined">add_a_photo</span>
+                                    </div>
+                                    <input type="file" id="avatarUpload" class="hidden" accept="image/*">
+                                    
+                                    <!-- Avatar Color Picker Popup -->
+                                    <div class="avatar-color-picker" id="avatarColorPicker">
+                                        <div class="color-picker-grid" id="avatarGradientsPopup">
+                                            <!-- Avatar gradients will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -610,16 +704,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Banner del Profilo</label>
-                            <div class="banner-preview" id="bannerPreview">
-                                <div class="banner-upload-overlay">
-                                    <span class="material-symbols-outlined" style="font-size: 32px;">add_photo_alternate</span>
-                                    <span style="font-weight: 500;">Clicca per aggiungere banner</span>
-                                </div>
-                                <input type="file" id="bannerUpload" class="hidden" accept="image/*">
-                            </div>
-                        </div>
 
                         <div class="form-group">
                             <label class="form-label">Colore Banner</label>
@@ -811,8 +895,10 @@
         function setupGradientPickers() {
             const avatarContainer = document.getElementById('avatarGradients');
             const bannerContainer = document.getElementById('bannerColors');
+            const avatarPopupContainer = document.getElementById('avatarGradientsPopup');
+            const bannerPopupContainer = document.getElementById('bannerColorsPopup');
 
-            // Setup avatar gradients
+            // Setup avatar gradients in main section
             avatarGradients.forEach((gradient, index) => {
                 const option = document.createElement('div');
                 option.className = 'color-option';
@@ -821,13 +907,31 @@
                 avatarContainer.appendChild(option);
             });
 
-            // Setup banner colors
+            // Setup avatar gradients in popup
+            avatarGradients.forEach((gradient, index) => {
+                const option = document.createElement('div');
+                option.className = 'color-option';
+                option.style.background = gradient;
+                option.addEventListener('click', () => selectAvatarGradient(index));
+                avatarPopupContainer.appendChild(option);
+            });
+
+            // Setup banner colors in main section
             bannerColors.forEach((color, index) => {
                 const option = document.createElement('div');
                 option.className = 'color-option';
                 option.style.background = color;
                 option.addEventListener('click', () => selectBannerColor(index));
                 bannerContainer.appendChild(option);
+            });
+
+            // Setup banner colors in popup
+            bannerColors.forEach((color, index) => {
+                const option = document.createElement('div');
+                option.className = 'color-option';
+                option.style.background = color;
+                option.addEventListener('click', () => selectBannerColor(index));
+                bannerPopupContainer.appendChild(option);
             });
         }
 
@@ -870,7 +974,13 @@
             selectedAvatarGradient = index;
             profileAvatar.style.background = avatarGradients[index];
             
+            // Update main section selections
             document.querySelectorAll('#avatarGradients .color-option').forEach((option, i) => {
+                option.classList.toggle('selected', i === index);
+            });
+            
+            // Update popup selections
+            document.querySelectorAll('#avatarGradientsPopup .color-option').forEach((option, i) => {
                 option.classList.toggle('selected', i === index);
             });
         }
@@ -881,7 +991,13 @@
                 bannerPreview.style.background = bannerColors[index];
             }
             
+            // Update main section selections
             document.querySelectorAll('#bannerColors .color-option').forEach((option, i) => {
+                option.classList.toggle('selected', i === index);
+            });
+            
+            // Update popup selections
+            document.querySelectorAll('#bannerColorsPopup .color-option').forEach((option, i) => {
                 option.classList.toggle('selected', i === index);
             });
         }

@@ -37,10 +37,13 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--primary-gradient);
             min-height: 100vh;
-            padding: 20px;
+            max-height: 100vh;
+            padding: 0;
+            margin: 0;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             position: relative;
+            overflow: hidden;
         }
 
         body::before {
@@ -58,12 +61,30 @@
             z-index: 0;
         }
 
+        .logo-top-left {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .logo-top-left img {
+            height: 32px;
+            width: auto;
+        }
+
         .completion-container {
             position: relative;
             z-index: 1;
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .completion-card {
@@ -72,6 +93,10 @@
             box-shadow: var(--shadow);
             overflow: hidden;
             position: relative;
+            width: 100%;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
         }
 
         .completion-card::before {
@@ -87,23 +112,10 @@
         .card-header {
             padding: 15px 40px 8px;
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-left {
-            flex: 0 0 auto;
-        }
-
-        .header-center {
-            flex: 1;
             text-align: center;
+            flex-shrink: 0;
         }
 
-        .logo-container {
-            margin: 0;
-        }
 
         .logo-container img {
             height: 32px;
@@ -141,6 +153,8 @@
 
         .card-body {
             padding: 5px 40px 25px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .progress-bar {
@@ -348,7 +362,6 @@
             position: absolute;
             bottom: calc(100% + 12px);
             left: 50%;
-            transform: translateX(-50%) translateY(10px);
             background: var(--white);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
@@ -357,6 +370,7 @@
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
+            transform: translateX(-50%) translateY(10px);
             transition: all 0.3s ease;
             min-width: 280px;
         }
@@ -416,7 +430,6 @@
             position: absolute;
             bottom: calc(100% + 8px);
             left: 50%;
-            transform: translateX(-50%) translateY(10px);
             background: var(--white);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
@@ -425,6 +438,7 @@
             z-index: 1003;
             opacity: 0;
             visibility: hidden;
+            transform: translateX(-50%) translateY(10px);
             transition: all 0.3s ease;
             min-width: 200px;
         }
@@ -647,7 +661,7 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
-                padding: 12px;
+                padding: 0;
             }
 
             .completion-card {
@@ -656,17 +670,16 @@
 
             .card-header {
                 padding: 12px 20px 6px;
-                flex-direction: column;
                 text-align: center;
             }
             
-            .header-left {
-                order: 1;
-                margin-bottom: 8px;
+            .completion-container {
+                padding: 15px;
             }
             
-            .header-center {
-                order: 2;
+            .logo-top-left {
+                top: 15px;
+                left: 15px;
             }
             
             .card-body {
@@ -714,23 +727,20 @@
     </style>
 </head>
 <body>
+    <!-- Logo moved outside card -->
+    <div class="logo-top-left">
+        <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
+    </div>
+    
     <div class="completion-container">
         <div class="completion-card">
             <div class="card-header">
-                <div class="header-left">
-                    <div class="logo-container">
-                        <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
-                    </div>
-                </div>
-                
-                <div class="header-center">
+                <div class="header-center" style="width: 100%; text-align: center;">
                     <h1 class="completion-title">Completa il tuo Profilo</h1>
                     <p class="completion-subtitle">
                         Personalizza il tuo account per un'esperienza unica.
                     </p>
                 </div>
-                
-                <div style="flex: 0 0 auto; width: 32px;"></div> <!-- Spacer for centering -->
             </div>
 
             <div class="card-body">
@@ -971,23 +981,39 @@
             const avatarPopupContainer = document.getElementById('avatarGradientsPopup');
             const bannerPopupContainer = document.getElementById('bannerColorsPopup');
 
-            // Setup avatar gradients in popup only
-            avatarGradients.forEach((gradient, index) => {
-                const option = document.createElement('div');
-                option.className = 'color-option';
-                option.style.background = gradient;
-                option.addEventListener('click', () => selectAvatarGradient(index));
-                avatarPopupContainer.appendChild(option);
-            });
+            // Clear existing content
+            if (avatarPopupContainer) avatarPopupContainer.innerHTML = '';
+            if (bannerPopupContainer) bannerPopupContainer.innerHTML = '';
 
-            // Setup banner colors in popup only
-            bannerColors.forEach((color, index) => {
-                const option = document.createElement('div');
-                option.className = 'color-option';
-                option.style.background = color;
-                option.addEventListener('click', () => selectBannerColor(index));
-                bannerPopupContainer.appendChild(option);
-            });
+            // Setup avatar gradients in popup
+            if (avatarPopupContainer) {
+                avatarGradients.forEach((gradient, index) => {
+                    const option = document.createElement('div');
+                    option.className = 'color-option';
+                    option.style.background = gradient;
+                    option.addEventListener('click', () => {
+                        selectAvatarGradient(index);
+                        console.log('Avatar gradient selected:', index);
+                    });
+                    avatarPopupContainer.appendChild(option);
+                });
+            }
+
+            // Setup banner colors in popup
+            if (bannerPopupContainer) {
+                bannerColors.forEach((color, index) => {
+                    const option = document.createElement('div');
+                    option.className = 'color-option';
+                    option.style.background = color;
+                    option.addEventListener('click', () => {
+                        selectBannerColor(index);
+                        console.log('Banner color selected:', index);
+                    });
+                    bannerPopupContainer.appendChild(option);
+                });
+            }
+
+            console.log('Gradient pickers setup complete');
         }
 
         function setupEventListeners() {
@@ -1026,22 +1052,38 @@
             const bannerOverlay = document.getElementById('bannerColorPicker');
             const avatarOverlay = document.getElementById('avatarColorPicker');
 
+            console.log('Setting up hover handlers:', {
+                banner: !!bannerElement,
+                avatar: !!avatarElement,
+                bannerOverlay: !!bannerOverlay,
+                avatarOverlay: !!avatarOverlay
+            });
+
+            if (!bannerElement || !avatarElement) {
+                console.error('Required elements not found for hover handlers');
+                return;
+            }
+
             // Banner hover handlers
             bannerElement.addEventListener('mouseenter', () => {
+                console.log('Banner hovered');
                 bannerElement.classList.add('banner-hovered');
             });
 
             bannerElement.addEventListener('mouseleave', () => {
+                console.log('Banner unhovered');
                 bannerElement.classList.remove('banner-hovered');
             });
 
             // Avatar hover handlers
             avatarElement.addEventListener('mouseenter', () => {
+                console.log('Avatar hovered');
                 avatarElement.classList.add('avatar-hovered');
                 bannerElement.classList.add('profile-blocking-banner');
             });
 
             avatarElement.addEventListener('mouseleave', () => {
+                console.log('Avatar unhovered');
                 avatarElement.classList.remove('avatar-hovered');
                 bannerElement.classList.remove('profile-blocking-banner');
             });
@@ -1057,9 +1099,11 @@
 
         function selectAvatarGradient(index) {
             selectedAvatarGradient = index;
-            profileAvatar.style.background = avatarGradients[index];
+            if (profileAvatar) {
+                profileAvatar.style.background = avatarGradients[index];
+            }
             
-            // Update popup selections only
+            // Update popup selections
             document.querySelectorAll('#avatarGradientsPopup .color-option').forEach((option, i) => {
                 option.classList.toggle('selected', i === index);
             });
@@ -1067,11 +1111,11 @@
 
         function selectBannerColor(index) {
             selectedBannerColor = index;
-            if (!bannerImageFile) {
+            if (!bannerImageFile && bannerPreview) {
                 bannerPreview.style.background = bannerColors[index];
             }
             
-            // Update popup selections only
+            // Update popup selections
             document.querySelectorAll('#bannerColorsPopup .color-option').forEach((option, i) => {
                 option.classList.toggle('selected', i === index);
             });

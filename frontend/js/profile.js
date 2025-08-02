@@ -2145,17 +2145,43 @@ function updateUserStatistics(user) {
 
 // Initialize user personalization (matches search.js pattern)
 async function initializeUserPersonalization() {
-    // Get current user data from localStorage
-    const user = getCurrentUser();
-    
-    if (user) {
-        // User is authenticated, personalize the dashboard
-        personalizeDashboard(user);
-    } else {
-        // User is not authenticated, redirect to login
-        console.log('User not authenticated, redirecting to login...');
-        window.location.href = 'index.html';
-        return;
+    try {
+        // First check if we have an auth token
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) {
+            console.log('No auth token found, redirecting to login...');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // Fetch fresh user data from backend
+        const user = await fetchCompleteUserProfile();
+        
+        if (user) {
+            // Update localStorage with fresh data
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            
+            // User is authenticated, personalize the dashboard
+            personalizeDashboard(user);
+            
+            // Load user data into settings forms
+            loadUserDataIntoSettings(user);
+        } else {
+            // Failed to get user data, redirect to login
+            console.log('Failed to fetch user data, redirecting to login...');
+            window.location.href = 'index.html';
+            return;
+        }
+    } catch (error) {
+        console.error('Error initializing user personalization:', error);
+        // Fallback to localStorage if backend fails
+        const cachedUser = getCurrentUser();
+        if (cachedUser) {
+            personalizeDashboard(cachedUser);
+            loadUserDataIntoSettings(cachedUser);
+        } else {
+            window.location.href = 'index.html';
+        }
     }
 }
 
@@ -2243,8 +2269,11 @@ function initializeSettings() {
     // Initialize profile picture upload
     initializeProfilePictureUpload();
     
-    // Load user data into forms
-    loadUserDataIntoSettings();
+    // Load user data into forms (will use localStorage if no recent fetch)
+    const user = getCurrentUser();
+    if (user) {
+        loadUserDataIntoSettings(user);
+    }
     
     console.log('✅ Settings dashboard initialized successfully');
 }
@@ -2680,30 +2709,20 @@ async function confirmDeleteAccount() {
 }
 
 // Load user data into settings forms
-function loadUserDataIntoSettings() {
-    let user = getCurrentUser();
+function loadUserDataIntoSettings(user) {
+    // Use provided user data or fallback to localStorage
+    if (!user) {
+        user = getCurrentUser();
+    }
     
     // Debug logging
-    console.log('Current user from localStorage:', user);
+    console.log('Loading user data into settings:', user);
     console.log('User email:', user?.email);
     
-    // If no user is found in localStorage, create a mock user for development
+    // If still no user data, something is wrong
     if (!user) {
-        console.log('No user found in localStorage, creating mock user for development');
-        user = {
-            user_id: 'dev-user-123',
-            email: 'studente.universitario@uniroma1.it',
-            username: 'StudenteUniversitario23',
-            first_name: 'Marco',
-            last_name: 'Rossi',
-            university: 'Università La Sapienza',
-            user_canale: 'A',
-            course_of_study: 'Ingegneria Informatica',
-            start_year: '2022'
-        };
-        // Store the mock user in localStorage for consistency
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        console.log('Mock user created:', user);
+        console.error('No user data available for settings');
+        return;
     }
     
     // Load account data
@@ -2725,23 +2744,26 @@ function loadUserDataIntoSettings() {
     
     // New account settings fields
     if (emailInput) {
-        const email = user.email || 'studente.universitario@uniroma1.it';
+        const email = user.email || '';
         emailInput.value = email;
         console.log('Setting email input to:', email);
     }
     if (nicknameInput) {
-        const nickname = user.username || user.first_name || 'Utente';
+        const nickname = user.username || '';
         nicknameInput.value = nickname;
         console.log('Setting nickname input to:', nickname);
     }
     if (universityInput) {
-        const university = user.university || 'Università La Sapienza';
-        universityInput.value = university;
-        console.log('Setting university input to:', university);
+        // University is not returned by backend, keeping as readonly placeholder
+        universityInput.value = 'Università La Sapienza';
     }
-    if (canaleSelect) canaleSelect.value = user.user_canale || '';
-    if (courseSelect) courseSelect.value = user.course_of_study || '';
-    if (startYearSelect) startYearSelect.value = user.start_year || '';
+    
+    // Bio field
+    const bioInput = document.getElementById('bioInput');
+    if (bioInput) {
+        bioInput.value = user.bio || '';
+        console.log('Setting bio input to:', user.bio);
+    }
     
     // Legacy fields
     if (legacyEmailInput) legacyEmailInput.value = user.email || '';
@@ -2754,8 +2776,8 @@ function loadUserDataIntoSettings() {
     
     // Load custom dropdown values
     setCustomDropdownValue('canale', user.user_canale || '');
-    setCustomDropdownValue('course', user.course_of_study || '');
-    setCustomDropdownValue('startYear', user.start_year || '');
+    setCustomDropdownValue('course', user.user_faculty || '');
+    setCustomDropdownValue('startYear', user.user_enrollment_year ? user.user_enrollment_year.toString() : '');
     
     // Update profile picture preview
     const profilePicturePreview = document.querySelector('.settings-profile-picture');
@@ -4438,7 +4460,7 @@ async function saveProfileSettings() {
             throw new Error('No auth token found');
         }
 
-        // Get form values
+        // Get form values - only the fields that backend accepts for update
         const bioInput = document.getElementById('bioInput');
         const bio = bioInput ? bioInput.value.trim() : '';
         
@@ -4448,12 +4470,20 @@ async function saveProfileSettings() {
         const userEnrollmentYear = getCustomDropdownValue('startYear');
 
         // Prepare update data according to backend schema
+        // Only include fields that the PUT /user endpoint accepts:
+        // user_enrollment_year, user_canale, bio, user_faculty
         const updateData = {};
         
-        if (bio !== undefined) updateData.bio = bio;
+        // Always include bio (even if empty)
+        updateData.bio = bio;
+        
+        // Include other fields only if they have values
         if (userCanale) updateData.user_canale = userCanale;
         if (userFaculty) updateData.user_faculty = userFaculty;
-        if (userEnrollmentYear) updateData.user_enrollment_year = parseInt(userEnrollmentYear);
+        if (userEnrollmentYear) {
+            const year = parseInt(userEnrollmentYear);
+            if (!isNaN(year)) updateData.user_enrollment_year = year;
+        }
 
         console.log('Sending profile update:', updateData);
 
@@ -4478,8 +4508,9 @@ async function saveProfileSettings() {
         // Show success message
         showStatus('Profilo aggiornato con successo!', 'success');
         
-        // Refresh profile display
-        await loadUserProfile();
+        // Refresh profile display with updated data
+        personalizeDashboard(updatedUser);
+        loadUserDataIntoSettings(updatedUser);
         
     } catch (error) {
         console.error('Error saving profile settings:', error);

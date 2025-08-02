@@ -2738,7 +2738,7 @@ function loadUserDataIntoSettings(user) {
     const usernameInput = document.getElementById('username');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
-    const bioInput = document.getElementById('bio');
+    const legacyBioInput = document.getElementById('bio');
     const facultyInput = document.getElementById('faculty');
     const canaleInput = document.getElementById('canale');
     
@@ -2770,7 +2770,7 @@ function loadUserDataIntoSettings(user) {
     if (usernameInput) usernameInput.value = user.username || '';
     if (firstNameInput) firstNameInput.value = user.first_name || '';
     if (lastNameInput) lastNameInput.value = user.last_name || '';
-    if (bioInput) bioInput.value = user.bio || '';
+    if (legacyBioInput) legacyBioInput.value = user.bio || '';
     if (facultyInput) facultyInput.value = user.user_faculty || '';
     if (canaleInput) canaleInput.value = user.user_canale || '';
     

@@ -105,8 +105,8 @@ class OptimizedPerformanceCacheManager {
             return this.requestDeduplicationMap.get(requestId);
         }
         
-        // Check cache first for GET requests only
-        if ((!options.method || options.method === 'GET') && cacheType) {
+        // Check cache first for GET requests only - TEMPORARILY DISABLED
+        if (false && (!options.method || options.method === 'GET') && cacheType) {
             const cacheKey = this.generateCacheKey(url, options);
             const cached = this.get(cacheKey, cacheType);
             if (cached) {
@@ -431,12 +431,16 @@ window.performanceCache = new OptimizedPerformanceCacheManager();
 // Backward compatibility
 window.cacheManager = window.performanceCache;
 
-// Simplified initialization
+// Optimized initialization for instant loading
 document.addEventListener('DOMContentLoaded', () => {
-    // Only preload if we're on a page that needs it
+    // Preload critical data immediately for documenti/preferiti pages
     const page = document.body.dataset.page;
-    if (page === 'vetrine' || page === 'search') {
+    if (page === 'documenti' || page === 'preferiti' || page === 'vetrine' || page === 'search') {
+        // Start preloading immediately without waiting
         window.performanceCache.preloadCriticalData();
+        
+        // Add performance optimization for skeleton loaders
+        window.performanceCache.enableSkeletonMode = true;
     }
 });
 

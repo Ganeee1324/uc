@@ -2507,10 +2507,17 @@ body.filters-open .document-count-container {
     text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
 }
 
-.rating-count {
+.rating-value {
     color: var(--gray-700);
     font-size: 10px;
     margin-left: var(--space-1);
+    font-weight: 700;
+}
+
+.rating-count {
+    color: var(--gray-700);
+    font-size: 10px;
+    margin-left: 0;
     font-weight: 600;
  }
  

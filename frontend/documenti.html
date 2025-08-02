@@ -13,7 +13,6 @@
     
     <!-- Preload search component resources -->
     <link rel="preload" href="components/search-section/search-component.html" as="document" crossorigin="anonymous">
-    <link rel="preload" href="components/search-section/search-component.js" as="script" crossorigin="anonymous">
     
     <!-- Preload critical assets -->
     <link rel="preload" href="images/bg.png" as="image" type="image/png">
@@ -21,67 +20,372 @@
     <link rel="preload" href="css/search.css?v=1.2" as="style">
     
     <!-- Load fonts with display=swap for better performance -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
     
     <!-- Main stylesheet -->
     <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/layout-stability.css">
     <link rel="stylesheet" href="components/search-section/search-component.css">
     
     <!-- Favicon -->
     <link rel="icon" href="images/favicon.png" type="image/png">
     
-    <!-- Search Component Integration Styles -->
+    <!-- Critical CSS for instant loading -->
     <style>
-        /* Center search section relative to main-content area */
-        #searchSectionContainer,
-        #documentsSearchSectionContainer,
-        #favoritesSearchSectionContainer {
+        /* Ensure instant visibility - no FOUC prevention needed */
+        body {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+    
+    <!-- Modern Ultra-Premium UI Styles -->
+    <style>
+        /* Fonts already loaded in head - no need for @import */
+        
+        /* CSS Custom Properties for design system */
+        :root {
+            --color-primary: #4f46e5;
+            --color-primary-dark: #4338ca;
+            --color-primary-light: #8b5cf6;
+            --color-secondary: #06b6d4;
+            --color-accent: #f59e0b;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            
+            --color-neutral-50: #fafafa;
+            --color-neutral-100: #f5f5f5;
+            --color-neutral-200: #e5e5e5;
+            --color-neutral-300: #d4d4d4;
+            --color-neutral-400: #a3a3a3;
+            --color-neutral-500: #737373;
+            --color-neutral-600: #525252;
+            --color-neutral-700: #404040;
+            --color-neutral-800: #262626;
+            --color-neutral-900: #171717;
+            
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            --spacing-3xl: 64px;
+            
+            --font-family-primary: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            --font-family-display: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        /* Global enhancements */
+        * {
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-family-primary);
+            background: linear-gradient(135deg, #fafbff 0%, #f8fafc 50%, #f1f5f9 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(6, 182, 212, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Enhanced main content - positioned right under header */
+        .main-content {
+            margin-top: 0px !important;
+            margin-left: 0 !important;
+            padding: 50px 0 0 0; /* Optimized top padding */
+            width: 100% !important;
+            min-height: calc(100vh - 80px);
+            position: relative;
+        }
+        
+        /* Ultra-premium page header */
+        .page-header {
+            text-align: center;
+            margin: 0 auto var(--spacing-2xl) auto;
+            max-width: 900px;
+            padding: 0 var(--spacing-lg);
+            position: relative;
+        }
+        
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            border-radius: 2px;
+            opacity: 0.6;
+        }
+        
+        .page-title {
+            font-size: clamp(36px, 5vw, 64px);
+            font-weight: 800;
+            font-family: var(--font-family-display);
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 var(--spacing-lg) 0;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            position: relative;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .page-subtitle {
+            font-size: clamp(18px, 2.5vw, 24px);
+            font-weight: 400;
+            color: #4b5563; /* Dark gray for both documenti and preferiti */
+            margin: 0 auto;
+            font-family: var(--font-family-primary);
+            line-height: 1.6;
+            max-width: 600px;
+        }
+        
+        /* Specific styling for preferiti subtitle to prevent wrapping */
+        .page-subtitle.preferiti-subtitle {
+            max-width: 700px; /* Wider to prevent line wrapping */
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #4b5563; /* Same dark gray for consistency */
+        }
+        
+        /* Modern clean tab navigation */
+        .tab-navigation {
+            --_switch-bg-clr: rgba(255, 255, 255, 0.95);
+            --_switch-padding: 4px;
+            --_slider-bg-clr: #e5e7eb; /* Darker light gray for both states */
+            --_slider-bg-clr-on: #e5e7eb; /* Same darker light gray for both states */
+            --_slider-txt-clr: #ffffff;
+            --_label-padding: 12px 24px;
+            --_switch-easing: cubic-bezier(0.25, 0.1, 0.25, 1); /* Smooth easing */
+            
+            color: var(--color-neutral-600);
+            width: fit-content;
+            margin: 50px auto 40px auto;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-rows: 1fr;
+            align-items: center;
+            position: relative;
+            isolation: isolate;
+            border-radius: 9999px;
+            cursor: pointer;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 2px 8px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-height: 48px;
+        }
+        
+        .tab-navigation input[type="checkbox"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        .tab-navigation > span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 300ms ease-in-out 150ms;
+            padding: var(--_label-padding);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-family-primary);
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .tab-navigation::before,
+        .tab-navigation::after {
+            content: "";
+            position: absolute;
+            border-radius: inherit;
+            transition: inset 150ms ease-in-out;
+        }
+        
+        /* Switch slider */
+        .tab-navigation::before {
+            background-color: var(--_slider-bg-clr);
+            inset: var(--_switch-padding) 50% var(--_switch-padding) var(--_switch-padding);
+            transition: inset 300ms var(--_switch-easing), background-color 300ms ease-in-out;
+            z-index: -1;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.1), 0 1px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Switch background */
+        .tab-navigation::after {
+            background-color: var(--_switch-bg-clr);
+            inset: 0;
+            z-index: -2;
+        }
+        
+        /* Switch focus */
+        .tab-navigation:focus-within::after {
+            inset: -0.25rem;
+        }
+        
+        /* Hover effects removed for clean, professional look */
+        
+        /* Checked state - move slider to right (Preferiti) */
+        .tab-navigation:has(input:checked)::before {
+            background-color: var(--_slider-bg-clr-on);
+            inset: var(--_switch-padding) var(--_switch-padding) var(--_switch-padding) 50%;
+        }
+        
+        /* Clean text states with darker light gray selected tab */
+        .tab-navigation > span:last-of-type,
+        .tab-navigation > input:checked + span:first-of-type {
+            opacity: 0.7;
+            color: var(--color-neutral-600);
+            font-weight: 600;
+            transition: all 300ms var(--_switch-easing);
+        }
+        
+        .tab-navigation > input:checked ~ span:last-of-type {
+            opacity: 1;
+            color: #1f2937; /* Darker text for better contrast on darker gray background */
+            font-weight: 700;
+            transition: all 300ms var(--_switch-easing);
+        }
+        
+        .tab-navigation > span:first-of-type {
+            opacity: 1;
+            color: #1f2937; /* Darker text for better contrast on darker gray background */
+            font-weight: 700;
+            transition: all 300ms var(--_switch-easing);
+        }
+        
+        .tab-navigation:has(input:checked) > span:first-of-type {
+            opacity: 0.7;
+            color: var(--color-neutral-600);
+            font-weight: 600;
+            transition: all 300ms var(--_switch-easing);
+        }
+        
+        /* Instant view switching - no animations to prevent layout shifts */
+        .view-container {
+            opacity: 1;
+            transform: translateY(0);
+            /* Remove transitions for instant switching */
+            display: block;
+        }
+        
+        .view-container.hidden {
+            display: none;
+        }
+        
+        .view-container.active {
+            display: block;
+        }
+        
+        /* Dynamic title styling */
+        .page-title.documenti-title {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .page-title.preferiti-title {
+            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .page-header::before {
+            transition: all 0.3s ease;
+        }
+        
+        .page-header.documenti-header::before {
+            background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        
+        .page-header.preferiti-header::before {
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 100%);
+        }
+        
+        
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Unified dashboard positioned right under header */
+        .unified-dashboard {
+            margin-top: 0px; /* No additional margin needed */
+            padding-top: 0px;
+        }
+        
+        /* Unified search component container */
+        #unifiedSearchSectionContainer {
             display: flex;
             justify-content: center;
             width: 100%;
             padding-top: 0px;
         }
         
-        #main-search-container,
-        #documents-search-container,
-        #favorites-search-container {
+        #unified-search-container {
             width: 100%;
             margin-left: 30px;
             margin-right: 30px;
             margin-top: 10px;
-        }
-        
-        /* Main content adjustment for header and remove sidebar margin */
-        .main-content {
-            margin-top: 0 !important; /* Account for fixed header */
-            margin-left: 0 !important; /* Remove sidebar margin */
-            padding: 20px !important;
-            width: 100% !important;
-        }
-        
-        /* Mobile responsiveness */
-        @media (max-width: 1200px) {
-            #main-search-container,
-            #documents-search-container,
-            #favorites-search-container {
-                max-width: 100%;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            #searchSectionContainer,
-            #documentsSearchSectionContainer,
-            #favoritesSearchSectionContainer {
-                width: 100vw;
-                padding: 0 10px;
-            }
-        }
-        
-        /* Optimize image loading */
-        img {
-            max-width: 100%;
-            height: auto;
         }
         
         /* Make search-subtitle smaller on I Miei Documenti page */
@@ -89,137 +393,581 @@
             font-size: 28px !important;
         }
         
-        /* Professional styling for page title and subtitle - centered to page */
-        .page-header {
-            text-align: center;
-            margin: 40px auto 0px auto;
-            max-width: 800px;
-            padding: 0 20px;
+        /* Perfect search bar centering - simple center alignment */
+        .main-content {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
         }
         
-        .page-title {
-            font-size: 48px;
+        .search-section {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+        }
+        
+        .search-container-wrapper {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+        }
+        
+        .search-container {
+            width: 400px !important;
+            max-width: 400px !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+        
+        .search-bar-wrapper {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+        }
+        
+        .search-bar {
+            width: 400px !important;
+            max-width: 400px !important;
+        }
+        
+        .search-input {
+            width: 100% !important;
+        }
+        
+        
+        /* Floating action elements */
+        .floating-elements {
+            position: fixed;
+            top: 50%;
+            right: var(--spacing-xl);
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            z-index: 100;
+        }
+        
+        .floating-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .floating-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+        
+        /* Enhanced responsive design */
+        @media (max-width: 1200px) {
+            #unified-search-container {
+                max-width: 100%;
+            }
+            
+            .floating-elements {
+                right: var(--spacing-lg);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 40px var(--spacing-md) var(--spacing-lg) var(--spacing-md) !important;
+            }
+            
+            .unified-dashboard {
+                margin-top: 0px;
+            }
+            
+            .tab-navigation {
+                margin: 40px auto 30px auto;
+            }
+            
+            .page-subtitle.preferiti-subtitle {
+                white-space: normal; /* Allow wrapping on mobile */
+                max-width: 90vw;
+            }
+            
+            .page-header {
+                margin: var(--spacing-xl) auto var(--spacing-lg) auto;
+                padding: 0 var(--spacing-md);
+            }
+            
+            .tab-navigation {
+                margin: var(--spacing-lg) auto var(--spacing-xl) auto;
+                max-width: none;
+                padding: 6px;
+            }
+            
+            .tab-button {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+            
+            .floating-elements {
+                display: none;
+            }
+            
+            #unifiedSearchSectionContainer {
+                width: 100vw;
+                padding: 0 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 30px var(--spacing-sm) var(--spacing-md) var(--spacing-sm) !important;
+            }
+            
+            .unified-dashboard {
+                margin-top: 0px;
+            }
+            
+            .tab-navigation {
+                margin: 30px auto 25px auto;
+            }
+            
+            .tab-navigation {
+                padding: 4px;
+                border-radius: var(--radius-lg);
+            }
+            
+            .tab-button {
+                padding: 10px 16px;
+                font-size: 12px;
+                border-radius: 40px;
+            }
+        }
+        
+        /* Performance optimizations */
+        img {
+            max-width: 100%;
+            height: auto;
+            image-rendering: -webkit-optimize-contrast;
+        }
+        
+        /* Accessibility enhancements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Favorited Users Section Styles */
+        .favorited-users-section {
+            margin: 0 auto var(--spacing-2xl) auto;
+            max-width: 1200px;
+            padding: 0 var(--spacing-lg);
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+        
+        .favorited-users-section.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            display: none;
+        }
+        
+        /* Ensure favorited users show instantly with no loading states */
+        .favorited-users-section .user-card {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+        
+        /* Instantly show preferiti sections when URL indicates preferiti view */
+        html.preferiti-view .favorited-users-section,
+        html.preferiti-view .favorites-search-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+        
+        /* Ensure immediate visibility for preferiti view - no FOUC */
+        html.preferiti-view body {
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Hide preferiti sections when URL indicates documenti view */
+        html.documenti-view .favorited-users-section,
+        html.documenti-view .favorites-search-section {
+            display: none !important;
+        }
+        
+        /* Removed problematic CSS content injection that caused duplicates */
+        
+        /* Removed problematic CSS overrides that blocked animations */
+        
+        /* Professional section titles */
+        .section-title {
+            font-size: clamp(24px, 3vw, 32px);
             font-weight: 700;
-            color: #1a1a1a;
-            margin: 0 0 16px 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: var(--font-family-display);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 var(--spacing-xl) 0;
+            text-align: center;
             letter-spacing: -0.02em;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #4f46e5 0%, #8b5cf6 100%);
+            border-radius: 2px;
+        }
+        
+        /* Preferiti section title styling */
+        .section-title.preferiti-title::after {
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 100%);
+        }
+        
+        
+        .favorited-users-scroll-container {
+            width: 100vw;
+            position: relative;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: var(--spacing-md) 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .favorited-users-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .favorited-users-list {
+            display: flex;
+            gap: var(--spacing-lg);
+            padding: 0 var(--spacing-lg);
+            min-width: fit-content;
+        }
+        
+        /* User Card Styles */
+        .user-card {
+            background: #ffffff;
+            border-radius: 60px 12px 12px 60px;
+            padding: var(--spacing-sm);
+            min-width: 240px;
+            max-width: 260px;
+            height: 85px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-neutral-200);
+            position: relative;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-neutral-300);
+        }
+        
+        .user-card-content {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            width: 100%;
+            height: 100%;
+        }
+        
+        .user-card-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            border: 1.5px solid var(--white);
+            transition: all 0.2s ease;
+            margin-left: 0px;
+        }
+        
+        .user-card-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+        
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        
+        .user-card-username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        
+        .user-card-save-btn {
+            background: rgba(245, 158, 11, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: #f59e0b;
+            padding: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+        }
+        
+        .user-card-save-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+        }
+        
+        .user-card-save-btn .material-symbols-outlined {
+            font-size: 16px;
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        .user-card-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        
+        .user-card-field {
+            font-size: 11px;
+            color: #4b5563;
             line-height: 1.2;
         }
         
-        .page-subtitle {
-            font-size: 20px;
-            font-weight: 400;
-            color: #666666;
-            margin: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.5;
-            max-width: 600px;
-            margin: 0 auto;
+        .user-card-field strong {
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .user-card-rating {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 254, 254, 0.95) 100%);
+            color: #f59e0b;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 800;
+            flex-shrink: 0;
+            box-shadow: 
+                0 3px 12px rgba(245, 158, 11, 0.2),
+                0 1px 6px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            letter-spacing: -0.01em;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 3px 6px;
+            margin-bottom: 3px;
+            align-self: flex-start;
+        }
+        
+        .user-card-rating:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(254, 254, 254, 0.98) 100%);
+            box-shadow: 
+                0 6px 24px rgba(245, 158, 11, 0.3),
+                0 4px 12px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transform: scale(1.05) translateY(-1px);
+            color: #ea580c;
+            border-color: rgba(245, 158, 11, 0.25);
+        }
+        
+        .user-card-rating .rating-stars {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+        }
+        
+        .user-card-rating .rating-star {
+            font-size: 10px;
+            color: #fbbf24;
+            text-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
+        }
+        
+        .user-card-rating .rating-value {
+            color: #374151;
+            font-size: 8px;
+            margin-left: 2px;
+            font-weight: 700;
+        }
+        
+        .user-card-rating .rating-count {
+            color: #374151;
+            font-size: 8px;
+            margin-left: 1px;
+            font-weight: 600;
+        }
+        
+        /* Empty state */
+        .favorited-users-empty {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--color-neutral-500);
+            font-style: italic;
+            font-size: 14px;
         }
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
-            .page-header {
-                margin: 20px auto 40px auto;
-                padding: 0 15px;
+            .favorited-users-section {
+                padding: 0 var(--spacing-md);
             }
             
-            .page-title {
-                font-size: 36px;
+            .favorited-users-list {
+                padding: 0 var(--spacing-md);
             }
             
-            .page-subtitle {
-                font-size: 18px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .page-title {
-                font-size: 28px;
+            .user-card {
+                min-width: 200px;
+                max-width: 220px;
+                height: 70px;
             }
             
-            .page-subtitle {
+            .user-card-avatar {
+                width: 56px;
+                height: 56px;
                 font-size: 16px;
             }
         }
         
-        /* Tab Navigation Styles */
-        .tab-navigation {
-            display: flex;
-            justify-content: center;
-            margin: 20px auto 30px auto;
-            max-width: 400px;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 16px;
-            padding: 6px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        
-        .tab-button {
-            flex: 1;
-            padding: 14px 28px;
-            border: none;
-            background: transparent;
-            color: #64748b;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            text-align: center;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .tab-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .tab-button:hover {
-            color: #475569;
-            background: rgba(226, 232, 240, 0.6);
-            transform: translateY(-1px);
-        }
-        
-        .tab-button:hover::before {
-            opacity: 1;
-        }
-        
-        .tab-button.active {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            color: #1e293b;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        
-        .tab-button.active::before {
-            opacity: 0;
-        }
-        
         @media (max-width: 480px) {
-            .tab-navigation {
-                margin: 15px 20px 25px 20px;
-                max-width: none;
-                padding: 4px;
+            .favorited-users-list {
+                padding: 0 var(--spacing-sm);
             }
             
-            .tab-button {
-                padding: 12px 20px;
+            .user-card {
+                min-width: 180px;
+                max-width: 200px;
+                height: 60px;
+            }
+            
+            .user-card-avatar {
+                width: 48px;
+                height: 48px;
                 font-size: 14px;
-                border-radius: 10px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-neutral-50: #171717;
+                --color-neutral-100: #262626;
+                --color-neutral-200: #404040;
+                --color-neutral-300: #525252;
+                --color-neutral-400: #737373;
+                --color-neutral-500: #a3a3a3;
+                --color-neutral-600: #d4d4d4;
+                --color-neutral-700: #e5e5e5;
+                --color-neutral-800: #f5f5f5;
+                --color-neutral-900: #fafafa;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #262626 100%);
+            }
+            
+            .tab-navigation {
+                background: rgba(38, 38, 38, 0.8);
+                border-color: rgba(64, 64, 64, 0.3);
+            }
+            
+            .tab-button.active {
+                background: linear-gradient(135deg, #262626 0%, #1f1f1f 100%);
+                border-color: rgba(79, 70, 229, 0.2);
+            }
+            
+            
+            .user-card {
+                background: rgba(255, 255, 255, 0.8);
+                border-color: rgba(82, 82, 82, 0.3);
             }
         }
     </style>
@@ -277,53 +1025,605 @@
 
     <!-- Main Content -->
     <main class="main-content" id="mainContent">
-            <!-- My Documents Dashboard -->
-            <div class="documents-dashboard" id="documentsDashboard">
+        <!-- Unified Dashboard -->
+        <div class="unified-dashboard" id="unifiedDashboard">
+            
+            <!-- Premium Switch Navigation -->
+            <label class="tab-navigation" id="tabNavigation">
+                <input type="checkbox" id="tabSwitch" onchange="handleTabSwitch()">
+                <span id="documentiLabel">Documenti</span>
+                <span id="preferitiLabel">Preferiti</span>
+            </label>
+            
+            <!-- Dynamic Page Header -->
+            <div class="page-header documenti-header" id="dynamicPageHeader">
+                <h1 class="page-title documenti-title" id="dynamicPageTitle">I Miei Documenti</h1>
+                <p class="page-subtitle" id="dynamicPageSubtitle">Gestisci e visualizza tutti i tuoi documenti caricati</p>
                 
-                <!-- Tab Navigation -->
-                <div class="tab-navigation">
-                    <a href="documenti.html" class="tab-button active">Documenti</a>
-                    <a href="preferiti.html" class="tab-button">Preferiti</a>
-                </div>
-                
-                <!-- Page Title and Subtitle -->
-                <div class="page-header">
-                    <h1 class="page-title">I Miei Documenti</h1>
-                    <p class="page-subtitle">Gestisci e visualizza tutti i tuoi documenti caricati</p>
-                </div>
-                
-                <!-- Search Section Component for Documents -->
-                <div id="documentsSearchSectionContainer">
-                    <!-- User's own documents with management capabilities -->
-                    <div id="documents-search-container">
-                        <!-- Include search component for documents -->
-                        <div id="documents-search-component-include"></div>
-                        <script>
-                            fetch('components/search-section/search-component.html')
-                                .then(response => response.text())
-                                .then(html => {
-                                    document.getElementById('documents-search-component-include').innerHTML = html;
-                                    console.log('✅ Documents search component HTML loaded');
-                                })
-                                .catch(error => {
-                                    console.error('❌ Error loading documents search component HTML:', error);
-                                });
-                        </script>
+                <!-- Content will be updated by switchToPreferiti() function when ready -->
+            </div>
+            
+            <!-- Favorited Users Section for Preferiti -->
+            <div class="favorited-users-section hidden" id="favoritedUsersSection">
+                <h2 class="section-title">Utenti Preferiti</h2>
+                <div class="favorited-users-scroll-container">
+                    <div class="favorited-users-list" id="favoritedUsersList">
+                        <!-- Static user cards - no loading states, always visible -->
+                        <div class="user-card" onclick="openUserProfile('MarcoRossi')">
+                            <div class="user-card-content">
+                                <div class="user-card-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">M</div>
+                                <div class="user-card-info">
+                                    <div class="user-card-header">
+                                        <h4 class="user-card-username">MarcoRossi</h4>
+                                        <button class="user-card-save-btn" onclick="event.stopPropagation(); toggleUserFavorite(1)" title="Rimuovi dai preferiti">
+                                            <span class="material-symbols-outlined">bookmark</span>
+                                        </button>
+                                    </div>
+                                    <div class="user-card-details">
+                                        <div class="user-card-field"><strong>Facoltà:</strong> Ingegneria</div>
+                                        <div class="user-card-field"><strong>Canale:</strong> A-L</div>
+                                        <div class="user-card-rating" onclick="event.stopPropagation(); openUserReviews('MarcoRossi')" title="Visualizza recensioni">
+                                            <div class="rating-stars">★★★★★</div>
+                                            <span class="rating-value">4.8</span>
+                                            <span class="rating-count">(23)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="user-card" onclick="openUserProfile('GiuliaVerdi')">
+                            <div class="user-card-content">
+                                <div class="user-card-avatar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">G</div>
+                                <div class="user-card-info">
+                                    <div class="user-card-header">
+                                        <h4 class="user-card-username">GiuliaVerdi</h4>
+                                        <button class="user-card-save-btn" onclick="event.stopPropagation(); toggleUserFavorite(2)" title="Rimuovi dai preferiti">
+                                            <span class="material-symbols-outlined">bookmark</span>
+                                        </button>
+                                    </div>
+                                    <div class="user-card-details">
+                                        <div class="user-card-field"><strong>Facoltà:</strong> Medicina</div>
+                                        <div class="user-card-field"><strong>Canale:</strong> M-Z</div>
+                                        <div class="user-card-rating" onclick="event.stopPropagation(); openUserReviews('GiuliaVerdi')" title="Visualizza recensioni">
+                                            <div class="rating-stars">★★★★★</div>
+                                            <span class="rating-value">4.9</span>
+                                            <span class="rating-count">(31)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="user-card" onclick="openUserProfile('LucaBianchi')">
+                            <div class="user-card-content">
+                                <div class="user-card-avatar" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">L</div>
+                                <div class="user-card-info">
+                                    <div class="user-card-header">
+                                        <h4 class="user-card-username">LucaBianchi</h4>
+                                        <button class="user-card-save-btn" onclick="event.stopPropagation(); toggleUserFavorite(3)" title="Rimuovi dai preferiti">
+                                            <span class="material-symbols-outlined">bookmark</span>
+                                        </button>
+                                    </div>
+                                    <div class="user-card-details">
+                                        <div class="user-card-field"><strong>Facoltà:</strong> Economia</div>
+                                        <div class="user-card-field"><strong>Canale:</strong> A-L</div>
+                                        <div class="user-card-rating" onclick="event.stopPropagation(); openUserReviews('LucaBianchi')" title="Visualizza recensioni">
+                                            <div class="rating-stars">★★★★☆</div>
+                                            <span class="rating-value">4.7</span>
+                                            <span class="rating-count">(18)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Optional Section Title for Preferiti -->
+            <div class="favorites-search-section hidden" id="favoritesSection">
+                <h2 class="section-title">Documenti Preferiti</h2>
+            </div>
+            
+            <!-- Unified Search Component -->
+            <div id="unifiedSearchSectionContainer">
+                <div id="unified-search-container">
+                    <!-- Single search component for both views -->
+                    <div id="unified-search-component-include"></div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Scripts -->
+    <script src="components/search-section/search-component.js" defer></script>
     <script src="js/profile.js"></script>
     <script>
-        // Initialize documents page
+        // Current active view
+        let currentView = 'documenti';
+        
+        // Premium switch-based view switching
+        function handleTabSwitch() {
+            const tabSwitch = document.getElementById('tabSwitch');
+            const isPreferiti = tabSwitch.checked;
+            
+            if (isPreferiti && currentView !== 'preferiti') {
+                switchToPreferiti();
+            } else if (!isPreferiti && currentView !== 'documenti') {
+                switchToDocumenti();
+            }
+        }
+        
+        function switchToDocumenti() {
+            if (currentView === 'documenti') return;
+            
+            // Remove preferiti-view class immediately
+            document.documentElement.classList.remove('preferiti-view');
+            document.documentElement.classList.add('documenti-view');
+            
+            // Update switch state
+            const tabSwitch = document.getElementById('tabSwitch');
+            if (tabSwitch) {
+                tabSwitch.checked = false;
+                // Force a reflow to ensure CSS animations work
+                tabSwitch.offsetHeight;
+            }
+            
+            // Update dynamic content
+            updatePageContent('documenti');
+            
+            // Update page title in browser
+            document.title = 'I Miei Documenti - Uniclarity';
+            
+            // Update current view
+            currentView = 'documenti';
+            
+            // Store current view in session storage
+            sessionStorage.setItem('currentView', 'documenti');
+            
+            // Update URL without page reload
+            if (history.pushState) {
+                history.pushState({view: 'documenti'}, 'I Miei Documenti', 'documenti.html');
+            }
+        }
+        
+        function switchToPreferiti() {
+            if (currentView === 'preferiti') return;
+            
+            // Remove documenti-view class immediately
+            document.documentElement.classList.remove('documenti-view');
+            document.documentElement.classList.add('preferiti-view');
+            
+            // Update switch state
+            const tabSwitch = document.getElementById('tabSwitch');
+            if (tabSwitch) {
+                tabSwitch.checked = true;
+                // Force a reflow to ensure CSS animations work
+                tabSwitch.offsetHeight;
+            }
+            
+            // Update dynamic content
+            updatePageContent('preferiti');
+            
+            // Update page title in browser
+            document.title = 'I Miei Preferiti - Uniclarity';
+            
+            // Update current view
+            currentView = 'preferiti';
+            
+            // Store current view in session storage
+            sessionStorage.setItem('currentView', 'preferiti');
+            
+            // Update URL without page reload
+            if (history.pushState) {
+                history.pushState({view: 'preferiti'}, 'I Miei Preferiti', 'preferiti.html');
+            }
+        }
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.view) {
+                if (event.state.view === 'documenti') {
+                    switchToDocumenti();
+                } else if (event.state.view === 'preferiti') {
+                    switchToPreferiti();
+                }
+            }
+        });
+        
+        // Immediately check URL and handle view before any content loads
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
+            const isPreferiti = view === 'preferiti';
+            
+            if (isPreferiti) {
+                // Add CSS class to HTML element for instant styling
+                document.documentElement.classList.add('preferiti-view');
+                
+                // Critical: Set checkbox state immediately when element exists
+                const setCheckboxWhenReady = () => {
+                    const checkbox = document.getElementById('tabSwitch');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        // Switch to preferiti immediately
+                        if (typeof switchToPreferiti === 'function') {
+                            switchToPreferiti();
+                        }
+                    } else {
+                        // If checkbox doesn't exist yet, try again very soon
+                        setTimeout(setCheckboxWhenReady, 1);
+                    }
+                };
+                
+                // Start checking for checkbox immediately
+                setCheckboxWhenReady();
+            } else {
+                document.documentElement.classList.add('documenti-view');
+                // Ensure checkbox is unchecked for documenti view
+                document.addEventListener('DOMContentLoaded', function() {
+                    const checkbox = document.getElementById('tabSwitch');
+                    if (checkbox) {
+                        checkbox.checked = false;
+                    }
+                });
+            }
+        })();
+        
+        // Initialize unified dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            // Load user's documents
+            // Check URL parameters and hash for initial view
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialView = urlParams.get('view');
+            
+            // Check if URL contains preferiti path or hash
+            const isPreferiti = window.location.pathname.includes('preferiti') || 
+                               window.location.hash.includes('preferiti') || 
+                               initialView === 'preferiti' ||
+                               sessionStorage.getItem('currentView') === 'preferiti';
+            
+            // Load unified search component
+            loadSearchComponents();
+            
+            // Load user data
             if (typeof loadUserDocuments === 'function') {
                 loadUserDocuments();
             }
+            
+            if (typeof loadFavoriteUsers === 'function') {
+                loadFavoriteUsers();
+            }
+            
+            // Switch to requested view if specified
+            if (isPreferiti) {
+                switchToPreferiti();
+            } else {
+                // Set initial history state for documenti
+                if (history.replaceState) {
+                    history.replaceState({view: 'documenti'}, 'I Miei Documenti', 'documenti.html');
+                }
+            }
         });
+        
+        // Load unified search component
+        function loadSearchComponents() {
+            // Load single unified search component
+            fetch('components/search-section/search-component.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('unified-search-component-include').innerHTML = html;
+                    console.log('✅ Unified search component HTML loaded');
+                    
+                    // After HTML is loaded, ensure the JS is loaded and initialize
+                    if (typeof initializeSearchComponent === 'function') {
+                        initializeSearchComponent();
+                        console.log('✅ Unified search component initialized');
+                    } else {
+                        // If function not available yet, wait for script to load
+                        console.log('⏳ Waiting for search component JS to load...');
+                        const checkAndInit = () => {
+                            if (typeof initializeSearchComponent === 'function') {
+                                initializeSearchComponent();
+                                console.log('✅ Unified search component initialized (delayed)');
+                            } else {
+                                setTimeout(checkAndInit, 100);
+                            }
+                        };
+                        checkAndInit();
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error loading unified search component HTML:', error);
+                });
+        }
+        
+        // Update page content dynamically
+        function updatePageContent(view) {
+            const pageHeader = document.getElementById('dynamicPageHeader');
+            const pageTitle = document.getElementById('dynamicPageTitle');
+            const pageSubtitle = document.getElementById('dynamicPageSubtitle');
+            const favoritesSection = document.getElementById('favoritesSection');
+            const favoritedUsersSection = document.getElementById('favoritedUsersSection');
+            
+            if (view === 'documenti') {
+                // Update to documenti content
+                pageHeader.className = 'page-header documenti-header';
+                pageTitle.className = 'page-title documenti-title';
+                pageTitle.textContent = 'I Miei Documenti';
+                pageSubtitle.className = 'page-subtitle'; // Reset to default
+                pageSubtitle.textContent = 'Gestisci e visualizza tutti i tuoi documenti caricati';
+                favoritesSection.classList.add('hidden');
+                favoritedUsersSection.classList.add('hidden');
+            } else if (view === 'preferiti') {
+                // Update to preferiti content
+                pageHeader.className = 'page-header preferiti-header';
+                pageTitle.className = 'page-title preferiti-title';
+                pageTitle.textContent = 'I Miei Preferiti';
+                pageSubtitle.className = 'page-subtitle preferiti-subtitle'; // Add preferiti class
+                pageSubtitle.textContent = 'Esplora la tua collezione personalizzata di documenti salvati';
+                favoritesSection.classList.remove('hidden');
+                favoritedUsersSection.classList.remove('hidden');
+                
+                // Update section titles with proper classes
+                const sectionTitles = document.querySelectorAll('.section-title');
+                sectionTitles.forEach(title => {
+                    if (title.textContent.includes('Preferiti')) {
+                        title.classList.add('preferiti-title');
+                    }
+                });
+                
+                // Load favorited users when switching to preferiti
+                loadFavoritedUsers();
+            }
+        }
+        
+        // Function to load favorited users - no loading needed, cards are static
+        function loadFavoritedUsers() {
+            // User cards are already in HTML - no dynamic loading needed for instant professional feel
+        }
+        
+        // Function to generate star rating HTML
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            let starsHTML = '';
+            
+            // Full stars
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<span class="rating-star filled">★</span>';
+            }
+            
+            // Half star
+            if (hasHalfStar) {
+                starsHTML += '<span class="rating-star filled">★</span>';
+            }
+            
+            // Empty stars
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<span class="rating-star">★</span>';
+            }
+            
+            return starsHTML;
+        }
+        
+        // Function to create sample user cards (replace with actual data)
+        function createSampleUserCards() {
+            const favoritedUsersList = document.getElementById('favoritedUsersList');
+            
+            // Sample user data - replace with actual API data
+            const sampleUsers = [
+                {
+                    id: 1,
+                    username: 'MarcoRossi',
+                    facolta: 'Ingegneria',
+                    canale: 'A-L',
+                    rating: 4.8,
+                    reviewCount: 23,
+                    initial: 'M',
+                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                },
+                {
+                    id: 2,
+                    username: 'GiuliaVerdi',
+                    facolta: 'Medicina',
+                    canale: 'M-Z',
+                    rating: 4.9,
+                    reviewCount: 31,
+                    initial: 'G',
+                    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                },
+                {
+                    id: 3,
+                    username: 'LucaBianchi',
+                    facolta: 'Economia',
+                    canale: 'A-L',
+                    rating: 4.7,
+                    reviewCount: 18,
+                    initial: 'L',
+                    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                },
+                {
+                    id: 4,
+                    username: 'ChiaraNeri',
+                    facolta: 'Psicologia',
+                    canale: 'M-Z',
+                    rating: 4.6,
+                    reviewCount: 12,
+                    initial: 'C',
+                    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+                },
+                {
+                    id: 5,
+                    username: 'AndreaGialli',
+                    facolta: 'Giurisprudenza',
+                    canale: 'A-L',
+                    rating: 4.5,
+                    reviewCount: 9,
+                    initial: 'A',
+                    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+                },
+                {
+                    id: 6,
+                    username: 'FrancescaBlue',
+                    facolta: 'Architettura',
+                    canale: 'M-Z',
+                    rating: 4.4,
+                    reviewCount: 15,
+                    initial: 'F',
+                    gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+                },
+                {
+                    id: 7,
+                    username: 'DavideOrange',
+                    facolta: 'Informatica',
+                    canale: 'A-L',
+                    rating: 4.7,
+                    reviewCount: 28,
+                    initial: 'D',
+                    gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+                },
+                {
+                    id: 8,
+                    username: 'ValentinaViolet',
+                    facolta: 'Lettere',
+                    canale: 'M-Z',
+                    rating: 4.6,
+                    reviewCount: 19,
+                    initial: 'V',
+                    gradient: 'linear-gradient(135deg, #a8caba 0%, #5d4e75 100%)'
+                },
+                {
+                    id: 9,
+                    username: 'SimoneGreen',
+                    facolta: 'Biologia',
+                    canale: 'A-L',
+                    rating: 4.8,
+                    reviewCount: 22,
+                    initial: 'S',
+                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                },
+                {
+                    id: 10,
+                    username: 'ElenaRed',
+                    facolta: 'Farmacia',
+                    canale: 'M-Z',
+                    rating: 4.5,
+                    reviewCount: 14,
+                    initial: 'E',
+                    gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)'
+                },
+                {
+                    id: 11,
+                    username: 'MatteoPurple',
+                    facolta: 'Fisica',
+                    canale: 'A-L',
+                    rating: 4.9,
+                    reviewCount: 35,
+                    initial: 'M',
+                    gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)'
+                },
+                {
+                    id: 12,
+                    username: 'SaraYellow',
+                    facolta: 'Chimica',
+                    canale: 'M-Z',
+                    rating: 4.3,
+                    reviewCount: 11,
+                    initial: 'S',
+                    gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)'
+                }
+            ];
+            
+            // Create user cards HTML
+            const userCardsHTML = sampleUsers.map(user => `
+                <div class="user-card" onclick="openUserProfile('${user.username}')">
+                    <div class="user-card-content">
+                        <div class="user-card-avatar" style="background: ${user.gradient}">
+                            ${user.initial}
+                        </div>
+                        <div class="user-card-info">
+                            <div class="user-card-header">
+                                <h4 class="user-card-username">${user.username}</h4>
+                                <button class="user-card-save-btn" onclick="event.stopPropagation(); toggleUserFavorite(${user.id})" title="Rimuovi dai preferiti">
+                                    <span class="material-symbols-outlined">bookmark</span>
+                                </button>
+                            </div>
+                            <div class="user-card-details">
+                                <div class="user-card-field">
+                                    <strong>Facoltà:</strong> ${user.facolta}
+                                </div>
+                                <div class="user-card-field">
+                                    <strong>Canale:</strong> ${user.canale}
+                                </div>
+                                <div class="user-card-rating" onclick="event.stopPropagation(); openUserReviews('${user.username}')" title="Visualizza recensioni">
+                                    <div class="rating-stars">
+                                        ${generateStars(user.rating)}
+                                    </div>
+                                    <span class="rating-value">${user.rating}</span>
+                                    <span class="rating-count">(${user.reviewCount})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Update the list
+            favoritedUsersList.innerHTML = userCardsHTML;
+        }
+        
+        // Function to open user profile
+        function openUserProfile(username) {
+            // Replace with actual navigation to user profile
+            console.log('Opening profile for:', username);
+            // Example: window.location.href = `vendor-page.html?user=${username}`;
+        }
+        
+        // Function to toggle user from favorites
+        function toggleUserFavorite(userId) {
+            // Replace with actual API call to remove from favorites
+            console.log('Toggling favorite for user:', userId);
+            
+            // Show confirmation
+            if (confirm('Rimuovere questo utente dai preferiti?')) {
+                // Remove the user card with animation
+                const userCards = document.querySelectorAll('.user-card');
+                userCards.forEach(card => {
+                    if (card.onclick.toString().includes(userId.toString())) {
+                        card.style.transform = 'translateY(-10px) scale(0.95)';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            
+                            // Check if no more cards exist
+                            const remainingCards = document.querySelectorAll('.user-card');
+                            if (remainingCards.length === 0) {
+                                document.getElementById('favoritedUsersList').innerHTML = `
+                                    <div class="favorited-users-empty">
+                                        <div class="material-symbols-outlined" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;">group_off</div>
+                                        Nessun utente nei preferiti
+                                    </div>
+                                `;
+                            }
+                        }, 300);
+                    }
+                });
+            }
+        }
+        
+        // Function to open user reviews
+        function openUserReviews(username) {
+            // Replace with actual navigation to user reviews
+            console.log('Opening reviews for:', username);
+            // Example: window.location.href = `vendor-page.html?user=${username}#reviews`;
+        }
+    </script>
+    
+    <!-- Page ready script -->
+    <script>
+        // Page is ready and loaded
+        document.body.classList.add('loaded');
     </script>
 </body>
 </html>

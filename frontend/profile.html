@@ -135,23 +135,26 @@
             
             <div class="nav-section">
                 <h3 class="nav-section-title">Contenuti</h3>
-                <div class="menu-item" onclick="window.location.href='documenti.html';">
+                <div class="menu-item" onclick="window.location.href='documenti.html';" title="Vai alla pagina I Miei Documenti">
                     <span class="menu-icon material-symbols-outlined">folder</span>
                     <span class="menu-text">I Miei Documenti</span>
+                    <span class="menu-icon external-link material-symbols-outlined">open_in_new</span>
                 </div>
-                <div class="menu-item" onclick="window.location.href='preferiti.html';">
+                <div class="menu-item" onclick="window.location.href='preferiti.html';" title="Vai alla pagina Preferiti">
                     <span class="menu-icon material-symbols-outlined">favorite</span>
                     <span class="menu-text">Preferiti</span>
+                    <span class="menu-icon external-link material-symbols-outlined">open_in_new</span>
                 </div>
-                <div class="menu-item">
+                <div class="menu-item" onclick="window.location.href='upload.html';" title="Vai alla pagina di Caricamento">
                     <span class="menu-icon material-symbols-outlined">upload</span>
                     <span class="menu-text">Carica</span>
+                    <span class="menu-icon external-link material-symbols-outlined">open_in_new</span>
                 </div>
             </div>
             
             <div class="nav-section">
                 <h3 class="nav-section-title">Account</h3>
-                <div class="menu-item">
+                <div class="menu-item" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('settings');">
                     <span class="menu-icon material-symbols-outlined">settings</span>
                     <span class="menu-text">Impostazioni</span>
                 </div>
@@ -187,7 +190,7 @@
         </div>
         
         <div class="profile-section">
-            <button class="edit-btn">
+            <button class="edit-btn" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); document.querySelector('.menu-item[onclick*=settings]').classList.add('active'); switchTab('settings'); setTimeout(() => { if (typeof switchSettingsSection === 'function') switchSettingsSection('account'); }, 100);">
                 Modifica 
                 <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1.88235 12.2898L1 16L4.52941 15.0724L14.7524 4.32581C15.0832 3.97793 15.269 3.50616 15.269 3.01425C15.269 2.52234 15.0832 2.05057 14.7524 1.70269L14.6006 1.54315C14.2697 1.19537 13.8209 1 13.3529 1C12.885 1 12.4362 1.19537 12.1053 1.54315L1.88235 12.2898ZM10.7059 3.01425L13.3529 5.79691L10.7059 3.01425ZM8.94118 16H16H8.94118Z" fill="white"/>
@@ -552,7 +555,7 @@
                                     <div class="performance-row" data-rank="1">
                                         <div class="rank-badge rank-1">1</div>
                                         <div class="document-cell">
-                                            <div class="document-title">Analisi Matematica I</div>
+                                            <div class="document-profile-title">Analisi Matematica I</div>
                                             <div class="document-category">Matematica • Premium</div>
                                         </div>
                                         <div class="revenue-cell">
@@ -570,7 +573,7 @@
                                     <div class="performance-row" data-rank="2">
                                         <div class="rank-badge rank-2">2</div>
                                         <div class="document-cell">
-                                            <div class="document-title">Fisica Generale</div>
+                                            <div class="document-profile-title">Fisica Generale</div>
                                             <div class="document-category">Fisica • Standard</div>
                                         </div>
                                         <div class="revenue-cell">
@@ -588,7 +591,7 @@
                                     <div class="performance-row" data-rank="3">
                                         <div class="rank-badge rank-3">3</div>
                                         <div class="document-cell">
-                                            <div class="document-title">Programmazione C++</div>
+                                            <div class="document-profile-title">Programmazione C++</div>
                                             <div class="document-category">Informatica • Premium</div>
                                         </div>
                                         <div class="revenue-cell">
@@ -606,7 +609,7 @@
                                     <div class="performance-row" data-rank="4">
                                         <div class="rank-badge">4</div>
                                         <div class="document-cell">
-                                            <div class="document-title">Database Design</div>
+                                            <div class="document-profile-title">Database Design</div>
                                             <div class="document-category">Informatica • Standard</div>
                                         </div>
                                         <div class="revenue-cell">
@@ -624,7 +627,7 @@
                                     <div class="performance-row" data-rank="5">
                                         <div class="rank-badge">5</div>
                                         <div class="document-cell">
-                                            <div class="document-title">Linear Algebra</div>
+                                            <div class="document-profile-title">Linear Algebra</div>
                                             <div class="document-category">Matematica • Standard</div>
                                         </div>
                                         <div class="revenue-cell">
@@ -980,11 +983,6 @@
             <div class="settings-content">
                 <!-- Account Settings Section -->
                 <div class="settings-section active" id="accountSection">
-                    <div class="settings-section-header">
-                        <h2 class="settings-section-title">Informazioni Account</h2>
-                        <p class="settings-section-description">Gestisci i tuoi dati personali e le informazioni del profilo</p>
-                    </div>
-
                     <div class="settings-cards-grid">
                         <!-- Profile Information Card -->
                         <div class="settings-card">
@@ -994,55 +992,116 @@
                             </div>
                             <div class="settings-card-content">
                                 <div class="settings-form-group">
-                                    <label class="settings-label">Nome utente</label>
+                                    <label class="settings-label">Nickname</label>
                                     <div class="settings-input-group">
-                                        <input type="text" class="settings-input" id="usernameInput" placeholder="Il tuo nome utente">
-                                        <button class="settings-input-action" onclick="editField('username')">
-                                            <span class="material-symbols-outlined">edit</span>
-                                        </button>
+                                        <input type="text" class="settings-input" id="nicknameInput" placeholder="Il tuo nickname">
                                     </div>
                                 </div>
                                 
                                 <div class="settings-form-group">
                                     <label class="settings-label">Email</label>
                                     <div class="settings-input-group">
-                                        <input type="email" class="settings-input" id="emailInput" placeholder="la.tua.email@esempio.com">
-                                        <button class="settings-input-action" onclick="editField('email')">
-                                            <span class="material-symbols-outlined">edit</span>
-                                        </button>
+                                        <input type="email" class="settings-input settings-input-readonly" id="emailInput" placeholder="la.tua.email@esempio.com" readonly>
+                                        <span class="settings-readonly-icon material-symbols-outlined">lock</span>
                                     </div>
-                                </div>
-
-                                <div class="settings-form-group">
-                                    <label class="settings-label">Facoltà</label>
-                                    <div class="settings-input-group">
-                                        <select class="settings-select" id="facultySelect">
-                                            <option value="">Seleziona la tua facoltà</option>
-                                            <option value="Ingegneria">Ingegneria</option>
-                                            <option value="Medicina">Medicina</option>
-                                            <option value="Economia">Economia</option>
-                                            <option value="Giurisprudenza">Giurisprudenza</option>
-                                            <option value="Lettere e Filosofia">Lettere e Filosofia</option>
-                                            <option value="Scienze">Scienze</option>
-                                            <option value="Psicologia">Psicologia</option>
-                                            <option value="Architettura">Architettura</option>
-                                        </select>
-                                    </div>
+                                    <p class="settings-help-text">L'email non può essere modificata</p>
                                 </div>
 
                                 <div class="settings-form-group">
                                     <label class="settings-label">Canale</label>
                                     <div class="settings-input-group">
-                                        <input type="text" class="settings-input" id="canaleInput" placeholder="A-L, M-Z, ecc.">
+                                        <div class="settings-custom-dropdown" data-field="canale">
+                                            <button class="settings-dropdown-button" type="button">
+                                                <span class="dropdown-text">Seleziona il tuo canale</span>
+                                                <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <div class="settings-dropdown-content">
+                                                <div class="dropdown-options">
+                                                    <div class="dropdown-option" data-value="">Seleziona il tuo canale</div>
+                                                    <div class="dropdown-option" data-value="A">A</div>
+                                                    <div class="dropdown-option" data-value="B">B</div>
+                                                    <div class="dropdown-option" data-value="C">C</div>
+                                                    <div class="dropdown-option" data-value="D">D</div>
+                                                    <div class="dropdown-option" data-value="E">E</div>
+                                                    <div class="dropdown-option" data-value="F">F</div>
+                                                    <div class="dropdown-option" data-value="Unico">Unico</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="settings-form-group">
-                                    <label class="settings-label">Bio</label>
-                                    <textarea class="settings-textarea" id="bioTextarea" placeholder="Racconta qualcosa di te (max 200 caratteri)" maxlength="200"></textarea>
-                                    <div class="settings-char-count">
-                                        <span id="bioCharCount">0</span>/200 caratteri
+                                    <label class="settings-label">Corso di laurea</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-custom-dropdown" data-field="course">
+                                            <button class="settings-dropdown-button" type="button">
+                                                <span class="dropdown-text">Seleziona il tuo corso di laurea</span>
+                                                <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <div class="settings-dropdown-content">
+                                                <div class="dropdown-options">
+                                                    <div class="dropdown-option" data-value="">Seleziona il tuo corso di laurea</div>
+                                                    <div class="dropdown-option" data-value="Ingegneria Informatica">Ingegneria Informatica</div>
+                                                    <div class="dropdown-option" data-value="Ingegneria Civile">Ingegneria Civile</div>
+                                                    <div class="dropdown-option" data-value="Ingegneria Meccanica">Ingegneria Meccanica</div>
+                                                    <div class="dropdown-option" data-value="Medicina e Chirurgia">Medicina e Chirurgia</div>
+                                                    <div class="dropdown-option" data-value="Economia e Commercio">Economia e Commercio</div>
+                                                    <div class="dropdown-option" data-value="Economia Aziendale">Economia Aziendale</div>
+                                                    <div class="dropdown-option" data-value="Giurisprudenza">Giurisprudenza</div>
+                                                    <div class="dropdown-option" data-value="Lettere Moderne">Lettere Moderne</div>
+                                                    <div class="dropdown-option" data-value="Filosofia">Filosofia</div>
+                                                    <div class="dropdown-option" data-value="Scienze Biologiche">Scienze Biologiche</div>
+                                                    <div class="dropdown-option" data-value="Fisica">Fisica</div>
+                                                    <div class="dropdown-option" data-value="Matematica">Matematica</div>
+                                                    <div class="dropdown-option" data-value="Psicologia">Psicologia</div>
+                                                    <div class="dropdown-option" data-value="Architettura">Architettura</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Anno di inizio corso</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-custom-dropdown" data-field="startYear">
+                                            <button class="settings-dropdown-button" type="button">
+                                                <span class="dropdown-text">Seleziona l'anno di inizio</span>
+                                                <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <div class="settings-dropdown-content">
+                                                <div class="dropdown-options">
+                                                    <div class="dropdown-option" data-value="">Seleziona l'anno di inizio</div>
+                                                    <div class="dropdown-option" data-value="2024">2024</div>
+                                                    <div class="dropdown-option" data-value="2023">2023</div>
+                                                    <div class="dropdown-option" data-value="2022">2022</div>
+                                                    <div class="dropdown-option" data-value="2021">2021</div>
+                                                    <div class="dropdown-option" data-value="2020">2020</div>
+                                                    <div class="dropdown-option" data-value="2019">2019</div>
+                                                    <div class="dropdown-option" data-value="2018">2018</div>
+                                                    <div class="dropdown-option" data-value="2017">2017</div>
+                                                    <div class="dropdown-option" data-value="2016">2016</div>
+                                                    <div class="dropdown-option" data-value="2015">2015</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Università</label>
+                                    <div class="settings-input-group">
+                                        <input type="text" class="settings-input settings-input-readonly" id="universityInput" placeholder="La tua università" readonly>
+                                        <span class="settings-readonly-icon material-symbols-outlined">lock</span>
+                                    </div>
+                                    <p class="settings-help-text">L'università non può essere modificata</p>
                                 </div>
                             </div>
                             <div class="settings-card-actions">
@@ -1057,11 +1116,6 @@
 
                 <!-- Privacy & Security Section -->
                 <div class="settings-section" id="privacySecuritySection">
-                    <div class="settings-section-header">
-                        <h2 class="settings-section-title">Privacy & Sicurezza</h2>
-                        <p class="settings-section-description">Gestisci la privacy, la sicurezza e le azioni sensibili del tuo account</p>
-                    </div>
-
                     <div class="settings-cards-grid">
                         <!-- Privacy Cards (from privacySection) -->
                         <div class="settings-card">
@@ -1256,11 +1310,6 @@
 
                 <!-- Notifications Section -->
                 <div class="settings-section" id="notificationsSection">
-                    <div class="settings-section-header">
-                        <h2 class="settings-section-title">Preferenze Notifiche</h2>
-                        <p class="settings-section-description">Scegli quando e come ricevere le notifiche</p>
-                    </div>
-
                     <div class="settings-cards-grid">
                         <div class="settings-card">
                             <div class="settings-card-header">
@@ -1341,11 +1390,6 @@
 
                 <!-- Preferences Section -->
                 <div class="settings-section" id="preferencesSection">
-                    <div class="settings-section-header">
-                        <h2 class="settings-section-title">Preferenze Generali</h2>
-                        <p class="settings-section-description">Personalizza la tua esperienza sulla piattaforma</p>
-                    </div>
-
                     <div class="settings-cards-grid">
                         <div class="settings-card">
                             <div class="settings-card-header">
@@ -1419,11 +1463,6 @@
 
                 <!-- Billing Section -->
                 <div class="settings-section" id="billingSection">
-                    <div class="settings-section-header">
-                        <h2 class="settings-section-title">Fatturazione e Pagamenti</h2>
-                        <p class="settings-section-description">Gestisci i tuoi metodi di pagamento e fatturazione</p>
-                    </div>
-
                     <div class="settings-cards-grid">
                         <div class="settings-card">
                             <div class="settings-card-header">

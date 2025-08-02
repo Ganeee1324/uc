@@ -4450,6 +4450,7 @@ function renderDocuments(files) {
                 </div>
                 <div class="rating-badge" data-action="open-reviews" data-vetrina-id="${item.id}" data-rating="${rating}" data-review-count="${reviewCount}" title="Mostra recensioni" style="cursor: pointer;">
                     <div class="rating-stars">${stars}</div>
+                    <span class="rating-value">${rating.toFixed(1)}</span>
                     <span class="rating-count">(${reviewCount})</span>
                 </div>
             </div>

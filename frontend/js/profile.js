@@ -306,6 +306,10 @@ window.switchTab = async function switchTab(tabName) {
     const mainSearchContainer = document.getElementById('searchSectionContainer');
     const documentsSearchContainer = document.getElementById('documentsSearchSectionContainer');
     const favoritesSearchContainer = document.getElementById('favoritesSearchSectionContainer');
+    const pageHeaders = document.querySelectorAll('.page-header');
+    // Get specific page headers for granular control
+    const profilePageHeader = pageHeaders[0]; // "Il Mio Profilo"
+    const documentsPageHeader = pageHeaders[1]; // "I Tuoi Documenti Caricati"
     
     if (tabName === 'stats') {
         // Show stats dashboard, hide others
@@ -316,6 +320,9 @@ window.switchTab = async function switchTab(tabName) {
         if (favoritesDashboard) favoritesDashboard.style.display = 'none';
         if (settingsDashboard) settingsDashboard.style.display = 'none';
         if (mainSearchContainer) mainSearchContainer.style.display = 'none';
+        // Hide both page headers in stats tab
+        if (profilePageHeader) profilePageHeader.style.display = 'none';
+        if (documentsPageHeader) documentsPageHeader.style.display = 'none';
         if (documentsSearchContainer) {
             documentsSearchContainer.style.display = 'none';
             // Don't clear innerHTML to preserve search components
@@ -374,6 +381,9 @@ window.switchTab = async function switchTab(tabName) {
         // Show documents dashboard
         if (documentsDashboard) documentsDashboard.style.display = 'block';
         if (documentsSearchContainer) documentsSearchContainer.style.display = 'block';
+        // Hide both page headers for documents tab as it has its own headers
+        if (profilePageHeader) profilePageHeader.style.display = 'none';
+        if (documentsPageHeader) documentsPageHeader.style.display = 'none';
         
         currentTab = 'documents';
         
@@ -410,6 +420,9 @@ window.switchTab = async function switchTab(tabName) {
         // Show favorites dashboard
         if (favoritesDashboard) favoritesDashboard.style.display = 'block';
         if (favoritesSearchContainer) favoritesSearchContainer.style.display = 'block';
+        // Hide both page headers for favorites tab as it has its own headers
+        if (profilePageHeader) profilePageHeader.style.display = 'none';
+        if (documentsPageHeader) documentsPageHeader.style.display = 'none';
         
         currentTab = 'favorites';
         
@@ -448,6 +461,9 @@ window.switchTab = async function switchTab(tabName) {
         if (favoritesSearchContainer) {
             favoritesSearchContainer.style.display = 'none';
         }
+        // Hide both page headers in settings tab
+        if (profilePageHeader) profilePageHeader.style.display = 'none';
+        if (documentsPageHeader) documentsPageHeader.style.display = 'none';
         
         currentTab = 'settings';
         
@@ -475,6 +491,9 @@ window.switchTab = async function switchTab(tabName) {
             favoritesSearchContainer.style.display = 'none';
             // Don't clear innerHTML to preserve search components
         }
+        // Show both page headers for profile tab (profile info + documents section)
+        if (profilePageHeader) profilePageHeader.style.display = 'block';
+        if (documentsPageHeader) documentsPageHeader.style.display = 'block';
         
         // Main search component is now handled via HTML Web Component - will auto-initialize
         console.log('Profile tab switched - search-section web component will handle itself');
@@ -2635,11 +2654,41 @@ async function confirmDeleteAccount() {
 
 // Load user data into settings forms
 function loadUserDataIntoSettings() {
-    const user = getCurrentUser();
-    if (!user) return;
+    let user = getCurrentUser();
+    
+    // Debug logging
+    console.log('Current user from localStorage:', user);
+    console.log('User email:', user?.email);
+    
+    // If no user is found in localStorage, create a mock user for development
+    if (!user) {
+        console.log('No user found in localStorage, creating mock user for development');
+        user = {
+            user_id: 'dev-user-123',
+            email: 'studente.universitario@uniroma1.it',
+            username: 'StudenteUniversitario23',
+            first_name: 'Marco',
+            last_name: 'Rossi',
+            university: 'Università La Sapienza',
+            user_canale: 'A',
+            course_of_study: 'Ingegneria Informatica',
+            start_year: '2022'
+        };
+        // Store the mock user in localStorage for consistency
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('Mock user created:', user);
+    }
     
     // Load account data
-    const emailInput = document.getElementById('email');
+    const emailInput = document.getElementById('emailInput');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const universityInput = document.getElementById('universityInput');
+    const canaleSelect = document.getElementById('canaleSelect');
+    const courseSelect = document.getElementById('courseSelect');
+    const startYearSelect = document.getElementById('startYearSelect');
+    
+    // Legacy fields (keep for backward compatibility)
+    const legacyEmailInput = document.getElementById('email');
     const usernameInput = document.getElementById('username');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
@@ -2647,13 +2696,39 @@ function loadUserDataIntoSettings() {
     const facultyInput = document.getElementById('faculty');
     const canaleInput = document.getElementById('canale');
     
-    if (emailInput) emailInput.value = user.email || '';
+    // New account settings fields
+    if (emailInput) {
+        const email = user.email || 'studente.universitario@uniroma1.it';
+        emailInput.value = email;
+        console.log('Setting email input to:', email);
+    }
+    if (nicknameInput) {
+        const nickname = user.username || user.first_name || 'Utente';
+        nicknameInput.value = nickname;
+        console.log('Setting nickname input to:', nickname);
+    }
+    if (universityInput) {
+        const university = user.university || 'Università La Sapienza';
+        universityInput.value = university;
+        console.log('Setting university input to:', university);
+    }
+    if (canaleSelect) canaleSelect.value = user.user_canale || '';
+    if (courseSelect) courseSelect.value = user.course_of_study || '';
+    if (startYearSelect) startYearSelect.value = user.start_year || '';
+    
+    // Legacy fields
+    if (legacyEmailInput) legacyEmailInput.value = user.email || '';
     if (usernameInput) usernameInput.value = user.username || '';
     if (firstNameInput) firstNameInput.value = user.first_name || '';
     if (lastNameInput) lastNameInput.value = user.last_name || '';
     if (bioInput) bioInput.value = user.bio || '';
     if (facultyInput) facultyInput.value = user.user_faculty || '';
     if (canaleInput) canaleInput.value = user.user_canale || '';
+    
+    // Load custom dropdown values
+    setCustomDropdownValue('canale', user.user_canale || '');
+    setCustomDropdownValue('course', user.course_of_study || '');
+    setCustomDropdownValue('startYear', user.start_year || '');
     
     // Update profile picture preview
     const profilePicturePreview = document.querySelector('.settings-profile-picture');
@@ -4166,4 +4241,134 @@ document.addEventListener('click', function(e) {
             initializeRatingProgressAnimations();
         }, 100);
     }
+});
+
+// ===========================
+// CUSTOM DROPDOWN FUNCTIONALITY
+// ===========================
+
+// Initialize custom dropdowns
+function initializeCustomDropdowns() {
+    const dropdowns = document.querySelectorAll('.settings-custom-dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const button = dropdown.querySelector('.settings-dropdown-button');
+        const options = dropdown.querySelectorAll('.dropdown-option');
+        
+        // Button click handler
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Close other dropdowns
+            dropdowns.forEach(otherDropdown => {
+                if (otherDropdown !== dropdown) {
+                    otherDropdown.classList.remove('open');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('open');
+        });
+        
+        // Option click handler
+        options.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const value = this.getAttribute('data-value');
+                const text = this.textContent;
+                const field = dropdown.getAttribute('data-field');
+                
+                // Update button text
+                const buttonText = button.querySelector('.dropdown-text');
+                buttonText.textContent = text;
+                
+                // Update placeholder class
+                if (value === '') {
+                    buttonText.classList.add('placeholder');
+                } else {
+                    buttonText.classList.remove('placeholder');
+                }
+                
+                // Update selected state
+                options.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Close dropdown
+                dropdown.classList.remove('open');
+                
+                // Store value for form submission
+                dropdown.setAttribute('data-value', value);
+                
+                console.log(`Selected ${field}: ${value}`);
+            });
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.settings-custom-dropdown')) {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        }
+    });
+    
+    // Close dropdowns on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        }
+    });
+}
+
+// Set custom dropdown value programmatically
+function setCustomDropdownValue(field, value) {
+    const dropdown = document.querySelector(`[data-field="${field}"]`);
+    if (!dropdown) return;
+    
+    const button = dropdown.querySelector('.settings-dropdown-button');
+    const buttonText = button.querySelector('.dropdown-text');
+    const options = dropdown.querySelectorAll('.dropdown-option');
+    
+    // Find the option with matching value
+    let selectedOption = null;
+    options.forEach(option => {
+        option.classList.remove('selected');
+        if (option.getAttribute('data-value') === value) {
+            selectedOption = option;
+            option.classList.add('selected');
+        }
+    });
+    
+    if (selectedOption) {
+        const text = selectedOption.textContent;
+        buttonText.textContent = text;
+        
+        if (value === '') {
+            buttonText.classList.add('placeholder');
+        } else {
+            buttonText.classList.remove('placeholder');
+        }
+        
+        dropdown.setAttribute('data-value', value);
+    }
+}
+
+// Get custom dropdown value
+function getCustomDropdownValue(field) {
+    const dropdown = document.querySelector(`[data-field="${field}"]`);
+    return dropdown ? dropdown.getAttribute('data-value') || '' : '';
+}
+
+// Initialize custom dropdowns when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for other initializations to complete
+    setTimeout(() => {
+        initializeCustomDropdowns();
+    }, 100);
 }); 

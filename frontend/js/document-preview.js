@@ -589,6 +589,243 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             button.onmouseleave = () => button.style.backgroundColor = 'transparent';
         };
 
+        // Left Controls (Bundle Navigation) - only in single document view
+        const leftControls = document.createElement('div');
+        leftControls.style.display = 'flex';
+        leftControls.style.alignItems = 'center';
+        leftControls.style.gap = '12px';
+        
+        // Check if we're in single document view and add bundle navigation
+        if (isSingleDocumentView() && currentVetrinaFiles.length > 1) {
+            // Return to bundle button
+            const returnBtn = document.createElement('button');
+            returnBtn.style.display = 'flex';
+            returnBtn.style.alignItems = 'center';
+            returnBtn.style.gap = '6px';
+            returnBtn.style.padding = '6px 12px';
+            returnBtn.style.backgroundColor = '#f3f4f6';
+            returnBtn.style.border = '1px solid #d1d5db';
+            returnBtn.style.borderRadius = '6px';
+            returnBtn.style.color = '#374151';
+            returnBtn.style.fontSize = '13px';
+            returnBtn.style.fontWeight = '500';
+            returnBtn.style.cursor = 'pointer';
+            returnBtn.style.transition = 'all 0.2s ease';
+            returnBtn.title = 'Torna alla vetrina';
+            returnBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span>Torna alla vetrina';
+            returnBtn.onmouseenter = () => {
+                returnBtn.style.backgroundColor = '#e5e7eb';
+                returnBtn.style.borderColor = '#9ca3af';
+            };
+            returnBtn.onmouseleave = () => {
+                returnBtn.style.backgroundColor = '#f3f4f6';
+                returnBtn.style.borderColor = '#d1d5db';
+            };
+            returnBtn.onclick = returnToBundle;
+            
+            // Bundle dropdown container
+            const dropdownContainer = document.createElement('div');
+            dropdownContainer.style.position = 'relative';
+            dropdownContainer.id = 'bundleDropdownContainer';
+            
+            // Bundle dropdown trigger
+            const dropdownTrigger = document.createElement('button');
+            dropdownTrigger.style.display = 'flex';
+            dropdownTrigger.style.alignItems = 'center';
+            dropdownTrigger.style.gap = '8px';
+            dropdownTrigger.style.padding = '6px 12px';
+            dropdownTrigger.style.backgroundColor = '#eff6ff';
+            dropdownTrigger.style.border = '1px solid #bfdbfe';
+            dropdownTrigger.style.borderRadius = '6px';
+            dropdownTrigger.style.color = '#1d4ed8';
+            dropdownTrigger.style.fontSize = '13px';
+            dropdownTrigger.style.fontWeight = '500';
+            dropdownTrigger.style.cursor = 'pointer';
+            dropdownTrigger.style.transition = 'all 0.2s ease';
+            dropdownTrigger.style.minWidth = '180px';
+            dropdownTrigger.style.maxWidth = '220px';
+            dropdownTrigger.id = 'bundleDropdownTrigger';
+            
+            const currentFile = currentVetrinaFiles.find(f => f.file_id == getSpecificFileIdFromUrl());
+            const currentFileName = currentFile ? extractOriginalFilename(currentFile.filename) : 'Documento corrente';
+            
+            dropdownTrigger.innerHTML = `
+                <span class="material-symbols-outlined" style="font-size: 16px; flex-shrink: 0;">description</span>
+                <span style="flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentFileName}</span>
+                <div style="display: flex; align-items: center; padding: 2px 4px; background: rgba(29, 78, 216, 0.1); border-radius: 3px; margin-left: 6px;">
+                    <span class="material-symbols-outlined dropdown-arrow" style="font-size: 14px; transition: transform 0.2s ease; color: #1d4ed8;">expand_more</span>
+                </div>
+            `;
+            
+            dropdownTrigger.onmouseenter = () => {
+                dropdownTrigger.style.backgroundColor = '#dbeafe';
+                dropdownTrigger.style.borderColor = '#93c5fd';
+            };
+            dropdownTrigger.onmouseleave = () => {
+                dropdownTrigger.style.backgroundColor = '#eff6ff';
+                dropdownTrigger.style.borderColor = '#bfdbfe';
+            };
+            
+            // Bundle dropdown menu
+            const dropdownMenu = document.createElement('div');
+            dropdownMenu.style.position = 'absolute';
+            dropdownMenu.style.top = '100%';
+            dropdownMenu.style.left = '0';
+            dropdownMenu.style.minWidth = '300px';
+            dropdownMenu.style.maxWidth = '380px';
+            dropdownMenu.style.backgroundColor = '#ffffff';
+            dropdownMenu.style.border = '1px solid #e5e7eb';
+            dropdownMenu.style.borderRadius = '8px';
+            dropdownMenu.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+            dropdownMenu.style.opacity = '0';
+            dropdownMenu.style.visibility = 'hidden';
+            dropdownMenu.style.transform = 'translateY(-10px)';
+            dropdownMenu.style.transition = 'all 0.2s ease';
+            dropdownMenu.style.zIndex = '1000';
+            dropdownMenu.style.marginTop = '4px';
+            dropdownMenu.id = 'bundleDropdownMenu';
+            
+            // Dropdown header - clickable to go to bundle
+            const dropdownHeader = document.createElement('div');
+            dropdownHeader.style.display = 'flex';
+            dropdownHeader.style.alignItems = 'center';
+            dropdownHeader.style.gap = '8px';
+            dropdownHeader.style.padding = '12px 16px';
+            dropdownHeader.style.backgroundColor = '#f9fafb';
+            dropdownHeader.style.borderBottom = '1px solid #e5e7eb';
+            dropdownHeader.style.borderRadius = '8px 8px 0 0';
+            dropdownHeader.style.color = '#374151';
+            dropdownHeader.style.fontSize = '13px';
+            dropdownHeader.style.fontWeight = '600';
+            dropdownHeader.style.cursor = 'pointer';
+            dropdownHeader.style.transition = 'background-color 0.15s ease';
+            dropdownHeader.innerHTML = `
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6;">folder</span>
+                <span style="flex: 1;">${currentVetrina?.name || 'Bundle documenti'} (${currentVetrinaFiles.length} documenti)</span>
+                <span class="material-symbols-outlined" style="font-size: 14px; color: #6b7280;">open_in_new</span>
+            `;
+            
+            dropdownHeader.onmouseenter = () => {
+                dropdownHeader.style.backgroundColor = '#eff6ff';
+                dropdownHeader.style.color = '#1d4ed8';
+            };
+            dropdownHeader.onmouseleave = () => {
+                dropdownHeader.style.backgroundColor = '#f9fafb';
+                dropdownHeader.style.color = '#374151';
+            };
+            dropdownHeader.onclick = () => {
+                returnToBundle();
+            };
+            
+            // Dropdown items container with scrolling
+            const dropdownItems = document.createElement('div');
+            dropdownItems.style.maxHeight = '240px'; // Max height for about 6 items
+            dropdownItems.style.overflowY = 'auto';
+            dropdownItems.style.overflowX = 'hidden';
+            dropdownItems.style.borderRadius = '0 0 8px 8px';
+            
+            // Custom scrollbar styling for webkit browsers
+            dropdownItems.style.cssText += `
+                scrollbar-width: thin;
+                scrollbar-color: #d1d5db #f3f4f6;
+            `;
+            
+            // Add webkit scrollbar styles
+            const scrollbarStyle = document.createElement('style');
+            scrollbarStyle.textContent = `
+                #bundleDropdownMenu div::-webkit-scrollbar {
+                    width: 6px;
+                }
+                #bundleDropdownMenu div::-webkit-scrollbar-track {
+                    background: #f3f4f6;
+                }
+                #bundleDropdownMenu div::-webkit-scrollbar-thumb {
+                    background: #d1d5db;
+                    border-radius: 3px;
+                }
+                #bundleDropdownMenu div::-webkit-scrollbar-thumb:hover {
+                    background: #9ca3af;
+                }
+            `;
+            document.head.appendChild(scrollbarStyle);
+            
+            currentVetrinaFiles.forEach((file, index) => {
+                const fileName = extractOriginalFilename(file.filename);
+                const isActive = file.file_id == getSpecificFileIdFromUrl();
+                
+                const item = document.createElement('div');
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
+                item.style.gap = '12px';
+                item.style.padding = '10px 16px';
+                item.style.color = isActive ? '#1d4ed8' : '#374151';
+                item.style.fontSize = '13px';
+                item.style.cursor = 'pointer';
+                item.style.transition = 'all 0.15s ease';
+                item.style.borderBottom = index < currentVetrinaFiles.length - 1 ? '1px solid #f3f4f6' : 'none';
+                item.style.backgroundColor = isActive ? '#eff6ff' : 'transparent';
+                item.style.fontWeight = isActive ? '500' : '400';
+                
+                item.innerHTML = `
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: ${isActive ? '#3b82f6' : '#6b7280'}; flex-shrink: 0;">description</span>
+                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${fileName}">${fileName}</span>
+                    ${isActive ? '<span style="color: #3b82f6; font-weight: 600; font-size: 14px;">✓</span>' : ''}
+                `;
+                
+                item.onmouseenter = () => {
+                    if (!isActive) {
+                        item.style.backgroundColor = '#f8faff';
+                        item.style.color = '#1d4ed8';
+                    }
+                };
+                item.onmouseleave = () => {
+                    if (!isActive) {
+                        item.style.backgroundColor = 'transparent';
+                        item.style.color = '#374151';
+                    }
+                };
+                
+                item.onclick = () => navigateToDocument(file.file_id);
+                
+                dropdownItems.appendChild(item);
+            });
+            
+            dropdownMenu.appendChild(dropdownHeader);
+            dropdownMenu.appendChild(dropdownItems);
+            dropdownContainer.appendChild(dropdownTrigger);
+            dropdownContainer.appendChild(dropdownMenu);
+            
+            // Add dropdown functionality
+            dropdownTrigger.onclick = (e) => {
+                e.stopPropagation();
+                const isActive = dropdownMenu.style.opacity === '1';
+                if (isActive) {
+                    dropdownMenu.style.opacity = '0';
+                    dropdownMenu.style.visibility = 'hidden';
+                    dropdownMenu.style.transform = 'translateY(-10px)';
+                    dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+                } else {
+                    dropdownMenu.style.opacity = '1';
+                    dropdownMenu.style.visibility = 'visible';
+                    dropdownMenu.style.transform = 'translateY(0)';
+                    dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(180deg)';
+                }
+            };
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    dropdownMenu.style.opacity = '0';
+                    dropdownMenu.style.visibility = 'hidden';
+                    dropdownMenu.style.transform = 'translateY(-10px)';
+                    dropdownTrigger.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+                }
+            });
+            
+            leftControls.appendChild(returnBtn);
+            leftControls.appendChild(dropdownContainer);
+        }
+
         // Right Controls (Zoom, Fullscreen) - positioned on the right
         const rightControls = document.createElement('div');
         rightControls.style.display = 'flex';
@@ -623,6 +860,7 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         rightControls.appendChild(document.createElement('div')).style.width = '16px'; // separator
         rightControls.appendChild(fullscreenBtn);
         
+        toolbar.appendChild(leftControls);
         toolbar.appendChild(rightControls);
         container.appendChild(toolbar);
         
@@ -1042,8 +1280,18 @@ function renderDocumentInfo(docData) {
     // Extract course information from vetrina if available
     const courseInfo = vetrinaData?.course_instance || {};
     
-    // Update document title - use VETRINA name, not individual file name
-    const title = vetrinaData?.name || 'Vetrina Senza Nome';
+    // Update document title - use individual file name in single document view, otherwise vetrina name
+    const isSingleView = isSingleDocumentView();
+    let title;
+    
+    if (isSingleView && fileData) {
+        // In single document view, use the document's filename
+        title = extractOriginalFilename(fileData.filename) || fileData.filename || 'Documento';
+    } else {
+        // In normal view, use vetrina name
+        title = vetrinaData?.name || 'Vetrina Senza Nome';
+    }
+    
     const titleElement = document.querySelector('.doc-title');
     if (titleElement) titleElement.textContent = title;
     document.title = `${title} - StudyHub`;
@@ -1106,18 +1354,24 @@ function renderDocumentInfo(docData) {
         }
     }
     
-    // Update document type tag - use the generateVetrinaDocumentTags function
+    // Update document type tag - use individual document tag in single view
     const docTypeTag = document.querySelector('.doc-type-tag');
     if (docTypeTag) {
-        // For multi-file vetrine, we'll let the generateVetrinaDocumentTags handle it
-        // For single-file vetrine, use the actual tag from the file
-        const fileCount = vetrinaFiles?.length || 1;
-        if (fileCount === 1) {
+        if (isSingleView && fileData) {
+            // In single document view, use the individual document's tag
             const fileTag = fileData.tag;
             const displayTag = fileTag ? getDocumentTypeFromTag(fileTag) : 'Documento';
             docTypeTag.textContent = displayTag;
+        } else {
+            // For multi-file vetrine or normal view, use existing logic
+            const fileCount = vetrinaFiles?.length || 1;
+            if (fileCount === 1) {
+                const fileTag = fileData.tag;
+                const displayTag = fileTag ? getDocumentTypeFromTag(fileTag) : 'Documento';
+                docTypeTag.textContent = displayTag;
+            }
+            // For multi-file vetrine, the tags will be handled by generateVetrinaDocumentTags in the list view
         }
-        // For multi-file vetrine, the tags will be handled by generateVetrinaDocumentTags in the list view
     }
     
     // Update all details with VETRINA-level information in the specified order
@@ -1131,9 +1385,13 @@ function renderDocumentInfo(docData) {
     
     updateDetailValue('Anno Accademico', getAcademicYear(courseInfo));
     
-    // For single-file vetrine, add "Pagine" field after "Anno Accademico"
-    if (fileCount === 1) {
-        // Use the num_pages field from the backend
+    // Add "Pagine" field for single document view or single-file vetrine
+    if (isSingleView && fileData) {
+        // In single document view, use the individual document's page count
+        const pageCount = fileData.num_pages && fileData.num_pages > 0 ? fileData.num_pages : 'N/A';
+        updateDetailValue('Pagine', pageCount);
+    } else if (fileCount === 1) {
+        // For single-file vetrine, use the file's page count
         const pageCount = fileData.num_pages && fileData.num_pages > 0 ? fileData.num_pages : 'N/A';
         updateDetailValue('Pagine', pageCount);
     }
@@ -1931,6 +2189,10 @@ function renderSingleDocumentView(docData, fileId) {
         return;
     }
     
+    // Store current document for bundle navigation
+    currentDocument = specificFile;
+    currentVetrinaFiles = vetrinaFiles;
+    
     // Create a modified docData with the specific file as current document
     const singleDocData = {
         ...docData,
@@ -2082,22 +2344,6 @@ function renderSingleDocumentView(docData, fileId) {
             </div>
         </div>
         
-        <!-- Side Overlay for larger previews -->
-        <div class="side-overlay" id="sideOverlay">
-            <div class="side-overlay-content">
-                <div class="side-overlay-header">
-                    <h2>Anteprima Documento</h2>
-                    <button class="close-overlay-btn" data-action="close-preview">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-                <div class="side-overlay-body">
-                    <div class="preview-viewer" id="previewViewer">
-                        <!-- Populated with document preview -->
-                    </div>
-                </div>
-            </div>
-        </div>
     `;
 
     // Initialize document data with the specific file
@@ -2124,6 +2370,29 @@ function renderSingleDocumentView(docData, fileId) {
         }
     }
 }
+
+
+// Function to return to bundle view
+function returnToBundle() {
+    const vetrinaId = currentVetrina?.id || currentVetrina?.vetrina_id;
+    if (vetrinaId) {
+        window.location.href = `document-preview.html?id=${vetrinaId}`;
+    }
+}
+
+// Function to navigate to a specific document in the bundle
+function navigateToDocument(fileId) {
+    const vetrinaId = currentVetrina?.id || currentVetrina?.vetrina_id;
+    if (vetrinaId && fileId) {
+        const params = new URLSearchParams({
+            id: vetrinaId,
+            file: fileId,
+            single: 'true'
+        });
+        window.location.href = `document-preview.html?${params.toString()}`;
+    }
+}
+
 
 // New function to handle normal single-file viewer mode
 function renderDocumentViewerMode(docData) {

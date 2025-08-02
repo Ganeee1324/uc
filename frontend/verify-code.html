@@ -410,6 +410,7 @@
         // Get email from URL parameters or localStorage
         const urlParams = new URLSearchParams(window.location.search);
         const email = urlParams.get('email') || localStorage.getItem('pendingEmail');
+        const autoCode = urlParams.get('autocode'); // For testing
         
         // DOM Elements
         const codeInputs = document.querySelectorAll('.code-input');
@@ -544,12 +545,12 @@
             }
 
             clearMessages();
-            setLoading(true);
-
+            
             // Test codes for development (remove in production)
             const testCodes = ['123456', '000000', '111111', '999999'];
             
             if (testCodes.includes(code)) {
+                setLoading(true);
                 // Simulate successful verification for test codes
                 showMessage('success', 'Email verificata con successo! (Test Code)');
                 localStorage.removeItem('pendingEmail');
@@ -571,6 +572,7 @@
                 return;
             }
 
+            setLoading(true);
             try {
                 const response = await fetch(`${API_BASE}/verify-email-code`, {
                     method: 'POST',
@@ -609,7 +611,13 @@
                 }
             } catch (error) {
                 console.error('Verification error:', error);
-                showMessage('error', 'Errore di connessione. Riprova più tardi.');
+                
+                // Fallback for development when backend is not available
+                if (error.message.includes('Load failed') || error.message.includes('Failed to fetch')) {
+                    showMessage('error', 'Backend non disponibile. Usa un codice di test (123456, 000000, 111111, 999999)');
+                } else {
+                    showMessage('error', 'Errore di connessione. Riprova più tardi.');
+                }
             } finally {
                 setLoading(false);
             }
@@ -666,8 +674,23 @@
         // Start initial countdown
         startResendCountdown();
 
-        // Focus first input
-        codeInputs[0].focus();
+        // Auto-fill code if provided in URL (for testing)
+        if (autoCode && autoCode.length === 6) {
+            autoCode.split('').forEach((digit, i) => {
+                if (codeInputs[i]) {
+                    codeInputs[i].value = digit;
+                    codeInputs[i].classList.add('filled');
+                }
+            });
+            
+            // Auto-submit after a delay
+            setTimeout(() => {
+                document.getElementById('verificationForm').dispatchEvent(new Event('submit'));
+            }, 1000);
+        } else {
+            // Focus first input
+            codeInputs[0].focus();
+        }
 
         // Debug mode: Auto-redirect disabled
         // if (localStorage.getItem('authToken')) {

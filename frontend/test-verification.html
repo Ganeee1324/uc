@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email Verification</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        h1 {
+            color: #111827;
+            margin-bottom: 24px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .test-codes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0;
+        }
+        .code-card {
+            background: #f0f9ff;
+            border: 2px solid #bae6fd;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .code-card:hover {
+            background: #e0f2fe;
+            border-color: #0ea5e9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.25);
+        }
+        .code-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 8px;
+            font-family: monospace;
+        }
+        .code-label {
+            font-size: 14px;
+            color: #0c4a6e;
+            font-weight: 500;
+        }
+        .instructions {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            margin: 12px 0;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(37, 99, 235, 0.4);
+        }
+        .btn.secondary {
+            background: transparent;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+        }
+        .btn.secondary:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.02);
+            transform: none;
+            box-shadow: none;
+        }
+        .status {
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Email Verification</h1>
+        
+        <div class="instructions">
+            <strong>Click any test code below to automatically:</strong><br>
+            1. Set up email verification state<br>
+            2. Go to verification code page<br>
+            3. Auto-fill the selected code<br>
+            4. Redirect to profile completion page
+        </div>
+
+        <div class="test-codes">
+            <div class="code-card" onclick="testWithCode('123456')">
+                <div class="code-number">123456</div>
+                <div class="code-label">Standard Test</div>
+            </div>
+            <div class="code-card" onclick="testWithCode('000000')">
+                <div class="code-number">000000</div>
+                <div class="code-label">Zero Fill</div>
+            </div>
+            <div class="code-card" onclick="testWithCode('111111')">
+                <div class="code-number">111111</div>
+                <div class="code-label">Ones Fill</div>
+            </div>
+            <div class="code-card" onclick="testWithCode('999999')">
+                <div class="code-number">999999</div>
+                <div class="code-label">Nines Fill</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="quickTestProfile()">
+            🚀 Quick Test Profile Page
+        </button>
+
+        <button class="btn secondary" onclick="clearData()">
+            🗑️ Clear Test Data
+        </button>
+
+        <a href="verify-code.html?email=test@example.com" class="btn secondary">
+            ➡️ Manual Verification Page
+        </a>
+
+        <div class="status" id="status">
+            Loading status...
+        </div>
+    </div>
+
+    <script>
+        function testWithCode(code) {
+            // Clear any existing auth
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            
+            // Set up verification state
+            localStorage.setItem('pendingEmail', 'test@example.com');
+            
+            // Create a verification page with auto-filled code
+            const url = `verify-code.html?email=test@example.com&autocode=${code}`;
+            
+            alert(`🔐 Testing with code: ${code}\nThe code will be auto-filled for you!`);
+            window.location.href = url;
+        }
+
+        function quickTestProfile() {
+            // Set up authenticated user immediately
+            localStorage.setItem('authToken', 'test-jwt-token-12345');
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: 1,
+                name: 'Quick',
+                surname: 'Test',
+                username: 'quicktest',
+                email: 'quick@test.com'
+            }));
+            
+            window.location.href = 'complete-profile.html';
+        }
+
+        function clearData() {
+            localStorage.clear();
+            alert('🗑️ All test data cleared!');
+            updateStatus();
+        }
+
+        function updateStatus() {
+            const authToken = localStorage.getItem('authToken');
+            const currentUser = localStorage.getItem('currentUser');
+            const pendingEmail = localStorage.getItem('pendingEmail');
+            
+            let status = '';
+            status += '🔐 Auth Token: ' + (authToken ? '✅ Present' : '❌ Not found') + '\n';
+            status += '👤 Current User: ' + (currentUser ? '✅ Present' : '❌ Not found') + '\n';
+            status += '📧 Pending Email: ' + (pendingEmail ? '✅ Present' : '❌ Not found') + '\n\n';
+            
+            if (authToken) {
+                status += '→ User will see profile page with "Skip for now" button';
+            } else if (pendingEmail) {
+                status += '→ User will see verification code page';
+            } else {
+                status += '→ User will see login page';
+            }
+            
+            document.getElementById('status').textContent = status;
+        }
+
+        // Update status on page load
+        updateStatus();
+        
+        // Update status every 2 seconds
+        setInterval(updateStatus, 2000);
+    </script>
+</body>
+</html>

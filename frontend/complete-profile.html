@@ -205,9 +205,9 @@
 
         .banner-profile-container .profile-avatar {
             position: absolute;
-            bottom: -20px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             z-index: 10;
             border: 4px solid var(--white);
             pointer-events: auto;
@@ -261,32 +261,16 @@
             transition: var(--transition);
         }
 
-        .banner-preview:hover {
+        /* Banner hover effects - only when not hovering profile */
+        .banner-preview:hover:not(:has(.profile-avatar:hover)) {
             transform: scale(1.02);
             box-shadow: var(--shadow-lg);
         }
 
-        .banner-preview:hover .color-picker-popup:not(.profile-avatar:hover ~ .color-picker-popup) {
+        /* Banner color picker - only show when hovering banner directly */
+        .banner-preview:hover:not(:has(.profile-avatar:hover)) .color-picker-popup {
             opacity: 1;
             pointer-events: all;
-        }
-
-        /* Show banner color picker only when hovering banner (not profile) */
-        .banner-preview:hover .color-picker-popup {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        /* Hide banner color picker when hovering profile avatar */
-        .banner-preview:has(.profile-avatar:hover) .color-picker-popup {
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-
-        /* Fallback for browsers without :has() support */
-        .profile-avatar:hover ~ .color-picker-popup {
-            opacity: 0 !important;
-            pointer-events: none !important;
         }
 
         .banner-upload-overlay {
@@ -358,68 +342,89 @@
 
         .color-picker-popup {
             position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .color-picker-content {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            max-width: 90%;
+        }
+
+        .color-picker-content .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin: 0;
+            max-width: 360px;
+        }
+
+        .color-picker-content .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+        }
+
+
+        .avatar-color-picker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .avatar-color-content {
             background: var(--white);
             border-radius: 12px;
             padding: 16px;
             box-shadow: var(--shadow-lg);
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: var(--transition);
             border: 1px solid var(--border-color);
+            transform: scale(0.9);
+            transition: var(--transition);
         }
 
-        .color-picker-popup .color-picker-grid {
+
+        .profile-avatar:hover .avatar-color-content {
+            transform: scale(1);
+        }
+
+        .avatar-color-content .color-picker-grid {
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             margin: 0;
-            max-width: 400px;
+            max-width: 200px;
         }
 
-        .color-picker-popup .color-option {
+        .avatar-color-content .color-option {
             width: 40px;
             height: 40px;
-            border-radius: 8px;
-        }
-
-        .profile-avatar:hover .avatar-color-picker {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .avatar-color-picker {
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--white);
-            border-radius: 12px;
-            padding: 12px;
-            box-shadow: var(--shadow-lg);
-            z-index: 200;
-            opacity: 0;
-            pointer-events: none;
-            transition: var(--transition);
-            border: 1px solid var(--border-color);
-            margin-top: 8px;
-        }
-
-        .avatar-color-picker .color-picker-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-            margin: 0;
-            max-width: 240px;
-        }
-
-        .avatar-color-picker .color-option {
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
+            border-radius: 10px;
         }
 
         .upload-area {
@@ -642,9 +647,9 @@
 
             .banner-profile-container .profile-avatar {
                 position: absolute;
-                bottom: -15px;
+                top: 50%;
                 left: 50%;
-                transform: translateX(-50%);
+                transform: translate(-50%, -50%);
                 border: 3px solid var(--white);
             }
 
@@ -698,8 +703,11 @@
                                 
                                 <!-- Banner Color Picker Popup -->
                                 <div class="color-picker-popup" id="bannerColorPicker">
-                                    <div class="color-picker-grid" id="bannerColorsPopup">
-                                        <!-- Banner colors will be populated by JavaScript -->
+                                    <div class="color-picker-content">
+                                        <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: var(--text-primary); text-align: center;">Scegli Colore Banner</h4>
+                                        <div class="color-picker-grid" id="bannerColorsPopup">
+                                            <!-- Banner colors will be populated by JavaScript -->
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -713,8 +721,11 @@
                                     
                                     <!-- Avatar Color Picker Popup -->
                                     <div class="avatar-color-picker" id="avatarColorPicker">
-                                        <div class="color-picker-grid" id="avatarGradientsPopup">
-                                            <!-- Avatar gradients will be populated by JavaScript -->
+                                        <div class="avatar-color-content">
+                                            <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: center;">Scegli Gradiente</h4>
+                                            <div class="color-picker-grid" id="avatarGradientsPopup">
+                                                <!-- Avatar gradients will be populated by JavaScript -->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

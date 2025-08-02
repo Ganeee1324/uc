@@ -85,13 +85,24 @@
         }
 
         .card-header {
-            padding: 20px 40px 10px;
-            text-align: center;
+            padding: 15px 40px 8px;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            flex: 0 0 auto;
+        }
+
+        .header-center {
+            flex: 1;
+            text-align: center;
         }
 
         .logo-container {
-            margin-bottom: 12px;
+            margin: 0;
         }
 
         .logo-container img {
@@ -100,20 +111,20 @@
         }
 
         .welcome-icon {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background: var(--success-gradient);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 12px;
+            margin: 0 auto 8px;
             animation: fadeInScale 0.6s ease-out;
             box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
         }
 
         .welcome-icon .material-symbols-outlined {
-            font-size: 24px;
+            font-size: 20px;
             color: var(--white);
             font-weight: 600;
         }
@@ -130,32 +141,32 @@
         }
 
         .completion-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             line-height: 1.2;
             letter-spacing: -0.025em;
         }
 
         .completion-subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
-            line-height: 1.4;
-            max-width: 400px;
+            line-height: 1.3;
+            max-width: 350px;
             margin: 0 auto;
         }
 
         .card-body {
-            padding: 10px 40px 30px;
+            padding: 5px 40px 25px;
         }
 
         .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 4px;
             background: #f3f4f6;
-            border-radius: 6px;
-            margin-bottom: 24px;
+            border-radius: 4px;
+            margin-bottom: 16px;
             overflow: hidden;
         }
 
@@ -168,7 +179,7 @@
         }
 
         .form-section {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .section-title {
@@ -262,15 +273,19 @@
         }
 
         /* Banner hover effects - only when not hovering profile */
-        .banner-preview:hover:not(:has(.profile-avatar:hover)) {
+        .banner-preview:hover {
             transform: scale(1.02);
             box-shadow: var(--shadow-lg);
         }
 
-        /* Banner color picker - only show when hovering banner directly */
-        .banner-preview:hover:not(:has(.profile-avatar:hover)) .color-picker-popup {
-            opacity: 1;
-            pointer-events: all;
+        /* Prevent banner effects when profile is hovered */
+        .profile-avatar:hover {
+            z-index: 50;
+        }
+
+        .banner-preview:has(.profile-avatar:hover) {
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         .banner-upload-overlay {
@@ -342,78 +357,97 @@
 
         .color-picker-popup {
             position: absolute;
-            top: 100%;
+            bottom: calc(100% + 12px);
             left: 50%;
             transform: translateX(-50%);
-            margin-top: 12px;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: var(--transition);
-        }
-
-        .color-picker-content {
             background: var(--white);
             border-radius: 12px;
-            padding: 16px;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border-color);
-            max-width: 320px;
+            padding: 16px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-50%) translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 280px;
         }
 
-        .color-picker-content .color-picker-grid {
+        .banner-preview:hover .color-picker-popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+
+        .color-picker-popup .color-picker-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            margin: 0;
-            max-width: 360px;
+            gap: 8px;
+            margin-top: 8px;
         }
 
-        .color-picker-content .color-option {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+        .color-picker-popup .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .color-picker-popup h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
         }
 
 
         .avatar-color-picker {
             position: absolute;
-            top: 100%;
+            bottom: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%);
-            margin-top: 8px;
-            z-index: 200;
-            opacity: 0;
-            pointer-events: none;
-            transition: var(--transition);
-        }
-
-        .avatar-color-content {
             background: var(--white);
             border-radius: 12px;
-            padding: 12px;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border-color);
+            padding: 12px;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-50%) translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 200px;
         }
-
 
         .profile-avatar:hover .avatar-color-picker {
             opacity: 1;
-            pointer-events: all;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
         }
 
-        .avatar-color-content .color-picker-grid {
+
+
+
+        .avatar-color-picker .color-picker-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin: 0;
-            max-width: 200px;
+            gap: 6px;
+            margin-top: 8px;
         }
 
-        .avatar-color-content .color-option {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+        .avatar-color-picker .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+        }
+
+        .avatar-color-picker h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
         }
 
         .upload-area {
@@ -450,7 +484,7 @@
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .form-label {
@@ -506,8 +540,8 @@
         .action-buttons {
             display: flex;
             gap: 12px;
-            margin-top: 24px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 16px;
             border-top: 1px solid var(--border-color);
         }
 
@@ -604,19 +638,30 @@
             }
 
             .card-header {
-                padding: 16px 20px 8px;
+                padding: 12px 20px 6px;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-left {
+                order: 1;
+                margin-bottom: 8px;
+            }
+            
+            .header-center {
+                order: 2;
             }
             
             .card-body {
-                padding: 8px 20px 20px;
+                padding: 6px 20px 16px;
             }
 
             .completion-title {
-                font-size: 20px;
+                font-size: 18px;
             }
 
             .completion-subtitle {
-                font-size: 13px;
+                font-size: 12px;
             }
 
             .form-row {
@@ -655,18 +700,24 @@
     <div class="completion-container">
         <div class="completion-card">
             <div class="card-header">
-                <div class="logo-container">
-                    <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
+                    </div>
                 </div>
+                
+                <div class="header-center">
+                    <div class="welcome-icon">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </div>
 
-                <div class="welcome-icon">
-                    <span class="material-symbols-outlined">person_add</span>
+                    <h1 class="completion-title">Completa il tuo Profilo</h1>
+                    <p class="completion-subtitle">
+                        Personalizza il tuo account per un'esperienza unica.
+                    </p>
                 </div>
-
-                <h1 class="completion-title">Completa il tuo Profilo</h1>
-                <p class="completion-subtitle">
-                    Personalizza il tuo account per un'esperienza unica. Questi dettagli ti aiuteranno a connetterti meglio con la community universitaria.
-                </p>
+                
+                <div style="flex: 0 0 auto; width: 32px;"></div> <!-- Spacer for centering -->
             </div>
 
             <div class="card-body">
@@ -695,11 +746,9 @@
                                 
                                 <!-- Banner Color Picker Popup -->
                                 <div class="color-picker-popup" id="bannerColorPicker">
-                                    <div class="color-picker-content">
-                                        <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: var(--text-primary); text-align: center;">Scegli Colore Banner</h4>
-                                        <div class="color-picker-grid" id="bannerColorsPopup">
-                                            <!-- Banner colors will be populated by JavaScript -->
-                                        </div>
+                                    <h4>Scegli Colore Banner</h4>
+                                    <div class="color-picker-grid" id="bannerColorsPopup">
+                                        <!-- Banner colors will be populated by JavaScript -->
                                     </div>
                                 </div>
                                 
@@ -713,11 +762,9 @@
                                     
                                     <!-- Avatar Color Picker Popup -->
                                     <div class="avatar-color-picker" id="avatarColorPicker">
-                                        <div class="avatar-color-content">
-                                            <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: center;">Scegli Gradiente</h4>
-                                            <div class="color-picker-grid" id="avatarGradientsPopup">
-                                                <!-- Avatar gradients will be populated by JavaScript -->
-                                            </div>
+                                        <h4>Scegli Gradiente</h4>
+                                        <div class="color-picker-grid" id="avatarGradientsPopup">
+                                            <!-- Avatar gradients will be populated by JavaScript -->
                                         </div>
                                     </div>
                                 </div>

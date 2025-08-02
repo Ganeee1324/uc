@@ -110,24 +110,6 @@
             width: auto;
         }
 
-        .welcome-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--success-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 8px;
-            animation: fadeInScale 0.6s ease-out;
-            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
-        }
-
-        .welcome-icon .material-symbols-outlined {
-            font-size: 20px;
-            color: var(--white);
-            font-weight: 600;
-        }
 
         @keyframes fadeInScale {
             0% {
@@ -144,7 +126,7 @@
             font-size: 20px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             line-height: 1.2;
             letter-spacing: -0.025em;
         }
@@ -272,18 +254,25 @@
             transition: var(--transition);
         }
 
-        /* Banner hover effects - only when not hovering profile */
+        /* Banner hover effects */
         .banner-preview:hover {
             transform: scale(1.02);
             box-shadow: var(--shadow-lg);
         }
 
-        /* Prevent banner effects when profile is hovered */
-        .profile-avatar:hover {
-            z-index: 50;
+        /* Profile avatar prevents banner hover */
+        .profile-avatar {
+            pointer-events: auto;
+            position: relative;
+            z-index: 10;
         }
 
-        .banner-preview:has(.profile-avatar:hover) {
+        .profile-avatar:hover {
+            z-index: 1002;
+        }
+
+        /* Use a more direct approach to prevent banner hover */
+        .banner-preview:hover:has(.profile-avatar:hover) {
             transform: none !important;
             box-shadow: none !important;
         }
@@ -359,7 +348,7 @@
             position: absolute;
             bottom: calc(100% + 12px);
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(10px);
             background: var(--white);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
@@ -368,15 +357,36 @@
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
-            transform: translateX(-50%) translateY(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             min-width: 280px;
         }
 
+        /* Show banner overlay when banner is hovered (CSS fallback) */
         .banner-preview:hover .color-picker-popup {
             opacity: 1;
             visibility: visible;
             transform: translateX(-50%) translateY(0);
+        }
+
+        /* JavaScript-controlled banner hover */
+        .banner-preview.banner-hovered .color-picker-popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hide banner overlay when profile is blocking */
+        .banner-preview.profile-blocking-banner .color-picker-popup,
+        .banner-preview:has(.profile-avatar:hover) .color-picker-popup,
+        .profile-avatar:hover ~ .color-picker-popup {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        /* Prevent banner transform when profile is blocking */
+        .banner-preview.profile-blocking-banner {
+            transform: none !important;
+            box-shadow: none !important;
         }
 
 
@@ -406,21 +416,28 @@
             position: absolute;
             bottom: calc(100% + 8px);
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(10px);
             background: var(--white);
             border-radius: 12px;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border-color);
             padding: 12px;
-            z-index: 1001;
+            z-index: 1003;
             opacity: 0;
             visibility: hidden;
-            transform: translateX(-50%) translateY(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             min-width: 200px;
         }
 
+        /* Show avatar overlay when hovering profile (CSS fallback) */
         .profile-avatar:hover .avatar-color-picker {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* JavaScript-controlled avatar hover */
+        .profile-avatar.avatar-hovered .avatar-color-picker {
             opacity: 1;
             visibility: visible;
             transform: translateX(-50%) translateY(0);
@@ -707,10 +724,6 @@
                 </div>
                 
                 <div class="header-center">
-                    <div class="welcome-icon">
-                        <span class="material-symbols-outlined">person_add</span>
-                    </div>
-
                     <h1 class="completion-title">Completa il tuo Profilo</h1>
                     <p class="completion-subtitle">
                         Personalizza il tuo account per un'esperienza unica.
@@ -1001,6 +1014,36 @@
             formInputs.forEach(input => {
                 input.addEventListener('change', updateProgress);
                 input.addEventListener('input', updateProgress);
+            });
+
+            // Hover management for overlays
+            setupHoverHandlers();
+        }
+
+        function setupHoverHandlers() {
+            const bannerElement = document.getElementById('bannerPreview');
+            const avatarElement = document.getElementById('profileAvatar');
+            const bannerOverlay = document.getElementById('bannerColorPicker');
+            const avatarOverlay = document.getElementById('avatarColorPicker');
+
+            // Banner hover handlers
+            bannerElement.addEventListener('mouseenter', () => {
+                bannerElement.classList.add('banner-hovered');
+            });
+
+            bannerElement.addEventListener('mouseleave', () => {
+                bannerElement.classList.remove('banner-hovered');
+            });
+
+            // Avatar hover handlers
+            avatarElement.addEventListener('mouseenter', () => {
+                avatarElement.classList.add('avatar-hovered');
+                bannerElement.classList.add('profile-blocking-banner');
+            });
+
+            avatarElement.addEventListener('mouseleave', () => {
+                avatarElement.classList.remove('avatar-hovered');
+                bannerElement.classList.remove('profile-blocking-banner');
             });
         }
 

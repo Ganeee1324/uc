@@ -713,6 +713,10 @@
                             <span class="material-symbols-outlined">skip_next</span>
                             Completa dopo
                         </button>
+                        <button type="button" class="btn btn-secondary" id="loginBtn" style="display: none;">
+                            <span class="material-symbols-outlined">login</span>
+                            Accedi ora
+                        </button>
                         <button type="submit" class="btn btn-primary" id="completeBtn">
                             <span class="material-symbols-outlined">check_circle</span>
                             Completa Profilo
@@ -789,6 +793,19 @@
             setupEventListeners();
             setRandomDefaults();
             updateProgress();
+            checkAuthenticationStatus();
+        }
+
+        function checkAuthenticationStatus() {
+            const authToken = localStorage.getItem('authToken');
+            const skipBtn = document.getElementById('skipBtn');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (!authToken) {
+                // User is not authenticated, show login button instead of skip
+                skipBtn.style.display = 'none';
+                loginBtn.style.display = 'flex';
+            }
         }
 
         function setupGradientPickers() {
@@ -829,6 +846,9 @@
             // Form submission
             profileForm.addEventListener('submit', handleFormSubmit);
             document.getElementById('skipBtn').addEventListener('click', skipProfileCompletion);
+            document.getElementById('loginBtn').addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
 
             // Progress tracking
             const formInputs = profileForm.querySelectorAll('input, select, textarea');
@@ -960,7 +980,12 @@
 
         function skipProfileCompletion() {
             if (confirm('Sei sicuro di voler saltare la personalizzazione del profilo? Potrai sempre completarla in seguito.')) {
-                window.location.href = 'search.html';
+                // Check if user has auth token, if not redirect to login
+                if (localStorage.getItem('authToken')) {
+                    window.location.href = 'search.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
             }
         }
 
@@ -978,9 +1003,13 @@
                 
                 showNotification('Profilo completato con successo!');
                 
-                // Redirect to main application
+                // Redirect to main application or login if not authenticated
                 setTimeout(() => {
-                    window.location.href = 'search.html';
+                    if (localStorage.getItem('authToken')) {
+                        window.location.href = 'search.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
                 }, 1500);
 
             } catch (error) {

@@ -261,34 +261,18 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         });
 
         if (response.ok) {
-            // Check if email verification is required
-            if (data.email_verification_required) {
-                // Store email for verification flow
-                localStorage.setItem('pendingEmail', email);
-                
-                // Show email verification status
-                showEmailStatus('pending', email, 'Verifica la tua Email', 
-                    `Abbiamo inviato un link di verifica a <span class="email-address">${email}</span>. Clicca sul link per attivare il tuo account.`);
-                
-                // Hide the registration form
-                document.querySelector('.form-toggle').style.display = 'none';
-                document.querySelector('.form-section').style.display = 'none';
-                document.querySelector('.demo-info').style.display = 'none';
-            } else {
-                // Direct login without email verification (legacy)
-                localStorage.setItem('authToken', data.access_token);
-                localStorage.setItem('currentUser', JSON.stringify(data.user));
-                console.log('Registration successful, redirecting...'); // Debug log
-                
-                // Get return URL from query parameters or default to search.html
-                const urlParams = new URLSearchParams(window.location.search);
-                const returnUrl = urlParams.get('returnUrl') || 'search.html';
-                
-                // Force redirect with a small delay to ensure localStorage is saved
-                setTimeout(() => {
-                    window.location.href = returnUrl;
-                }, 100);
-            }
+            // Always require email verification for new registrations
+            // Store email for verification flow
+            localStorage.setItem('pendingEmail', email);
+            
+            // Show email verification status
+            showEmailStatus('pending', email, 'Verifica la tua Email', 
+                `Abbiamo inviato un link di verifica a <span class="email-address">${email}</span>. Clicca sul link per attivare il tuo account.`);
+            
+            // Hide the registration form
+            document.querySelector('.form-toggle').style.display = 'none';
+            document.querySelector('.form-section').style.display = 'none';
+            document.querySelector('.demo-info').style.display = 'none';
         } else {
             const errorMsg = data.msg || 'Registrazione fallita. Riprova.';
             showMessage('error', errorMsg);

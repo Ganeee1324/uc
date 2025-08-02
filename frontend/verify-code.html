@@ -386,6 +386,20 @@
                     Invia di nuovo (<span class="countdown" id="countdown">60</span>s)
                 </button>
             </div>
+
+            <!-- Test Codes Info (Development Only) -->
+            <div style="margin-top: 24px; padding: 16px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; text-align: center;">
+                <div style="font-size: 14px; font-weight: 600; color: #0369a1; margin-bottom: 8px;">
+                    🧪 Test Codes (Development)
+                </div>
+                <div style="font-size: 13px; color: #0c4a6e; line-height: 1.5;">
+                    Use any of these codes for testing:<br>
+                    <code style="background: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">123456</code>
+                    <code style="background: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">000000</code>
+                    <code style="background: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">111111</code>
+                    <code style="background: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">999999</code>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -532,6 +546,31 @@
             clearMessages();
             setLoading(true);
 
+            // Test codes for development (remove in production)
+            const testCodes = ['123456', '000000', '111111', '999999'];
+            
+            if (testCodes.includes(code)) {
+                // Simulate successful verification for test codes
+                showMessage('success', 'Email verificata con successo! (Test Code)');
+                localStorage.removeItem('pendingEmail');
+                
+                // Set up authenticated user for testing
+                localStorage.setItem('authToken', 'test-jwt-token-12345');
+                localStorage.setItem('currentUser', JSON.stringify({
+                    id: 1,
+                    name: 'Test',
+                    surname: 'User',
+                    username: 'testuser',
+                    email: email || 'test@example.com'
+                }));
+                
+                setTimeout(() => {
+                    window.location.href = 'complete-profile.html';
+                }, 1500);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_BASE}/verify-email-code`, {
                     method: 'POST',
@@ -556,11 +595,9 @@
                         localStorage.setItem('currentUser', JSON.stringify(data.user));
                     }
                     
-                    // Debug mode: Auto-redirect disabled
-                    // setTimeout(() => {
-                    //     window.location.href = data.access_token ? 'search.html' : 'email-confirmed.html';
-                    // }, 1500);
-                    console.log('Auto-redirect disabled for debugging. Would redirect to:', data.access_token ? 'search.html' : 'email-confirmed.html');
+                    setTimeout(() => {
+                        window.location.href = 'complete-profile.html';
+                    }, 1500);
                 } else {
                     showMessage('error', data.msg || 'Codice non valido. Riprova.');
                     codeInputs.forEach(input => {

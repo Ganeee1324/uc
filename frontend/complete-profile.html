@@ -206,9 +206,11 @@
         .banner-profile-container .profile-avatar {
             position: absolute;
             bottom: -20px;
-            left: 24px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 10;
             border: 4px solid var(--white);
+            pointer-events: auto;
         }
 
         .profile-avatar {
@@ -264,9 +266,27 @@
             box-shadow: var(--shadow-lg);
         }
 
+        .banner-preview:hover .color-picker-popup:not(.profile-avatar:hover ~ .color-picker-popup) {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Show banner color picker only when hovering banner (not profile) */
         .banner-preview:hover .color-picker-popup {
             opacity: 1;
             pointer-events: all;
+        }
+
+        /* Hide banner color picker when hovering profile avatar */
+        .banner-preview:has(.profile-avatar:hover) .color-picker-popup {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Fallback for browsers without :has() support */
+        .profile-avatar:hover ~ .color-picker-popup {
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         .banner-upload-overlay {
@@ -354,9 +374,10 @@
 
         .color-picker-popup .color-picker-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(8, 1fr);
             gap: 8px;
             margin: 0;
+            max-width: 400px;
         }
 
         .color-picker-popup .color-option {
@@ -389,15 +410,16 @@
 
         .avatar-color-picker .color-picker-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 6px;
             margin: 0;
+            max-width: 240px;
         }
 
         .avatar-color-picker .color-option {
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
         }
 
         .upload-area {
@@ -619,8 +641,10 @@
             }
 
             .banner-profile-container .profile-avatar {
-                position: static;
-                margin: 20px auto 0;
+                position: absolute;
+                bottom: -15px;
+                left: 50%;
+                transform: translateX(-50%);
                 border: 3px solid var(--white);
             }
 
@@ -697,20 +721,8 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Gradiente Avatar</label>
-                            <div class="color-picker-grid" id="avatarGradients">
-                                <!-- Avatar gradients will be populated by JavaScript -->
-                            </div>
-                        </div>
 
 
-                        <div class="form-group">
-                            <label class="form-label">Colore Banner</label>
-                            <div class="color-picker-grid" id="bannerColors">
-                                <!-- Banner colors will be populated by JavaScript -->
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Personal Information Section -->
@@ -893,21 +905,10 @@
         }
 
         function setupGradientPickers() {
-            const avatarContainer = document.getElementById('avatarGradients');
-            const bannerContainer = document.getElementById('bannerColors');
             const avatarPopupContainer = document.getElementById('avatarGradientsPopup');
             const bannerPopupContainer = document.getElementById('bannerColorsPopup');
 
-            // Setup avatar gradients in main section
-            avatarGradients.forEach((gradient, index) => {
-                const option = document.createElement('div');
-                option.className = 'color-option';
-                option.style.background = gradient;
-                option.addEventListener('click', () => selectAvatarGradient(index));
-                avatarContainer.appendChild(option);
-            });
-
-            // Setup avatar gradients in popup
+            // Setup avatar gradients in popup only
             avatarGradients.forEach((gradient, index) => {
                 const option = document.createElement('div');
                 option.className = 'color-option';
@@ -916,16 +917,7 @@
                 avatarPopupContainer.appendChild(option);
             });
 
-            // Setup banner colors in main section
-            bannerColors.forEach((color, index) => {
-                const option = document.createElement('div');
-                option.className = 'color-option';
-                option.style.background = color;
-                option.addEventListener('click', () => selectBannerColor(index));
-                bannerContainer.appendChild(option);
-            });
-
-            // Setup banner colors in popup
+            // Setup banner colors in popup only
             bannerColors.forEach((color, index) => {
                 const option = document.createElement('div');
                 option.className = 'color-option';
@@ -974,12 +966,7 @@
             selectedAvatarGradient = index;
             profileAvatar.style.background = avatarGradients[index];
             
-            // Update main section selections
-            document.querySelectorAll('#avatarGradients .color-option').forEach((option, i) => {
-                option.classList.toggle('selected', i === index);
-            });
-            
-            // Update popup selections
+            // Update popup selections only
             document.querySelectorAll('#avatarGradientsPopup .color-option').forEach((option, i) => {
                 option.classList.toggle('selected', i === index);
             });
@@ -991,12 +978,7 @@
                 bannerPreview.style.background = bannerColors[index];
             }
             
-            // Update main section selections
-            document.querySelectorAll('#bannerColors .color-option').forEach((option, i) => {
-                option.classList.toggle('selected', i === index);
-            });
-            
-            // Update popup selections
+            // Update popup selections only
             document.querySelectorAll('#bannerColorsPopup .color-option').forEach((option, i) => {
                 option.classList.toggle('selected', i === index);
             });

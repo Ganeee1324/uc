@@ -417,7 +417,7 @@
         .form-section {
             padding: 0 40px 24px;
             flex: 1;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .form-grid {
@@ -800,7 +800,7 @@
             .profile-container {
                 border-radius: 20px;
                 height: calc(100vh - 20px);
-                max-height: none;
+                max-height: calc(100vh - 20px);
                 overflow-y: auto;
                 overflow-x: hidden;
                 scrollbar-width: thin;
@@ -808,6 +808,11 @@
                 animation: none;
                 -webkit-overflow-scrolling: touch;
                 scroll-behavior: smooth;
+            }
+
+            .form-section {
+                overflow: visible;
+                flex: 1 1 auto;
             }
 
             .profile-container::-webkit-scrollbar {

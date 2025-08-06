@@ -1458,6 +1458,8 @@ body.filters-open .document-count-container {
     flex-wrap: wrap;
     width: 100%;
     position: relative;
+    /* Ensure this doesn't interfere with horizontal scrolling */
+    overflow: visible;
 }
 
 .document-count {
@@ -1480,8 +1482,9 @@ body.filters-open .document-count-container {
     opacity: 0;
     transform: translateX(-8px);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    flex: 0 0 auto;
+    flex: 1 1 100%;
     min-width: 0;
+    max-width: 100%;
     width: 100%;
     box-sizing: border-box;
     margin-top: 8px;
@@ -1492,6 +1495,11 @@ body.filters-open .document-count-container {
     padding-bottom: var(--space-2);
     /* Enhanced scrolling performance */
     -webkit-overflow-scrolling: touch;
+    /* Force own scrolling context */
+    contain: layout;
+    /* Ensure it breaks out of parent flex constraints */
+    position: relative;
+    z-index: 1;
 }
 
 .active-filters-display::-webkit-scrollbar {

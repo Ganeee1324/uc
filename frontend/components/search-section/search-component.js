@@ -3145,12 +3145,26 @@ class FilterManager {
     updateActiveFiltersDisplay() {
         const activeFiltersContainer = document.getElementById('activeFiltersDisplay');
         if (!activeFiltersContainer) return;
+        
         // Clear existing pills
         activeFiltersContainer.innerHTML = '';
         const filters = this.filters;
-        // Clear All pill (always first)
+        
+        // Check if we have any actual filters to display
+        const hasFilters = Object.keys(filters).some(key => {
+            const value = filters[key];
+            return value !== null && value !== undefined && value !== '' && value !== 'all';
+        });
+        
+        if (!hasFilters) {
+            // No filters active, hide the container
+            activeFiltersContainer.classList.remove('visible');
+            return;
+        }
+        
+        // Clear All pill (only show when there are filters)
         const clearAllPill = document.createElement('div');
-        clearAllPill.className = 'filter-pill clear-all-filters-btn sticky-left';
+        clearAllPill.className = 'filter-pill clear-all-filters-btn';
         clearAllPill.innerHTML = `
             <span class="filter-label">Rimuovi tutti</span>
             <button class="filter-remove" onclick="filterManager.clearAllFiltersAction()">

@@ -1442,6 +1442,10 @@ html {
     max-width: none;
     text-align: left !important;
     padding-left: 0;
+    /* Ensure child elements can scroll */
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
 }
 
 /* When filters overlay is active, reduce z-index so it appears below the overlay */
@@ -1455,11 +1459,13 @@ body.filters-open .document-count-container {
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
     position: relative;
-    /* Ensure this doesn't interfere with horizontal scrolling */
+    /* Critical: Allow child elements to overflow and scroll */
     overflow: visible;
+    /* Ensure proper flex container behavior */
+    min-height: 0;
 }
 
 .document-count {
@@ -1482,10 +1488,12 @@ body.filters-open .document-count-container {
     opacity: 0;
     transform: translateX(-8px);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    flex: 1 1 100%;
+    /* Critical: Break out of parent flex constraints */
+    flex: 1 1 auto;
     min-width: 0;
     max-width: 100%;
     width: 100%;
+    height: auto;
     box-sizing: border-box;
     margin-top: 8px;
     margin-bottom: -30px;
@@ -1495,11 +1503,15 @@ body.filters-open .document-count-container {
     padding-bottom: var(--space-2);
     /* Enhanced scrolling performance */
     -webkit-overflow-scrolling: touch;
-    /* Force own scrolling context */
-    contain: layout;
-    /* Ensure it breaks out of parent flex constraints */
+    /* Force scrolling context */
+    contain: layout style;
+    /* Critical: Position as independent scrollable block */
     position: relative;
     z-index: 1;
+    /* Ensure proper flex item behavior */
+    flex-shrink: 0;
+    /* Force a minimum content size to trigger overflow */
+    min-height: 40px;
 }
 
 .active-filters-display::-webkit-scrollbar {
@@ -1509,6 +1521,20 @@ body.filters-open .document-count-container {
 .active-filters-display.visible {
     opacity: 1;
     transform: translateX(0);
+}
+
+/* Force horizontal scrolling when there are many filter pills */
+.active-filters-display:has(.filter-pill:nth-child(4)) {
+    /* When there are 4+ pills, ensure scrolling is enabled */
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* Alternative approach - ensure pills don't shrink */
+.active-filters-display .filter-pill,
+.active-filters-display .clear-all-filters-btn {
+    flex-shrink: 0 !important;
+    min-width: max-content !important;
 }
 
 .filter-pill {

@@ -8338,10 +8338,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .semantic-tooltip {
     position: absolute;
-    top: -80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    z-index: 1000;
+    top: -130px;
+    right: -15px;
+    transform: translateY(-10px);
+    z-index: 1001;
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
@@ -8351,88 +8351,105 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .semantic-tooltip.visible {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
 }
 
 .semantic-tooltip-content {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 20px 24px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(16px);
-    max-width: 340px;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 18px;
+    padding: 24px 28px;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.08),
+        0 8px 16px rgba(0, 0, 0, 0.06),
+        0 2px 8px rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(20px);
+    max-width: 320px;
     width: max-content;
     position: relative;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    border: 2px solid rgba(99, 102, 241, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+    border: 2px solid rgba(99, 102, 241, 0.15);
+    overflow: hidden;
+}
+
+.semantic-tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.3) 50%, transparent 100%);
 }
 
 .semantic-tooltip-content::before {
     content: '';
     position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: -10px;
+    right: 25px;
     width: 0;
     height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #ffffff;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #ffffff;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .semantic-tooltip-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    letter-spacing: -0.01em;
+    gap: 10px;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
 }
 
 .semantic-tooltip-title .info-icon {
-    font-size: 18px;
+    font-size: 20px;
     color: #6366f1;
+    filter: drop-shadow(0 1px 2px rgba(99, 102, 241, 0.2));
 }
 
 .semantic-tooltip-description {
     font-size: 14px;
-    line-height: 1.5;
-    color: #475569;
+    line-height: 1.6;
+    color: #334155;
     margin: 0;
     font-weight: 400;
+    text-align: left;
 }
 
 .semantic-tooltip-dismiss {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #ffffff;
-    border: 2px solid #e2e8f0;
+    top: -10px;
+    right: -10px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid rgba(226, 232, 240, 0.8);
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     color: #64748b;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: auto;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-weight: 400;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(8px);
 }
 
 .semantic-tooltip-dismiss:hover {
-    background: #f8fafc;
-    color: #374151;
-    transform: scale(1.1);
-    border-color: #d1d5db;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #334155;
+    transform: scale(1.15);
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
 
@@ -8454,17 +8471,38 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .semantic-tooltip {
+        top: -110px;
+        right: -10px;
+    }
+    
     .semantic-tooltip-content {
-        max-width: 280px;
-        padding: 14px 16px;
+        max-width: 260px;
+        padding: 18px 20px;
+        border-radius: 14px;
     }
     
     .semantic-tooltip-title {
-        font-size: 13px;
+        font-size: 14px;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .semantic-tooltip-title .info-icon {
+        font-size: 18px;
     }
     
     .semantic-tooltip-description {
-        font-size: 12px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    
+    .semantic-tooltip-dismiss {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+        top: -8px;
+        right: -8px;
     }
 }
 

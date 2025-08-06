@@ -1920,6 +1920,9 @@ function removeSpecificFilterValue(type, value) {
     // Refresh active filter indicators
     updateActiveFilterIndicators();
     
+    // Update URL when filter is removed
+    URL_FILTER_MANAGER.updateUrl(filterManager.filters);
+    
     applyFiltersAndRender();
     saveFiltersToStorage();
 }
@@ -2013,6 +2016,9 @@ function removeFilterFromDropdown(type, filterKey) {
         
         // Update active filter indicators in all dropdowns
         updateActiveFilterIndicators();
+        
+        // Update URL when filter is removed
+        URL_FILTER_MANAGER.updateUrl(filterManager.filters);
         
         applyFiltersAndRender();
         saveFiltersToStorage();
@@ -3060,6 +3066,9 @@ class FilterManager {
         this.debouncedUpdateCounts();
         this.updateActiveFiltersDisplay();
         
+        // Update URL when filter is removed
+        URL_FILTER_MANAGER.updateUrl(this.filters);
+        
         // Save to localStorage whenever a filter is removed
         saveFiltersToStorage();
     }
@@ -3408,6 +3417,9 @@ function clearAllFiltersAction() {
     updateActiveFilterIndicators();
     updateBottomFilterCount();
     updateActiveFiltersDisplay();
+    
+    // Update URL when all filters are cleared
+    URL_FILTER_MANAGER.updateUrl(filterManager.filters);
     
     // Apply changes immediately
     applyFiltersAndRender();
@@ -3978,6 +3990,9 @@ function removeFilter(filterKey) {
             if (allVetrinaToggle) allVetrinaToggle.classList.add('active');
         }
     }
+    
+    // Update URL when filter is removed
+    URL_FILTER_MANAGER.updateUrl(filterManager.filters);
     
     // Apply changes immediately
     applyFiltersAndRender();

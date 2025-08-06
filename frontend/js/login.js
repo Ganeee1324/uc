@@ -340,8 +340,68 @@ function validateAllRegistrationFields() {
     return isValid;
 }
 
+// Password visibility toggle functionality
+function initializePasswordToggles() {
+    // Register Password Toggle
+    const registerPasswordToggle = document.getElementById('registerPasswordToggle');
+    const registerPasswordField = document.getElementById('registerPassword');
+    
+    if (registerPasswordToggle && registerPasswordField) {
+        registerPasswordToggle.addEventListener('click', () => {
+            if (registerPasswordField.type === 'password') {
+                registerPasswordField.type = 'text';
+                registerPasswordToggle.textContent = 'visibility';
+            } else {
+                registerPasswordField.type = 'password';
+                registerPasswordToggle.textContent = 'visibility_off';
+            }
+        });
+    }
+    
+    // Register Password Confirmation Toggle
+    const registerPasswordConfirmToggle = document.getElementById('registerPasswordConfirmToggle');
+    const registerPasswordConfirmField = document.getElementById('registerPasswordConfirm');
+    
+    if (registerPasswordConfirmToggle && registerPasswordConfirmField) {
+        registerPasswordConfirmToggle.addEventListener('click', () => {
+            if (registerPasswordConfirmField.type === 'password') {
+                registerPasswordConfirmField.type = 'text';
+                registerPasswordConfirmToggle.textContent = 'visibility';
+            } else {
+                registerPasswordConfirmField.type = 'password';
+                registerPasswordConfirmToggle.textContent = 'visibility_off';
+            }
+        });
+    }
+}
+
+// Password info icon functionality for smaller screens
+function initializePasswordInfoIcon() {
+    const passwordInfoIcon = document.getElementById('passwordInfoIcon');
+    const passwordRequirementsPanel = document.getElementById('passwordRequirementsPanel');
+    
+    if (passwordInfoIcon && passwordRequirementsPanel) {
+        passwordInfoIcon.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            
+            // Only works on smaller screens where the icon is visible
+            if (window.innerWidth <= 768) {
+                if (passwordRequirementsPanel.classList.contains('show')) {
+                    hidePasswordRequirements();
+                } else {
+                    showPasswordRequirements();
+                }
+            }
+        });
+    }
+}
+
 // Add password confirmation event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize password toggles and info icon
+    initializePasswordToggles();
+    initializePasswordInfoIcon();
+    
     const password = document.getElementById('registerPassword');
     const confirmPassword = document.getElementById('registerPasswordConfirm');
     const name = document.getElementById('registerName');

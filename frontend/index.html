@@ -485,6 +485,65 @@
             padding-left: 48px;
         }
 
+        .form-group.has-password-toggle .form-input {
+            padding-right: 48px;
+        }
+
+        .form-group.has-password-toggle.has-info .form-input {
+            padding-right: 88px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 70%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+        }
+
+        .password-toggle:hover {
+            color: #3b82f6;
+        }
+
+        .password-info-icon {
+            position: absolute;
+            right: 56px;
+            top: 70%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            z-index: 10;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+        }
+
+        .password-info-icon:hover {
+            color: #3b82f6;
+        }
+
+        /* Show info icon only on smaller screens */
+        @media (max-width: 768px) {
+            .password-info-icon {
+                display: flex;
+            }
+        }
+
         .form-group.has-icon .form-input:focus + .form-icon,
         .form-group.has-icon .form-input.filled + .form-icon {
             color: #3b82f6;
@@ -1318,7 +1377,7 @@
                         <span class="material-symbols-outlined form-icon">mail</span>
                     </div>
 
-                    <div class="form-group has-icon password-field-container">
+                    <div class="form-group has-icon has-password-toggle has-info password-field-container">
                         <label for="registerPassword" class="form-label">Password</label>
                         <input 
                             type="password" 
@@ -1331,6 +1390,8 @@
                             autocomplete="new-password"
                         >
                         <span class="material-symbols-outlined form-icon">lock</span>
+                        <span class="material-symbols-outlined password-toggle" id="registerPasswordToggle">visibility_off</span>
+                        <span class="material-symbols-outlined password-info-icon" id="passwordInfoIcon">info</span>
                         
                         <!-- Password Requirements Panel - Now positioned relative to password field -->
                         <div class="password-requirements-panel" id="passwordRequirementsPanel">
@@ -1367,7 +1428,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group has-icon">
+                    <div class="form-group has-icon has-password-toggle">
                         <label for="registerPasswordConfirm" class="form-label">Conferma password</label>
                         <input 
                             type="password" 
@@ -1380,6 +1441,7 @@
                             autocomplete="new-password"
                         >
                         <span class="material-symbols-outlined form-icon">lock</span>
+                        <span class="material-symbols-outlined password-toggle" id="registerPasswordConfirmToggle">visibility_off</span>
                     </div>
 
                     <button type="submit" class="submit-btn" id="registerBtn">

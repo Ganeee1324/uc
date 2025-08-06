@@ -626,9 +626,16 @@ async function makeLoginRequest(url, options = {}) {
             localStorage.setItem('currentUser', JSON.stringify(data.user));
             console.log('Login successful, redirecting...'); // Debug log
             
-            // Get return URL from query parameters or default to complete-profile.html
+            // Get return URL from query parameters
             const urlParams = new URLSearchParams(window.location.search);
-            const returnUrl = urlParams.get('returnUrl') || 'complete-profile.html';
+            let returnUrl = urlParams.get('returnUrl');
+            
+            // If no specific return URL, determine based on user's login history
+            if (!returnUrl) {
+                // Check if this is the user's first login
+                const isFirstLogin = data.user && data.user.is_first_login;
+                returnUrl = isFirstLogin ? 'complete-profile.html' : 'search.html';
+            }
             
             // Force redirect with a small delay to ensure localStorage is saved
             setTimeout(() => {
@@ -1163,8 +1170,8 @@ if (verified === 'true') {
 if (localStorage.getItem('authToken')) {
     console.log('Auth token found, redirecting...'); // Debug log
     
-    // Get return URL from query parameters or default to complete-profile.html
-    const returnUrl = urlParams.get('returnUrl') || 'complete-profile.html';
+    // Get return URL from query parameters or default to search.html for already logged in users
+    const returnUrl = urlParams.get('returnUrl') || 'search.html';
     
     window.location.href = returnUrl;
 }

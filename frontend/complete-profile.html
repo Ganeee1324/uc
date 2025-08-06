@@ -59,16 +59,24 @@
 
         /* Header Section */
         .profile-header {
-            padding: 60px 40px 0;
-            text-align: center;
+            padding: 20px 40px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
             position: relative;
+            min-height: 60px;
+        }
+
+        .header-content {
+            text-align: center;
         }
 
         .logo-container {
             position: absolute;
-            top: 20px;
+            top: 50%;
             left: 20px;
+            transform: translateY(-50%);
             z-index: 100;
             cursor: pointer;
             transition: transform 0.2s ease;
@@ -791,7 +799,6 @@
             }
 
             .logo-container {
-                top: 16px;
                 left: 16px;
             }
 
@@ -800,7 +807,8 @@
             }
 
             .profile-header {
-                padding: 56px 24px 0;
+                padding: 16px 24px 0;
+                min-height: 48px;
             }
 
             .header-title {
@@ -862,7 +870,6 @@
             }
 
             .logo-container {
-                top: 12px;
                 left: 12px;
             }
 
@@ -871,7 +878,8 @@
             }
 
             .profile-header {
-                padding: 52px 20px 0;
+                padding: 12px 20px 0;
+                min-height: 44px;
             }
 
             .banner-section {
@@ -900,15 +908,17 @@
 </head>
 <body>
     <div class="profile-container">
-        <!-- Logo inside container -->
-        <div class="logo-container" id="logoContainer">
-            <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
-        </div>
-        
         <!-- Header -->
         <div class="profile-header">
-            <h1 class="header-title">Completa il tuo Profilo</h1>
-            <p class="header-subtitle">Personalizza il tuo profilo per un'esperienza unica su Uniclarity</p>
+            <!-- Logo inside header -->
+            <div class="logo-container" id="logoContainer">
+                <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
+            </div>
+            
+            <div class="header-content">
+                <h1 class="header-title">Completa il tuo Profilo</h1>
+                <p class="header-subtitle">Personalizza il tuo profilo per un'esperienza unica su Uniclarity</p>
+            </div>
         </div>
 
         <!-- Banner Section -->

@@ -2908,7 +2908,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .filters-header-top {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
     min-height: 48px;
@@ -2936,7 +2936,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: flex-start;
+    justify-content: center;
     gap: var(--space-1);
 }
 
@@ -2952,10 +2952,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 
 .filters-actions {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: var(--space-3);
     height: auto;
-    padding-top: var(--space-1);
 }
 
 .filter-clear-btn {
@@ -2963,12 +2962,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-5);
-    background: linear-gradient(135deg, var(--orange-50) 0%, var(--orange-100) 100%);
-    border: 1.5px solid var(--orange-200);
+    background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+    border: 1.5px solid var(--gray-300);
     border-radius: var(--radius-xl);
     font-size: 13px;
     font-weight: 700;
-    color: var(--orange-700);
+    color: var(--gray-700);
     cursor: pointer;
     transition: all 0.3s var(--ease-3);
     height: 42px;
@@ -3014,10 +3013,10 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .filter-clear-btn:hover {
-    background: linear-gradient(135deg, var(--orange-100) 0%, var(--orange-200) 100%);
-    border-color: var(--orange-300);
+    background: linear-gradient(135deg, var(--gray-200) 0%, var(--gray-300) 100%);
+    border-color: var(--gray-400);
     transform: translateY(-1px) scale(1.02);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.15);
 }
 
 .filter-clear-btn:active {

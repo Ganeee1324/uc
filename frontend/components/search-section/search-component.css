@@ -1498,7 +1498,8 @@ body.filters-open .document-count-container {
     margin-top: 8px;
     margin-bottom: -30px;
     white-space: nowrap;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--gray-300) transparent; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer 10+ */
     padding-bottom: var(--space-2);
     /* Enhanced scrolling performance */
@@ -1515,7 +1516,18 @@ body.filters-open .document-count-container {
 }
 
 .active-filters-display::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+}
+.active-filters-display::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 2px;
+}
+.active-filters-display::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: 2px;
+}
+.active-filters-display::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-400);
 }
 
 .active-filters-display.visible {
@@ -1640,10 +1652,10 @@ body.filters-open .document-count-container {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    padding: 8px 16px;
+    padding: 6px 12px;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border: 1px solid #e2e8f0;
-    border-radius: 22px;
+    border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
     color: #64748b;

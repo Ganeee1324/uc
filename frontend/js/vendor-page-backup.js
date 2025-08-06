@@ -4183,28 +4183,13 @@ function formatDate(dateString) {
 }
 
 function showStatus(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `status-message ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => notification.classList.add('show'), 100);
-    
-    // Different durations based on message type
-    const duration = type === 'warning' ? 8000 : type === 'error' ? 10000 : 3000;
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
-    }, duration);
+    // NOTIFICATIONS DISABLED - Function does nothing
+    return;
 }
 
 function showError(message) {
-    showStatus(message, 'error');
+    // NOTIFICATIONS DISABLED - Function does nothing
+    return;
 }
 
 // Function to add retry button for server errors

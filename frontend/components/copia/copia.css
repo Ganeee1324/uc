@@ -3807,39 +3807,30 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     }
 }
  
- /* Status Messages */
+ /* Status Messages - DISABLED */
  .status-message {
-    position: fixed;
-    top: var(--space-8);
-    right: var(--space-8);
-    padding: var(--space-4) var(--space-6);
-    border-radius: var(--radius-xl);
-    font-weight: 500;
-    font-size: 14px;
-    z-index: 10000;
-    backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: var(--shadow-luxury);
-    transform: translateX(120%);
-    transition: all 0.5s var(--ease-4);
-    min-width: 300px;
-    max-width: 400px;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
  }
  
  .status-message.show {
-    transform: translateX(0);
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
  }
  
  .status-message.success {
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--green-500);
-    border-color: rgba(16, 185, 129, 0.2);
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
  }
 
 .status-message.error {
-   background: rgba(255, 255, 255, 0.95);
-   color: var(--red-500);
-   border-color: rgba(239, 68, 68, 0.2);
+   display: none !important;
+   visibility: hidden !important;
+   opacity: 0 !important;
 }
 
 /* Empty State */

@@ -5158,25 +5158,13 @@ function formatDate(dateString) {
 }
 
 function showStatus(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `status-message ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => notification.classList.add('show'), 100);
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
-    }, type === 'success' ? 3000 : 5000);
+    // NOTIFICATIONS DISABLED - Function does nothing
+    return;
 }
 
 function showError(message) {
-    showStatus(message, 'error');
+    // NOTIFICATIONS DISABLED - Function does nothing
+    return;
 }
 
 // Favorite status is already included in vetrine data, no need for separate refresh

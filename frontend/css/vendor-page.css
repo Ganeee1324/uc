@@ -352,19 +352,44 @@
     }
 }
 
-/* Responsive adjustments for status messages */
+/* Status Messages - DISABLED */
+.status-message {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.status-message.show {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.status-message.success {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.status-message.error {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Responsive adjustments for status messages - DISABLED */
 @media (max-width: 768px) {
     .status-message {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        transform: translateY(-100%);
-        font-size: 0.9rem;
-        padding: 0.875rem 1.25rem;
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     
     .status-message.show {
-        transform: translateY(0);
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     
     .retry-button {
@@ -375,11 +400,9 @@
 
 @media (max-width: 480px) {
     .status-message {
-        top: 5px;
-        right: 5px;
-        left: 5px;
-        font-size: 0.85rem;
-        padding: 0.75rem 1rem;
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     
     .retry-button {

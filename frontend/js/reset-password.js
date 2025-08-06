@@ -256,13 +256,8 @@ function showSuccessState() {
 }
 
 function showError(message) {
-    errorText.textContent = message;
-    errorMessage.classList.add('show');
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        hideError();
-    }, 5000);
+    // NOTIFICATIONS DISABLED - Function does nothing
+    return;
 }
 
 function hideError() {

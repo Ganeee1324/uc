@@ -491,8 +491,12 @@ function showMessage(type, message) {
 }
 
 function clearMessages() {
-    successMessage.classList.remove('show');
-    errorMessage.classList.remove('show');
+    if (successMessage) {
+        successMessage.classList.remove('show');
+    }
+    if (errorMessage) {
+        errorMessage.classList.remove('show');
+    }
 }
 
 function showEmailStatus(type, email, title, text) {

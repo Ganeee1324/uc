@@ -1488,7 +1488,10 @@ body.filters-open .document-count-container {
     margin-bottom: -30px;
     white-space: nowrap;
     scrollbar-width: none; /* Firefox */
-    /* Removed scroll-padding-left and scroll-snap-type for free scrolling */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    padding-bottom: var(--space-2);
+    /* Enhanced scrolling performance */
+    -webkit-overflow-scrolling: touch;
 }
 
 .active-filters-display::-webkit-scrollbar {
@@ -1518,8 +1521,9 @@ body.filters-open .document-count-container {
     backdrop-filter: blur(8px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     animation: filterPillSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Scrolling properties */
+    /* Enhanced scrolling properties */
     flex: 0 0 auto;
+    flex-shrink: 0;
     min-width: max-content;
     white-space: nowrap;
     scroll-snap-align: start;
@@ -2917,6 +2921,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 .filters-header-bottom {
     width: 100%;
     margin-top: -var(--space-1);
+    margin-bottom: var(--space-4);
     padding-left: var(--space-1);
 }
 

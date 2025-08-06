@@ -792,11 +792,34 @@
         @media (max-width: 770px) {
             body {
                 padding: 10px;
+                height: 100vh;
+                overflow: hidden;
             }
 
             .profile-container {
                 border-radius: 20px;
                 max-height: 95vh;
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 #f1f5f9;
+            }
+
+            .profile-container::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .profile-container::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 3px;
+            }
+
+            .profile-container::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+
+            .profile-container::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
             }
 
             .logo-container {
@@ -892,10 +915,13 @@
         @media (max-width: 480px) {
             body {
                 padding: 8px;
+                height: 100vh;
+                overflow: hidden;
             }
 
             .profile-container {
                 max-height: 98vh;
+                overflow-y: auto;
             }
 
             .logo-container {

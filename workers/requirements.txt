@@ -1,0 +1,11 @@
+celery==5.5.3
+lmstudio==1.4.1
+numpy==2.3.2
+Pillow==11.3.0
+pymupdf==1.26.3
+python-dotenv==1.1.1
+redis==6.2.0
+torch==2.7.1+cu126
+transformers==4.54.0
+psycopg_pool==3.2.6
+pydantic==2.11.7

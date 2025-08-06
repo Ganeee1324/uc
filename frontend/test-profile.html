@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Profile Completion</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            background: #f9fafb;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #111827;
+            margin-bottom: 24px;
+        }
+        .test-button {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            margin: 12px 0;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        .test-button.secondary {
+            background: transparent;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+        }
+        .test-button.secondary:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Profile Completion Page</h1>
+        
+        <div class="description">
+            Test the profile completion page in different scenarios:
+        </div>
+        
+        <button class="test-button" onclick="testAsAuthenticatedUser()">
+            🔐 Test as Authenticated User
+        </button>
+        <div class="description">
+            Simulates a user who just verified their email and is logged in.
+            Shows "Skip for now" button.
+        </div>
+        
+        <button class="test-button" onclick="testAsNonAuthenticatedUser()">
+            👤 Test as Non-Authenticated User
+        </button>
+        <div class="description">
+            Simulates a user who accessed the page without being logged in.
+            Shows "Login now" button instead.
+        </div>
+        
+        <button class="test-button secondary" onclick="clearAllData()">
+            🗑️ Clear All Test Data
+        </button>
+        <div class="description">
+            Clears all localStorage data for clean testing.
+        </div>
+        
+        <a href="complete-profile.html" class="test-button secondary">
+            ➡️ Go to Profile Page Directly
+        </a>
+        
+        <button class="test-button" onclick="testVerificationCode()">
+            🔐 Test Verification Code Flow
+        </button>
+        <div class="description">
+            Tests the complete flow: verification code → profile completion.
+        </div>
+        
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;">
+        
+        <h2 style="color: #111827; font-size: 18px; margin-bottom: 16px;">Current Status:</h2>
+        <div id="status" style="font-family: monospace; background: #f3f4f6; padding: 16px; border-radius: 8px; font-size: 14px;">
+            Loading...
+        </div>
+    </div>
+
+    <script>
+        function testAsAuthenticatedUser() {
+            // Set up authenticated user state
+            localStorage.setItem('authToken', 'test-jwt-token-12345');
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: 1,
+                name: 'Mario',
+                surname: 'Rossi',
+                username: 'mariorossi',
+                email: 'mario.rossi@example.com'
+            }));
+            
+            alert('✅ Set up as authenticated user!\nRedirecting to profile completion...');
+            window.location.href = 'complete-profile.html';
+        }
+        
+        function testAsNonAuthenticatedUser() {
+            // Clear authentication state
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('pendingEmail');
+            
+            alert('❌ Cleared authentication!\nRedirecting to profile completion...');
+            window.location.href = 'complete-profile.html';
+        }
+        
+        function clearAllData() {
+            localStorage.clear();
+            alert('🗑️ All localStorage data cleared!');
+            updateStatus();
+        }
+        
+        function testVerificationCode() {
+            // Set up pending email for verification flow
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            localStorage.setItem('pendingEmail', 'test@example.com');
+            
+            alert('📧 Set up verification flow!\nUse any of these test codes:\n• 123456\n• 000000\n• 111111\n• 999999');
+            window.location.href = 'verify-code.html?email=test@example.com';
+        }
+        
+        function updateStatus() {
+            const authToken = localStorage.getItem('authToken');
+            const currentUser = localStorage.getItem('currentUser');
+            const pendingEmail = localStorage.getItem('pendingEmail');
+            
+            let status = '';
+            status += 'Auth Token: ' + (authToken ? '✅ Present' : '❌ Not found') + '\n';
+            status += 'Current User: ' + (currentUser ? '✅ Present' : '❌ Not found') + '\n';
+            status += 'Pending Email: ' + (pendingEmail ? '✅ Present' : '❌ Not found') + '\n\n';
+            
+            if (authToken) {
+                status += 'User will see: "Skip for now" button\n';
+            } else {
+                status += 'User will see: "Login now" button\n';
+            }
+            
+            document.getElementById('status').textContent = status;
+        }
+        
+        // Update status on page load
+        updateStatus();
+        
+        // Update status every 2 seconds in case of changes
+        setInterval(updateStatus, 2000);
+    </script>
+</body>
+</html>

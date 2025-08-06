@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Uniclarity</title>
+    
+    <!-- Resource hints for faster loading -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preload search component resources -->
+    <link rel="preload" href="components/search-section/search-component.html" as="document" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="components/search-section/search-component.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    
+    <!-- Search Component Integration Styles -->
+    <style>
+        /* Center search section relative to main-profile-content area */
+        #searchSectionContainer,
+        #documentsSearchSectionContainer,
+        #favoritesSearchSectionContainer {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: calc(100vw - 280px); /* Full viewport width minus sidebar */
+            margin-left: -20px; /* Compensate for main-profile-content padding if any */
+            margin-right: -20px;
+            padding: 0 40px; /* Add generous padding for centering */
+            box-sizing:border-box;
+            position: relative;
+        }
+        
+        /* Search containers with proper centering within main-profile-content */
+        #main-search-container,
+        #documents-search-container,
+        #favorites-search-container {
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Responsive centering for different screen sizes */
+        @media (max-width: 1600px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                padding: 0 30px;
+            }
+        }
+        
+        @media (max-width: 1280px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                width: calc(100vw - 280px);
+                padding: 0 20px;
+            }
+            
+            #main-search-container,
+            #documents-search-container,
+            #favorites-search-container {
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #searchSectionContainer,
+            #documentsSearchSectionContainer,
+            #favoritesSearchSectionContainer {
+                width: 100vw;
+                margin-left: -280px; /* Compensate for sidebar on mobile */
+                padding: 0 10px;
+            }
+        }
+        
+        /* Optimize image loading */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Reduce repaints during loading */
+        * {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+    </style>
+    
+</head>
+<body data-page="dashboard">
+    <!-- Mobile Menu Toggle Button -->
+    <label class="hamburger" id="mobileMenuToggle">
+        <input type="checkbox">
+        <svg viewBox="0 0 32 32">
+            <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+            <path class="line" d="M7 16 27 16"></path>
+        </svg>
+    </label>
+    
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <!-- Logo Section -->
+        <div class="sidebar-header">
+            <div class="logo" onclick="window.location.href='search.html'" style="cursor: pointer;">
+                <img src="images/Logo.png" alt="Logo" style="height:44px;width:auto;margin-right:10px;"> 
+            </div>
+        </div>
+        
+        <!-- Main Navigation -->
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3 class="nav-section-title">Dashboard</h3>
+                <div class="menu-item active" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('profile');">
+                    <span class="menu-icon material-symbols-outlined">person</span>
+                    <span class="menu-text">Profilo</span>
+                </div>
+                <div class="menu-item" onclick="console.log('Vendite clicked!'); document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('stats');">
+                    <span class="menu-icon material-symbols-outlined">analytics</span>
+                    <span class="menu-text">Vendite</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">Contenuti</h3>
+                <div class="menu-item" onclick="window.location.href='documenti.html';" title="Vai alla pagina I Miei Documenti">
+                    <span class="menu-icon material-symbols-outlined">folder</span>
+                    <span class="menu-text">I Miei Documenti</span>
+                    <span class="menu-icon external-link material-symbols-outlined">open_in_new</span>
+                </div>
+                <div class="menu-item" onclick="window.location.href='preferiti.html';" title="Vai alla pagina Preferiti">
+                    <span class="menu-icon material-symbols-outlined">favorite</span>
+                    <span class="menu-text">Preferiti</span>
+                    <span class="menu-icon external-link material-symbols-outlined">open_in_new</span>
+                </div>
+                <div class="menu-item" onclick="window.location.href='upload.html';" title="Vai alla pagina di Caricamento">
+                    <span class="menu-icon material-symbols-outlined">upload</span>
+                    <span class="menu-text">Carica</span>
+                    <span class="menu-icon external-link material-symbols-outlined">open_in_new</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">Account</h3>
+                <div class="menu-item" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); this.classList.add('active'); switchTab('settings');">
+                    <span class="menu-icon material-symbols-outlined">settings</span>
+                    <span class="menu-text">Impostazioni</span>
+                </div>
+            </div>
+            
+            <!-- Logout Button Section -->
+            <div class="nav-section logout-section">
+                <button class="profile-logout-btn" id="logoutBtn">
+                    <span class="menu-text">Esci</span>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- User Profile Summary -->
+        <div class="sidebar-footer">
+            <div class="user-profile-summary">
+                <div class="user-avatar-small">
+                    <div class="user-avatar-gradient-small">UN</div>
+                </div>
+                <div class="user-info-small">
+                    <div class="user-name-small">Nome Utente</div>
+                    <div class="user-role-small">Venditore</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-profile-content">
+        <!-- Page Title and Subtitle -->
+        <div class="page-header">
+            <h1 class="page-title">Il Mio Profilo</h1>
+            <p class="page-subtitle">Gestisci le tue informazioni personali e monitora le tue attività</p>
+        </div>
+        
+        <div class="profile-section">
+            <button class="edit-btn" onclick="document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active')); document.querySelector('.menu-item[onclick*=settings]').classList.add('active'); switchTab('settings'); setTimeout(() => { if (typeof switchSettingsSection === 'function') switchSettingsSection('account'); }, 100);">
+                Modifica 
+                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1.88235 12.2898L1 16L4.52941 15.0724L14.7524 4.32581C15.0832 3.97793 15.269 3.50616 15.269 3.01425C15.269 2.52234 15.0832 2.05057 14.7524 1.70269L14.6006 1.54315C14.2697 1.19537 13.8209 1 13.3529 1C12.885 1 12.4362 1.19537 12.1053 1.54315L1.88235 12.2898ZM10.7059 3.01425L13.3529 5.79691L10.7059 3.01425ZM8.94118 16H16H8.94118Z" fill="white"/>
+                    <path d="M10.7059 3.01425L13.3529 5.79691M8.94118 16H16M1.88235 12.2898L1 16L4.52941 15.0724L14.7524 4.32581C15.0832 3.97793 15.269 3.50616 15.269 3.01425C15.269 2.52234 15.0832 2.05057 14.7524 1.70269L14.6006 1.54315C14.2697 1.19537 13.8209 1 13.3529 1C12.885 1 12.4362 1.19537 12.1053 1.54315L1.88235 12.2898Z" stroke="#7F7F7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="profile-header">
+                <div class="profile-image-container">
+                    <div class="profile-image">
+                        <div class="user-avatar-gradient">UN</div>
+                        <div class="profile-image-overlay">
+                            <button class="change-image-btn" type="button">
+                                <span class="material-symbols-outlined">photo_camera</span>
+                                <span class="change-image-text">Cambia</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <h2>Informazioni Personali</h2>
+                    <div class="username">@username</div>
+                    <div class="details">Facoltà</div>
+                    <div class="details">Canale</div>
+                    <div class="details">Bio massimo 40 caratteri</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-row">
+            <div class="dashboard-card my-space">
+                <h3 class="card-title">Il Mio Spazio</h3>
+                <div class="space-items">
+                    <div class="space-item">
+                        <div class="space-icon purple">
+                            <svg width="58" height="57" viewBox="0 0 58 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M29.1737 0C44.9709 0.124465 57.6271 12.3514 57.6817 28.7901C57.7313 43.8591 45.4222 57.3244 28.4571 56.994C12.9825 56.6923 0.342785 44.0873 0.688571 27.629C0.994278 13.0926 12.8541 0.150293 29.1737 0ZM23.1708 32.81C24.1841 32.81 25.1979 32.8122 26.2112 32.8088C26.6957 32.8073 26.9992 32.9168 26.8863 33.5242C26.6378 34.8602 26.4343 36.2039 26.2161 37.5445C25.8049 40.0717 25.395 42.5992 24.9864 45.1271C24.9472 45.368 24.8214 45.6254 25.1318 45.7917C25.6599 46.0743 27.1045 45.7144 27.4031 45.2157C31.1899 38.8967 34.9747 32.5765 38.7574 26.2552C39.5434 24.9404 39.1311 24.2295 37.5894 24.2179C35.8159 24.2054 34.0423 24.2054 32.2686 24.2179C31.7177 24.2212 31.3434 24.1484 31.4761 23.4277C31.8718 21.2837 32.2332 19.1335 32.5957 16.9836C32.879 15.3003 33.1506 13.6151 33.4104 11.9279C33.4491 11.6763 33.6023 11.3646 33.1922 11.2154C32.765 11.0913 32.3099 11.103 31.8897 11.2488C31.4694 11.3947 31.1049 11.6674 30.8465 12.0294C27.9335 16.8806 25.0228 21.7332 22.1143 26.5872C21.2366 28.0516 20.3324 29.5006 19.4961 30.9886C18.8693 32.103 19.2808 32.7933 20.511 32.8066C21.3974 32.8162 22.2844 32.8086 23.1713 32.8104L23.1708 32.81Z" fill="url(#paint0_linear_235_1946)"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear_235_1946" x1="29.1817" y1="0" x2="29.1817" y2="56.9999" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0.120192" stop-color="#8C00BF"/>
+                                        <stop offset="1" stop-color="#D09AEA"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="space-number"><span class="space-number-container purple">Premium</span></div>
+                        <div class="space-label purple">Pacchetto</div>
+                    </div>
+                    <div class="space-item">
+                        <div class="space-icon blue">
+                            <svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M17.0697 8.35898C14.5176 10.9082 14.5176 15.0165 14.5176 23.2273V46.4546C14.5176 54.6654 14.5176 58.7738 17.0697 61.3229C19.6189 63.875 23.7272 63.875 31.938 63.875H37.7448C45.9557 63.875 50.064 63.875 52.6132 61.3229C55.1653 58.7738 55.1653 54.6654 55.1653 46.4546V23.2273C55.1653 15.0165 55.1653 10.9082 52.6132 8.35898C50.064 5.80688 45.9557 5.80688 37.7448 5.80688H31.938C23.7272 5.80688 19.6189 5.80688 17.0697 8.35898ZM23.9537 49.358C23.9537 48.7805 24.1831 48.2266 24.5914 47.8182C24.9998 47.4099 25.5537 47.1804 26.1312 47.1804H34.8414C35.419 47.1804 35.9728 47.4099 36.3812 47.8182C36.7896 48.2266 37.019 48.7805 37.019 49.358C37.019 49.9355 36.7896 50.4894 36.3812 50.8978C35.9728 51.3061 35.419 51.5356 34.8414 51.5356H26.1312C25.5537 51.5356 24.9998 51.3061 24.5914 50.8978C24.1831 50.4894 23.9537 49.9355 23.9537 49.358ZM26.1312 35.5668C25.5537 35.5668 24.9998 35.7962 24.5914 36.2046C24.1831 36.613 23.9537 37.1668 23.9537 37.7444C23.9537 38.3219 24.1831 38.8758 24.5914 39.2841C24.9998 39.6925 25.5537 39.9219 26.1312 39.9219H43.5517C44.1292 39.9219 44.683 39.6925 45.0914 39.2841C45.4998 38.8758 45.7292 38.3219 45.7292 37.7444C45.7292 37.1668 45.4998 36.613 45.0914 36.2046C44.683 35.7962 44.1292 35.5668 43.5517 35.5668H26.1312ZM23.9537 26.1307C23.9537 25.5532 24.1831 24.9993 24.5914 24.591C24.9998 24.1826 25.5537 23.9532 26.1312 23.9532H43.5517C44.1292 23.9532 44.683 24.1826 45.0914 24.591C45.4998 24.9993 45.7292 25.5532 45.7292 26.1307C45.7292 26.7083 45.4998 27.2621 45.0914 27.6705C44.683 28.0789 44.1292 28.3083 43.5517 28.3083H26.1312C25.5537 28.3083 24.9998 28.0789 24.5914 27.6705C24.1831 27.2621 23.9537 26.7083 23.9537 26.1307Z" fill="#12A2F6"/>
+                                <path opacity="0.5" d="M15.2001 11.782C14.5178 14.3457 14.5178 17.9343 14.5178 23.2272V46.4545C14.5178 51.7474 14.5178 55.3331 15.2001 57.8997L14.5178 57.8475C11.687 57.5687 9.78238 56.9387 8.35971 55.516C5.80762 52.9668 5.80762 48.8585 5.80762 40.6477V29.034C5.80762 20.8203 5.80762 16.7149 8.35971 14.1657C9.78238 12.743 11.687 12.113 14.5178 11.8342L15.2001 11.782ZM54.4832 57.8997C55.1655 55.3331 55.1655 51.7445 55.1655 46.4545V23.2272C55.1655 17.9343 55.1655 14.3457 54.4832 11.782L55.1655 11.8342C57.9964 12.113 59.901 12.743 61.3237 14.1657C63.8758 16.7149 63.8758 20.8174 63.8758 29.0311V40.6448C63.8758 48.8614 63.8758 52.9639 61.3237 55.516C59.901 56.9387 57.9964 57.5687 55.1655 57.8475L54.4832 57.8997Z" fill="#12A2F6"/>
+                            </svg>
+                        </div>
+                        <div class="space-number"><span class="space-number-container blue">7</span></div>
+                        <div class="space-label blue">Contenuti<br>Caricati</div>
+                    </div>
+                    <div class="space-item">
+                        <div class="space-icon yellow">
+                            <svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M28.5 0C22.8632 0 17.3531 1.6715 12.6663 4.80312C7.97946 7.93474 4.32654 12.3858 2.16945 17.5935C0.0123487 22.8012 -0.552046 28.5316 0.547632 34.0601C1.64731 39.5885 4.36167 44.6667 8.34747 48.6525C12.3333 52.6383 17.4115 55.3527 22.9399 56.4524C28.4684 57.5521 34.1988 56.9877 39.4065 54.8306C44.6142 52.6735 49.0653 49.0206 52.1969 44.3338C55.3285 39.647 57 34.1368 57 28.5C57 20.9413 53.9973 13.6922 48.6526 8.34746C43.3078 3.00267 36.0587 0 28.5 0ZM18.7388 23.9162L27.0513 12.0413C27.2221 11.8195 27.4415 11.6399 27.6927 11.5163C27.9439 11.3928 28.2201 11.3285 28.5 11.3285C28.7799 11.3285 29.0561 11.3928 29.3073 11.5163C29.5585 11.6399 29.7779 11.8195 29.9488 12.0413L38.2613 23.9162C38.5223 24.275 38.638 24.7192 38.5852 25.1597C38.5323 25.6002 38.3148 26.0044 37.9763 26.2912L29.6638 33.4162C29.3349 33.7036 28.913 33.8619 28.4763 33.8619C28.0396 33.8619 27.6177 33.7036 27.2888 33.4162L18.9763 26.2912C18.645 25.998 18.4365 25.5905 18.3925 25.1503C18.3485 24.71 18.4721 24.2693 18.7388 23.9162ZM38.3088 39.71L30.0675 46.835C29.6341 47.2158 29.0769 47.4257 28.5 47.4257C27.9231 47.4257 27.3659 47.2158 26.9325 46.835L18.6913 39.71C18.2157 39.2943 17.9248 38.7067 17.8824 38.0764C17.8401 37.4462 18.0499 36.8249 18.4656 36.3494C18.8814 35.8738 19.469 35.5829 20.0992 35.5406C20.7295 35.4982 21.3507 35.708 21.8263 36.1237L28.5 41.9663L35.1738 36.1237C35.6493 35.708 36.2706 35.4982 36.9008 35.5406C37.531 35.5829 38.1187 35.8738 38.5344 36.3494C38.9501 36.8249 39.1599 37.4462 39.1176 38.0764C39.0753 38.7067 38.7843 39.2943 38.3088 39.71Z" fill="url(#paint0_linear_234_1956)"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear_234_1956" x1="28.5" y1="0" x2="28.5" y2="57" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#FFDD00"/>
+                                        <stop offset="1" stop-color="#89D20A"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="space-number"><span class="space-number-container yellow">300</span></div>
+                        <div class="space-label yellow">Crediti<br>ClaryCoin</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card overview">
+                <h3 class="card-title">Panoramica Venditore</h3>
+                <div class="overview-items">
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <svg width="70" height="56" viewBox="0 0 70 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M38.52 5.89427L35.9505 0.69005C35.5259 -0.213613 34.1976 -0.246275 33.7295 0.69005L31.16 5.89427L25.4659 6.71084C24.4533 6.86326 24.0178 8.11532 24.7691 8.86656L28.9063 12.8949L27.9264 18.5673C27.774 19.5799 28.8192 20.3638 29.7555 19.8956L34.8618 17.1955L39.9353 19.852C40.8717 20.3202 41.9278 19.5363 41.7645 18.5238L40.7846 12.8514L44.9218 8.86656C45.6622 8.12621 45.2376 6.87415 44.225 6.71084L38.5309 5.89427H38.52ZM27.872 27.8761C25.9449 27.8761 24.388 29.433 24.388 31.3601V52.2641C24.388 54.1912 25.9449 55.7481 27.872 55.7481H41.808C43.7351 55.7481 45.292 54.1912 45.292 52.2641V31.3601C45.292 29.433 43.7351 27.8761 41.808 27.8761H27.872ZM3.484 34.8441C1.55691 34.8441 0 36.4011 0 38.3281V52.2641C0 54.1912 1.55691 55.7481 3.484 55.7481H17.42C19.3471 55.7481 20.904 54.1912 20.904 52.2641V38.3281C20.904 36.4011 19.3471 34.8441 17.42 34.8441H3.484ZM48.776 45.2961V52.2641C48.776 54.1912 50.3329 55.7481 52.26 55.7481H66.196C68.1231 55.7481 69.68 54.1912 69.68 52.2641V45.2961C69.68 43.369 68.1231 41.8121 66.196 41.8121H52.26C50.3329 41.8121 48.776 43.369 48.776 45.2961Z" fill="url(#paint0_linear_233_1962)"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear_233_1962" x1="34.84" y1="0" x2="34.84" y2="55.7481" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#FFC506"/>
+                                        <stop offset="1" stop-color="#EAAC00"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="overview-number"><span class="overview-number-container gold">4</span></div>
+                        <div class="overview-label gold">Classifica</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <svg width="61" height="60" viewBox="0 0 61 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M51.3045 33.75C51.1387 33.75 50.9797 33.8158 50.8625 33.933C50.7453 34.0502 50.6795 34.2092 50.6795 34.375V41.875C50.6795 42.0407 50.7453 42.1997 50.8625 42.3169C50.9797 42.4341 51.1387 42.5 51.3045 42.5H56.9295C57.924 42.5 58.8778 42.1049 59.5811 41.4016C60.2844 40.6983 60.6795 39.7445 60.6795 38.75V34.375C60.6795 34.2092 60.6136 34.0502 60.4964 33.933C60.3792 33.8158 60.2202 33.75 60.0545 33.75H51.3045ZM47.5545 31.25C47.7202 31.25 47.8792 31.1841 47.9964 31.0669C48.1136 30.9497 48.1795 30.7907 48.1795 30.625V26.25C48.1795 25.9184 48.3112 25.6005 48.5456 25.3661C48.78 25.1316 49.0979 25 49.4295 25C49.761 25 50.0789 25.1316 50.3133 25.3661C50.5478 25.6005 50.6795 25.9184 50.6795 26.25V30.625C50.6795 30.7907 50.7453 30.9497 50.8625 31.0669C50.9797 31.1841 51.1387 31.25 51.3045 31.25H60.0545C60.2202 31.25 60.3792 31.1841 60.4964 31.0669C60.6136 30.9497 60.6795 30.7907 60.6795 30.625V26.25C60.6795 25.2554 60.2844 24.3016 59.5811 23.5983C58.8778 22.895 57.924 22.5 56.9295 22.5H54.8295C54.7075 22.5004 54.588 22.4651 54.4859 22.3985C54.3837 22.3318 54.3033 22.2368 54.2545 22.125C54.2082 22.0064 54.1977 21.8769 54.2244 21.7524C54.2511 21.628 54.3137 21.5141 54.4045 21.425L55.6795 20C55.8466 19.6501 55.9011 19.257 55.8355 18.8748C55.7699 18.4927 55.5875 18.1402 55.3133 17.8661C55.0392 17.5919 54.6867 17.4095 54.3046 17.3439C53.9224 17.2783 53.5293 17.3329 53.1795 17.5L49.8795 20.65C49.8212 20.7104 49.7513 20.7586 49.6739 20.7914C49.5966 20.8243 49.5135 20.8412 49.4295 20.8412C49.3454 20.8412 49.2623 20.8243 49.185 20.7914C49.1077 20.7586 49.0378 20.7104 48.9795 20.65L45.6795 17.5C45.3296 17.3329 44.9365 17.2783 44.5543 17.3439C44.1722 17.4095 43.8198 17.5919 43.5456 17.8661C43.2714 18.1402 43.089 18.4927 43.0234 18.8748C42.9578 19.257 43.0124 19.6501 43.1795 20L44.5295 21.35C44.6202 21.4391 44.6828 21.553 44.7095 21.6774C44.7362 21.8019 44.7257 21.9314 44.6795 22.05C44.6307 22.1618 44.5502 22.2568 44.4481 22.3235C44.3459 22.3901 44.2264 22.4254 44.1045 22.425H41.9295C41.4306 22.4249 40.9368 22.5243 40.4769 22.7174C40.0169 22.9105 39.6002 23.1935 39.2509 23.5497C38.9017 23.9059 38.6271 24.3282 38.4431 24.7918C38.2591 25.2555 38.1695 25.7512 38.1795 26.25V30.625C38.1795 30.7907 38.2453 30.9497 38.3625 31.0669C38.4797 31.1841 38.6387 31.25 38.8045 31.25H47.5545ZM48.1795 34.375C48.1795 34.2092 48.1136 34.0502 47.9964 33.933C47.8792 33.8158 47.7202 33.75 47.5545 33.75H38.8045C38.6387 33.75 38.4797 33.8158 38.3625 33.933C38.2453 34.0502 38.1795 34.2092 38.1795 34.375V38.75C38.1795 39.7445 38.5745 40.6983 39.2778 41.4016C39.9811 42.1049 40.9349 42.5 41.9295 42.5H47.5545C47.7202 42.5 47.8792 42.4341 47.9964 42.3169C48.1136 42.1997 48.1795 42.0407 48.1795 41.875V34.375Z" fill="url(#paint0_linear_233_2005)"/>
+                                <path d="M27.2047 38.75H33.1797C33.8427 38.75 34.4786 38.4866 34.9475 38.0178C35.4163 37.5489 35.6797 36.913 35.6797 36.25C35.6797 35.587 35.4163 34.9511 34.9475 34.4822C34.4786 34.0134 33.8427 33.75 33.1797 33.75H28.6047C28.4251 33.7516 28.2473 33.7144 28.0834 33.6411C27.9194 33.5677 27.7732 33.4599 27.6547 33.325C27.5381 33.1983 27.4509 33.0475 27.399 32.8834C27.3472 32.7192 27.332 32.5457 27.3547 32.375L29.0547 16.125C29.0858 15.8156 29.2311 15.5289 29.4622 15.3209C29.6934 15.1128 29.9937 14.9984 30.3047 15H46.9297C47.5927 15 48.2286 14.7366 48.6975 14.2678C49.1663 13.7989 49.4297 13.163 49.4297 12.5C49.4297 11.837 49.1663 11.2011 48.6975 10.7322C48.2286 10.2634 47.5927 10 46.9297 10H45.0547C44.8889 10 44.73 9.93415 44.6127 9.81694C44.4955 9.69973 44.4297 9.54076 44.4297 9.375V7.5C44.4297 5.51088 43.6395 3.60322 42.233 2.1967C40.8265 0.790176 38.9188 0 36.9297 0C34.9406 0 33.0329 0.790176 31.6264 2.1967C30.2199 3.60322 29.4297 5.51088 29.4297 7.5V9.75C29.4337 9.7838 29.43 9.81807 29.4189 9.85023C29.4077 9.88239 29.3894 9.91161 29.3654 9.93567C29.3413 9.95974 29.3121 9.97803 29.2799 9.98918C29.2478 10.0003 29.2135 10.004 29.1797 10C27.9397 9.99315 26.7415 10.4473 25.8175 11.2742C24.8936 12.1011 24.3099 13.2419 24.1797 14.475L22.2047 33.225C22.1329 33.9242 22.2093 34.6307 22.429 35.2984C22.6487 35.9661 23.0067 36.58 23.4797 37.1C23.95 37.6211 24.5247 38.0373 25.1665 38.3216C25.8083 38.6059 26.5028 38.7519 27.2047 38.75ZM34.4297 7.5C34.4297 6.83696 34.6931 6.20107 35.1619 5.73223C35.6308 5.26339 36.2666 5 36.9297 5C37.5927 5 38.2286 5.26339 38.6975 5.73223C39.1663 6.20107 39.4297 6.83696 39.4297 7.5V9.375C39.4297 9.54076 39.3638 9.69973 39.2466 9.81694C39.1294 9.93415 38.9704 10 38.8047 10H35.0547C34.8889 10 34.73 9.93415 34.6127 9.81694C34.4955 9.69973 34.4297 9.54076 34.4297 9.375V7.5ZM3.17969 36.875C2.51665 36.875 1.88076 37.1384 1.41192 37.6072C0.94308 38.0761 0.679688 38.712 0.679688 39.375L0.679688 57.5C0.679688 58.163 0.94308 58.7989 1.41192 59.2678C1.88076 59.7366 2.51665 60 3.17969 60C3.84273 60 4.47861 59.7366 4.94745 59.2678C5.4163 58.7989 5.67969 58.163 5.67969 57.5V39.375C5.67969 38.712 5.4163 38.0761 4.94745 37.6072C4.47861 37.1384 3.84273 36.875 3.17969 36.875ZM39.4297 48.75H16.6297C16.4079 48.7781 16.1827 48.7587 15.969 48.693C15.7553 48.6273 15.558 48.5169 15.3903 48.3691C15.2226 48.2213 15.0883 48.0395 14.9963 47.8358C14.9042 47.632 14.8566 47.4111 14.8566 47.1875C14.8566 46.9639 14.9042 46.743 14.9963 46.5392C15.0883 46.3355 15.2226 46.1537 15.3903 46.0059C15.558 45.8581 15.7553 45.7477 15.969 45.682C16.1827 45.6163 16.4079 45.5969 16.6297 45.625H22.9297C23.3423 45.6247 23.7485 45.5222 24.1119 45.3267C24.4753 45.1313 24.7846 44.8489 25.0124 44.5048C25.2401 44.1607 25.3792 43.7656 25.4171 43.3547C25.455 42.9438 25.3906 42.53 25.2297 42.15C24.8014 41.1392 24.0842 40.2773 23.168 39.6724C22.2519 39.0676 21.1775 38.7467 20.0797 38.75H9.42969C9.09817 38.75 8.78022 38.8817 8.5458 39.1161C8.31138 39.3505 8.17969 39.6685 8.17969 40V56.25C8.17969 56.5815 8.31138 56.8995 8.5458 57.1339C8.78022 57.3683 9.09817 57.5 9.42969 57.5H36.3297C37.0651 57.5 37.7933 57.3552 38.4727 57.0737C39.1521 56.7923 39.7695 56.3798 40.2895 55.8598C40.8095 55.3398 41.222 54.7225 41.5034 54.043C41.7848 53.3636 41.9297 52.6354 41.9297 51.9V51.25C41.9297 50.587 41.6663 49.9511 41.1975 49.4822C40.7286 49.0134 40.0927 48.75 39.4297 48.75Z" fill="url(#paint1_linear_233_2005)"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear_233_2005" x1="49.4291" y1="17.3169" x2="49.4291" y2="42.5" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#00A1FF"/>
+                                        <stop offset="1" stop-color="#125F8C"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint1_linear_233_2005" x1="25.0547" y1="0" x2="25.0547" y2="60" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#00A1FF"/>
+                                        <stop offset="1" stop-color="#125F8C"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="overview-number"><span class="overview-number-container blue">4.2</span></div>
+                        <div class="overview-label blue">Vendite</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-icon">
+                            <svg width="61" height="60" viewBox="0 0 61 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M26.9297 52.5C29.0008 52.5 30.6797 50.8211 30.6797 48.75C30.6797 46.6789 29.0008 45 26.9297 45C24.8586 45 23.1797 46.6789 23.1797 48.75C23.1797 50.8211 24.8586 52.5 26.9297 52.5Z" fill="url(#paint0_linear_233_1991)"/>
+                                <path d="M44.4297 52.5C46.5008 52.5 48.1797 50.8211 48.1797 48.75C48.1797 46.6789 46.5008 45 44.4297 45C42.3586 45 40.6797 46.6789 40.6797 48.75C40.6797 50.8211 42.3586 52.5 44.4297 52.5Z" fill="url(#paint1_linear_233_1991)"/>
+                                <path d="M53.1797 17.5H19.0147L16.1297 10.575C15.751 9.66287 15.11 8.8837 14.2879 8.33627C13.4659 7.78883 12.4998 7.49779 11.5122 7.50001H5.67969V12.5H11.5147L23.3722 40.9625C23.7597 41.8925 24.6722 42.5 25.6797 42.5H45.6797C46.7222 42.5 47.6547 41.8525 48.0222 40.88L55.5222 20.88C55.6627 20.5015 55.7097 20.0947 55.6592 19.6941C55.6087 19.2935 55.4623 18.911 55.2323 18.5792C55.0023 18.2473 54.6956 17.9759 54.3383 17.788C53.9809 17.6002 53.5834 17.5013 53.1797 17.5ZM35.6797 37.5L28.1797 30H33.1797V22.5H38.1797V30H43.1797L35.6797 37.5Z" fill="url(#paint2_linear_233_1991)"/>
+                                <defs>
+                                    <linearGradient id="paint0_linear_233_1991" x1="26.9297" y1="45" x2="26.9297" y2="52.5" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#90D300"/>
+                                        <stop offset="1" stop-color="#6DA000"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint1_linear_233_1991" x1="44.4297" y1="45" x2="44.4297" y2="52.5" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#90D300"/>
+                                        <stop offset="1" stop-color="#6DA000"/>
+                                    </linearGradient>
+                                    <linearGradient id="paint2_linear_233_1991" x1="30.6793" y1="7.5" x2="30.6793" y2="42.5" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#90D300"/>
+                                        <stop offset="1" stop-color="#6DA000"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="overview-number"><span class="overview-number-container green">37</span></div>
+                        <div class="overview-label green">Download</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Section Component - Integrated under My space and Overview sections -->
+        <!-- Page Title and Subtitle -->
+        <div class="page-header">
+            <h1 class="page-title">I Tuoi Documenti Caricati</h1>
+            <p class="page-subtitle">Visualizza e gestisci tutti i documenti che hai caricato</p>
+        </div>
+        
+        <div id="searchSectionContainer">
+            <!-- Main search component container -->
+            <div id="main-search-container">
+                <!-- Include search component directly from search-component.html -->
+                <div id="search-component-include"></div>
+                <script>
+                    fetch('components/search-section/search-component.html')
+                        .then(response => response.text())
+                        .then(html => {
+                            document.getElementById('search-component-include').innerHTML = html;
+                            console.log('✅ Main search component HTML loaded');
+                            
+                            // After HTML is loaded, ensure the JS is loaded and initialize
+                            if (typeof initializeSearchComponent === 'function') {
+                                initializeSearchComponent('I miei documenti', 'Gestisci e monitora le tue dispense');
+                                console.log('✅ Search component initialized');
+                            } else {
+                                // If function not available yet, wait for script to load
+                                console.log('⏳ Waiting for search component JS to load...');
+                                const checkAndInit = () => {
+                                    if (typeof initializeSearchComponent === 'function') {
+                                        initializeSearchComponent('I miei documenti', 'Gestisci e monitora le tue dispense');
+                                        console.log('✅ Search component initialized (delayed)');
+                                    } else {
+                                        setTimeout(checkAndInit, 100);
+                                    }
+                                };
+                                checkAndInit();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('❌ Error loading search component HTML:', error);
+                        });
+                </script>
+            </div>
+        </div>
+
+
+
+        <!-- Professional Sales Statistics Dashboard -->
+        <div class="stats-dashboard" id="statsDashboard" style="display: none;">
+            <!-- Stats Header with Overview Cards -->
+            <div class="stats-header">
+                <div class="stats-title-section">
+                    <h1 class="stats-main-title">Dashboard Venditore</h1>
+                    <p class="stats-subtitle">Analisi completa della performance del tuo marketplace di documenti</p>
+                </div>
+                
+                <!-- Quick Stats Overview Cards -->
+                <div class="stats-overview-grid">
+                    <div class="stats-card revenue-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">€2,847</div>
+                                <div class="stats-label">Ricavi</div>
+                                <div class="stats-change positive">+12.5%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card sales-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">shopping_cart</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">156</div>
+                                <div class="stats-label">Vendite Totali</div>
+                                <div class="stats-change positive">+8.2%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card downloads-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">download</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">2,341</div>
+                                <div class="stats-label">Download</div>
+                                <div class="stats-change positive">+15.7%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card views-card">
+                        <div class="stats-card-inner">
+                            <div class="stats-card-icon">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <div class="stats-value">12,459</div>
+                                <div class="stats-label">Visualizzazioni Profilo</div>
+                                <div class="stats-change negative">-3.1%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Charts Section -->
+            <div class="stats-main-profile-content">
+                <!-- Dual Charts Container -->
+                <div class="dual-charts-container">
+                    <!-- Primary Chart with Dropdown (Left Side) -->
+                    <div class="chart-section primary-chart left-chart">
+                        <div class="chart-header">
+                            <div class="chart-title-group">
+                                <h3 class="chart-title">Analisi delle Performance</h3>
+                                <p class="chart-description">Monitora i tuoi indicatori chiave nel tempo</p>
+                            </div>
+                            <div class="chart-controls">
+                                <div class="chart-time-filters">
+                                    <button class="time-filter-btn active" data-period="7d" onclick="selectTimePeriod(this, '7d')">7D</button>
+                                    <button class="time-filter-btn" data-period="30d" onclick="selectTimePeriod(this, '30d')">30D</button>
+                                    <button class="time-filter-btn" data-period="90d" onclick="selectTimePeriod(this, '90d')">90D</button>
+                                    <button class="time-filter-btn" data-period="1y" onclick="selectTimePeriod(this, '1y')">1Y</button>
+                                </div>
+                                <div class="chart-dropdown-container">
+                                    <button class="chart-dropdown-btn" id="chartDropdownBtn" onclick="toggleDropdown()">
+                                        <span class="dropdown-text">Ricavi</span>
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </button>
+                                    <div class="chart-dropdown-menu" id="chartDropdownMenu">
+                                        <div class="chart-dropdown-option active" data-chart="revenue" onclick="selectChartType(this, 'revenue', 'Ricavi')">
+                                            <span class="material-symbols-outlined">payments</span>
+                                            <span>Ricavi</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="sales" onclick="selectChartType(this, 'sales', 'Vendite')">
+                                            <span class="material-symbols-outlined">shopping_cart</span>
+                                            <span>Vendite</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="downloads" onclick="selectChartType(this, 'downloads', 'Download')">
+                                            <span class="material-symbols-outlined">download</span>
+                                            <span>Download</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="views" onclick="selectChartType(this, 'views', 'Visualizzazioni')">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            <span>Visualizzazioni</span>
+                                        </div>
+                                        <div class="chart-dropdown-option" data-chart="conversion" onclick="selectChartType(this, 'conversion', 'Tasso di Conversione')">
+                                            <span class="material-symbols-outlined">trending_up</span>
+                                            <span>Tasso di Conversione</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-placeholder" id="mainChart">
+                                <!-- Dynamic chart will be generated here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Types Histogram (Right Side) -->
+                    <div class="chart-section primary-chart right-chart">
+                        <div class="chart-header">
+                            <div class="chart-title-group">
+                                <h3 class="chart-title">Vendite per Tipo di Documento</h3>
+                                <p class="chart-description">Distribuzione delle vendite per categoria</p>
+                            </div>
+                            <div class="chart-controls">
+                                <div class="chart-time-filters">
+                                    <button class="time-filter-btn active" data-period="7d">7D</button>
+                                    <button class="time-filter-btn" data-period="30d">30D</button>
+                                    <button class="time-filter-btn" data-period="90d">90D</button>
+                                    <button class="time-filter-btn" data-period="1y">1Y</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-placeholder" id="histogramChart">
+                                <!-- Dynamic histogram will be generated here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Analytics Grid -->
+                <div class="secondary-charts-grid">
+                    <!-- Top Documents Performance -->
+                    <div class="chart-section secondary-chart">
+                        <div class="chart-header">
+                                                    <h4 class="chart-title">Documenti con Migliori Performance</h4>
+                        <div class="documents-time-filter">
+                            <button class="documents-period-btn" id="documentsPeriodBtn">
+                                <span class="period-text">Ultimi 30 giorni</span>
+                                <span class="material-symbols-outlined period-arrow">expand_more</span>
+                            </button>
+                                <div class="documents-period-dropdown" id="documentsPeriodDropdown">
+                                    <div class="period-option" data-period="7d">Ultimi 7 giorni</div>
+                                    <div class="period-option active" data-period="30d">Ultimi 30 giorni</div>
+                                    <div class="period-option" data-period="90d">Ultimi 90 giorni</div>
+                                    <div class="period-option" data-period="1y">Ultimo anno</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="documents-performance-table">
+                                <div class="performance-table-header">
+                                    <div class="table-col-rank">#</div>
+                                    <div class="table-col-document">Documento</div>
+                                    <div class="table-col-revenue">Ricavi</div>
+                                    <div class="table-col-downloads">Download</div>
+                                </div>
+                                
+                                <div class="performance-table-body">
+                                    <div class="performance-row" data-rank="1">
+                                        <div class="rank-badge rank-1">1</div>
+                                        <div class="document-cell">
+                                            <div class="document-profile-title">Analisi Matematica I</div>
+                                            <div class="document-category">Matematica • Premium</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€892</div>
+                                            <div class="revenue-trend positive">+12%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">245</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 85%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="2">
+                                        <div class="rank-badge rank-2">2</div>
+                                        <div class="document-cell">
+                                            <div class="document-profile-title">Fisica Generale</div>
+                                            <div class="document-category">Fisica • Standard</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€673</div>
+                                            <div class="revenue-trend positive">+8%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">198</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 70%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="3">
+                                        <div class="rank-badge rank-3">3</div>
+                                        <div class="document-cell">
+                                            <div class="document-profile-title">Programmazione C++</div>
+                                            <div class="document-category">Informatica • Premium</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€524</div>
+                                            <div class="revenue-trend positive">+15%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">156</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 58%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="4">
+                                        <div class="rank-badge">4</div>
+                                        <div class="document-cell">
+                                            <div class="document-profile-title">Database Design</div>
+                                            <div class="document-category">Informatica • Standard</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€445</div>
+                                            <div class="revenue-trend negative">-3%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">134</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 48%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="performance-row" data-rank="5">
+                                        <div class="rank-badge">5</div>
+                                        <div class="document-cell">
+                                            <div class="document-profile-title">Linear Algebra</div>
+                                            <div class="document-category">Matematica • Standard</div>
+                                        </div>
+                                        <div class="revenue-cell">
+                                            <div class="revenue-amount">€312</div>
+                                            <div class="revenue-trend positive">+5%</div>
+                                        </div>
+                                        <div class="downloads-cell">
+                                            <div class="downloads-count">98</div>
+                                            <div class="downloads-bar">
+                                                <div class="downloads-fill" style="width: 32%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="chart-section secondary-chart">
+                        <div class="chart-header">
+                            <h4 class="chart-title">Attività Recenti</h4>
+                        </div>
+                        <div class="chart-container">
+                            <div class="activity-timeline">
+                                                                    <div class="activity-item">
+                                        <div class="activity-icon purchase">
+                                            <span class="material-symbols-outlined">shopping_cart</span>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-text">Nuovo acquisto: Analisi Matematica I</div>
+                                            <div class="activity-time">2 ore fa</div>
+                                        </div>
+                                        <div class="activity-amount">+€15</div>
+                                    </div>
+                                                                    <div class="activity-item">
+                                        <div class="activity-icon download">
+                                            <span class="material-symbols-outlined">download</span>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-text">Documento scaricato: Fisica Generale</div>
+                                            <div class="activity-time">4 ore fa</div>
+                                        </div>
+                                    </div>
+                                                                    <div class="activity-item">
+                                        <div class="activity-icon review">
+                                            <span class="material-symbols-outlined">star</span>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-text">Nuova recensione 5 stelle ricevuta</div>
+                                            <div class="activity-time">6 ore fa</div>
+                                        </div>
+                                    </div>
+                                                                    <div class="activity-item">
+                                        <div class="activity-icon purchase">
+                                            <span class="material-symbols-outlined">shopping_cart</span>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-text">Nuovo acquisto: Database Design</div>
+                                            <div class="activity-time">8 ore fa</div>
+                                        </div>
+                                        <div class="activity-amount">+€12</div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="chart-section secondary-chart reviews-section">
+                    <!-- Section Header -->
+                    <div class="reviews-header">
+                        <div class="reviews-header-content">
+                            <h4 class="reviews-title">Recensioni e Valutazioni</h4>
+                            <div class="reviews-overview">
+                                <div class="reviews-score">
+                                    <div class="score-number">4.8</div>
+                                    <div class="score-stars">
+                                        <span class="material-symbols-outlined star filled">star</span>
+                                        <span class="material-symbols-outlined star filled">star</span>
+                                        <span class="material-symbols-outlined star filled">star</span>
+                                        <span class="material-symbols-outlined star filled">star</span>
+                                        <span class="material-symbols-outlined star filled">star</span>
+                                    </div>
+                                    <div class="score-count">324 recensioni totali</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Content -->
+                    <div class="reviews-main-profile-content">
+                        
+                        <!-- Left Column: Rating Distribution -->
+                        <div class="reviews-left-column">
+                            <div class="rating-distribution-card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Distribuzione Valutazioni</h5>
+                                </div>
+                                <div class="rating-bars-container">
+                                    <div class="rating-bar-item">
+                                        <div class="rating-label">
+                                            <span class="stars-text">5</span>
+                                            <span class="material-symbols-outlined star-icon">star</span>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div class="rating-fill" style="width: 78%" data-percentage="78"></div>
+                                        </div>
+                                        <div class="rating-count">252</div>
+                                    </div>
+                                    
+                                    <div class="rating-bar-item">
+                                        <div class="rating-label">
+                                            <span class="stars-text">4</span>
+                                            <span class="material-symbols-outlined star-icon">star</span>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div class="rating-fill" style="width: 15%" data-percentage="15"></div>
+                                        </div>
+                                        <div class="rating-count">49</div>
+                                    </div>
+                                    
+                                    <div class="rating-bar-item">
+                                        <div class="rating-label">
+                                            <span class="stars-text">3</span>
+                                            <span class="material-symbols-outlined star-icon">star</span>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div class="rating-fill" style="width: 4%" data-percentage="4"></div>
+                                        </div>
+                                        <div class="rating-count">13</div>
+                                    </div>
+                                    
+                                    <div class="rating-bar-item">
+                                        <div class="rating-label">
+                                            <span class="stars-text">2</span>
+                                            <span class="material-symbols-outlined star-icon">star</span>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div class="rating-fill" style="width: 2%" data-percentage="2"></div>
+                                        </div>
+                                        <div class="rating-count">7</div>
+                                    </div>
+                                    
+                                    <div class="rating-bar-item">
+                                        <div class="rating-label">
+                                            <span class="stars-text">1</span>
+                                            <span class="material-symbols-outlined star-icon">star</span>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div class="rating-fill" style="width: 1%" data-percentage="1"></div>
+                                        </div>
+                                        <div class="rating-count">3</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Recent Reviews -->
+                        <div class="reviews-right-column">
+                            <div class="recent-reviews-card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Recensioni Recenti</h5>
+                                    <div class="reviews-filter">
+                                        <div class="filter-dropdown">
+                                            <button class="dropdown-trigger" id="reviewsFilterDropdown">
+                                                <span class="dropdown-label">Tutte le recensioni</span>
+                                                <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+                                            </button>
+                                            <div class="dropdown-menu" id="reviewsFilterMenu">
+                                                <div class="dropdown-item active" data-filter="all">
+                                                    <span class="material-symbols-outlined">list</span>
+                                                    <span>Tutte le recensioni</span>
+                                                    <span class="item-count">324</span>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="5-stars">
+                                                    <span class="material-symbols-outlined">star</span>
+                                                    <span>5 stelle</span>
+                                                    <span class="item-count">252</span>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="4-stars">
+                                                    <span class="material-symbols-outlined">star_half</span>
+                                                    <span>4 stelle</span>
+                                                    <span class="item-count">49</span>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="critical">
+                                                    <span class="material-symbols-outlined">warning</span>
+                                                    <span>Recensioni critiche</span>
+                                                    <span class="item-count">23</span>
+                                                </div>
+                                                <div class="dropdown-divider"></div>
+                                                <div class="dropdown-item" data-filter="recent">
+                                                    <span class="material-symbols-outlined">schedule</span>
+                                                    <span>Più recenti</span>
+                                                </div>
+                                                <div class="dropdown-item" data-filter="oldest">
+                                                    <span class="material-symbols-outlined">history</span>
+                                                    <span>Meno recenti</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="reviews-list-container">
+                                    <div class="review-card">
+                                        <div class="review-meta">
+                                            <div class="reviewer-avatar">
+                                                <span class="avatar-text">MR</span>
+                                            </div>
+                                            <div class="reviewer-info">
+                                                <div class="reviewer-name">Marco Rossi</div>
+                                                <div class="review-date">3 giorni fa</div>
+                                            </div>
+                                            <div class="review-rating">
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-content">
+                                            <div class="review-document-tag">Analisi Matematica I</div>
+                                            <p class="review-text">Materiale eccellente, spiegazioni chiare e complete. Molto utile per la preparazione dell'esame. Consiglio vivamente!</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="review-card">
+                                        <div class="review-meta">
+                                            <div class="reviewer-avatar">
+                                                <span class="avatar-text">GS</span>
+                                            </div>
+                                            <div class="reviewer-info">
+                                                <div class="reviewer-name">Giulia Santini</div>
+                                                <div class="review-date">1 settimana fa</div>
+                                            </div>
+                                            <div class="review-rating">
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star">star</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-content">
+                                            <div class="review-document-tag">Fisica Generale</div>
+                                            <p class="review-text">Buon materiale di studio, ben organizzato e facile da seguire. Alcune parti potrebbero essere più approfondite.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="review-card">
+                                        <div class="review-meta">
+                                            <div class="reviewer-avatar">
+                                                <span class="avatar-text">AM</span>
+                                            </div>
+                                            <div class="reviewer-info">
+                                                <div class="reviewer-name">Alessandro Marini</div>
+                                                <div class="review-date">2 settimane fa</div>
+                                            </div>
+                                            <div class="review-rating">
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-content">
+                                            <div class="review-document-tag">Programmazione C++</div>
+                                            <p class="review-text">Fantastico! Gli esempi di codice sono perfetti e le spiegazioni sono molto dettagliate. Consiglio assolutamente!</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="review-card">
+                                        <div class="review-meta">
+                                            <div class="reviewer-avatar">
+                                                <span class="avatar-text">FL</span>
+                                            </div>
+                                            <div class="reviewer-info">
+                                                <div class="reviewer-name">Francesca Leone</div>
+                                                <div class="review-date">3 settimane fa</div>
+                                            </div>
+                                            <div class="review-rating">
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                                <span class="material-symbols-outlined star filled">star</span>
+                                            </div>
+                                        </div>
+                                        <div class="review-content">
+                                            <div class="review-document-tag">Database Design</div>
+                                            <p class="review-text">Materiale ben strutturato e comprensibile. Mi ha aiutato moltissimo nella progettazione del mio database.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="reviews-list-footer">
+                                    <button class="load-more-btn">
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                        <span>Mostra altre recensioni</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <!-- Professional Settings Dashboard -->
+        <div class="settings-dashboard" id="settingsDashboard" style="display: none;">
+            <!-- Settings Header -->
+            <div class="settings-header">
+                <div class="settings-title-section">
+                    <h1 class="settings-main-title">Impostazioni Account</h1>
+                    <p class="settings-subtitle">Gestisci le tue preferenze, privacy e impostazioni del tuo profilo</p>
+                </div>
+            </div>
+
+            <!-- Settings Navigation -->
+            <div class="settings-nav-container">
+                <nav class="settings-nav">
+                    <button class="settings-nav-item active" data-section="account" onclick="switchSettingsSection('account')">
+                        <span class="settings-nav-icon material-symbols-outlined">person</span>
+                        <span class="settings-nav-text">Account</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="privacySecurity" onclick="switchSettingsSection('privacySecurity')">
+                        <span class="settings-nav-icon material-symbols-outlined">security</span>
+                        <span class="settings-nav-text">Privacy & Sicurezza</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="notifications" onclick="switchSettingsSection('notifications')">
+                        <span class="settings-nav-icon material-symbols-outlined">notifications</span>
+                        <span class="settings-nav-text">Notifiche</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="preferences" onclick="switchSettingsSection('preferences')">
+                        <span class="settings-nav-icon material-symbols-outlined">tune</span>
+                        <span class="settings-nav-text">Preferenze</span>
+                    </button>
+                    <button class="settings-nav-item" data-section="billing" onclick="switchSettingsSection('billing')">
+                        <span class="settings-nav-icon material-symbols-outlined">payment</span>
+                        <span class="settings-nav-text">Fatturazione</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Settings Content Container -->
+            <div class="settings-content">
+                <!-- Account Settings Section -->
+                <div class="settings-section active" id="accountSection">
+                    <div class="settings-cards-grid">
+                        <!-- Profile Information Card -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Informazioni Profilo</h3>
+                                <p class="settings-card-description">Aggiorna i tuoi dati personali</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Username</label>
+                                    <div class="settings-input-group">
+                                        <input type="text" class="settings-input settings-input-readonly" id="nicknameInput" placeholder="Il tuo username" readonly>
+                                        <span class="settings-readonly-icon material-symbols-outlined">lock</span>
+                                    </div>
+                                    <p class="settings-help-text">L'username non può essere modificato</p>
+                                </div>
+                                
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Email</label>
+                                    <div class="settings-input-group">
+                                        <input type="email" class="settings-input settings-input-readonly" id="emailInput" placeholder="la.tua.email@esempio.com" readonly>
+                                        <span class="settings-readonly-icon material-symbols-outlined">lock</span>
+                                    </div>
+                                    <p class="settings-help-text">L'email non può essere modificata</p>
+                                </div>
+                                
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Bio</label>
+                                    <div class="settings-input-group">
+                                        <textarea class="settings-input" id="bioInput" placeholder="Racconta qualcosa di te..." rows="3" maxlength="500"></textarea>
+                                    </div>
+                                    <p class="settings-help-text"><span id="bioCharCount">0</span>/500 caratteri</p>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Canale</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-custom-dropdown" data-field="canale">
+                                            <button class="settings-dropdown-button" type="button">
+                                                <span class="dropdown-text">Seleziona il tuo canale</span>
+                                                <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <div class="settings-dropdown-content">
+                                                <div class="dropdown-options">
+                                                    <div class="dropdown-option" data-value="">Seleziona il tuo canale</div>
+                                                    <div class="dropdown-option" data-value="A">A</div>
+                                                    <div class="dropdown-option" data-value="B">B</div>
+                                                    <div class="dropdown-option" data-value="C">C</div>
+                                                    <div class="dropdown-option" data-value="D">D</div>
+                                                    <div class="dropdown-option" data-value="E">E</div>
+                                                    <div class="dropdown-option" data-value="F">F</div>
+                                                    <div class="dropdown-option" data-value="Unico">Unico</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Facoltà</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-custom-dropdown" data-field="course">
+                                            <button class="settings-dropdown-button" type="button">
+                                                <span class="dropdown-text">Seleziona il tuo corso di laurea</span>
+                                                <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <div class="settings-dropdown-content">
+                                                <div class="dropdown-options">
+                                                    <!-- Options will be populated dynamically from /hierarchy endpoint -->
+                                                    <div class="dropdown-option" data-value="">Seleziona la tua facoltà</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Anno di inizio corso</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-custom-dropdown" data-field="startYear">
+                                            <button class="settings-dropdown-button" type="button">
+                                                <span class="dropdown-text">Seleziona l'anno di inizio</span>
+                                                <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                                                </svg>
+                                            </button>
+                                            <div class="settings-dropdown-content">
+                                                <div class="dropdown-options">
+                                                    <div class="dropdown-option" data-value="">Seleziona l'anno di inizio</div>
+                                                    <div class="dropdown-option" data-value="2024">2024</div>
+                                                    <div class="dropdown-option" data-value="2023">2023</div>
+                                                    <div class="dropdown-option" data-value="2022">2022</div>
+                                                    <div class="dropdown-option" data-value="2021">2021</div>
+                                                    <div class="dropdown-option" data-value="2020">2020</div>
+                                                    <div class="dropdown-option" data-value="2019">2019</div>
+                                                    <div class="dropdown-option" data-value="2018">2018</div>
+                                                    <div class="dropdown-option" data-value="2017">2017</div>
+                                                    <div class="dropdown-option" data-value="2016">2016</div>
+                                                    <div class="dropdown-option" data-value="2015">2015</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Università</label>
+                                    <div class="settings-input-group">
+                                        <input type="text" class="settings-input settings-input-readonly" id="universityInput" placeholder="La tua università" readonly>
+                                        <span class="settings-readonly-icon material-symbols-outlined">lock</span>
+                                    </div>
+                                    <p class="settings-help-text">L'università non può essere modificata</p>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="saveProfileSettings()">
+                                    <span class="material-symbols-outlined">save</span>
+                                    Salva Modifiche
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy & Security Section -->
+                <div class="settings-section" id="privacySecuritySection">
+                    <div class="settings-cards-grid">
+                        <!-- Privacy Cards (from privacySection) -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Visibilità Profilo</h3>
+                                <p class="settings-card-description">Gestisci chi può vedere il tuo profilo</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Profilo Pubblico</h4>
+                                            <p>Permetti a tutti di vedere il tuo profilo</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="publicProfile" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Mostra Email</h4>
+                                            <p>Rendi visibile la tua email agli altri utenti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="showEmail">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Mostra Statistiche</h4>
+                                            <p>Permetti agli altri di vedere le tue statistiche di vendita</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="showStats" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Contenuti e Documenti</h3>
+                                <p class="settings-card-description">Controlla la visibilità dei tuoi contenuti</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Documenti Privati di Default</h4>
+                                            <p>I nuovi documenti saranno privati finché non li rendi pubblici</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="privateByDefault">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Consenti Download</h4>
+                                            <p>Permetti agli utenti di scaricare i tuoi documenti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="allowDownloads" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Security Cards (from securitySection) -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Password</h3>
+                                <p class="settings-card-description">Aggiorna la tua password per mantenere sicuro l'account</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Password Attuale</label>
+                                    <input type="password" class="settings-input" id="currentPassword">
+                                </div>
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Nuova Password</label>
+                                    <input type="password" class="settings-input" id="newPassword">
+                                </div>
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Conferma Nuova Password</label>
+                                    <input type="password" class="settings-input" id="confirmPassword">
+                                </div>
+                                <div class="password-strength">
+                                    <div class="password-strength-bar">
+                                        <div class="password-strength-fill"></div>
+                                    </div>
+                                    <p class="password-strength-text">Forza password: <span id="passwordStrengthText">-</span></p>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="changePassword()">
+                                    <span class="material-symbols-outlined">lock</span>
+                                    Aggiorna Password
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Autenticazione a Due Fattori</h3>
+                                <p class="settings-card-description">Aggiungi un livello extra di sicurezza</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="two-factor-status">
+                                    <div class="security-status disabled">
+                                        <span class="material-symbols-outlined">security</span>
+                                        <div>
+                                            <h4>2FA Disabilitata</h4>
+                                            <p>La tua autenticazione a due fattori è attualmente disabilitata</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary" onclick="enable2FA()">
+                                    <span class="material-symbols-outlined">verified_user</span>
+                                    Abilita 2FA
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Sessioni Attive</h3>
+                                <p class="settings-card-description">Monitora e gestisci i tuoi accessi</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="active-sessions">
+                                    <div class="session-item current">
+                                        <div class="session-info">
+                                            <span class="material-symbols-outlined">computer</span>
+                                            <div>
+                                                <h4>Sessione Corrente</h4>
+                                                <p>Chrome su MacOS • Ultimo accesso: Ora</p>
+                                                <p class="session-location">Milano, Italia</p>
+                                            </div>
+                                        </div>
+                                        <div class="session-status current-badge">Corrente</div>
+                                    </div>
+                                    <div class="session-item">
+                                        <div class="session-info">
+                                            <span class="material-symbols-outlined">smartphone</span>
+                                            <div>
+                                                <h4>iPhone</h4>
+                                                <p>Safari su iOS • Ultimo accesso: 2 ore fa</p>
+                                                <p class="session-location">Milano, Italia</p>
+                                            </div>
+                                        </div>
+                                        <button class="settings-btn-icon session-revoke" title="Termina sessione">
+                                            <span class="material-symbols-outlined">logout</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-outline" onclick="revokeAllSessions()">
+                                    <span class="material-symbols-outlined">logout</span>
+                                    Termina Tutte le Altre Sessioni
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Delete Account Card (last, renamed) -->
+                        <div class="settings-card delete-account">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Gestione Account</h3>
+                                <p class="settings-card-description">Elimina definitivamente il tuo account e tutti i dati associati</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="danger-actions">
+                                    <div class="danger-action">
+                                        <div class="danger-action-info">
+                                            <h4>Elimina Account</h4>
+                                            <p>Questa azione è irreversibile. Procedi solo se sei sicuro.</p>
+                                        </div>
+                                        <button class="settings-btn settings-btn-danger" onclick="deleteAccount()">
+                                            <span class="material-symbols-outlined">delete_forever</span>
+                                            Elimina Account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="settings-section" id="notificationsSection">
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Notifiche Email</h3>
+                                <p class="settings-card-description">Gestisci le notifiche via email</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Nuovi Acquisti</h4>
+                                            <p>Ricevi email quando qualcuno acquista i tuoi documenti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="emailPurchases" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Nuove Recensioni</h4>
+                                            <p>Ricevi email quando ricevi nuove recensioni</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="emailReviews" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Newsletter</h4>
+                                            <p>Ricevi aggiornamenti su nuove funzionalità e novità</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="emailNewsletter">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Notifiche Push</h3>
+                                <p class="settings-card-description">Gestisci le notifiche del browser</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Abilita Notifiche Push</h4>
+                                            <p>Ricevi notifiche istantanee nel browser</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="pushNotifications">
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Eventi Importanti</h4>
+                                            <p>Solo per vendite, recensioni importanti e aggiornamenti critici</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="importantOnly" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div class="settings-section" id="preferencesSection">
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Interfaccia</h3>
+                                <p class="settings-card-description">Personalizza l'aspetto della piattaforma</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Tema</label>
+                                    <select class="settings-select" id="themeSelect">
+                                        <option value="light">Chiaro</option>
+                                        <option value="dark">Scuro</option>
+                                        <option value="auto">Automatico</option>
+                                    </select>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Lingua</label>
+                                    <select class="settings-select" id="languageSelect">
+                                        <option value="it">Italiano</option>
+                                        <option value="en">English</option>
+                                        <option value="es">Español</option>
+                                        <option value="fr">Français</option>
+                                    </select>
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Formato Data</label>
+                                    <select class="settings-select" id="dateFormatSelect">
+                                        <option value="dd/mm/yyyy">GG/MM/AAAA</option>
+                                        <option value="mm/dd/yyyy">MM/GG/AAAA</option>
+                                        <option value="yyyy-mm-dd">AAAA-MM-GG</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Comportamento</h3>
+                                <p class="settings-card-description">Configura il comportamento della piattaforma</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-toggle-group">
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Auto-salvataggio</h4>
+                                            <p>Salva automaticamente le modifiche mentre scrivi</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="autoSave" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-toggle-item">
+                                        <div class="settings-toggle-info">
+                                            <h4>Conferme Eliminazione</h4>
+                                            <p>Chiedi conferma prima di eliminare contenuti</p>
+                                        </div>
+                                        <label class="settings-toggle">
+                                            <input type="checkbox" id="confirmDelete" checked>
+                                            <span class="settings-toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Section -->
+                <div class="settings-section" id="billingSection">
+                    <div class="settings-cards-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Piano Attuale</h3>
+                                <p class="settings-card-description">Il tuo piano di abbonamento attuale</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="current-plan">
+                                    <div class="plan-info">
+                                        <div class="plan-badge premium">Premium</div>
+                                        <h4 class="plan-name">Piano Premium</h4>
+                                        <p class="plan-description">Accesso completo a tutte le funzionalità</p>
+                                        <div class="plan-price">€9.99/mese</div>
+                                    </div>
+                                    <div class="plan-actions">
+                                        <button class="settings-btn settings-btn-outline">Cambia Piano</button>
+                                        <button class="settings-btn settings-btn-secondary">Gestisci Abbonamento</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Metodi di Pagamento</h3>
+                                <p class="settings-card-description">Gestisci le tue carte e metodi di pagamento</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="payment-methods">
+                                    <div class="payment-method">
+                                        <div class="payment-method-info">
+                                            <span class="material-symbols-outlined">credit_card</span>
+                                            <div>
+                                                <h4>•••• •••• •••• 1234</h4>
+                                                <p>Visa • Scade 12/25</p>
+                                            </div>
+                                        </div>
+                                        <div class="payment-method-actions">
+                                            <button class="settings-btn-icon" title="Modifica">
+                                                <span class="material-symbols-outlined">edit</span>
+                                            </button>
+                                            <button class="settings-btn-icon" title="Elimina">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="settings-btn settings-btn-outline add-payment-method">
+                                    <span class="material-symbols-outlined">add</span>
+                                    Aggiungi Metodo di Pagamento
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Fatturazione</h3>
+                                <p class="settings-card-description">Gestisci le informazioni di fatturazione</p>
+                            </div>
+                            <div class="settings-card-content">
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Intestatario Fattura</label>
+                                    <input type="text" class="settings-input" placeholder="Nome e Cognome o Ragione Sociale">
+                                </div>
+                                
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Codice Fiscale / P.IVA</label>
+                                    <input type="text" class="settings-input" placeholder="Codice Fiscale o Partita IVA">
+                                </div>
+
+                                <div class="settings-form-group">
+                                    <label class="settings-label">Indirizzo</label>
+                                    <textarea class="settings-textarea" placeholder="Via, Città, CAP, Provincia"></textarea>
+                                </div>
+                            </div>
+                            <div class="settings-card-actions">
+                                <button class="settings-btn settings-btn-primary">
+                                    <span class="material-symbols-outlined">save</span>
+                                    Salva Info Fatturazione
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+    <!-- Professional Performance & Caching System -->
+    <script src="js/config.js" defer></script>
+    <script src="js/performance-cache.js" defer></script>
+    <script src="components/search-section/search-component.js" defer></script>
+    <script src="js/profile.js" defer></script>
+
+<!-- Initialize Profile Page -->
+<script>
+    // Check authentication before initializing page
+    function checkAuthenticationAndRedirect() {
+        if (!authToken) {
+            console.log('No auth token found, redirecting to login...');
+            // Save current page URL for redirect after login
+            const currentUrl = window.location.pathname;
+            window.location.href = `index.html?returnUrl=${encodeURIComponent(currentUrl)}`;
+            return false;
+        }
+        return true;
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Profile Page Loaded');
+        
+        // Check authentication first
+        if (!checkAuthenticationAndRedirect()) {
+            return; // Stop initialization if not authenticated
+        }
+        
+        // Wait a bit for all scripts to load, then initialize tab switching
+        setTimeout(() => {
+            if (typeof initializeTabSwitching === 'function') {
+                initializeTabSwitching();
+                console.log('✅ Tab switching initialized');
+            } else {
+                console.warn('⚠️ initializeTabSwitching is not defined - retrying...');
+                // Retry after another delay
+                setTimeout(() => {
+                    if (typeof initializeTabSwitching === 'function') {
+                        initializeTabSwitching();
+                        console.log('✅ Tab switching initialized (retry)');
+                    } else {
+                        console.error('❌ initializeTabSwitching still not defined');
+                    }
+                }, 1000);
+            }
+        }, 100);
+    });
+    
+    // Add error handling for script loading
+    window.addEventListener('error', function(e) {
+        console.error('❌ Script error:', e.error);
+        console.error('Error details:', e.filename, e.lineno, e.colno);
+    });
+</script>
+</html>

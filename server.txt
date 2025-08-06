@@ -1,0 +1,10 @@
+cd frontend
+python3 -m http.server
+
+git add .
+git commit -m "Profile page update"
+git push
+
+# Update backend:
+git fetch xfrah
+git checkout xfrah/master -- $(git ls-tree -r --name-only xfrah/master | grep -v '^frontend/')

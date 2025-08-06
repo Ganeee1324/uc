@@ -1,0 +1,668 @@
+/* Professional Full-Width Vendor Banner */
+.vendor-banner-section {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}
+
+.vendor-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
+    position: relative;
+    padding: 3rem 0;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 320px;
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.vendor-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+        linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+    pointer-events: none;
+}
+
+.banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem 2rem;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+}
+
+.vendor-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+}
+
+.vendor-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 0 4px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.vendor-avatar:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 
+        0 32px 64px rgba(0, 0, 0, 0.4),
+        0 0 0 4px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.vendor-avatar .loading-text {
+    font-size: 16px;
+    font-weight: 500;
+    opacity: 0.8;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.vendor-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.vendor-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.vendor-name {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+.save-vendor-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: calc(72px + 1rem);
+    right: 2rem;
+    z-index: 10;
+    white-space: nowrap;
+    flex-shrink: 0;
+    opacity: 1;
+    visibility: visible;
+}
+
+.save-vendor-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.save-vendor-btn .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+.vendor-field {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.vendor-field-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    font-weight: 400;
+}
+
+.vendor-rating-container {
+    margin-top: 0.5rem;
+}
+
+.vendor-rating-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.vendor-rating-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Search section spacing adjustment */
+.search-section {
+    margin-top: 1rem;
+}
+
+.vendor-details {
+    flex: 1;
+    text-align: center;
+    width: 100%;
+}
+
+.vendor-name {
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 20px 0;
+    line-height: 1.1;
+    text-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+    letter-spacing: -0.02em;
+}
+
+.vendor-stats {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    font-weight: 600;
+    text-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.01em;
+}
+
+/* Search Section - Directly after vendor banner */
+.search-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: auto;
+    margin-top: 0;
+    padding: var(--space-6) var(--space-12) var(--space-12) var(--space-12);
+    text-align: center;
+    position: relative;
+    background: #ffffff;
+}
+
+/* When there are results, keep title and subtitle centered but adjust layout */
+.search-section.has-results {
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    min-height: auto; /* Allow the section to shrink-to-fit content, fixing the large gap */
+}
+
+/* Vendor Banner Rating Styles - Specific to banner only */
+.vendor-rating-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+.vendor-banner-rating-stars {
+    display: flex;
+    gap: 0.1rem;
+}
+
+.vendor-banner-rating-star {
+    color: #fbbf24;
+    font-size: 1rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.vendor-banner-rating-star.empty {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.vendor-banner-rating-star.filled {
+    color: #fbbf24;
+}
+
+.vendor-banner-rating-star.partial {
+    position: relative;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.vendor-banner-rating-star.partial::before {
+    content: '★';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--fill-percentage);
+    overflow: hidden;
+    color: #fbbf24;
+    z-index: 1;
+}
+
+
+/* Retry Button Styles */
+.retry-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    margin: 1rem auto;
+    width: fit-content;
+}
+
+.retry-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.retry-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.retry-button .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+.retry-button .material-symbols-outlined.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments for status messages */
+@media (max-width: 768px) {
+    .status-message {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        transform: translateY(-100%);
+        font-size: 0.9rem;
+        padding: 0.875rem 1.25rem;
+    }
+    
+    .status-message.show {
+        transform: translateY(0);
+    }
+    
+    .retry-button {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .status-message {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+        font-size: 0.85rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .retry-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .vendor-banner {
+        min-height: 280px;
+        padding: 2.5rem 0;
+    }
+    
+    .vendor-info {
+        gap: 2rem;
+        max-width: 800px;
+    }
+    
+    .vendor-name {
+        font-size: 1.75rem;
+    }
+    
+    .vendor-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+    
+    .save-vendor-btn {
+        top: calc(72px + 0.75rem);
+        right: 1.75rem;
+        padding: 0.7rem 1.4rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .vendor-banner {
+        min-height: 240px;
+        padding: 2rem 0;
+        align-items: flex-end;
+    }
+    
+    .banner-content {
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        align-items: flex-end;
+    }
+    
+    .vendor-info {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        max-width: 100%;
+    }
+    
+    .vendor-avatar {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        margin-bottom: 1rem;
+    }
+    
+    .vendor-details {
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .vendor-header {
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .vendor-name {
+        font-size: 1.5rem;
+        text-align: left;
+    }
+    
+    .vendor-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 2.25rem;
+    }
+    
+    .save-vendor-btn {
+        position: absolute;
+        top: calc(72px + 0.5rem);
+        right: 1.5rem;
+        margin-top: 0;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+@media (max-width: 480px) {
+    .vendor-banner {
+        min-height: 200px;
+        padding: 1.5rem 0;
+        align-items: flex-end;
+    }
+    
+    .banner-content {
+        padding: 0 1rem 1rem 1rem;
+        align-items: flex-end;
+    }
+    
+    .vendor-info {
+        max-width: 100%;
+    }
+    
+    .vendor-avatar {
+        margin-bottom: 0.75rem;
+    }
+    
+    .vendor-details {
+        width: 100%;
+    }
+    
+    .vendor-header {
+        gap: 0.5rem;
+    }
+    
+    .vendor-name {
+        font-size: 1.25rem;
+        text-align: left;
+        line-height: 1.2;
+    }
+    
+    .vendor-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .save-vendor-btn {
+        position: absolute;
+        top: calc(72px + 0.25rem);
+        right: 1rem;
+        margin-top: 0;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        width: auto;
+        min-width: fit-content;
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .vendor-field {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .vendor-banner {
+        min-height: 180px;
+        padding: 1.25rem 0;
+        align-items: flex-end;
+    }
+    
+    .banner-content {
+        padding: 0 0.75rem 0.75rem 0.75rem;
+        align-items: flex-end;
+    }
+    
+    .vendor-avatar {
+        margin-bottom: 0.5rem;
+    }
+    
+    .vendor-name {
+        font-size: 1.1rem;
+        line-height: 1.1;
+    }
+    
+    .vendor-avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 1.75rem;
+    }
+    
+    .save-vendor-btn {
+        position: absolute;
+        top: calc(72px + 0.25rem);
+        right: 0.75rem;
+        margin-top: 0;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+@media (max-width: 320px) {
+    .vendor-banner {
+        min-height: 160px;
+        padding: 1rem 0;
+        align-items: flex-end;
+    }
+    
+    .banner-content {
+        padding: 0 0.5rem 0.5rem 0.5rem;
+        align-items: flex-end;
+    }
+    
+    .vendor-avatar {
+        margin-bottom: 0.5rem;
+    }
+    
+    .vendor-name {
+        font-size: 1rem;
+    }
+    
+    .vendor-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .save-vendor-btn {
+        position: absolute;
+        top: calc(72px + 0.25rem);
+        right: 0.5rem;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.75rem;
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .vendor-banner {
+        min-height: 160px;
+        padding: 1.5rem 0;
+        align-items: flex-end;
+    }
+    
+    .banner-content {
+        padding: 0 1.5rem 1rem 1.5rem;
+        align-items: flex-end;
+    }
+    
+    .vendor-info {
+        gap: 1.5rem;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    
+    .vendor-details {
+        align-items: flex-start;
+    }
+    
+    .vendor-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .vendor-name {
+        font-size: 1.4rem;
+        text-align: left;
+    }
+    
+    .vendor-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .save-vendor-btn {
+        position: absolute;
+        top: calc(72px + 0.5rem);
+        right: 1rem;
+        margin-top: 0;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        opacity: 1;
+        visibility: visible;
+    }
+}

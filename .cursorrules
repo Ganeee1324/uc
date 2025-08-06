@@ -1,0 +1,11 @@
+Never go by memory. Make sure you read and analyze the code before thinking of making changes.
+
+Backend is present only for knowledge purposes on how it works. Never run app.py since we're making calls to an online server.
+
+Always think of cybersecurity before sending code. Always take in account all cybersecurity risks and make the most secure app to exist ever on planet earth.
+
+Commit to github automatically every change we make, especially after having made an important change. Make sure to explain extensively exactly what was added/changed/removed in this commit.
+
+Never change backend code. Only change frontend code.
+
+You can only and only change files in frontend folder. Never change ANY file outside frontend folder. If modifications are absolutely needed in files outside the frontend folder just explain what changes are needed and for what reason.

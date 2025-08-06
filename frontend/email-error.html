@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniclarity - Errore Verifica Email</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .error-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .error-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+
+        .error-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: shake 0.5s ease-out;
+        }
+
+        .error-icon .material-symbols-outlined {
+            font-size: 28px;
+            color: white;
+            font-weight: 600;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .error-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .error-details {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .error-reason {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .error-reason:last-child {
+            margin-bottom: 0;
+        }
+
+        .reason-icon {
+            width: 18px;
+            height: 18px;
+            color: #ef4444;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .reason-text {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .actions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .primary-button {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .primary-button:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .primary-button:active {
+            transform: translateY(0);
+        }
+
+        .secondary-button {
+            width: 100%;
+            padding: 12px 20px;
+            background: transparent;
+            color: #6b7280;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .secondary-button:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: #f8fafc;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .help-text a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        .logo-container {
+            margin-bottom: 32px;
+        }
+
+        .logo-container img {
+            height: 48px;
+            width: auto;
+            opacity: 0.8;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+
+            .error-card {
+                padding: 24px 20px;
+                border-radius: 12px;
+            }
+
+            .error-title {
+                font-size: 28px;
+            }
+
+            .error-subtitle {
+                font-size: 16px;
+            }
+
+            .error-icon {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 24px;
+            }
+
+            .error-icon .material-symbols-outlined {
+                font-size: 36px;
+            }
+
+            .actions-container {
+                gap: 16px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="error-container">
+        <div class="error-card">
+            <div class="logo-container">
+                <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
+            </div>
+
+            <div class="error-icon">
+                <span class="material-symbols-outlined">error</span>
+            </div>
+
+            <h1 class="error-title">Verifica Fallita</h1>
+            <p class="error-subtitle">
+                Non siamo riusciti a verificare il tuo indirizzo email. 
+                Il link potrebbe essere scaduto o non valido.
+            </p>
+
+            <div class="error-details">
+                <div class="error-reason">
+                    <span class="material-symbols-outlined reason-icon">schedule</span>
+                    <span class="reason-text">Il link di verifica potrebbe essere scaduto (valido per 24h)</span>
+                </div>
+                <div class="error-reason">
+                    <span class="material-symbols-outlined reason-icon">link_off</span>
+                    <span class="reason-text">Il link potrebbe essere stato già utilizzato</span>
+                </div>
+                <div class="error-reason">
+                    <span class="material-symbols-outlined reason-icon">warning</span>
+                    <span class="reason-text">L'URL potrebbe essere danneggiato o incompleto</span>
+                </div>
+            </div>
+
+            <div class="actions-container">
+                <button class="primary-button" id="resendBtn">
+                    <span class="material-symbols-outlined">refresh</span>
+                    <span class="btn-text">Invia Nuovo Link</span>
+                    <div class="loading-spinner"></div>
+                </button>
+                
+                <a href="index.html" class="secondary-button">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Torna al Login
+                </a>
+            </div>
+
+            <p class="help-text">
+                Continui ad avere problemi? 
+                <a href="mailto:support@uniclarity.com">Contatta il supporto tecnico</a>
+            </p>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script>
+        const API_BASE = window.APP_CONFIG?.API_BASE || 'https://symbia.it';
+        
+        // Get email from URL parameters or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email') || localStorage.getItem('pendingEmail');
+        
+        const resendBtn = document.getElementById('resendBtn');
+        const btnText = resendBtn.querySelector('.btn-text');
+        const spinner = resendBtn.querySelector('.loading-spinner');
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                resendBtn.disabled = true;
+                btnText.style.display = 'none';
+                spinner.style.display = 'block';
+            } else {
+                resendBtn.disabled = false;
+                btnText.style.display = 'block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showMessage(type, message) {
+            if (type === 'success') {
+                console.log(message);
+            } else {
+                console.error(message);
+            }
+        }
+
+        resendBtn.addEventListener('click', async () => {
+            if (!email) {
+                showMessage('error', 'Indirizzo email non trovato. Riprova dalla pagina di registrazione.');
+                return;
+            }
+
+            setLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/resend-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('success', 'Link di verifica inviato! Controlla la tua email.');
+                    btnText.textContent = 'Link Inviato ✓';
+                    setTimeout(() => {
+                        btnText.textContent = 'Invia Nuovo Link';
+                    }, 3000);
+                } else {
+                    showMessage('error', data.msg || 'Errore durante l\'invio del link di verifica.');
+                }
+            } catch (error) {
+                console.error('Resend verification error:', error);
+                showMessage('error', 'Errore di connessione. Riprova più tardi.');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // If no email parameter, hide resend button
+        if (!email) {
+            resendBtn.style.display = 'none';
+        }
+
+        // Debug mode: Auto-redirect disabled
+        // if (localStorage.getItem('authToken')) {
+        //     window.location.href = 'search.html';
+        // }
+    </script>
+</body>
+</html>

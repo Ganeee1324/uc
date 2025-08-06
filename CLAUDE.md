@@ -1,0 +1,5 @@
+NEVER CHANGE ANY FILE OUTSIDE FRONTEND FOLDER. WE DO NOT HAVE ACCES TO BACKEND CODE, WE CAN ONLY VIEW IT TO KNOW HOW IT WORKS. ALWAYS REFER TO OPENAPI.YAML FIRST WHEN CHECKING BACKEND FUNCTIONALITIES. BACKEND SERVER RUNS SEPARETELY AND IS DEALT BY A BACKEND DEVELOPER. WE ARE FRONTEND DEVELOPERS. MODIFY ONLY FILES IN FRONTEND FOLDER. THIS IS VERY IMPORTANT.
+
+AFTER EVERY CHANGE WE MAKE PUSH TO GITHUB EXPLAIN PRECISELY WHAT WAS ADDED IN THE COMMIT MESSAGE.
+
+When making any change to search-component.html, remember to make it also to search.html to add the structure since it uses a hybrid approach, using its own html but search-component.css and search-component.js. All you need to do is when making additions/removals/changes to search-component.html is to make those same changes to search.html.

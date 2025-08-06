@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Page - Uniclarity</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    <link rel="stylesheet" href="components/header/header.css">
+    <link rel="stylesheet" href="components/search-section/search-component.css">
+    <link rel="stylesheet" href="css/vendor-page.css?v=1.2">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <!-- Favicon removed for CSP compliance -->
+    
+</head>
+<body data-page="vendor">
+    <!-- Background Image Element -->
+    <div class="background-image" aria-hidden="true"></div>
+
+    <!-- Header Component -->
+    <div id="headerContainer"></div>
+
+    <!-- Vendor Banner Section -->
+    <section class="vendor-banner-section">
+        <div class="vendor-banner">
+            <button class="save-vendor-btn" id="saveVendorBtn">
+                <span class="material-symbols-outlined">bookmark_add</span>
+                <span>Salva venditore</span>
+            </button>
+            <div class="banner-content">
+                <div class="vendor-info">
+                    <div class="vendor-avatar" id="vendorAvatar">
+                        <span class="loading-text">Caricamento...</span>
+                    </div>
+                    <div class="vendor-details">
+                        <h1 class="vendor-name" id="vendorName">Caricamento...</h1>
+                        <div class="vendor-field">
+                            <span class="vendor-field-label">Facoltà:</span>
+                            <span id="vendorFaculty">Caricamento...</span>
+                        </div>
+                        <div class="vendor-field">
+                            <span class="vendor-field-label">Canale:</span>
+                            <span id="vendorChannel">Caricamento...</span>
+                        </div>
+                        <div class="vendor-rating-container">
+                            <button class="vendor-rating-btn" id="vendorRatingBtn">
+                                <div class="vendor-banner-rating-stars">
+                                    <span class="vendor-banner-rating-star">★</span>
+                                    <span class="vendor-banner-rating-star">★</span>
+                                    <span class="vendor-banner-rating-star">★</span>
+                                    <span class="vendor-banner-rating-star">★</span>
+                                    <span class="vendor-banner-rating-star">★</span>
+                                </div>
+                                <span class="vendor-rating-text">Caricamento...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Component Container -->
+    <div id="searchComponentContainer"></div>
+
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <h2 class="preview-title" id="previewTitle">Document Preview</h2>
+                <button class="preview-close" id="previewCloseBtn">×</button>
+            </div>
+            <div id="previewBody" class="preview-body">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div id="previewActions" class="preview-actions">
+                <!-- Action buttons will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Overlay -->
+    <div class="reviews-overlay" id="reviewsOverlay">
+        <div class="reviews-overlay-content">
+            <div class="reviews-overlay-header">
+                <h2>
+                    <span class="material-symbols-outlined">rate_review</span>
+                    Recensioni
+                </h2>
+                <button class="close-overlay-btn" data-action="close-reviews">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="reviews-overlay-body">
+                <div class="reviews-summary">
+                    <div class="overall-rating">
+                        <div class="rating-display">
+                            <div class="big-stars"></div>
+                            <span class="big-rating-score">0.0</span>
+                        </div>
+                        <span class="total-reviews">Basato su 0 recensioni</span>
+                    </div>
+                    <button class="add-review-btn" data-action="show-review-form">
+                        <span class="material-symbols-outlined">add</span>
+                        Aggiungi Recensione
+                    </button>
+                </div>
+                
+                <div class="reviews-list" id="reviewsList">
+                    <!-- Reviews will be populated here -->
+                </div>
+                
+                <div class="add-review-form" id="addReviewForm" style="display: none;">
+                    <h3>Aggiungi la tua recensione</h3>
+                    <div class="rating-input">
+                        <label>Valutazione:</label>
+                        <div class="star-rating">
+                            <span class="star-input" data-rating="1">★</span>
+                            <span class="star-input" data-rating="2">★</span>
+                            <span class="star-input" data-rating="3">★</span>
+                            <span class="star-input" data-rating="4">★</span>
+                            <span class="star-input" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    <div class="review-text-input">
+                        <label for="reviewComment">Commento:</label>
+                        <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                    </div>
+                    <div class="review-form-actions">
+                        <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                        <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top-btn" id="scrollToTopBtn" aria-label="Scroll to top of page">
+        <i class="material-symbols-outlined">keyboard_arrow_up</i>
+    </button>
+
+    <script src="js/config.js"></script>
+    <script src="js/performance-cache.js"></script>
+    <script src="components/header/header.js"></script>
+    <script src="components/search-section/search-component.js"></script>
+    <script>
+        // Load header component
+        fetch('components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Initialize header component
+                if (typeof initializeHeader === 'function') {
+                    initializeHeader();
+                }
+            })
+            .catch(error => console.error('Error loading header:', error));
+
+        // Load search component
+        fetch('components/search-section/search-component.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('searchComponentContainer').innerHTML = html;
+                // Initialize search component
+                if (typeof initializeSearchComponent === 'function') {
+                    initializeSearchComponent();
+                }
+            })
+            .catch(error => console.error('Error loading search component:', error));
+    </script>
+    <script src="js/vendor-page.js"></script>
+    
+</body>
+</html> 

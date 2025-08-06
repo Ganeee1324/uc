@@ -1,0 +1,156 @@
+/**
+ * Layout Stability CSS - Prevents Cumulative Layout Shift (CLS)
+ * Applied to documenti and preferiti pages for professional instant loading
+ */
+
+/* Critical layout stability rules */
+* {
+    box-sizing: border-box;
+}
+
+/* Prevent layout shifts from font loading */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-display: swap;
+}
+
+/* Reserve space for fixed header */
+.main-content {
+    padding-top: 50px !important;
+    min-height: 100vh;
+}
+
+/* Stable switch navigation positioned right under header */
+.tab-navigation {
+    height: 56px; /* Fixed height */
+    min-width: 320px;
+    margin: 50px auto 40px auto; /* Updated to match optimized positioning */
+}
+
+.tab-navigation > span {
+    height: 44px; /* Fixed height for spans */
+    display: grid;
+    place-content: center;
+}
+
+/* Reserve space for search component */
+#unified-search-container,
+#favorites-search-container {
+    min-height: 400px; /* Minimum height to prevent collapse */
+}
+
+/* Stable user cards container */
+.favorited-users-section {
+    min-height: 120px; /* Reserve space */
+}
+
+.favorited-users-list {
+    min-height: 85px; /* Height of a single user card */
+}
+
+/* Skeleton placeholders with exact dimensions */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Search skeleton with exact dimensions */
+.search-skeleton {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.search-skeleton-header {
+    height: 60px;
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.search-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.search-skeleton-card {
+    height: 200px;
+    border-radius: 12px;
+}
+
+/* User card skeleton with exact dimensions */
+.user-cards-skeleton {
+    display: flex;
+    gap: 24px;
+    padding: 16px 24px;
+    overflow-x: auto;
+    min-height: 85px;
+}
+
+.user-card-skeleton {
+    min-width: 240px;
+    height: 85px;
+    border-radius: 60px 12px 12px 60px;
+    flex-shrink: 0;
+}
+
+/* Optional: Disable animations on page load to prevent layout shifts */
+.no-animations * {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+}
+
+/* Image stability */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Dark mode skeleton */
+@media (prefers-color-scheme: dark) {
+    .skeleton {
+        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+    }
+}
+
+/* Responsive stability */
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 80px !important;
+    }
+    
+    .tab-navigation {
+        min-width: 280px;
+        height: 48px;
+    }
+    
+    .tab-button {
+        height: 36px;
+    }
+    
+    .user-card-skeleton {
+        min-width: 200px;
+        height: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding-top: 70px !important;
+    }
+    
+    .user-card-skeleton {
+        min-width: 180px;
+        height: 60px;
+    }
+}

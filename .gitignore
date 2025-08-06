@@ -1,0 +1,11 @@
+.env
+__pycache__
+.conda
+files/
+.pytest_cache/
+.cursorignore
+*.pdf
+images/*
+*.whl
+*.log
+models/

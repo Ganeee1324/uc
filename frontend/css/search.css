@@ -1,0 +1,354 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+/* Reset & Foundation */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined', 'Material Icons', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    min-width: 1em;
+    min-height: 1em;
+    text-align: center;
+    vertical-align: middle;
+    opacity: 1;
+}
+
+.material-symbols-outlined:not([style*="font-family"]) {
+    font-family: 'Material Icons', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Design System */
+:root {
+    /* BACKGROUND TRANSITION CONTROL */
+    --bg-transition-point: 70vh; /* Change this value to control where blue background starts */
+    
+    /* Pure Color Palette */
+    --white: #ffffff;
+    --white-soft: #fefefe;
+    --black: #000000;
+    --black-soft: #1a1a1a;
+    
+    /* Gray Scale - Carefully calibrated for perfect contrast */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    /* Spacing System - T-shirt sizing with precise values */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;  /* Base unit */
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+    --space-32: 128px;
+    
+    /* Layout Constants */
+    --container-max-width: 1200px;
+    --header-height: 80px;
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 24px;
+    
+    /* Shadow System */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Animation & Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 300ms ease;
+    --transition-slow: 500ms ease;
+    
+    /* Typography */
+    --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-display: 'Space Grotesk', 'Inter', sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+    
+    /* Z-index Scale */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    --z-toast: 1080;
+    
+    /* Background sizing constants for dynamic positioning */
+    --bg-offset-top: 0px; /* Will be dynamically calculated */
+}
+
+/* Body & HTML Setup */
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-family-primary);
+    background: linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd);
+    color: var(--gray-800);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    font-size: 16px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+}
+
+/* Ensure body always shows gradient background as fallback */
+body[data-page="search"] {
+    background: linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd) !important;
+}
+
+/* Preload background image for immediate display */
+body::before {
+    content: '';
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    background-image: url('../images/bg.png');
+    opacity: 0;
+    pointer-events: none;
+    z-index: -9999;
+}
+
+/* Base container for all content */
+body > * {
+    position: relative;
+}
+
+/* Remove default margins from common elements */
+h1, h2, h3, h4, h5, h6,
+p, blockquote, figure,
+ul, ol, dl, dd {
+    margin: 0;
+}
+
+/* Remove default list styles */
+ul, ol {
+    list-style: none;
+    padding: 0;
+}
+
+/* Make images easier to work with */
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* Inherit fonts for inputs and buttons */
+input, button, textarea, select {
+    font: inherit;
+    color: inherit;
+}
+
+/* Remove default button styles */
+button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* Background Image - CSS-first positioning (handled in inline styles) */
+.background-image {
+    /* Fallback styles only - main positioning in inline CSS */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* Force override of any component background image paths with maximum specificity */
+body[data-page="search"] .background-image,
+body[data-page="search"] #searchComponentContainer .background-image,
+body[data-page="search"] .search-section .background-image,
+body[data-page="search"] main .background-image,
+body[data-page="search"] main .main-content .background-image,
+html body[data-page="search"] .background-image {
+    background-image: url('../images/bg.png') !important;
+}
+
+body[data-page="search"]::before,
+html body[data-page="search"]::before {
+    background-image: url('../images/bg.png') !important;
+}
+
+/* Hide any duplicate titles/subtitles that might come from the search component */
+#searchComponentContainer .search-title,
+#searchComponentContainer .search-subtitle {
+    display: none !important;
+}
+
+/* Page Layout Structure */
+.page-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin: calc(var(--header-height) + var(--space-10)) var(--space-6) var(--space-16) var(--space-6);
+    min-height: 100vh;
+    position: relative;
+    background: transparent;
+}
+
+/* Page-level search title and subtitle - always visible and properly positioned */
+.page-content-wrapper > .search-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gray-900);
+    text-align: center;
+    margin-bottom: -10px;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    position: relative;
+    display: block !important;
+    visibility: visible !important;
+}
+
+.page-content-wrapper > .search-subtitle {
+    font-size: 36px;
+    color: #4d4d4d;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: var(--space-16);
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    position: relative;
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Fallback for any search-title/subtitle that might be added by components */
+.search-title {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--gray-900);
+    text-align: center;
+    margin-bottom: 0;
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.search-subtitle {
+    font-size: 36px;
+    color: #4d4d4d;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: var(--space-16);
+    font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Responsive Design - Desktop First Approach */
+
+/* Medium Screens (768px to 1199px) */
+@media (max-width: 1199px) and (min-width: 768px) {
+   /* Reduce background offset for medium screens */
+   :root {
+       --bg-offset-top: -1300px; /* Adjust for medium screen layout */
+   }
+
+   .page-content-wrapper {
+       margin: calc(var(--header-height) + var(--space-8)) var(--space-6) var(--space-16) var(--space-6);
+   }
+   
+   .page-content-wrapper > .search-title,
+   .search-title {
+       font-size: 40px;
+       font-weight: 800;
+       letter-spacing: -0.03em;
+       line-height: 1.1;
+       margin-bottom: 0;
+   }
+   
+   .page-content-wrapper > .search-subtitle,
+   .search-subtitle {
+       font-size: 32px;
+       font-weight: 500;
+       color: rgba(77, 77, 77, 0.8);
+       margin-bottom: var(--space-12);
+   }
+}
+
+/* Small Screens (480px to 767px) */
+@media (max-width: 767px) and (min-width: 480px) {
+   :root {
+       --bg-offset-top: -1100px; /* Adjust for small screens */
+   }
+
+   .page-content-wrapper {
+       margin: var(--space-4) var(--space-4) var(--space-16) var(--space-4);
+   }
+   
+   .page-content-wrapper > .search-title,
+   .search-title {
+       font-size: 32px;
+       font-weight: 900;
+       letter-spacing: -0.04em;
+       line-height: 1.05;
+   }
+   
+   .page-content-wrapper > .search-subtitle,
+   .search-subtitle {
+       font-size: 26px;
+       font-weight: 500;
+       margin-bottom: var(--space-6);
+   }
+}
+
+/* Very Small Screens (320px to 479px) */
+@media (max-width: 479px) {
+   :root {
+       --bg-offset-top: -1300px; /* Adjust for tablet layout */
+   }
+
+   .page-content-wrapper > .search-title,
+   .search-title {
+       font-size: 38px;
+       font-weight: 800;
+   }
+   
+   .page-content-wrapper > .search-subtitle,
+   .search-subtitle {
+       font-size: 27px;
+   }
+}

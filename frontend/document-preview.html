@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anteprima Documento - StudyHub</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap">
+    <link rel="stylesheet" href="components/header/header.css">
+    <link rel="stylesheet" href="css/document-preview.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf_viewer.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <!-- Favicon removed for CSP compliance -->
+</head>
+<body data-page="document-preview">
+    <!-- Header Component -->
+    <div id="headerContainer"></div>
+
+    <!-- Main Content -->
+    <main class="preview-main">
+    </main>
+
+    <!-- Filter Panel Overlay -->
+    <div class="filters-overlay" id="filtersOverlay"></div>
+    
+    <!-- Filter Panel -->
+    <div class="filters-panel" id="filtersPanel">
+        <div class="filters-content">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <h2>Filtri</h2>
+                    <p class="filters-subtitle">Personalizza la tua ricerca</p>
+                </div>
+                <div class="filters-actions">
+                    <button class="filter-clear-btn" id="clearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        <span>Pulisci</span>
+                    </button>
+                    <button class="filters-close" id="closeFilters">
+                        <i class="material-symbols-outlined">close</i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters-grid" id="filtersGrid">
+                <!-- Filter sections will be dynamically populated -->
+            </div>
+            
+            <div class="filters-bottom-actions">
+                <div class="bottom-clear-container">
+                    <button class="bottom-clear-all-btn" id="bottomClearAllFilters">
+                        <i class="material-symbols-outlined">clear_all</i>
+                        <span>Pulisci tutti i filtri</span>
+                    </button>
+                    <div class="bottom-clear-info">
+                        <span class="status-message" id="filterStatusMessage"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Overlay -->
+    <div class="reviews-overlay" id="reviewsOverlay">
+        <div class="reviews-overlay-content">
+            <div class="reviews-overlay-header">
+                <h2>
+                    <span class="material-symbols-outlined">rate_review</span>
+                    Recensioni
+                </h2>
+                <button class="close-overlay-btn" data-action="close-reviews">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="reviews-overlay-body">
+                <div class="reviews-summary">
+                    <div class="overall-rating">
+                        <div class="rating-display">
+                            <div class="big-stars"></div>
+                            <span class="big-rating-score">0.0</span>
+                        </div>
+                        <span class="total-reviews">Basato su 0 recensioni</span>
+                    </div>
+                    <button class="add-review-btn" data-action="show-review-form">
+                        <span class="material-symbols-outlined">add</span>
+                        Aggiungi Recensione
+                    </button>
+                </div>
+                
+                <div class="reviews-list" id="reviewsList">
+                    <!-- Reviews will be populated here -->
+                </div>
+                
+                <div class="add-review-form" id="addReviewForm" style="display: none;">
+                    <h3>Aggiungi la tua recensione</h3>
+                    <div class="rating-input">
+                        <label>Valutazione:</label>
+                        <div class="star-rating">
+                            <span class="star-input" data-rating="1">★</span>
+                            <span class="star-input" data-rating="2">★</span>
+                            <span class="star-input" data-rating="3">★</span>
+                            <span class="star-input" data-rating="4">★</span>
+                            <span class="star-input" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    <div class="review-text-input">
+                        <label for="reviewComment">Commento:</label>
+                        <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
+                    </div>
+                    <div class="review-form-actions">
+                        <button class="cancel-review-btn" data-action="hide-review-form">Annulla</button>
+                        <button class="submit-review-btn" data-action="submit-review">Invia Recensione</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Preview Overlay -->
+    <div class="document-preview-overlay" id="documentPreviewOverlay">
+        <div class="preview-overlay-backdrop" data-action="close-preview"></div>
+        <div class="preview-overlay-content">
+            <div class="preview-overlay-header">
+                <div class="preview-overlay-title">
+                    <h3 id="previewDocumentTitle">Anteprima Documento</h3>
+                    <span class="preview-overlay-subtitle" id="previewDocumentSubtitle">Versione redatta</span>
+                </div>
+                <button class="preview-overlay-close" data-action="close-preview">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="preview-overlay-body">
+                <div class="preview-loader" id="previewLoader">
+                    <div class="preview-loader-spinner"></div>
+                    <span>Caricamento anteprima...</span>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <!-- Document preview will be loaded here -->
+                </div>
+            </div>
+            <div class="preview-overlay-footer">
+                <div class="preview-overlay-info">
+                    <span class="material-symbols-outlined">info</span>
+                    <span>Questa è una versione redatta del documento originale</span>
+                </div>
+                <div class="preview-overlay-actions">
+                    <button class="preview-action-btn secondary" data-action="close-preview">
+                        Chiudi
+                    </button>
+                    <button class="preview-action-btn primary" data-action="open-full-viewer" id="openFullViewerBtn">
+                        <span class="material-symbols-outlined">open_in_full</span>
+                        Visualizza Completo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/performance-cache.js"></script>
+    <script src="components/header/header.js"></script>
+    <script>
+        // Load header component
+        fetch('components/header/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('headerContainer').innerHTML = html;
+                // Initialize header component
+                if (typeof initializeHeader === 'function') {
+                    initializeHeader();
+                }
+            })
+            .catch(error => console.error('Error loading header:', error));
+    </script>
+<script type="module" src="js/document-preview.js"></script>
+</body>
+</html> 

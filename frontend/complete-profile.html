@@ -59,17 +59,17 @@
 
         /* Header Section */
         .profile-header {
-            padding: 32px 40px 0;
+            padding: 60px 40px 0;
             text-align: center;
             flex-shrink: 0;
             position: relative;
         }
 
         .logo-container {
-            position: fixed;
-            top: 24px;
-            left: 24px;
-            z-index: 100000;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
             cursor: pointer;
             transition: transform 0.2s ease;
         }
@@ -790,8 +790,17 @@
                 max-height: 95vh;
             }
 
+            .logo-container {
+                top: 16px;
+                left: 16px;
+            }
+
+            .logo-container img {
+                height: 32px;
+            }
+
             .profile-header {
-                padding: 20px 24px 0;
+                padding: 56px 24px 0;
             }
 
             .header-title {
@@ -852,8 +861,17 @@
                 padding: 8px;
             }
 
+            .logo-container {
+                top: 12px;
+                left: 12px;
+            }
+
+            .logo-container img {
+                height: 28px;
+            }
+
             .profile-header {
-                padding: 16px 20px 0;
+                padding: 52px 20px 0;
             }
 
             .banner-section {
@@ -881,12 +899,12 @@
     </style>
 </head>
 <body>
-    <!-- Logo outside card -->
-    <div class="logo-container" id="logoContainer">
-        <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
-    </div>
-    
     <div class="profile-container">
+        <!-- Logo inside container -->
+        <div class="logo-container" id="logoContainer">
+            <img src="images/Logo.png" alt="Uniclarity" onerror="this.style.display='none'">
+        </div>
+        
         <!-- Header -->
         <div class="profile-header">
             <h1 class="header-title">Completa il tuo Profilo</h1>

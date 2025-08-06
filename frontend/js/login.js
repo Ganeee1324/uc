@@ -626,9 +626,9 @@ async function makeLoginRequest(url, options = {}) {
             localStorage.setItem('currentUser', JSON.stringify(data.user));
             console.log('Login successful, redirecting...'); // Debug log
             
-            // Get return URL from query parameters or default to search.html
+            // Get return URL from query parameters or default to complete-profile.html
             const urlParams = new URLSearchParams(window.location.search);
-            const returnUrl = urlParams.get('returnUrl') || 'search.html';
+            const returnUrl = urlParams.get('returnUrl') || 'complete-profile.html';
             
             // Force redirect with a small delay to ensure localStorage is saved
             setTimeout(() => {
@@ -1163,8 +1163,8 @@ if (verified === 'true') {
 if (localStorage.getItem('authToken')) {
     console.log('Auth token found, redirecting...'); // Debug log
     
-    // Get return URL from query parameters or default to search.html
-    const returnUrl = urlParams.get('returnUrl') || 'search.html';
+    // Get return URL from query parameters or default to complete-profile.html
+    const returnUrl = urlParams.get('returnUrl') || 'complete-profile.html';
     
     window.location.href = returnUrl;
 }

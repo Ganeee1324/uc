@@ -2889,16 +2889,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     overflow: visible;
 }
 
-/* Ensure filters-bottom-actions always stays at the bottom */
-.filters-bottom-actions {
-    padding: 16px 0 !important;
-    background: #f8fafc !important;
-    border: 2px solid #e5e7eb !important;
-}
-
-.bottom-clear-container {
-    margin: 0 !important;
-}
  
  /* Filter Header */
  .filters-header {
@@ -3671,141 +3661,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  }
 
  
- .bottom-clear-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
- }
- 
- .bottom-clear-all-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    box-shadow: 0 3px 8px rgba(239, 68, 68, 0.2);
-    min-width: 160px;
-    justify-content: center;
-    font-family: inherit;
-    position: relative;
-    overflow: hidden;
- }
- 
- .bottom-clear-all-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.6s cubic-bezier(0.23, 1, 0.32, 1);
- }
- 
- .bottom-clear-all-btn:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
- }
- 
- .bottom-clear-all-btn:hover::before {
-    left: 100%;
- }
- 
- .bottom-clear-all-btn:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
- }
- 
- .bottom-clear-all-btn.disabled {
-    background: #9ca3af;
-    color: #6b7280;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 2px 4px rgba(156, 163, 175, 0.2);
- }
- 
- .bottom-clear-all-btn.disabled:hover {
-    background: #9ca3af;
-    transform: none;
-    box-shadow: 0 2px 4px rgba(156, 163, 175, 0.2);
- }
- 
- .bottom-clear-all-btn i {
-    font-size: 18px;
-    transition: transform 0.3s ease;
- }
- 
- .bottom-clear-all-btn:hover:not(.disabled) i {
-    transform: rotate(180deg);
- }
- 
- .bottom-clear-info {
-    text-align: center;
-    color: #6b7280;
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0.8;
- }
 
-/* Mobile responsive styles for filters overlay footer */
-@media (max-width: 768px) {
-    .filters-bottom-actions {
-        margin-top: 0px;
-        padding: 12px 0;
-    }
-    
-    .bottom-clear-container {
-        gap: 4px;
-    }
-    
-    .bottom-clear-all-btn {
-        padding: 8px 16px;
-        min-width: 140px;
-        font-size: 12px;
-    }
-    
-    .bottom-clear-all-btn i {
-        font-size: 16px;
-    }
-    
-    .bottom-clear-info {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 480px) {
-    .filters-bottom-actions {
-        margin-top: 0px;
-        padding: 12px 0;
-    }
-    
-    .bottom-clear-container {
-        gap: 3px;
-    }
-    
-    .bottom-clear-all-btn {
-        padding: 6px 12px;
-        min-width: 120px;
-        font-size: 11px;
-    }
-    
-    .bottom-clear-all-btn i {
-        font-size: 14px;
-    }
-    
-    .bottom-clear-info {
-        font-size: 10px;
-    }
-}
  
  /* Status Messages - DISABLED */
  .status-message {
@@ -8104,13 +7960,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     min-height: 0;
     max-height: none;
     overflow-y: auto;
-  }
-  .filters-bottom-actions {
-    flex-shrink: 0;
-    position: relative;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding: 0;
   }
 }
 

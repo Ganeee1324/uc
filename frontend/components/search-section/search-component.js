@@ -3028,32 +3028,8 @@ function toggleFiltersPanel() {
 }
 
 function addBottomClearAllButton() {
-    const filtersContent = document.querySelector('.filters-content');
-    if (!filtersContent) return;
-    
-    // Check if bottom clear button already exists
-    if (document.getElementById('bottomClearAllButton')) return;
-    
-    // Create bottom clear all button section
-    const bottomClearSection = document.createElement('div');
-    bottomClearSection.className = 'filters-bottom-actions';
-    bottomClearSection.innerHTML = `
-        <div class="bottom-clear-container">
-            <button class="bottom-clear-all-btn" id="bottomClearAllButton" data-action="clear-all-filters">
-                <i class="material-symbols-outlined">clear_all</i>
-                <span>Rimuovi tutti i filtri</span>
-            </button>
-            <div class="bottom-clear-info">
-                <span id="bottomFilterCount">0 filtri attivi</span>
-            </div>
-        </div>
-    `;
-    
-    // Add to the end of filters content
-    filtersContent.appendChild(bottomClearSection);
-    
-    // Update the bottom filter count
-    updateBottomFilterCount();
+    // Footer area completely removed - function now does nothing
+    return;
 }
 
 // Enhanced filter counting system

@@ -2117,7 +2117,7 @@ function updateUserDetails(user) {
                 element.textContent = user.user_faculty || 'Facoltà non specificata';
                 break;
             case 1: // Canale
-                element.textContent = user.user_canale || 'Canale non specificato';
+                element.textContent = user.user_canale ? `Canale ${user.user_canale}` : 'Canale non specificato';
                 break;
             case 2: // Bio
                 const bio = user.bio || 'Bio non specificata';
@@ -4507,7 +4507,15 @@ function initializeBioCharacterCounter() {
 // ===========================
 
 async function saveProfileSettings() {
+    const saveBtn = document.getElementById('saveProfileBtn');
+    const originalContent = saveBtn.innerHTML;
+    
     try {
+        // Update button to loading state
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span>Salvando...';
+        saveBtn.style.opacity = '0.8';
+        
         const authToken = localStorage.getItem('authToken');
         if (!authToken) {
             throw new Error('No auth token found');
@@ -4558,6 +4566,11 @@ async function saveProfileSettings() {
         // Update localStorage with new user data
         localStorage.setItem('currentUser', JSON.stringify(updatedUser));
         
+        // Update button to success state
+        saveBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span>Salvato con successo!';
+        saveBtn.style.backgroundColor = '#22c55e';
+        saveBtn.style.opacity = '1';
+        
         // Show success message
         showStatus('Profilo aggiornato con successo!', 'success');
         
@@ -4565,8 +4578,28 @@ async function saveProfileSettings() {
         personalizeDashboard(updatedUser);
         loadUserDataIntoSettings(updatedUser);
         
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            saveBtn.innerHTML = originalContent;
+            saveBtn.style.backgroundColor = '';
+            saveBtn.disabled = false;
+        }, 2000);
+        
     } catch (error) {
         console.error('Error saving profile settings:', error);
+        
+        // Update button to error state
+        saveBtn.innerHTML = '<span class="material-symbols-outlined">error</span>Errore nel salvataggio';
+        saveBtn.style.backgroundColor = '#ef4444';
+        saveBtn.style.opacity = '1';
+        
         showStatus('Errore nel salvare le modifiche. Riprova più tardi.', 'error');
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            saveBtn.innerHTML = originalContent;
+            saveBtn.style.backgroundColor = '';
+            saveBtn.disabled = false;
+        }, 3000);
     }
 } 

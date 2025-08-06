@@ -32,6 +32,68 @@ let pdfTotalPages = 1;
 let pdfZoom = 1.0; // Default zoom scale for PDF.js
 let isPdfLoading = false;
 
+// RAM optimization: Canvas pool for reusing canvas elements
+const canvasPool = [];
+const MAX_CANVAS_POOL_SIZE = 3;
+
+// RAM optimization: Canvas pool management
+function getCanvasFromPool() {
+    if (canvasPool.length > 0) {
+        return canvasPool.pop();
+    }
+    return document.createElement('canvas');
+}
+
+function returnCanvasToPool(canvas) {
+    if (canvasPool.length < MAX_CANVAS_POOL_SIZE) {
+        // Clear canvas for reuse
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        // Remove from DOM if attached
+        if (canvas.parentNode) {
+            canvas.parentNode.removeChild(canvas);
+        }
+        canvasPool.push(canvas);
+    }
+}
+
+// RAM optimization: PDF resource cleanup
+function cleanupPdfResources() {
+    if (pdfDoc) {
+        try {
+            pdfDoc.cleanup();
+            pdfDoc.destroy();
+        } catch (error) {
+            console.warn('Error during PDF cleanup:', error);
+        }
+        pdfDoc = null;
+    }
+    
+    // Clean up canvas pool
+    canvasPool.forEach(canvas => {
+        if (canvas.parentNode) {
+            canvas.parentNode.removeChild(canvas);
+        }
+    });
+    canvasPool.length = 0;
+    
+    // Reset PDF state
+    pdfPageNum = 1;
+    pdfTotalPages = 1;
+    pdfZoom = 1.0;
+    isPdfLoading = false;
+}
+
+// Make cleanup function globally available
+window.cleanupPdfResources = cleanupPdfResources;
+
+// Register with global memory manager when available
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.globalMemoryManager) {
+        window.globalMemoryManager.registerCleanup(cleanupPdfResources, 'pdf_resources');
+    }
+});
+
 let documentPages = [];
 let isLoading = false;
 let documentData = null; // Store document data
@@ -239,6 +301,9 @@ async function loadPdfWithPdfJs(fileId, viewerElementId) {
     const viewerElement = document.getElementById(viewerElementId);
     if (!viewerElement) return;
 
+    // RAM optimization: Clean up previous PDF resources before loading new one
+    cleanupPdfResources();
+
     viewerElement.innerHTML = '';
     const loader = LoadingManager.show(viewerElement, 'Caricamento anteprima...');
 
@@ -278,8 +343,16 @@ async function renderPdfPage(container, pageNum) {
     const displayScale = baseScale * pdfZoom;
     const viewport = page.getViewport({ scale: displayScale });
     
+    // RAM optimization: Return old canvas to pool before clearing container
+    const existingCanvas = container.querySelector('canvas');
+    if (existingCanvas) {
+        returnCanvasToPool(existingCanvas);
+    }
+    
     container.innerHTML = '';
-    const canvas = document.createElement('canvas');
+    
+    // RAM optimization: Use canvas from pool instead of creating new one
+    const canvas = getCanvasFromPool();
     const context = canvas.getContext('2d');
     canvas.height = viewport.height;
     canvas.width = viewport.width;
@@ -835,11 +908,16 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
         }
         
         async function renderAllPages() {
+            // RAM optimization: Return existing canvases to pool before clearing
+            const existingCanvases = viewerArea.querySelectorAll('canvas');
+            existingCanvases.forEach(canvas => returnCanvasToPool(canvas));
+            
             viewerArea.innerHTML = '';
             
             for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                 const page = await pdfDocument.getPage(pageNum);
-                const canvas = document.createElement('canvas');
+                // RAM optimization: Use canvas from pool instead of creating new one
+                const canvas = getCanvasFromPool();
                 const context = canvas.getContext('2d');
                 
                 const viewport = page.getViewport({ scale: currentScale });
@@ -905,7 +983,18 @@ async function loadEmbeddedPdfViewer(fileId, viewerElementId) {
             if (window.zoomTimeout) {
                 clearTimeout(window.zoomTimeout);
             }
-            // No cleanup needed for data URLs
+            // RAM optimization: Clean up PDF resources and canvas pool
+            cleanupPdfResources();
+            
+            // RAM optimization: Clean up this specific pdfDocument if it exists
+            if (typeof pdfDocument !== 'undefined' && pdfDocument) {
+                try {
+                    pdfDocument.cleanup();
+                    pdfDocument.destroy();
+                } catch (error) {
+                    console.warn('Error cleaning up pdfDocument:', error);
+                }
+            }
         };
         window.addEventListener('beforeunload', cleanup);
         

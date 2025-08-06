@@ -26,7 +26,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 16px; /* Reduced padding for better viewport usage */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -40,7 +40,7 @@
         .login-card {
             background: white;
             border-radius: 16px;
-            padding: 32px 24px; /* Reduced padding */
+            padding: 28px 24px; /* Optimized for viewport fitting */
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
             border: 1px solid #e5e7eb;
         }
@@ -49,10 +49,6 @@
         .login-header {
             text-align: center;
             margin-bottom: 24px;
-        }
-
-        .logo-container {
-            margin-bottom: 20px;
         }
 
         .logo-container img {
@@ -73,15 +69,17 @@
             font-weight: 400;
         }
 
-        /* Email Verification Status */
+        /* Email Verification Status - Compact Professional Design */
         .email-status {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 16px;
+            padding: 20px 24px;
             margin-bottom: 20px;
             text-align: center;
             display: none;
+            position: relative;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
         }
 
         .email-status.show {
@@ -89,32 +87,40 @@
         }
 
         .email-status.pending {
-            background: #fffbeb;
-            border-color: #fde68a;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-color: #f59e0b;
         }
 
         .email-status.success {
-            background: #ecfdf5;
-            border-color: #a7f3d0;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-color: #22c55e;
         }
 
         .email-status.error {
-            background: #fef2f2;
-            border-color: #fecaca;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: #ef4444;
+        }
+
+        /* Compact Header Layout */
+        .email-status-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .email-status-icon {
-            font-size: 28px;
-            margin-bottom: 10px;
-            display: block;
+            font-size: 24px;
+            font-variation-settings: 'FILL' 1, 'wght' 500;
         }
 
         .email-status.pending .email-status-icon {
-            color: #d97706;
+            color: #f59e0b;
         }
 
         .email-status.success .email-status-icon {
-            color: #10b981;
+            color: #22c55e;
         }
 
         .email-status.error .email-status-icon {
@@ -122,9 +128,10 @@
         }
 
         .email-status-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.025em;
         }
 
         .email-status.pending .email-status-title {
@@ -139,10 +146,16 @@
             color: #991b1b;
         }
 
+        /* Compact Content Section */
+        .email-status-content {
+            margin-bottom: 20px;
+        }
+
         .email-status-text {
             font-size: 14px;
             line-height: 1.5;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
 
         .email-status.pending .email-status-text {
@@ -157,54 +170,198 @@
             color: #b91c1c;
         }
 
-        .email-address {
-            font-weight: 600;
-            color: #1e40af;
+        .email-status-subtitle {
+            font-size: 12px;
+            line-height: 1.4;
+            opacity: 0.8;
+            max-width: 280px;
+            margin: 0 auto;
         }
 
+        .email-status.pending .email-status-subtitle {
+            color: #a16207;
+        }
+
+        .email-status.success .email-status-subtitle {
+            color: #047857;
+        }
+
+        .email-status.error .email-status-subtitle {
+            color: #b91c1c;
+        }
+
+        .email-address {
+            font-weight: 700;
+            color: #2563eb;
+            font-size: 14px;
+            letter-spacing: -0.015em;
+        }
+
+        /* Compact Professional Actions Layout */
         .email-actions {
             display: flex;
+            flex-direction: column;
             gap: 12px;
+            align-items: center;
+        }
+
+        .email-actions-primary {
+            width: 100%;
+            display: flex;
             justify-content: center;
-            flex-wrap: wrap;
+        }
+
+        .email-actions-secondary {
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         .email-action-btn {
-            padding: 8px 16px;
+            padding: 11px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+            justify-content: center;
+            letter-spacing: -0.025em;
         }
 
         .email-action-btn.primary {
-            background: #2563eb;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+            border: 1px solid transparent;
         }
 
         .email-action-btn.primary:hover {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px 0 rgba(37, 99, 235, 0.4);
+        }
+
+        .email-action-btn.primary:active {
+            transform: translateY(-1px);
         }
 
         .email-action-btn.secondary {
-            background: transparent;
-            color: #6b7280;
-            border: 1px solid #d1d5db;
+            background: rgba(255, 255, 255, 0.8);
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            backdrop-filter: blur(8px);
         }
 
         .email-action-btn.secondary:hover {
-            background: #f9fafb;
-            color: #374151;
+            background: rgba(255, 255, 255, 0.95);
+            color: #475569;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
         }
 
         .email-action-btn .material-symbols-outlined {
             font-size: 16px;
+            font-variation-settings: 'FILL' 0, 'wght' 500;
+        }
+
+        .email-action-btn .btn-text {
+            position: relative;
+        }
+
+        /* Support Link Styling */
+        .email-support-link {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .support-text {
+            font-size: 12px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            font-weight: 500;
+        }
+
+        .support-text:hover {
+            color: #4b5563;
+            text-decoration: underline;
+        }
+
+        .email-status.pending .support-text {
+            color: #a16207;
+        }
+
+        .email-status.success .support-text {
+            color: #047857;
+        }
+
+        .email-status.error .support-text {
+            color: #b91c1c;
+        }
+
+        .email-status.pending .support-text:hover {
+            color: #92400e;
+        }
+
+        .email-status.success .support-text:hover {
+            color: #065f46;
+        }
+
+        .email-status.error .support-text:hover {
+            color: #991b1b;
+        }
+
+        /* Compact Responsive Design */
+        @media (max-width: 480px) {
+            .email-status {
+                padding: 18px 16px;
+                margin-bottom: 18px;
+            }
+
+            .email-status-header {
+                flex-direction: column;
+                gap: 6px;
+                margin-bottom: 14px;
+            }
+
+            .email-status-icon {
+                font-size: 22px;
+            }
+
+            .email-status-title {
+                font-size: 16px;
+            }
+
+            .email-status-content {
+                margin-bottom: 18px;
+            }
+
+            .email-actions {
+                gap: 10px;
+            }
+
+            .email-action-btn {
+                padding: 10px 18px;
+                font-size: 12px;
+                min-width: 140px;
+            }
+
+            .email-support-link {
+                margin-top: 14px;
+            }
+
+            .support-text {
+                font-size: 11px;
+            }
         }
 
         /* Form Toggle */
@@ -1027,24 +1184,38 @@
 
             <!-- Email Status -->
             <div class="email-status" id="emailStatus">
-                <span class="material-symbols-outlined email-status-icon" id="emailStatusIcon">mail</span>
-                <div class="email-status-title" id="emailStatusTitle">Email Inviata</div>
-                <div class="email-status-text" id="emailStatusText">
-                    Abbiamo inviato un link di verifica a <span class="email-address" id="emailStatusAddress"></span>
+                <div class="email-status-header">
+                    <span class="material-symbols-outlined email-status-icon" id="emailStatusIcon">mark_email_unread</span>
+                    <div class="email-status-title" id="emailStatusTitle">Verifica la tua email</div>
                 </div>
+                
+                <div class="email-status-content">
+                    <div class="email-status-text" id="emailStatusText">
+                        Abbiamo inviato un link di verifica a<br>
+                        <span class="email-address" id="emailStatusAddress">your.email@example.com</span>
+                    </div>
+                    <div class="email-status-subtitle">
+                        Clicca sul link nell'email per completare la registrazione. La verifica avviene automaticamente.
+                    </div>
+                </div>
+
                 <div class="email-actions">
-                    <button class="email-action-btn primary" id="checkEmailBtn">
-                        <span class="material-symbols-outlined">mail</span>
-                        Apri Email
-                    </button>
-                    <button class="email-action-btn secondary" id="resendEmailBtn">
-                        <span class="material-symbols-outlined">refresh</span>
-                        Invia di nuovo
-                    </button>
-                    <button class="email-action-btn secondary" id="useCodeBtn">
-                        <span class="material-symbols-outlined">pin</span>
-                        Usa codice
-                    </button>
+                    <div class="email-actions-primary">
+                        <button class="email-action-btn primary" id="resendEmailBtn">
+                            <span class="material-symbols-outlined">refresh</span>
+                            <span class="btn-text">Invia di nuovo</span>
+                        </button>
+                    </div>
+                    <div class="email-actions-secondary">
+                        <button class="email-action-btn secondary" id="backToLoginBtn">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                            <span class="btn-text">Torna al login</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="email-support-link">
+                    <a href="#" id="contactSupportBtn" class="support-text">Contatta il supporto</a>
                 </div>
             </div>
 

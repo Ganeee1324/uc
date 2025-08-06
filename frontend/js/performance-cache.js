@@ -10,6 +10,11 @@ class OptimizedPerformanceCacheManager {
         this.requestDeduplicationMap = new Map();
         this.pendingVetrineRequest = null;
         
+        // RAM optimization: Add size limits and LRU tracking
+        this.maxCacheSize = 50; // Maximum number of cached entries
+        this.maxRequestDeduplicationSize = 10; // Maximum pending requests
+        this.accessOrder = new Set(); // Track access order for LRU eviction
+        
         // Simplified cache configuration - removed localStorage/sessionStorage overhead
         this.cacheConfig = {
             // Static data - use memory only for better performance
@@ -62,8 +67,13 @@ class OptimizedPerformanceCacheManager {
         
         if (Date.now() - cachedData.timestamp > ttl) {
             this.memoryCache.delete(cacheKey);
+            this.accessOrder.delete(cacheKey);
             return null;
         }
+        
+        // RAM optimization: Update LRU access order
+        this.accessOrder.delete(cacheKey);
+        this.accessOrder.add(cacheKey);
         
         return cachedData.data;
     }
@@ -72,6 +82,20 @@ class OptimizedPerformanceCacheManager {
         const config = this.cacheConfig[cacheType];
         if (!config) return false;
         
+        // RAM optimization: LRU eviction when cache is full
+        while (this.memoryCache.size >= this.maxCacheSize) {
+            const oldestKey = this.accessOrder.values().next().value;
+            if (oldestKey) {
+                this.memoryCache.delete(oldestKey);
+                this.accessOrder.delete(oldestKey);
+            } else {
+                // Fallback: clear entire cache if accessOrder is corrupted
+                this.memoryCache.clear();
+                this.accessOrder.clear();
+                break;
+            }
+        }
+        
         // Memory-only storage for better performance
         this.memoryCache.set(cacheKey, {
             data,
@@ -79,10 +103,15 @@ class OptimizedPerformanceCacheManager {
             type: cacheType
         });
         
+        // Track access order for LRU
+        this.accessOrder.delete(cacheKey);
+        this.accessOrder.add(cacheKey);
+        
         return true;
     }
 
     delete(cacheKey) {
+        this.accessOrder.delete(cacheKey);
         return this.memoryCache.delete(cacheKey);
     }
 
@@ -91,6 +120,7 @@ class OptimizedPerformanceCacheManager {
         for (const [key] of this.memoryCache) {
             if (key.includes(pattern)) {
                 this.memoryCache.delete(key);
+                this.accessOrder.delete(key);
             }
         }
     }
@@ -103,6 +133,15 @@ class OptimizedPerformanceCacheManager {
         // Return existing promise if request is in flight
         if (this.requestDeduplicationMap.has(requestId)) {
             return this.requestDeduplicationMap.get(requestId);
+        }
+        
+        // RAM optimization: Limit pending requests to prevent unbounded growth
+        if (this.requestDeduplicationMap.size >= this.maxRequestDeduplicationSize) {
+            // Clear oldest requests (simple approach - in production you might want more sophisticated handling)
+            const oldestKey = this.requestDeduplicationMap.keys().next().value;
+            if (oldestKey) {
+                this.requestDeduplicationMap.delete(oldestKey);
+            }
         }
         
         // Check cache first for GET requests only - TEMPORARILY DISABLED
@@ -395,7 +434,13 @@ class OptimizedPerformanceCacheManager {
                 const config = this.cacheConfig[value.type];
                 if (config && now - value.timestamp > config.ttl) {
                     this.memoryCache.delete(key);
+                    this.accessOrder.delete(key);
                 }
+            }
+            
+            // RAM optimization: Additional cleanup for stale pending requests
+            if (this.requestDeduplicationMap.size > this.maxRequestDeduplicationSize / 2) {
+                this.requestDeduplicationMap.clear(); // Clear stale requests periodically
             }
         }, 5 * 60 * 1000); // Run every 5 minutes instead of every minute
     }
@@ -420,6 +465,7 @@ class OptimizedPerformanceCacheManager {
     clearCache() {
         this.memoryCache.clear();
         this.requestDeduplicationMap.clear();
+        this.accessOrder.clear();
     }
 }
 

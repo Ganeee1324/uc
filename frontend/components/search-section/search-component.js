@@ -155,6 +155,10 @@ if (typeof authToken === 'undefined') {
 }
 
 // DOM element cache for performance optimization
+// RAM optimization: Use WeakMap for DOM caching to allow garbage collection
+const DOM_ELEMENT_CACHE = new WeakMap();
+const DOM_ID_CACHE = new Map(); // Limited size cache for frequently accessed elements
+
 const DOM_CACHE = {
     documentsGrid: null,
     searchSection: null,
@@ -474,6 +478,10 @@ function checkAuthentication() {
 }
 
 // Avoid variable conflicts - use existing or create new
+// RAM optimization: Add size limits to prevent unbounded growth
+const MAX_FILES_IN_MEMORY = 500; // Maximum number of files to keep in memory
+const MAX_VETRINE_IN_MEMORY = 200; // Maximum number of vetrine to keep in memory
+
 if (typeof currentVetrine === 'undefined') {
     var currentVetrine = [];
 }
@@ -483,6 +491,42 @@ if (typeof currentFiles === 'undefined') {
 if (typeof originalFiles === 'undefined') {
     var originalFiles = []; // Keep original unfiltered data
 }
+
+// RAM optimization: Cleanup functions for arrays
+function cleanupSearchArrays() {
+    // Clear arrays and allow garbage collection
+    if (currentVetrine.length > MAX_VETRINE_IN_MEMORY) {
+        currentVetrine.splice(0, currentVetrine.length - MAX_VETRINE_IN_MEMORY);
+    }
+    if (currentFiles.length > MAX_FILES_IN_MEMORY) {
+        currentFiles.splice(0, currentFiles.length - MAX_FILES_IN_MEMORY);
+    }
+    if (originalFiles.length > MAX_FILES_IN_MEMORY) {
+        originalFiles.splice(0, originalFiles.length - MAX_FILES_IN_MEMORY);
+    }
+}
+
+// RAM optimization: Clear all search data
+function clearAllSearchData() {
+    currentVetrine.length = 0;
+    currentFiles.length = 0;
+    originalFiles.length = 0;
+    if (typeof DOM_ID_CACHE !== 'undefined' && DOM_ID_CACHE.clear) {
+        DOM_ID_CACHE.clear();
+    }
+}
+
+// Make functions globally available for memory management
+window.clearAllSearchData = clearAllSearchData;
+window.cleanupSearchArrays = cleanupSearchArrays;
+
+// Register with global memory manager when available
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.globalMemoryManager) {
+        window.globalMemoryManager.registerCleanup(clearAllSearchData, 'search_component_data');
+        window.globalMemoryManager.registerCleanup(cleanupSearchArrays, 'search_component_arrays');
+    }
+});
 if (typeof isFiltersOpen === 'undefined') {
     var isFiltersOpen = false;
 }
@@ -4323,6 +4367,10 @@ async function loadAllFiles() {
         
         currentFiles = allFiles;
         originalFiles = [...allFiles]; // Keep original copy
+        
+        // RAM optimization: Clean up arrays if they get too large
+        cleanupSearchArrays();
+        
         renderDocuments(currentFiles);
         populateFilterOptions();
         showStatus(`${allFiles.length} vetrine caricate con successo! 🎉`);

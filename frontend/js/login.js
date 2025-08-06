@@ -17,9 +17,9 @@ const emailStatusIcon = document.getElementById('emailStatusIcon');
 const emailStatusTitle = document.getElementById('emailStatusTitle');
 const emailStatusText = document.getElementById('emailStatusText');
 const emailStatusAddress = document.getElementById('emailStatusAddress');
-const checkEmailBtn = document.getElementById('checkEmailBtn');
 const resendEmailBtn = document.getElementById('resendEmailBtn');
-const useCodeBtn = document.getElementById('useCodeBtn');
+const backToLoginBtn = document.getElementById('backToLoginBtn');
+const contactSupportBtn = document.getElementById('contactSupportBtn');
 const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
 // Form Toggle Functionality
@@ -719,17 +719,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 });
 
 // Email Status Button Handlers
-checkEmailBtn?.addEventListener('click', () => {
-    // Try to open default email client
-    window.location.href = 'mailto:';
-});
-
 resendEmailBtn?.addEventListener('click', async () => {
     const email = localStorage.getItem('pendingEmail');
     if (!email) return;
     
     try {
-        const response = await fetch(API_BASE + '/resend-verification', {
+        const response = await fetch(API_BASE + '/login/resend-verification-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -740,7 +735,7 @@ resendEmailBtn?.addEventListener('click', async () => {
         const data = await response.json();
         
         if (response.ok) {
-            showMessage('success', 'Link di verifica inviato nuovamente!');
+            showMessage('success', 'Email di verifica inviata nuovamente!');
         } else {
             showMessage('error', data.msg || 'Errore durante l\'invio.');
         }
@@ -749,11 +744,28 @@ resendEmailBtn?.addEventListener('click', async () => {
     }
 });
 
-useCodeBtn?.addEventListener('click', () => {
-    const email = localStorage.getItem('pendingEmail');
-    if (email) {
-        window.location.href = `verify-code.html?email=${encodeURIComponent(email)}`;
-    }
+backToLoginBtn?.addEventListener('click', () => {
+    // Clear any pending email data
+    localStorage.removeItem('pendingEmail');
+    // Redirect to basic starting index.html (reload the page to reset to initial state)
+    window.location.href = 'index.html';
+});
+
+contactSupportBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    // Open support email with pre-filled subject
+    const email = localStorage.getItem('pendingEmail') || '';
+    const subject = encodeURIComponent('Supporto - Problema con verifica email');
+    const body = encodeURIComponent(`Ciao,
+
+Ho bisogno di aiuto con la verifica del mio account.
+
+Email: ${email}
+Problema: Non riesco a completare la verifica email
+
+Grazie per l'assistenza.`);
+    
+    window.location.href = `mailto:support@uniclarity.com?subject=${subject}&body=${body}`;
 });
 
 // Forgot Password Modal functionality
@@ -1049,18 +1061,42 @@ if (pendingEmail && !localStorage.getItem('authToken')) {
     document.querySelector('.form-section').style.display = 'none';
     document.querySelector('.demo-info').style.display = 'none';
     
-    // Add a button to show forms again
-    const backToLoginBtn = document.createElement('button');
-    backToLoginBtn.className = 'email-action-btn secondary';
-    backToLoginBtn.innerHTML = '<span class="material-symbols-outlined">arrow_back</span> Torna al Login';
-    backToLoginBtn.onclick = () => {
-        hideEmailStatus();
-        localStorage.removeItem('pendingEmail');
-        document.querySelector('.form-toggle').style.display = 'flex';
-        document.querySelector('.form-section').style.display = 'block';
-        document.querySelector('.demo-info').style.display = 'block';
-    };
-    document.querySelector('.email-actions').appendChild(backToLoginBtn);
+    // The "Torna al login" button is now handled in HTML and doesn't need dynamic creation
+}
+
+// Check URL parameters for email verification result
+const urlParams = new URLSearchParams(window.location.search);
+const verified = urlParams.get('verified');
+const verificationError = urlParams.get('error');
+
+// Handle email verification result
+if (verified === 'true') {
+    // Email was successfully verified
+    localStorage.removeItem('pendingEmail');
+    showEmailStatus('success', '', 'Email Verificata!', 
+        'Il tuo account è stato verificato con successo. Ti stiamo reindirizzando al login...');
+    
+    // Hide forms
+    document.querySelector('.form-toggle').style.display = 'none';
+    document.querySelector('.form-section').style.display = 'none';
+    document.querySelector('.demo-info').style.display = 'none';
+    
+    // Auto-redirect to login after 3 seconds
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 3000);
+} else if (verificationError) {
+    // Email verification failed
+    const errorMessage = verificationError === 'invalid_token' ? 
+        'Link di verifica non valido o scaduto.' : 
+        'Si è verificato un errore durante la verifica.';
+    
+    showEmailStatus('error', '', 'Verifica Fallita', errorMessage);
+    
+    // Hide forms initially but allow user to try again
+    document.querySelector('.form-toggle').style.display = 'none';
+    document.querySelector('.form-section').style.display = 'none';
+    document.querySelector('.demo-info').style.display = 'none';
 }
 
 // Auto-redirect if already logged in
@@ -1068,7 +1104,6 @@ if (localStorage.getItem('authToken')) {
     console.log('Auth token found, redirecting...'); // Debug log
     
     // Get return URL from query parameters or default to search.html
-    const urlParams = new URLSearchParams(window.location.search);
     const returnUrl = urlParams.get('returnUrl') || 'search.html';
     
     window.location.href = returnUrl;

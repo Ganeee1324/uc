@@ -682,36 +682,6 @@
             }
         }
 
-        /* Demo Credentials */
-        .demo-info {
-            margin-top: 24px;
-            padding: 14px;
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .demo-title {
-            font-weight: 600;
-            color: #3b82f6;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .demo-credentials {
-            color: #6b7280;
-            line-height: 1.5;
-        }
-
-        .demo-credentials strong {
-            color: #374151;
-            font-weight: 500;
-        }
 
         /* Error Tooltip System */
         .form-group {
@@ -924,13 +894,13 @@
         /* Mobile responsive - switch to bottom overlay on small screens */
         @media (max-width: 768px) {
             .password-requirements-panel {
-                position: fixed;
+                position: absolute;
                 left: 20px;
                 right: 20px;
                 width: auto;
-                bottom: 20px;
+                bottom: calc(100% - 20px); /* Position just above the input field, not the whole container */
                 top: auto;
-                transform: translateY(20px) scale(0.95);
+                transform: translateY(-5px) scale(0.95);
             }
 
             .password-requirements-panel.show {
@@ -940,16 +910,41 @@
             .password-requirements-panel.left-side {
                 left: 20px;
                 right: 20px;
-                transform: translateY(20px) scale(0.95);
+                bottom: calc(100% - 20px);
+                transform: translateY(-5px) scale(0.95);
             }
 
             .password-requirements-panel.left-side.show {
                 transform: translateY(0) scale(1);
             }
 
-            .password-requirements-panel::before,
+            /* Arrow pointing down to the info icon on mobile */
+            .password-requirements-panel::before {
+                content: '';
+                position: absolute;
+                bottom: -12px; /* Position further below the panel to reach closer to input */
+                right: calc(56px + 9px - 20px - 8px); /* Icon right edge (56px) + icon half-width (9px) - panel margin (20px) - half arrow width (8px) */
+                left: auto;
+                top: auto;
+                transform: rotate(45deg);
+                width: 16px;
+                height: 16px;
+                background: white;
+                border-right: 1px solid #e2e8f0;
+                border-bottom: 1px solid #e2e8f0;
+                border-left: none;
+                border-top: none;
+                z-index: 1;
+            }
+
             .password-requirements-panel.left-side::before {
-                display: none;
+                right: calc(56px + 9px - 20px - 8px); /* Same centered positioning: icon center alignment */
+                bottom: -12px;
+                border-right: 1px solid #e2e8f0;
+                border-bottom: 1px solid #e2e8f0;
+                border-left: none;
+                border-top: none;
+                transform: rotate(45deg);
             }
         }
 
@@ -1458,17 +1453,6 @@
                 </form>
             </div>
 
-            <!-- Demo Credentials -->
-            <div class="demo-info">
-                <div class="demo-title">
-                    <span>🚀</span>
-                    <span>Prova Account Demo</span>
-                </div>
-                <div class="demo-credentials">
-                    <strong>Email:</strong> admin@admin.com<br>
-                    <strong>Password:</strong> admin
-                </div>
-            </div>
         </div>
     </main>
 

@@ -2,7 +2,7 @@ cd frontend
 python3 -m http.server
 
 git add .
-git commit -m "Profile page update"
+git commit -m "index.html page update"
 git push
 
 # Update backend:

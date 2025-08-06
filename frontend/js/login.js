@@ -185,8 +185,10 @@ function clearFieldError(fieldId) {
     field.classList.remove('error', 'success');
 }
 
-// Password confirmation validation
-function validatePasswordConfirmation() {
+// Password confirmation validation with debouncing
+let confirmPasswordTimeout = null;
+
+function validatePasswordConfirmation(immediate = false) {
     const password = document.getElementById('registerPassword');
     const confirmPassword = document.getElementById('registerPasswordConfirm');
     
@@ -197,8 +199,26 @@ function validatePasswordConfirmation() {
             confirmPassword.classList.add('success');
             return true;
         } else {
-            showFieldError('registerPasswordConfirm', ['Le password non coincidono']);
-            return false;
+            // Only show error immediately if explicitly requested (like on form submit)
+            // Otherwise, debounce the error display to avoid showing it while user is typing
+            if (immediate) {
+                showFieldError('registerPasswordConfirm', ['Le password non coincidono']);
+                return false;
+            } else {
+                // Clear any existing timeout
+                if (confirmPasswordTimeout) {
+                    clearTimeout(confirmPasswordTimeout);
+                }
+                
+                // Set a delay before showing the error
+                confirmPasswordTimeout = setTimeout(() => {
+                    // Double-check the values haven't changed during the timeout
+                    if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
+                        showFieldError('registerPasswordConfirm', ['Le password non coincidono']);
+                    }
+                }, 800); // 800ms delay - user stops typing before showing error
+                return false;
+            }
         }
     }
     return true; // Allow empty fields during typing
@@ -214,6 +234,12 @@ function clearPasswordValidation() {
     clearFieldError('registerPassword');
     clearFieldError('registerPasswordConfirm');
     hidePasswordRequirements();
+    
+    // Clear any pending confirmation validation timeout
+    if (confirmPasswordTimeout) {
+        clearTimeout(confirmPasswordTimeout);
+        confirmPasswordTimeout = null;
+    }
 }
 
 function showPasswordRequirements() {
@@ -329,7 +355,7 @@ function validateAllRegistrationFields() {
         clearFieldError('registerPassword');
     }
     
-    // Validate password confirmation
+    // Validate password confirmation with immediate validation
     if (password !== confirmPassword) {
         showFieldError('registerPasswordConfirm', ['Le password non coincidono']);
         isValid = false;
@@ -432,6 +458,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     password.classList.remove('success');
                 }
             }
+            
+            // Clear any pending confirmation validation timeout since password changed
+            if (confirmPasswordTimeout) {
+                clearTimeout(confirmPasswordTimeout);
+                confirmPasswordTimeout = null;
+            }
+            
             validatePasswordConfirmation();
         });
         
@@ -469,7 +502,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (confirmPassword) {
-        confirmPassword.addEventListener('input', validatePasswordConfirmation);
+        confirmPassword.addEventListener('input', () => {
+            // Clear any pending confirmation validation timeout since user is actively typing
+            if (confirmPasswordTimeout) {
+                clearTimeout(confirmPasswordTimeout);
+                confirmPasswordTimeout = null;
+            }
+            validatePasswordConfirmation();
+        });
         
         // Ensure confirm password field never triggers password requirements overlay
         confirmPassword.addEventListener('focus', () => {
@@ -736,7 +776,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
             // Hide the registration form
             document.querySelector('.form-toggle').style.display = 'none';
             document.querySelector('.form-section').style.display = 'none';
-            document.querySelector('.demo-info').style.display = 'none';
         } else {
             // Handle specific backend validation errors
             if (data.error) {
@@ -1126,7 +1165,6 @@ if (pendingEmail && !localStorage.getItem('authToken')) {
     // Hide forms initially
     document.querySelector('.form-toggle').style.display = 'none';
     document.querySelector('.form-section').style.display = 'none';
-    document.querySelector('.demo-info').style.display = 'none';
     
     // The "Torna al login" button is now handled in HTML and doesn't need dynamic creation
 }
@@ -1146,7 +1184,6 @@ if (verified === 'true') {
     // Hide forms
     document.querySelector('.form-toggle').style.display = 'none';
     document.querySelector('.form-section').style.display = 'none';
-    document.querySelector('.demo-info').style.display = 'none';
     
     // Auto-redirect to login after 3 seconds
     setTimeout(() => {
@@ -1163,7 +1200,6 @@ if (verified === 'true') {
     // Hide forms initially but allow user to try again
     document.querySelector('.form-toggle').style.display = 'none';
     document.querySelector('.form-section').style.display = 'none';
-    document.querySelector('.demo-info').style.display = 'none';
 }
 
 // Auto-redirect if already logged in

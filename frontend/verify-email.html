@@ -290,9 +290,9 @@
                     Perfetto! Il tuo account è stato attivato con successo.
                     Ora puoi accedere e utilizzare tutti i servizi di Uniclarity.
                 </p>
-                <a href="complete-profile.html" class="action-button">
-                    <span class="material-symbols-outlined">person_add</span>
-                    Completa il tuo Profilo
+                <a href="index.html" class="action-button">
+                    <span class="material-symbols-outlined">login</span>
+                    Vai al Login
                 </a>
                 <p class="help-text">
                     Verrai reindirizzato automaticamente tra <span id="countdown">5</span> secondi.
@@ -353,8 +353,8 @@
                 countdownElement.textContent = seconds;
                 if (seconds <= 0) {
                     clearInterval(interval);
-                    // Redirect to profile completion instead of login
-                    window.location.href = 'complete-profile.html';
+                    // Redirect to login page after successful verification
+                    window.location.href = 'index.html';
                 }
             }, 1000);
         }

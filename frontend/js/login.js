@@ -673,7 +673,11 @@ async function makeLoginRequest(url, options = {}) {
             // If no specific return URL, determine based on user's login history
             if (!returnUrl) {
                 // Check if this is the user's first login
-                const isFirstLogin = data.user && data.user.is_first_login;
+                // First check explicit is_first_login flag, then fallback to profile completeness
+                const isFirstLogin = data.user && (
+                    data.user.is_first_login || 
+                    (!data.user.user_faculty && !data.user.bio && !data.user.user_enrollment_year)
+                );
                 returnUrl = isFirstLogin ? 'complete-profile.html' : 'search.html';
             }
             
@@ -1179,16 +1183,18 @@ if (verified === 'true') {
     // Email was successfully verified
     localStorage.removeItem('pendingEmail');
     showEmailStatus('success', '', 'Email Verificata!', 
-        'Il tuo account è stato verificato con successo. Ti stiamo reindirizzando al login...');
+        'Il tuo account è stato verificato con successo. Ora puoi accedere con le tue credenziali.');
     
-    // Hide forms
+    // Hide forms initially but show them after a delay so user can login
     document.querySelector('.form-toggle').style.display = 'none';
     document.querySelector('.form-section').style.display = 'none';
     
-    // Auto-redirect to login after 3 seconds
+    // Show login form after 2 seconds
     setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 3000);
+        hideEmailStatus();
+        document.querySelector('.form-toggle').style.display = 'flex';
+        document.querySelector('.form-section').style.display = 'block';
+    }, 2000);
 } else if (verificationError) {
     // Email verification failed
     const errorMessage = verificationError === 'invalid_token' ? 

@@ -5070,7 +5070,6 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        border-left: 1px solid var(--gray-200);
        border-radius: var(--radius-2xl);
        height: 44px;
-       width: 44px;
        min-width: 44px;
        gap: 0;
        padding: var(--space-2);

@@ -136,7 +136,9 @@ html {
 
 body {
     font-family: var(--font-family-primary);
-    background: linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd);
+    background: 
+        linear-gradient(to bottom, #ffffff 30vh, transparent 30vh),
+        linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd);
     color: var(--gray-800);
     line-height: 1.6;
     min-height: 100vh;
@@ -152,7 +154,9 @@ body {
 
 /* Ensure body always shows gradient background as fallback */
 body[data-page="search"] {
-    background: linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd) !important;
+    background: 
+        linear-gradient(to bottom, #ffffff 30vh, transparent 30vh),
+        linear-gradient(to right, #9ddafd, #84d0fc, #9ddafd) !important;
 }
 
 /* Preload background image for immediate display */

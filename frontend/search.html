@@ -32,7 +32,7 @@
                 var(--title-margin-bottom) + 
                 var(--subtitle-height) + 
                 var(--subtitle-margin-bottom) + 
-                (var(--search-container-spacing) * 0.5)
+                (var(--search-container-spacing) * 0.3)
             );
             
             /* Mobile adjustments */
@@ -66,7 +66,17 @@
         }
         
         /* RESPONSIVE BACKGROUND ADJUSTMENTS - Match header heights */
-        @media (max-width: 1023px) and (min-width: 768px) {
+        /* Special handling for 900-770px range to maintain proper spacing */
+        @media (max-width: 900px) and (min-width: 770px) {
+            :root {
+                --title-height: var(--mobile-title-height);
+                --subtitle-height: var(--mobile-subtitle-height);
+                --search-container-spacing: 40px; /* Keep desktop spacing for proper image anchor */
+                --page-top-margin: calc(70px + 40px); /* Tablet header + space */
+            }
+        }
+        
+        @media (max-width: 770px) and (min-width: 768px) {
             :root {
                 --title-height: var(--mobile-title-height);
                 --subtitle-height: var(--mobile-subtitle-height);

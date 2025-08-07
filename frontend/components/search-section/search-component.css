@@ -760,7 +760,7 @@ html {
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
     opacity: 1;
     visibility: visible;
-    padding-left: 80px; /* Restore original left padding */
+    /* No left padding - centered container */
     z-index: 10120; /* Above header (10100) but below filters overlay (10150) */
 
     /* The background and padding are only applied when it's stuck. */
@@ -768,7 +768,6 @@ html {
     
     /* Progressive enhancement for smaller screens */
     @media (max-width: 1199px) {
-        padding-left: 0; /* Remove left padding on smaller screens */
         max-width: 700px;
     }
     
@@ -959,7 +958,7 @@ html {
     filter: blur(20px);
     opacity: 0.6;
     min-height: 120px;
-    max-width: 464px;
+    max-width: 440px;
     /* Safari-specific fixes for glow rendering */
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
@@ -1085,8 +1084,8 @@ html {
     position: relative;
     display: flex;
     align-items: center;
-    width: 450px; /* Increased width for better button spacing */
-    max-width: 450px;
+    width: 440px; /* Set exact width to 440px */
+    max-width: 440px;
     height: 44px;
     background: rgba(255, 255, 255, 0.95);
     border: none;

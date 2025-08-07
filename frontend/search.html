@@ -25,14 +25,14 @@
             --page-top-margin: calc(80px + 40px); /* header + space-10 */
             --search-container-spacing: 40px;
             
-            /* Calculate exact page anchor point - responsive */
+            /* Calculate precise anchor point between subtitle and search container */
             --page-anchor-y: calc(
                 var(--page-top-margin) + 
                 var(--title-height) + 
                 var(--title-margin-bottom) + 
                 var(--subtitle-height) + 
                 var(--subtitle-margin-bottom) + 
-                var(--search-container-spacing)
+                (var(--search-container-spacing) * 0.25)
             );
             
             /* Mobile adjustments */
@@ -50,7 +50,7 @@
             left: -1px !important;
             width: calc(100vw + 2px) !important;
             height: calc((100vw + 2px) / var(--bg-aspect-ratio)) !important;
-            top: calc(var(--page-anchor-y) - ((100vw + 2px) / var(--bg-aspect-ratio) * 0.5)) !important;
+            top: calc((var(--page-anchor-y)) - ((100vw + 2px) / var(--bg-aspect-ratio) * 0.5)) !important;
             background-image: url('images/bg.png') !important;
             background-size: 100% 100% !important;
             background-repeat: no-repeat !important;

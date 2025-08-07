@@ -132,13 +132,13 @@
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
-                    <a href="upload.html" class="dropdown-item">
-                        <i class="material-symbols-outlined">upload</i>
-                        <span>Upload File</span>
+                    <a href="profile.html#settings" class="dropdown-item">
+                        <i class="material-symbols-outlined">settings</i>
+                        <span>Impostazioni</span>
                     </a>
-                    <a href="#" class="dropdown-item" id="userFavorites">
+                    <a href="preferiti.html" class="dropdown-item" id="userFavorites">
                         <i class="material-symbols-outlined">favorite</i>
-                        <span>My Favorites</span>
+                        <span>Preferiti</span>
                     </a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item" id="logoutBtn">
@@ -560,16 +560,16 @@
                     
                     <div class="add-review-form" id="addReviewForm" style="display: none;">
                         <h3>Aggiungi la tua recensione</h3>
-                        <div class="rating-input">
-                            <label>Valutazione:</label>
-                            <div class="star-rating">
-                                <span class="star-input" data-rating="1">★</span>
-                                <span class="star-input" data-rating="2">★</span>
-                                <span class="star-input" data-rating="3">★</span>
-                                <span class="star-input" data-rating="4">★</span>
-                                <span class="star-input" data-rating="5">★</span>
+                        <fieldset class="rating-input">
+                            <legend>Valutazione:</legend>
+                            <div class="star-rating" role="group" aria-label="Seleziona valutazione">
+                                <span class="star-input" data-rating="1" role="button" tabindex="0" aria-label="1 stella">★</span>
+                                <span class="star-input" data-rating="2" role="button" tabindex="0" aria-label="2 stelle">★</span>
+                                <span class="star-input" data-rating="3" role="button" tabindex="0" aria-label="3 stelle">★</span>
+                                <span class="star-input" data-rating="4" role="button" tabindex="0" aria-label="4 stelle">★</span>
+                                <span class="star-input" data-rating="5" role="button" tabindex="0" aria-label="5 stelle">★</span>
                             </div>
-                        </div>
+                        </fieldset>
                         <div class="review-text-input">
                             <label for="reviewComment">Commento:</label>
                             <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>
@@ -698,9 +698,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="filter-item">
-                            <label class="filter-label">Tipo Vetrina</label>
-                            <div class="vetrina-toggle-group">
+                        <fieldset class="filter-item">
+                            <legend class="filter-label">Tipo Vetrina</legend>
+                            <div class="vetrina-toggle-group" role="group" aria-label="Seleziona tipo vetrina">
                                 <button class="vetrina-toggle active" data-vetrina="all">
                                     <i class="material-symbols-outlined">select_all</i>
                                     Tutte
@@ -714,17 +714,17 @@
                                     Pacchetti
                                 </button>
                             </div>
-                        </div>
+                        </fieldset>
                         <!-- Pagine Filter -->
                         <div class="filter-item" id="pagesRangeContainer">
-                            <label class="filter-label">Numero di Pagine</label>
+                            <label class="filter-label" for="minPagesRange">Numero di Pagine</label>
                             <div class="pages-range-filter">
                                 <div class="dual-range-container">
                                     <div class="range-track">
                                         <div class="range-fill" id="pagesRangeFill"></div>
                                     </div>
-                                    <input type="range" id="minPagesRange" class="range-slider range-slider-min" min="1" max="1000" value="1" step="1">
-                                    <input type="range" id="maxPagesRange" class="range-slider range-slider-max" min="1" max="1000" value="1000" step="1">
+                                    <input type="range" id="minPagesRange" class="range-slider range-slider-min" min="1" max="1000" value="1" step="1" aria-label="Numero minimo di pagine">
+                                    <input type="range" id="maxPagesRange" class="range-slider range-slider-max" min="1" max="1000" value="1000" step="1" aria-label="Numero massimo di pagine">
                                 </div>
                                 <div class="range-values">
                                     <span id="minPagesValue" class="editable-value" data-type="pages" data-position="min" data-tooltip="Clicca per modificare">1</span><span id="maxPagesValue" class="editable-value" data-type="pages" data-position="max" data-tooltip="Clicca per modificare">1000</span>
@@ -763,19 +763,19 @@
                         Qualità & Engagement
                     </h3>
                     <div class="filter-group">
-                        <div class="filter-item">
-                            <label class="filter-label">Rating Minimo</label>
+                        <fieldset class="filter-item">
+                            <legend class="filter-label">Rating Minimo</legend>
                             <div class="rating-filter">
-                                <div class="rating-stars-filter" id="ratingFilter">
-                                    <span class="rating-star-filter" data-rating="1">★</span>
-                                    <span class="rating-star-filter" data-rating="2">★</span>
-                                    <span class="rating-star-filter" data-rating="3">★</span>
-                                    <span class="rating-star-filter" data-rating="4">★</span>
-                                    <span class="rating-star-filter" data-rating="5">★</span>
+                                <div class="rating-stars-filter" role="group" aria-label="Seleziona rating minimo">
+                                    <span class="rating-star-filter" data-rating="1" role="button" tabindex="0" aria-label="Rating minimo 1 stella">★</span>
+                                    <span class="rating-star-filter" data-rating="2" role="button" tabindex="0" aria-label="Rating minimo 2 stelle">★</span>
+                                    <span class="rating-star-filter" data-rating="3" role="button" tabindex="0" aria-label="Rating minimo 3 stelle">★</span>
+                                    <span class="rating-star-filter" data-rating="4" role="button" tabindex="0" aria-label="Rating minimo 4 stelle">★</span>
+                                    <span class="rating-star-filter" data-rating="5" role="button" tabindex="0" aria-label="Rating minimo 5 stelle">★</span>
                                 </div>
                                 <span class="rating-text" id="ratingText">Qualsiasi rating</span>
                             </div>
-                        </div>
+                        </fieldset>
                     </div>
                 </div>
 
@@ -786,9 +786,9 @@
                         Prezzo & Disponibilità
                     </h3>
                     <div class="filter-group">
-                        <div class="filter-item">
-                            <label class="filter-label">Prezzo</label>
-                            <div class="price-toggle-group">
+                        <fieldset class="filter-item">
+                            <legend class="filter-label">Prezzo</legend>
+                            <div class="price-toggle-group" role="group" aria-label="Seleziona filtro prezzo">
                                 <button class="price-toggle active" data-price="all">
                                     <i class="material-symbols-outlined">select_all</i>
                                     Tutti
@@ -802,16 +802,16 @@
                                     A Pagamento
                                 </button>
                             </div>
-                        </div>
+                        </fieldset>
                         <div class="filter-item" id="priceRangeContainer">
-                            <label class="filter-label">Range di Prezzo (€)</label>
+                            <label class="filter-label" for="minPriceRange">Range di Prezzo (€)</label>
                             <div class="price-range-filter">
                                 <div class="dual-range-container">
                                     <div class="range-track">
                                         <div class="range-fill" id="rangeFill"></div>
                                     </div>
-                                    <input type="range" id="minPriceRange" class="range-slider range-slider-min" min="0" max="100" value="0" step="0.5">
-                                    <input type="range" id="maxPriceRange" class="range-slider range-slider-max" min="0" max="100" value="100" step="0.5">
+                                    <input type="range" id="minPriceRange" class="range-slider range-slider-min" min="0" max="100" value="0" step="0.5" aria-label="Prezzo minimo in euro">
+                                    <input type="range" id="maxPriceRange" class="range-slider range-slider-max" min="0" max="100" value="100" step="0.5" aria-label="Prezzo massimo in euro">
                                 </div>
                                 <div class="price-values">
                                     <span id="minPriceValue" class="editable-value" data-type="price" data-position="min" data-tooltip="Clicca per modificare">€0</span>
@@ -885,16 +885,16 @@
                 
                 <div class="add-review-form" id="addReviewForm" style="display: none;">
                     <h3>Aggiungi la tua recensione</h3>
-                    <div class="rating-input">
-                        <label>Valutazione:</label>
-                        <div class="star-rating">
-                            <span class="star-input" data-rating="1">★</span>
-                            <span class="star-input" data-rating="2">★</span>
-                            <span class="star-input" data-rating="3">★</span>
-                            <span class="star-input" data-rating="4">★</span>
-                            <span class="star-input" data-rating="5">★</span>
+                    <fieldset class="rating-input">
+                        <legend>Valutazione:</legend>
+                        <div class="star-rating" role="group" aria-label="Seleziona valutazione">
+                            <span class="star-input" data-rating="1" role="button" tabindex="0" aria-label="1 stella">★</span>
+                            <span class="star-input" data-rating="2" role="button" tabindex="0" aria-label="2 stelle">★</span>
+                            <span class="star-input" data-rating="3" role="button" tabindex="0" aria-label="3 stelle">★</span>
+                            <span class="star-input" data-rating="4" role="button" tabindex="0" aria-label="4 stelle">★</span>
+                            <span class="star-input" data-rating="5" role="button" tabindex="0" aria-label="5 stelle">★</span>
                         </div>
-                    </div>
+                    </fieldset>
                     <div class="review-text-input">
                         <label for="reviewComment">Commento:</label>
                         <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>

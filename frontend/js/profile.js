@@ -2179,31 +2179,42 @@ async function initializeUserPersonalization() {
             return;
         }
 
-        // Fetch fresh user data from backend
-        const user = await fetchCompleteUserProfile();
-        
-        if (user) {
-            // Update localStorage with fresh data
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            
-            // User is authenticated, personalize the dashboard
-            personalizeDashboard(user);
-            
-            // Load user data into settings forms
-            loadUserDataIntoSettings(user);
-        } else {
-            // Failed to get user data, redirect to login
-            console.log('Failed to fetch user data, redirecting to login...');
-            window.location.href = 'index.html';
-            return;
+        // Load cached user data IMMEDIATELY for instant display
+        const cachedUser = getCurrentUser();
+        if (cachedUser) {
+            console.log('Loading cached user data for instant display...');
+            personalizeDashboard(cachedUser);
+            loadUserDataIntoSettings(cachedUser);
         }
+
+        // Fetch fresh user data from backend in background and update
+        fetchCompleteUserProfile().then(user => {
+            if (user) {
+                console.log('Fresh user data received, updating display...');
+                // Update localStorage with fresh data
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // Update dashboard with fresh data
+                personalizeDashboard(user);
+                
+                // Update settings forms with fresh data
+                loadUserDataIntoSettings(user);
+            }
+        }).catch(error => {
+            console.error('Error fetching fresh user data:', error);
+            // Keep using cached data - no action needed as it's already loaded
+        });
+        
+        // Don't wait for the API call - return immediately
+        return cachedUser || { username: 'Loading...', email: 'Loading...' };
     } catch (error) {
         console.error('Error initializing user personalization:', error);
-        // Fallback to localStorage if backend fails
+        // Fallback to localStorage if everything fails
         const cachedUser = getCurrentUser();
         if (cachedUser) {
             personalizeDashboard(cachedUser);
             loadUserDataIntoSettings(cachedUser);
+            return cachedUser;
         } else {
             window.location.href = 'index.html';
         }
@@ -2886,50 +2897,48 @@ function handleTwoFactorToggle(enabled) {
 // ===========================
 
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Profile Page Loaded');
+    
+    // Check authentication first
+    if (!checkAuthenticationAndRedirect()) {
+        return; // Stop initialization if not authenticated
+    }
+    
+    // Check hash IMMEDIATELY to avoid any delays
+    const hash = window.location.hash.substring(1);
+    const shouldGoToSettings = (hash === 'settings');
+    
     // Initialize user personalization first
     await initializeUserPersonalization();
     
-    // Ensure search components have time to initialize properly
-    console.log('Profile page loaded - waiting for search components to initialize');
-    
-    // Wait for search components to be fully initialized
-    await new Promise(resolve => {
-        const checkComponents = () => {
-            const components = document.querySelectorAll('search-section-component');
-            if (components.length > 0 && components[0].shadowRoot) {
-                console.log('✅ Search components initialized successfully');
-                resolve();
-            } else {
-                setTimeout(checkComponents, 50);
+    // Initialize search components in parallel (don't wait for them)
+    const initSearchComponents = async () => {
+        const allSearchContainers = [
+            document.getElementById('searchSectionContainer'),
+            document.getElementById('documentsSearchSectionContainer'),
+            document.getElementById('favoritesSearchSectionContainer')
+        ];
+        
+        allSearchContainers.forEach(container => {
+            if (container) {
+                const searchComponents = container.querySelectorAll('search-section-component');
+                searchComponents.forEach(component => {
+                    if (!component.isInitialized) {
+                        console.log('🔄 Initializing search component in container:', container.id);
+                        component.isInitialized = false;
+                        component.connectedCallback();
+                    } else {
+                        console.log('✅ Search component already initialized in container:', container.id);
+                    }
+                });
             }
-        };
-        checkComponents();
-    });
+        });
+    };
     
-    // Ensure all search components are properly initialized regardless of tab state
-    const allSearchContainers = [
-        document.getElementById('searchSectionContainer'),
-        document.getElementById('documentsSearchSectionContainer'),
-        document.getElementById('favoritesSearchSectionContainer')
-    ];
+    // Start search component initialization in background
+    initSearchComponents();
     
-    allSearchContainers.forEach(container => {
-        if (container) {
-            const searchComponents = container.querySelectorAll('search-section-component');
-            searchComponents.forEach(component => {
-                if (!component.isInitialized) {
-                    console.log('🔄 Initializing search component in container:', container.id);
-                    // Ensure clean initialization state
-                    component.isInitialized = false;
-                    component.connectedCallback();
-                } else {
-                    console.log('✅ Search component already initialized in container:', container.id);
-                }
-            });
-        }
-    });
-    
-    // Initialize dashboard functionality
+    // Initialize dashboard functionality immediately
     initializeMobileMenu();
     initializeTabSwitching(); // Add tab switching functionality
     initializeStatsDropdown(); // Add stats dropdown functionality
@@ -2938,11 +2947,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeDocumentPerformanceItems(); // Add document performance interactivity
     initializeLogout(); // Add logout functionality
     
-    // Charts will be initialized when stats tab is shown
-    
-    // Set initial tab state - check hash first, then default to profile
-    const hash = window.location.hash.substring(1);
-    if (hash === 'settings') {
+    // Set initial tab state based on hash (checked earlier)
+    if (shouldGoToSettings) {
         console.log('Hash detected on load: switching directly to settings tab');
         // Set active class for settings menu item
         const settingsMenuItem = document.querySelector('.menu-item[onclick*="settings"]');

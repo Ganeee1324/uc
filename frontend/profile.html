@@ -1556,33 +1556,6 @@
     }
 
     // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🚀 Profile Page Loaded');
-        
-        // Check authentication first
-        if (!checkAuthenticationAndRedirect()) {
-            return; // Stop initialization if not authenticated
-        }
-        
-        // Wait a bit for all scripts to load, then initialize tab switching
-        setTimeout(() => {
-            if (typeof initializeTabSwitching === 'function') {
-                initializeTabSwitching();
-                console.log('✅ Tab switching initialized');
-            } else {
-                console.warn('⚠️ initializeTabSwitching is not defined - retrying...');
-                // Retry after another delay
-                setTimeout(() => {
-                    if (typeof initializeTabSwitching === 'function') {
-                        initializeTabSwitching();
-                        console.log('✅ Tab switching initialized (retry)');
-                    } else {
-                        console.error('❌ initializeTabSwitching still not defined');
-                    }
-                }, 1000);
-            }
-        }, 100);
-    });
     
     // Add error handling for script loading
     window.addEventListener('error', function(e) {

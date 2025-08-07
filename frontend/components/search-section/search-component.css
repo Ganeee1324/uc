@@ -279,21 +279,52 @@ html {
 /* Empty state styling - Professional and Stunning */
 /* ==================== UNIFIED LOADING AND NO-RESULTS STATE ==================== */
 
-/* Base grid container - consistent for all states */
+/* Base grid container - Mobile-first responsive design */
 .documents-grid {
     padding-top: 10px;
     margin-top: var(--space-2);
     margin-bottom: 40px;
     display: grid;
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    gap: var(--space-5);
-    max-width: 2400px; /* Increased max-width for 8 cards */
+    grid-template-columns: 1fr; /* Mobile-first: single column */
+    gap: var(--space-3);
+    max-width: 400px; /* Mobile-first: narrow width */
     position: relative;
     z-index: 2;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     margin-left: auto;
     margin-right: auto;
+    
+    /* Progressive enhancement for larger screens */
+    @media (min-width: 480px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-width: 600px;
+        gap: var(--space-3);
+    }
+    
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        max-width: 900px;
+        gap: var(--space-4);
+    }
+    
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        max-width: 1400px;
+        gap: var(--space-4);
+    }
+    
+    @media (min-width: 1200px) {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        max-width: 1800px;
+        gap: var(--space-4);
+    }
+    
+    @media (min-width: 1440px) {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        max-width: 2400px;
+        gap: var(--space-5);
+    }
 }
 
 /* Loading state - remove min-height to prevent excess space */
@@ -719,16 +750,33 @@ html {
 }
 
 .search-container-wrapper {
-    /* The wrapper is now back inside search-section. */
-    max-width: 800px; /* Prevent it from getting too wide */
-    /* PROPER CENTERING: Use margin auto for consistent centering across all screen sizes */
+    /* Professional responsive container */
+    max-width: 100%; /* Mobile-first: full width */
     margin: 0 auto; /* Center the wrapper horizontally */
-    /* SMOOTH LOADING: Only on very first load, then instant loading forever */
     position: relative;
     opacity: 1;
     visibility: visible;
-    padding-left: 80px;
-    position: sticky;
+    padding: 0 var(--space-4); /* Mobile-first: consistent padding */
+    
+    /* Progressive enhancement for larger screens */
+    @media (min-width: 480px) {
+        max-width: 500px;
+        padding: 0 var(--space-6);
+    }
+    
+    @media (min-width: 768px) {
+        max-width: 600px;
+        padding-left: 0;
+    }
+    
+    @media (min-width: 1024px) {
+        max-width: 700px;
+    }
+    
+    @media (min-width: 1200px) {
+        max-width: 800px;
+        padding-left: 80px;
+    }
     top: 16px; /* Fixed absolute value - 16px from top of viewport */
     z-index: 10120; /* Above header (10100) but below filters overlay (10150) */
 
@@ -1649,70 +1697,43 @@ body.filters-open .document-count-container {
 
 /* Clear All Filters Button */
 .clear-all-filters-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    /* Inherit all regular filter pill styles but add distinctions */
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+    border-color: #fca5a5 !important;
+    order: -1; /* Always show first */
     opacity: 0;
     transform: translateX(-12px);
     animation: clearAllSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
-    /* Prevent squishing */
-    flex: 0 0 auto;
-    min-width: max-content;
-    white-space: nowrap;
 }
 
-.clear-all-filters-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(100, 116, 139, 0.1) 0%, rgba(71, 85, 105, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.25s ease;
+.clear-all-filters-btn .filter-pill-value {
+    color: #dc2626 !important;
+    font-weight: 600 !important;
+}
+
+.clear-all-filters-btn .filter-pill-remove {
+    color: #dc2626 !important;
 }
 
 .clear-all-filters-btn:hover {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+    border-color: #f87171 !important;
     transform: translateY(-1px);
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    color: #475569;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
 }
 
-.clear-all-filters-btn:hover::before {
-    opacity: 1;
+.clear-all-filters-btn:hover .filter-pill-value {
+    color: #b91c1c !important;
+}
+
+.clear-all-filters-btn:hover .filter-pill-remove {
+    color: #b91c1c !important;
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .clear-all-filters-btn:active {
     transform: translateY(0);
     transition: transform 0.1s ease;
-}
-
-.clear-all-filters-btn .material-symbols-outlined {
-    font-size: 14px;
-    position: relative;
-    z-index: 1;
-}
-
-.clear-all-filters-btn-text {
-    position: relative;
-    z-index: 1;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
 }
 
 /* Animations */
@@ -4041,87 +4062,88 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    box-shadow: var(--shadow-lg);
 }
 
-/* ===========================
-  PROFESSIONAL RESPONSIVE DESIGN
-  =========================== */
+/* ================== PROFESSIONAL RESPONSIVE SYSTEM ================== */
+/* Mobile-First Progressive Enhancement with Standard Breakpoints */
+/* Background positioning handled by unified CSS-calc system in search.html */
 
-@media (max-width: 2500px) {
-    :root {
-        --bg-offset-top: -900px; /* Adjust for this screen size layout */
-    }
-   .filters-panel {
-       max-width: 540px;
+/* LARGE DESKTOP (1440px+) - Professional wide displays */
+@media (min-width: 1440px) {
+   .documents-grid {
+       grid-template-columns: repeat(8, minmax(0, 1fr));
+       gap: var(--space-5);
+       max-width: 2400px;
    }
    
-   .documents-grid {
-       grid-template-columns: repeat(7, minmax(0, 1fr));
-       gap: var(--space-4);
+   .documents-grid.loading {
+       grid-template-columns: repeat(8, minmax(0, 1fr));
    }
    
    .documents-grid.no-results-state {
-       grid-template-columns: repeat(7, minmax(0, 1fr));
-       gap: var(--space-4);
+       grid-template-columns: 1fr;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+   }
+   
+   .filters-panel {
+       max-width: 580px;
    }
 }
 
-@media (max-width: 2300px) {
-    :root {
-        --bg-offset-top: -950px; /* Adjust for this screen size layout */
-    }
+/* DESKTOP STANDARD (1200px - 1439px) - Standard desktop */
+@media (min-width: 1200px) and (max-width: 1439px) {
+   .documents-grid {
+       grid-template-columns: repeat(6, minmax(0, 1fr));
+       gap: var(--space-4);
+       max-width: 1800px;
+   }
+   
+   .documents-grid.loading {
+       grid-template-columns: repeat(6, minmax(0, 1fr));
+   }
+   
+   .documents-grid.no-results-state {
+       grid-template-columns: 1fr;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+   }
+   
    .filters-panel {
        max-width: 520px;
    }
-   
+}
+
+/* DESKTOP COMPACT (1024px - 1199px) - Compact desktop */
+@media (min-width: 1024px) and (max-width: 1199px) {
    .documents-grid {
-       grid-template-columns: repeat(6, minmax(0, 1fr));
+       grid-template-columns: repeat(4, minmax(0, 1fr));
        gap: var(--space-4);
+       max-width: 1400px;
+   }
+   
+   .documents-grid.loading {
+       grid-template-columns: repeat(4, minmax(0, 1fr));
    }
    
    .documents-grid.no-results-state {
-       grid-template-columns: repeat(6, minmax(0, 1fr));
-       gap: var(--space-4);
-   }
-}
-
-@media (max-width: 1800px) {
-    :root {
-        --bg-offset-top: -1000px; /* Adjust for this screen size layout */
-    }
-   .filters-panel {
-       max-width: 500px;
+       grid-template-columns: 1fr;
+       display: flex;
+       justify-content: center;
+       align-items: center;
    }
    
-   .documents-grid {
-       grid-template-columns: repeat(5, minmax(0, 1fr));
-       gap: var(--space-4);
-   }
-   
-   .documents-grid.no-results-state {
-       grid-template-columns: repeat(5, minmax(0, 1fr));
-       gap: var(--space-4);
-   }
-}
-
-@media (max-width: 1600px) {
-    :root {
-        --bg-offset-top: -1100px; /* Adjust for this screen size layout */
-    }
    .filters-panel {
        max-width: 480px;
    }
    
-   .documents-grid {
-       grid-template-columns: repeat(4, minmax(0, 1fr));
-       gap: var(--space-4);
+   .search-container-wrapper {
+       max-width: 700px;
+       padding-left: 0;
    }
    
-   .documents-grid.no-results-state {
-       grid-template-columns: repeat(4, minmax(0, 1fr));
-       gap: var(--space-4);
-   }
-   
-   .documents-grid.filters-open {
-       /* No changes - documents stay exactly as they are */
+   .search-container {
+       max-width: 600px;
    }
    
    .document-card {
@@ -4133,80 +4155,29 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        min-height: 200px;
        max-height: 200px;
    }
-   
-   .document-content {
-       height: 320px;
-   }
-   
-   .document-info {
-       top: 110px;
-       min-height: 120px;
-       max-height: 140px;
-       gap: var(--space-2);
-       padding: var(--space-3) var(--space-4);
-   }
-   
-   .document-title {
-       font-size: 14px;
-   }
-   
-   .document-description {
-       font-size: 11px;
-   }
 }
 
-@media (max-width: 1400px) {
-    :root {
-        --bg-offset-top: -1050px; /* Adjust for this screen size layout */
-    }
-   .filters-panel {
-       max-width: 440px;
-   }
-   
+/* TABLET LANDSCAPE (768px - 1023px) - Tablet and small desktop */
+@media (min-width: 768px) and (max-width: 1023px) {
    .documents-grid {
        grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
+       max-width: 900px;
+   }
+   
+   .documents-grid.loading {
+       grid-template-columns: repeat(3, minmax(0, 1fr));
    }
    
    .documents-grid.no-results-state {
-       grid-template-columns: repeat(3, minmax(0, 1fr));
-       gap: var(--space-4);
+       grid-template-columns: 1fr;
+       display: flex;
+       justify-content: center;
+       align-items: center;
    }
    
-   .documents-grid.filters-open {
-       /* No changes - documents stay exactly as they are */
-   }
-   
-   .document-card {
-       height: 500px;
-   }
-   
-   .document-preview {
-       height: 180px;
-       min-height: 180px;
-       max-height: 180px;
-   }
-   
-   .document-content {
-       height: 320px;
-   }
-   
-   .document-info {
-       top: 120px;
-       min-height: 110px;
-       max-height: 130px;
-       gap: var(--space-2);
-       padding: var(--space-3) var(--space-4);
-   }
-}
-
-@media (max-width: 1200px) {
-   :root {
-       --bg-offset-top: -1020px; /* Adjust for this screen size layout */
-   }
-
    .filters-panel {
-       max-width: 400px;
+       max-width: 460px;
    }
    
    .results-section {
@@ -4277,9 +4248,54 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-@media (max-width: 900px) {
-   :root {
-       --bg-offset-top: -1235px; /* Adjust for mobile layout changes */
+/* TABLET PORTRAIT & LARGE MOBILE (480px - 767px) - Tablet portrait */
+@media (min-width: 480px) and (max-width: 767px) {
+   .documents-grid {
+       grid-template-columns: repeat(2, minmax(0, 1fr));
+       gap: var(--space-3);
+       max-width: 600px;
+   }
+   
+   .documents-grid.loading {
+       grid-template-columns: repeat(2, minmax(0, 1fr));
+   }
+   
+   .documents-grid.no-results-state {
+       grid-template-columns: 1fr;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+   }
+   
+   .document-card {
+       height: 420px;
+   }
+   
+   .document-preview {
+       height: 160px;
+       min-height: 160px;
+       max-height: 160px;
+   }
+   
+   .search-container-wrapper {
+       max-width: 500px;
+       padding-left: 0;
+   }
+   
+   .search-container {
+       max-width: 450px;
+       gap: var(--space-2);
+   }
+   
+   .search-bar {
+       width: 320px;
+       max-width: 320px;
+       height: 40px;
+   }
+   
+   .filters-panel {
+       width: 100%;
+       height: 100vh;
    }
 
    /* Ensure filters panel stays fixed on mobile too */
@@ -4555,12 +4571,81 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-/* Extra Professional Mobile Design - Small Screens */
-@media (max-width: 600px) {
-   :root {
-       --bg-offset-top: -2470px; /* Adjust for small mobile layout */
+/* MOBILE STANDARD (320px - 479px) - Standard mobile phones */
+@media (max-width: 479px) {
+   .documents-grid {
+       grid-template-columns: 1fr;
+       gap: var(--space-3);
+       max-width: 400px;
    }
-
+   
+   .documents-grid.loading {
+       grid-template-columns: 1fr;
+   }
+   
+   .documents-grid.no-results-state {
+       grid-template-columns: 1fr;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+   }
+   
+   .document-card {
+       height: 380px;
+       max-width: 350px;
+       margin: 0 auto;
+   }
+   
+   .document-preview {
+       height: 140px;
+       min-height: 140px;
+       max-height: 140px;
+   }
+   
+   .search-container-wrapper {
+       max-width: 100%;
+       padding: 0 var(--space-4);
+   }
+   
+   .search-container {
+       max-width: 100%;
+       gap: var(--space-2);
+   }
+   
+   .search-bar {
+       width: 100%;
+       max-width: 280px;
+       height: 38px;
+   }
+   
+   .search-input {
+       height: 38px;
+       padding: 0 var(--space-3);
+       font-size: 14px;
+   }
+   
+   .search-btn {
+       width: 32px;
+       height: 32px;
+       right: 3px;
+   }
+   
+   .toggle-label {
+       height: 18px;
+       --width: 18px;
+       right: 40px;
+   }
+   
+   .filters-btn {
+       padding: var(--space-2) var(--space-3);
+       font-size: 14px;
+   }
+   
+   .filters-panel {
+       width: 100%;
+       height: 100vh;
+       border-radius: 0;
+   }
    
    .mobile-menu-toggle .material-symbols-outlined {
        font-size: 20px;
@@ -4978,10 +5063,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
+/* Tablet Portrait Specific Adjustments */
 @media (max-width: 768px) and (min-width: 601px) {
-   :root {
-       --bg-offset-top: -1300px; /* Adjust for tablet layout */
-   }
 
    .search-title {
        font-size: 38px;

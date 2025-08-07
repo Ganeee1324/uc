@@ -25,7 +25,7 @@
             --page-top-margin: calc(80px + 40px); /* header + space-10 */
             --search-container-spacing: 40px;
             
-            /* Calculate exact page anchor point */
+            /* Calculate exact page anchor point - responsive */
             --page-anchor-y: calc(
                 var(--page-top-margin) + 
                 var(--title-height) + 
@@ -35,11 +35,16 @@
                 var(--search-container-spacing)
             );
             
+            /* Mobile adjustments */
+            --mobile-title-height: 32px;
+            --mobile-subtitle-height: 28px;
+            --mobile-spacing: 20px;
+            
             /* Background image aspect ratio - must be set based on actual image */
             --bg-aspect-ratio: 1.778; /* 16:9 fallback, will be set dynamically */
         }
         
-        /* CSS-ONLY Background Positioning - Works for ALL scenarios */
+        /* PROFESSIONAL UNIFIED Background Positioning - ALL screen sizes */
         .background-image {
             position: absolute !important;
             left: -1px !important;
@@ -49,12 +54,32 @@
             background-image: url('images/bg.png') !important;
             background-size: 100% 100% !important;
             background-repeat: no-repeat !important;
+            background-position: center center !important;
             z-index: -1 !important;
             pointer-events: none !important;
             opacity: 1 !important;
             visibility: visible !important;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
+            transform: translateZ(0) !important;
+            will-change: transform !important;
+        }
+        
+        /* RESPONSIVE BACKGROUND ADJUSTMENTS */
+        @media (max-width: 767px) {
+            :root {
+                --title-height: var(--mobile-title-height);
+                --subtitle-height: var(--mobile-subtitle-height);
+                --search-container-spacing: var(--mobile-spacing);
+                --page-top-margin: calc(70px + 20px); /* Adjusted for mobile header */
+            }
+        }
+        
+        @media (max-width: 479px) {
+            :root {
+                --page-top-margin: calc(64px + 16px); /* Even smaller for very small screens */
+                --search-container-spacing: 16px;
+            }
         }
         
         /* Search bar background visibility handled in component CSS */

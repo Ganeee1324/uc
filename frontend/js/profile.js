@@ -565,6 +565,32 @@ function initializeTabSwitching() {
             }
         });
     });
+    
+    // Handle URL hash on page load and hash changes
+    handleHashRouting();
+    window.addEventListener('hashchange', handleHashRouting);
+}
+
+// Handle hash routing for direct links like profile.html#settings
+function handleHashRouting() {
+    const hash = window.location.hash.substring(1); // Remove the # symbol
+    
+    if (hash === 'settings') {
+        console.log('Hash routing: switching to settings tab');
+        
+        // Remove active class from all menu items
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => item.classList.remove('active'));
+        
+        // Add active class to settings menu item
+        const settingsMenuItem = document.querySelector('.menu-item[onclick*="settings"]');
+        if (settingsMenuItem) {
+            settingsMenuItem.classList.add('active');
+        }
+        
+        // Switch to settings tab
+        switchTab('settings');
+    }
 }
 
 // ===========================

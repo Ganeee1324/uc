@@ -12,6 +12,8 @@ const successMessage = document.getElementById('successMessage');
 const errorMessage = document.getElementById('errorMessage');
 const successText = document.getElementById('successText');
 const errorText = document.getElementById('errorText');
+const loginErrorMessage = document.getElementById('loginErrorMessage');
+const loginErrorText = document.getElementById('loginErrorText');
 const emailStatus = document.getElementById('emailStatus');
 const emailStatusIcon = document.getElementById('emailStatusIcon');
 const emailStatusTitle = document.getElementById('emailStatusTitle');
@@ -587,6 +589,11 @@ function showMessage(type, message) {
         console.log(message);
     } else if (type === 'error') {
         console.error(message);
+        // Show login-specific error message if available
+        if (loginErrorMessage && loginErrorText) {
+            loginErrorText.textContent = message;
+            loginErrorMessage.classList.add('show');
+        }
     }
 }
 
@@ -596,6 +603,9 @@ function clearMessages() {
     }
     if (errorMessage) {
         errorMessage.classList.remove('show');
+    }
+    if (loginErrorMessage) {
+        loginErrorMessage.classList.remove('show');
     }
 }
 
@@ -686,7 +696,31 @@ async function makeLoginRequest(url, options = {}) {
                 window.location.href = returnUrl;
             }, 100);
         } else {
-            const errorMessage = data.msg || 'Accesso fallito. Riprova.';
+            // Handle specific login errors
+            let errorMessage = 'Accesso fallito. Riprova.';
+            
+            if (data.error) {
+                switch (data.error) {
+                    case 'invalid_credentials':
+                    case 'invalid_password':
+                        errorMessage = 'Email o password non corretta.';
+                        break;
+                    case 'user_not_found':
+                        errorMessage = 'Nessun account trovato con questa email.';
+                        break;
+                    case 'account_not_verified':
+                        errorMessage = 'Il tuo account non è stato ancora verificato. Controlla la tua email.';
+                        break;
+                    case 'account_locked':
+                        errorMessage = 'Account temporaneamente bloccato. Riprova più tardi.';
+                        break;
+                    default:
+                        errorMessage = data.msg || 'Accesso fallito. Riprova.';
+                }
+            } else {
+                errorMessage = data.msg || 'Accesso fallito. Riprova.';
+            }
+            
             showMessage('error', errorMessage);
         }
     } catch (error) {

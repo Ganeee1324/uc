@@ -566,8 +566,7 @@ function initializeTabSwitching() {
         });
     });
     
-    // Handle URL hash on page load and hash changes
-    handleHashRouting();
+    // Only handle hash changes (not initial load, since we handle that in main init)
     window.addEventListener('hashchange', handleHashRouting);
 }
 
@@ -2941,8 +2940,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Charts will be initialized when stats tab is shown
     
-    // Set initial tab state to ensure proper display - start with profile tab as default
-    await switchTab('profile');
+    // Set initial tab state - check hash first, then default to profile
+    const hash = window.location.hash.substring(1);
+    if (hash === 'settings') {
+        console.log('Hash detected on load: switching directly to settings tab');
+        // Set active class for settings menu item
+        const settingsMenuItem = document.querySelector('.menu-item[onclick*="settings"]');
+        if (settingsMenuItem) {
+            // Remove active from all first
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            settingsMenuItem.classList.add('active');
+        }
+        await switchTab('settings');
+    } else {
+        await switchTab('profile');
+    }
     
     // FORCE REVIEWS INITIALIZATION - For debugging
     setTimeout(() => {

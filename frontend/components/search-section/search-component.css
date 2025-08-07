@@ -5006,7 +5006,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Professional Tablet Design */
-/* Medium screens: 770-900px range - full width filters button */
+/* Medium screens: 770-900px range - normal width filters button as requested */
 @media (max-width: 900px) and (min-width: 770px) {
    .search-container {
        max-width: 600px;
@@ -5019,14 +5019,43 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
    
    .filters-btn {
-       width: 100%;
-       max-width: 400px;
-       min-width: 100%;
+       border: 1px solid var(--gray-200);
+       border-radius: var(--radius-2xl);
+       height: 44px;
+       min-width: 85px;
+       width: auto;
+       padding: var(--space-2) var(--space-3);
+       font-size: 13px;
+       font-weight: 600;
    }
 }
 
-/* Medium screens: 600-770px range - smaller search bar */
-@media (max-width: 770px) and (min-width: 601px) {
+/* Medium screens: 768-770px range - normal filters button like desktop */
+@media (max-width: 770px) and (min-width: 768px) {
+   .search-container {
+       max-width: 600px;
+   }
+   
+   .search-bar {
+       height: 44px;
+       max-width: 400px;
+       width: 100%;
+   }
+   
+   .filters-btn {
+       border: 1px solid var(--gray-200);
+       border-radius: var(--radius-2xl);
+       height: 44px;
+       min-width: 85px;
+       width: auto;
+       padding: var(--space-2) var(--space-3);
+       font-size: 13px;
+       font-weight: 600;
+   }
+}
+
+/* Medium screens: 600-768px range - compact filters button */
+@media (max-width: 768px) and (min-width: 601px) {
    .search-container {
        max-width: 600px;
    }

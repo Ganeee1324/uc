@@ -115,19 +115,21 @@ class GlobalMemoryManager {
      * Setup cleanup on page navigation/unload
      */
     setupNavigationCleanup() {
-        // Modern browsers
+        // Modern browsers - beforeunload for user-initiated navigation
         window.addEventListener('beforeunload', (event) => {
             this.executeCleanup('before_unload');
         });
 
-        // Fallback for older browsers
-        window.addEventListener('unload', () => {
-            this.executeCleanup('unload');
-        });
-
-        // Page Hide API (more reliable than beforeunload)
+        // Page Hide API (most reliable for all navigation types)
         window.addEventListener('pagehide', (event) => {
             this.executeCleanup('page_hide');
+        });
+
+        // Visibilitychange as additional fallback
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                this.executeCleanup('visibility_hidden');
+            }
         });
     }
 

@@ -3165,11 +3165,11 @@ class FilterManager {
         // Clear All pill (only show when there are filters)
         const clearAllPill = document.createElement('div');
         clearAllPill.className = 'filter-pill clear-all-filters-btn';
+        clearAllPill.setAttribute('data-action', 'clear-all-filters');
         clearAllPill.innerHTML = `
-            <span class="filter-label">Rimuovi tutti</span>
-            <button class="filter-remove" onclick="filterManager.clearAllFiltersAction()">
-                <i class="material-symbols-outlined">close</i>
-            </button>
+            <span class="filter-pill-label"></span>
+            <span class="filter-pill-value">Rimuovi tutti</span>
+            <span class="filter-pill-remove"></span>
         `;
         activeFiltersContainer.appendChild(clearAllPill);
         // Pages range pill
@@ -3810,10 +3810,11 @@ function updateActiveFiltersDisplay() {
     // Add clear all button if there are filters
     if (filterPills.length > 0) {
         filterPills.unshift(`
-            <button class="clear-all-filters-btn" data-action="clear-all-filters" style="color: #dc2626;">
-                <span class="clear-all-x-icon" style="font-size: 18px; font-weight: bold; margin-right: 6px;">&times;</span>
-                <span class="clear-all-filters-btn-text">Rimuovi tutti</span>
-            </button>
+            <div class="filter-pill clear-all-filters-btn" data-action="clear-all-filters">
+                <span class="filter-pill-label"></span>
+                <span class="filter-pill-value">Rimuovi tutti</span>
+                <span class="filter-pill-remove"></span>
+            </div>
         `);
     }
     

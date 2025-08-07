@@ -5006,8 +5006,27 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 /* Professional Tablet Design */
-/* Medium screens: 600-900px range - smaller search bar */
-@media (max-width: 900px) and (min-width: 601px) {
+/* Medium screens: 770-900px range - full width filters button */
+@media (max-width: 900px) and (min-width: 770px) {
+   .search-container {
+       max-width: 600px;
+   }
+   
+   .search-bar {
+       height: 44px;
+       max-width: 400px;
+       width: 100%;
+   }
+   
+   .filters-btn {
+       width: 100%;
+       max-width: 400px;
+       min-width: 100%;
+   }
+}
+
+/* Medium screens: 600-770px range - smaller search bar */
+@media (max-width: 770px) and (min-width: 601px) {
    .search-container {
        max-width: 600px;
    }

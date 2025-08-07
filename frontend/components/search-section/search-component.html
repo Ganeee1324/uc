@@ -472,16 +472,16 @@
                 
                 <div class="add-review-form" id="addReviewForm" style="display: none;">
                     <h3>Aggiungi la tua recensione</h3>
-                    <div class="rating-input">
-                        <label>Valutazione:</label>
-                        <div class="star-rating">
-                            <span class="star-input" data-rating="1">★</span>
-                            <span class="star-input" data-rating="2">★</span>
-                            <span class="star-input" data-rating="3">★</span>
-                            <span class="star-input" data-rating="4">★</span>
-                            <span class="star-input" data-rating="5">★</span>
+                    <fieldset class="rating-input">
+                        <legend>Valutazione:</legend>
+                        <div class="star-rating" role="group" aria-label="Seleziona valutazione">
+                            <span class="star-input" data-rating="1" role="button" tabindex="0" aria-label="1 stella">★</span>
+                            <span class="star-input" data-rating="2" role="button" tabindex="0" aria-label="2 stelle">★</span>
+                            <span class="star-input" data-rating="3" role="button" tabindex="0" aria-label="3 stelle">★</span>
+                            <span class="star-input" data-rating="4" role="button" tabindex="0" aria-label="4 stelle">★</span>
+                            <span class="star-input" data-rating="5" role="button" tabindex="0" aria-label="5 stelle">★</span>
                         </div>
-                    </div>
+                    </fieldset>
                     <div class="review-text-input">
                         <label for="reviewComment">Commento:</label>
                         <textarea id="reviewComment" placeholder="Condividi la tua esperienza con questo documento..." rows="4"></textarea>

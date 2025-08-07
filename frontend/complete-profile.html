@@ -1218,7 +1218,7 @@
                 
                 if (!username) {
                     // Try to get from localStorage or use default
-                    const userData = localStorage.getItem('user_data');
+                    const userData = localStorage.getItem('currentUser');
                     if (userData) {
                         const user = JSON.parse(userData);
                         username = user.username;
@@ -1229,8 +1229,8 @@
                     username = 'User'; // Default fallback
                 }
                 
-                // Get first two characters and capitalize
-                return username.substring(0, 2).toUpperCase();
+                // Get first character and capitalize
+                return username.substring(0, 1).toUpperCase();
             }
 
             setUserInitials() {
@@ -1651,7 +1651,7 @@
                     }
 
                     // Get JWT token from localStorage
-                    const token = localStorage.getItem('access_token');
+                    const token = localStorage.getItem('authToken');
                     if (!token) {
                         throw new Error('Token di accesso non trovato');
                     }
@@ -1670,7 +1670,9 @@
                         throw new Error(errorData.msg || 'Errore durante l\'aggiornamento del profilo');
                     }
 
-                    // Success
+                    // Success - mark profile setup as completed
+                    localStorage.setItem('profileSetupCompleted', 'true');
+                    localStorage.removeItem('profileSetupInitiated');
                     this.showSuccessMessage();
                     
                     // Redirect to main app after delay
@@ -1698,6 +1700,10 @@
             }
 
             skipProfile() {
+                // Mark profile setup as completed even when skipping
+                localStorage.setItem('profileSetupCompleted', 'true');
+                localStorage.removeItem('profileSetupInitiated');
+                
                 // Redirect to main app without saving
                 window.location.href = 'search.html';
             }

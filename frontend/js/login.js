@@ -683,11 +683,18 @@ async function makeLoginRequest(url, options = {}) {
             // If no specific return URL, determine based on user's login history
             if (!returnUrl) {
                 // Check if this is the user's first login
-                // First check explicit is_first_login flag, then fallback to profile completeness
+                // Use explicit is_first_login flag from backend if available
+                // Otherwise, use localStorage to track if user has already completed profile setup
                 const isFirstLogin = data.user && (
-                    data.user.is_first_login || 
-                    (!data.user.user_faculty && !data.user.bio && !data.user.user_enrollment_year)
+                    data.user.is_first_login ||
+                    (!localStorage.getItem('profileSetupCompleted'))
                 );
+                
+                // If redirecting to profile completion, mark that we're doing so
+                if (isFirstLogin) {
+                    localStorage.setItem('profileSetupInitiated', 'true');
+                }
+                
                 returnUrl = isFirstLogin ? 'complete-profile.html' : 'search.html';
             }
             
@@ -753,8 +760,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const loginBtn = document.getElementById('loginBtn');
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
     clearMessages();
     setLoading(loginBtn, true);
+    
     try {
         await makeLoginRequest('/login', {
             method: 'POST',
@@ -763,6 +773,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 password: password
             })
         });
+        // Save remembered credentials on successful login
+        saveRememberedCredentials(email, rememberMe);
     } catch (error) {
         showMessage('error', error.message);
     } finally {
@@ -1167,6 +1179,28 @@ modalActionBtn?.addEventListener('click', async () => {
 });
 
 // Password reset is now handled in reset-password.html
+
+// Remember me functionality
+function loadRememberedCredentials() {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+        document.getElementById('loginEmail').value = rememberedEmail;
+        document.getElementById('rememberMe').checked = true;
+    }
+}
+
+function saveRememberedCredentials(email, remember) {
+    if (remember) {
+        localStorage.setItem('rememberedEmail', email);
+    } else {
+        localStorage.removeItem('rememberedEmail');
+    }
+}
+
+// Load remembered credentials on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadRememberedCredentials();
+});
 
 // Input field enhancements
 document.querySelectorAll('.form-input').forEach(input => {

@@ -753,42 +753,38 @@ html {
 }
 
 .search-container-wrapper {
-    /* Professional responsive container */
-    max-width: 100%; /* Mobile-first: full width */
+    /* Professional responsive container with sticky behavior */
+    max-width: 800px; /* Prevent it from getting too wide */
     margin: 0 auto; /* Center the wrapper horizontally */
-    position: relative;
+    position: sticky; /* Restore sticky positioning */
+    top: 16px; /* Fixed absolute value - 16px from top of viewport */
     opacity: 1;
     visibility: visible;
-    padding: 0 var(--space-4); /* Mobile-first: consistent padding */
-    
-    /* Progressive enhancement for larger screens */
-    @media (min-width: 480px) {
-        max-width: 500px;
-        padding: 0 var(--space-6);
-    }
-    
-    @media (min-width: 768px) {
-        max-width: 600px;
-        padding-left: 0;
-    }
-    
-    @media (min-width: 1024px) {
-        max-width: 700px;
-    }
-    
-    @media (min-width: 1200px) {
-        max-width: 800px;
-        padding-left: 80px;
-    }
-    top: 16px; /* Fixed absolute value - 16px from top of viewport */
+    padding-left: 80px; /* Restore original left padding */
     z-index: 10120; /* Above header (10100) but below filters overlay (10150) */
 
     /* The background and padding are only applied when it's stuck. */
-    /* REMOVED: transition: all 0.3s ease-in-out; - Causes sliding animation on refresh */
     pointer-events: none; /* Make wrapper non-clickable */
     
-    /* Ensure sticky positioning works properly */
-    /* transform: translateZ(0); - Removed as it can interfere with sticky positioning */
+    /* Progressive enhancement for smaller screens */
+    @media (max-width: 1199px) {
+        padding-left: 0; /* Remove left padding on smaller screens */
+        max-width: 700px;
+    }
+    
+    @media (max-width: 1023px) {
+        max-width: 600px;
+    }
+    
+    @media (max-width: 767px) {
+        max-width: 500px;
+        padding: 0 var(--space-4);
+    }
+    
+    @media (max-width: 479px) {
+        max-width: 100%;
+        padding: 0 var(--space-4);
+    }
 }
 
 /* FIRST LOAD ONLY: Show fade-in animation only on very first visit */
@@ -829,6 +825,7 @@ html {
     opacity: 1 !important;
     visibility: visible !important;
     transform: translateZ(0); /* Force hardware acceleration for immediate rendering */
+    padding-left:50px;
 }
 
 /* Animated Border Search Bar Container - Allow glow to extend */
@@ -4140,10 +4137,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        max-width: 480px;
    }
    
-   .search-container-wrapper {
-       max-width: 700px;
-       padding-left: 0;
-   }
+   /* search-container-wrapper responsive handled in main rule */
    
    .search-container {
        max-width: 600px;
@@ -4201,10 +4195,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        /* No changes - documents stay exactly as they are */
    }
    
-   .search-container-wrapper {
-       max-width: 800px;
-       margin: 0 auto; /* Center on tablet and mobile for better usability */
-   }
+   /* search-container-wrapper responsive handled in main rule */
    
    .search-container {
        max-width: 550px;
@@ -4280,10 +4271,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        max-height: 160px;
    }
    
-   .search-container-wrapper {
-       max-width: 500px;
-       padding-left: 0;
-   }
+   /* search-container-wrapper responsive handled in main rule */
    
    .search-container {
        max-width: 450px;
@@ -4605,10 +4593,7 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        max-height: 140px;
    }
    
-   .search-container-wrapper {
-       max-width: 100%;
-       padding: 0 var(--space-4);
-   }
+   /* search-container-wrapper responsive handled in main rule */
    
    .search-container {
        max-width: 100%;

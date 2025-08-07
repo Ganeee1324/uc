@@ -680,9 +680,22 @@ async function makeLoginRequest(url, options = {}) {
             const urlParams = new URLSearchParams(window.location.search);
             let returnUrl = urlParams.get('returnUrl');
             
-            // If no specific return URL, redirect to search page
+            // If no specific return URL, determine based on user's login history
             if (!returnUrl) {
-                returnUrl = 'search.html';
+                // Check if this is the user's first login
+                // Use explicit is_first_login flag from backend if available
+                // Otherwise, use localStorage to track if user has already completed profile setup
+                const isFirstLogin = data.user && (
+                    data.user.is_first_login ||
+                    (!localStorage.getItem('profileSetupCompleted'))
+                );
+                
+                // If redirecting to profile completion, mark that we're doing so
+                if (isFirstLogin) {
+                    localStorage.setItem('profileSetupInitiated', 'true');
+                }
+                
+                returnUrl = isFirstLogin ? 'complete-profile.html' : 'search.html';
             }
             
             // Force redirect with a small delay to ensure localStorage is saved

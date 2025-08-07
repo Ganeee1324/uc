@@ -65,19 +65,28 @@
             will-change: transform !important;
         }
         
-        /* RESPONSIVE BACKGROUND ADJUSTMENTS */
+        /* RESPONSIVE BACKGROUND ADJUSTMENTS - Match header heights */
+        @media (max-width: 1023px) and (min-width: 768px) {
+            :root {
+                --title-height: var(--mobile-title-height);
+                --subtitle-height: var(--mobile-subtitle-height);
+                --search-container-spacing: var(--mobile-spacing);
+                --page-top-margin: calc(70px + 40px); /* Tablet header + space */
+            }
+        }
+        
         @media (max-width: 767px) {
             :root {
                 --title-height: var(--mobile-title-height);
                 --subtitle-height: var(--mobile-subtitle-height);
                 --search-container-spacing: var(--mobile-spacing);
-                --page-top-margin: calc(70px + 20px); /* Adjusted for mobile header */
+                --page-top-margin: calc(70px + 32px); /* Mobile header + space */
             }
         }
         
         @media (max-width: 479px) {
             :root {
-                --page-top-margin: calc(64px + 16px); /* Even smaller for very small screens */
+                --page-top-margin: calc(64px + 24px); /* Small mobile header + space */
                 --search-container-spacing: 16px;
             }
         }

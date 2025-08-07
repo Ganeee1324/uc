@@ -279,7 +279,7 @@ html {
 /* Empty state styling - Professional and Stunning */
 /* ==================== UNIFIED LOADING AND NO-RESULTS STATE ==================== */
 
-/* Base grid container - Mobile-first responsive design */
+/* Base grid container - 4 cards as standard with proportional scaling */
 .documents-grid {
     padding-top: 10px;
     margin-top: var(--space-2);
@@ -287,7 +287,7 @@ html {
     display: grid;
     grid-template-columns: 1fr; /* Mobile-first: single column */
     gap: var(--space-3);
-    max-width: 400px; /* Mobile-first: narrow width */
+    max-width: 350px; /* Mobile-first: narrow width */
     position: relative;
     z-index: 2;
     transform: translate3d(0, 0, 0);
@@ -295,34 +295,37 @@ html {
     margin-left: auto;
     margin-right: auto;
     
-    /* Progressive enhancement for larger screens */
+    /* Progressive enhancement - 4 cards as base for normal screens */
     @media (min-width: 480px) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        max-width: 600px;
-        gap: var(--space-3);
+        max-width: 700px;
+        gap: var(--space-4);
     }
     
     @media (min-width: 768px) {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        max-width: 900px;
+        max-width: 1050px;
         gap: var(--space-4);
     }
     
+    /* NORMAL SCREEN BASE: 4 cards per row at desktop */
     @media (min-width: 1024px) {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         max-width: 1400px;
-        gap: var(--space-4);
+        gap: var(--space-5);
     }
     
-    @media (min-width: 1200px) {
+    /* Large screens: 5 cards (gradual increase from base 4) */
+    @media (min-width: 1400px) {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        max-width: 1750px;
+        gap: var(--space-5);
+    }
+    
+    /* Ultra-wide: 6 cards maximum (proportional scaling) */
+    @media (min-width: 1800px) {
         grid-template-columns: repeat(6, minmax(0, 1fr));
-        max-width: 1800px;
-        gap: var(--space-4);
-    }
-    
-    @media (min-width: 1440px) {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        max-width: 2400px;
+        max-width: 2100px;
         gap: var(--space-5);
     }
 }
@@ -4066,16 +4069,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 /* Mobile-First Progressive Enhancement with Standard Breakpoints */
 /* Background positioning handled by unified CSS-calc system in search.html */
 
-/* LARGE DESKTOP (1440px+) - Professional wide displays */
-@media (min-width: 1440px) {
+/* ULTRA-WIDE DESKTOP (1800px+) - 6 cards maximum */
+@media (min-width: 1800px) {
    .documents-grid {
-       grid-template-columns: repeat(8, minmax(0, 1fr));
+       grid-template-columns: repeat(6, minmax(0, 1fr));
+       max-width: 2100px;
        gap: var(--space-5);
-       max-width: 2400px;
    }
    
    .documents-grid.loading {
-       grid-template-columns: repeat(8, minmax(0, 1fr));
+       grid-template-columns: repeat(6, minmax(0, 1fr));
    }
    
    .documents-grid.no-results-state {
@@ -4090,16 +4093,16 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-/* DESKTOP STANDARD (1200px - 1439px) - Standard desktop */
-@media (min-width: 1200px) and (max-width: 1439px) {
+/* LARGE DESKTOP (1400px - 1799px) - 5 cards */
+@media (min-width: 1400px) and (max-width: 1799px) {
    .documents-grid {
-       grid-template-columns: repeat(6, minmax(0, 1fr));
-       gap: var(--space-4);
-       max-width: 1800px;
+       grid-template-columns: repeat(5, minmax(0, 1fr));
+       max-width: 1750px;
+       gap: var(--space-5);
    }
    
    .documents-grid.loading {
-       grid-template-columns: repeat(6, minmax(0, 1fr));
+       grid-template-columns: repeat(5, minmax(0, 1fr));
    }
    
    .documents-grid.no-results-state {
@@ -4114,11 +4117,11 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-/* DESKTOP COMPACT (1024px - 1199px) - Compact desktop */
-@media (min-width: 1024px) and (max-width: 1199px) {
+/* NORMAL DESKTOP (1024px - 1399px) - BASE: 4 cards per row */
+@media (min-width: 1024px) and (max-width: 1399px) {
    .documents-grid {
        grid-template-columns: repeat(4, minmax(0, 1fr));
-       gap: var(--space-4);
+       gap: var(--space-5);
        max-width: 1400px;
    }
    
@@ -4157,12 +4160,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-/* TABLET LANDSCAPE (768px - 1023px) - Tablet and small desktop */
+/* TABLET LANDSCAPE (768px - 1023px) - 3 cards per row */
 @media (min-width: 768px) and (max-width: 1023px) {
    .documents-grid {
        grid-template-columns: repeat(3, minmax(0, 1fr));
        gap: var(--space-4);
-       max-width: 900px;
+       max-width: 1050px;
    }
    
    .documents-grid.loading {
@@ -4248,12 +4251,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-/* TABLET PORTRAIT & LARGE MOBILE (480px - 767px) - Tablet portrait */
+/* TABLET PORTRAIT & LARGE MOBILE (480px - 767px) - 2 cards per row */
 @media (min-width: 480px) and (max-width: 767px) {
    .documents-grid {
        grid-template-columns: repeat(2, minmax(0, 1fr));
-       gap: var(--space-3);
-       max-width: 600px;
+       gap: var(--space-4);
+       max-width: 700px;
    }
    
    .documents-grid.loading {
@@ -4571,12 +4574,12 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
    }
 }
 
-/* MOBILE STANDARD (320px - 479px) - Standard mobile phones */
+/* MOBILE STANDARD (320px - 479px) - 1 card per row */
 @media (max-width: 479px) {
    .documents-grid {
        grid-template-columns: 1fr;
        gap: var(--space-3);
-       max-width: 400px;
+       max-width: 350px;
    }
    
    .documents-grid.loading {

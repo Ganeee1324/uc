@@ -751,6 +751,57 @@
             cursor: pointer;
         }
 
+        /* User Icon Styles */
+        .post-user-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: var(--forum-space-2);
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .post-user-icon.gradient-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .post-user-icon.gradient-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .post-user-icon.gradient-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .post-user-icon.gradient-4 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .post-user-icon.gradient-5 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .post-user-icon.gradient-6 {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        /* Post meta with user icon layout */
+        .post-meta {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--forum-space-3);
+            font-size: 0.85rem;
+            color: var(--forum-text-muted);
+            flex-wrap: wrap;
+            gap: var(--forum-space-2);
+        }
+
         /* Special Meta Tags */
         .post-pinned,
         .post-hot,
@@ -1633,6 +1684,9 @@
                             
                             <div class="post-content">
                                 <div class="post-meta">
+                                    <div class="post-user-icon gradient-1">MA</div>
+                                    <span class="post-author">Marco A.</span>
+                                    <span class="post-separator">•</span>
                                     <span class="post-category">Esami</span>
                                     <span class="post-separator">•</span>
                                     <span class="post-time">2 giorni fa</span>
@@ -1676,6 +1730,9 @@
                             
                             <div class="post-content">
                                 <div class="post-meta">
+                                    <div class="post-user-icon gradient-2">LR</div>
+                                    <span class="post-author">Luca R.</span>
+                                    <span class="post-separator">•</span>
                                     <span class="post-category">Tirocinio</span>
                                     <span class="post-separator">•</span>
                                     <span class="post-time">45 min fa</span>
@@ -1717,6 +1774,9 @@
                             
                             <div class="post-content">
                                 <div class="post-meta">
+                                    <div class="post-user-icon gradient-3">SF</div>
+                                    <span class="post-author">Sofia F.</span>
+                                    <span class="post-separator">•</span>
                                     <span class="post-category">Vita Universitaria</span>
                                     <span class="post-separator">•</span>
                                     <span class="post-time">1 ora fa</span>
@@ -1759,6 +1819,9 @@
                             
                             <div class="post-content">
                                 <div class="post-meta">
+                                    <div class="post-user-icon gradient-4">AM</div>
+                                    <span class="post-author">Andrea M.</span>
+                                    <span class="post-separator">•</span>
                                     <span class="post-category">Corsi</span>
                                     <span class="post-separator">•</span>
                                     <span class="post-time">3 ore fa</span>
@@ -1801,6 +1864,9 @@
                             
                             <div class="post-content">
                                 <div class="post-meta">
+                                    <div class="post-user-icon gradient-5">GB</div>
+                                    <span class="post-author">Giulia B.</span>
+                                    <span class="post-separator">•</span>
                                     <span class="post-category">Esami</span>
                                     <span class="post-separator">•</span>
                                     <span class="post-time">5 ore fa</span>
@@ -1842,6 +1908,9 @@
                             
                             <div class="post-content">
                                 <div class="post-meta">
+                                    <div class="post-user-icon gradient-6">DC</div>
+                                    <span class="post-author">Davide C.</span>
+                                    <span class="post-separator">•</span>
                                     <span class="post-category">Vita Universitaria</span>
                                     <span class="post-separator">•</span>
                                     <span class="post-time">8 ore fa</span>

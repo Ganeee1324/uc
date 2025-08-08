@@ -246,7 +246,6 @@
             font-weight: 600;
             font-size: 0.95rem;
             border-radius: var(--forum-radius-lg);
-            transition: all var(--forum-transition-base);
             position: relative;
             cursor: pointer;
             margin: 0 var(--forum-space-3);
@@ -264,7 +263,6 @@
             height: 24px;
             background: var(--forum-primary);
             border-radius: 0 var(--forum-radius-sm) var(--forum-radius-sm) 0;
-            transition: width var(--forum-transition-base);
             opacity: 0;
         }
         
@@ -272,7 +270,6 @@
             background: var(--forum-primary-light);
             color: var(--forum-primary-solid);
             border-color: var(--forum-primary-medium);
-            transform: translateX(2px);
             box-shadow: var(--forum-shadow-sm);
         }
         
@@ -315,7 +312,6 @@
         .forum-dropdown {
             max-height: 0;
             overflow: hidden;
-            transition: all var(--forum-transition-base);
             background: var(--forum-bg-primary);
             border-left: 3px solid var(--forum-primary-light);
             margin-left: var(--forum-space-6);
@@ -355,7 +351,6 @@
             font-size: 0.9rem;
             font-weight: 500;
             line-height: 1.4;
-            transition: all var(--forum-transition-base);
             border-radius: var(--forum-radius-md);
             margin: 1px var(--forum-space-2);
             text-align: right;
@@ -372,14 +367,12 @@
             bottom: 0;
             width: 0;
             background: linear-gradient(135deg, var(--forum-primary-solid) 0%, var(--forum-accent-solid) 100%);
-            transition: width var(--forum-transition-base);
             opacity: 0.1;
         }
         
         .forum-dropdown-item:hover {
             background: var(--forum-primary-light);
             color: var(--forum-primary-solid);
-            transform: translateX(3px);
             border-color: var(--forum-primary-medium);
             box-shadow: var(--forum-shadow-sm);
         }
@@ -395,7 +388,6 @@
             font-weight: 600;
             border-color: var(--forum-primary-solid);
             box-shadow: var(--forum-shadow-md);
-            transform: translateX(2px);
         }
         
         .forum-dropdown-item.active::before {
@@ -424,14 +416,12 @@
             background: white;
             color: var(--forum-text-primary);
             outline: none;
-            transition: all var(--forum-transition-base);
             box-shadow: var(--forum-shadow-xs);
         }
         
         .forum-dropdown-search-input:focus {
             border-color: var(--forum-primary-solid);
             box-shadow: var(--forum-focus-ring);
-            transform: translateY(-1px);
             background: var(--forum-bg-primary);
         }
         
@@ -449,7 +439,6 @@
             font-size: 18px;
             color: var(--forum-text-muted);
             pointer-events: none;
-            transition: color var(--forum-transition-base);
         }
         
         .forum-dropdown-search:has(.forum-dropdown-search-input:focus) .material-symbols-outlined {
@@ -628,7 +617,6 @@
             font-size: 0.9rem;
             cursor: pointer;
             outline: none;
-            transition: border-color 0.2s ease;
         }
 
         .sort-select:hover,
@@ -936,7 +924,6 @@
             margin-bottom: var(--forum-space-6);
             overflow: hidden;
             backdrop-filter: blur(10px);
-            transition: all var(--forum-transition-base);
         }
         
         .forum-sidebar-widget:hover {
@@ -984,7 +971,6 @@
             align-items: center;
             justify-content: space-between;
             gap: var(--forum-space-3);
-            transition: all var(--forum-transition-base);
             cursor: pointer;
             border-radius: var(--forum-radius-sm);
             margin: 0 calc(-1 * var(--forum-space-2));
@@ -998,7 +984,6 @@
         
         .forum-trending-item:hover {
             background: var(--forum-primary-light);
-            transform: translateX(2px);
         }
         
         .forum-trending-title {
@@ -1007,7 +992,6 @@
             font-weight: 600;
             flex: 1;
             line-height: 1.4;
-            transition: color var(--forum-transition-base);
         }
         
         .forum-trending-item:hover .forum-trending-title {
@@ -1021,7 +1005,6 @@
             padding: var(--forum-space-1) var(--forum-space-3);
             border-radius: var(--forum-radius-full);
             font-weight: 700;
-            transition: all var(--forum-transition-base);
             border: 1px solid var(--forum-gray-200);
         }
         
@@ -1065,7 +1048,6 @@
             border: 2px solid var(--forum-gray-200);
             border-radius: var(--forum-radius-xl);
             cursor: pointer;
-            transition: all var(--forum-transition-base);
             position: relative;
             overflow: hidden;
             font-weight: 600;
@@ -1124,7 +1106,6 @@
             font-weight: 700;
             font-size: 0.9rem;
             cursor: pointer;
-            transition: all var(--forum-transition-base);
             text-decoration: none;
             box-shadow: var(--forum-shadow-md);
             position: relative;

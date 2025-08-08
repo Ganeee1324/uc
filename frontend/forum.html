@@ -467,7 +467,7 @@
             display: grid;
             grid-template-columns: 1fr 320px;
             gap: var(--forum-space-6);
-            padding: 0;
+            padding: var(--forum-space-6);
             margin: 0;
         }
         
@@ -616,88 +616,6 @@
             padding: var(--forum-space-4) var(--forum-space-6);
         }
 
-        /* Post Header with User Info */
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: var(--forum-space-4);
-        }
-
-        .post-user {
-            display: flex;
-            align-items: center;
-            gap: var(--forum-space-3);
-        }
-
-        /* User Avatar - Matching Header Style */
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--forum-radius-full);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-            box-shadow: var(--forum-shadow-sm);
-            border: 2px solid white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .user-avatar.gradient-purple {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-        }
-
-        .user-avatar.gradient-blue {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-        }
-
-        .user-avatar.gradient-green {
-            background: linear-gradient(135deg, #43e97b, #38f9d7);
-        }
-
-        .user-avatar.gradient-orange {
-            background: linear-gradient(135deg, #fa709a, #fee140);
-        }
-
-        .user-avatar.gradient-pink {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-        }
-
-        .user-avatar.gradient-teal {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-            gap: var(--forum-space-1);
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: var(--forum-text-primary);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .user-name:hover {
-            color: var(--forum-primary-solid);
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: var(--forum-text-muted);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
         /* Post Meta */
         .post-meta {
             display: flex;
@@ -706,6 +624,7 @@
             font-size: 0.8rem;
             color: var(--forum-text-muted);
             flex-wrap: wrap;
+            margin-bottom: var(--forum-space-3);
         }
 
         .post-category {
@@ -871,15 +790,10 @@
                 padding: var(--forum-space-3) var(--forum-space-4);
             }
             
-            .post-header {
-                flex-direction: column;
-                gap: var(--forum-space-2);
-                align-items: flex-start;
-            }
-            
             .post-meta {
                 flex-wrap: wrap;
                 gap: var(--forum-space-1);
+                margin-bottom: var(--forum-space-2);
             }
             
             .post-title {
@@ -894,20 +808,6 @@
             .action-btn {
                 font-size: 0.75rem;
                 padding: var(--forum-space-1) var(--forum-space-2);
-            }
-            
-            .user-avatar {
-                width: 36px;
-                height: 36px;
-                font-size: 0.8rem;
-            }
-            
-            .user-name {
-                font-size: 0.85rem;
-            }
-            
-            .user-role {
-                font-size: 0.7rem;
             }
         }
         
@@ -1567,31 +1467,20 @@
                         <article class="forum-post pinned" data-post-id="1">
                             <div class="post-votes">
                                 <button class="vote-btn upvote">
-                                    <i class="material-symbols-outlined">thumb_up</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
                                 </button>
                                 <span class="vote-count">245</span>
                                 <button class="vote-btn downvote">
-                                    <i class="material-symbols-outlined">thumb_down</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
                                 </button>
                             </div>
                             
                             <div class="post-content">
-                                <div class="post-header">
-                                    <div class="post-user">
-                                        <div class="user-avatar gradient-purple">
-                                            ER
-                                        </div>
-                                        <div class="user-info">
-                                            <span class="user-name">Prof. Elena Rossi</span>
-                                            <span class="user-role">Moderatore</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-meta">
-                                        <span class="post-category">Esami</span>
-                                        <span class="post-separator">•</span>
-                                        <span class="post-time">2 giorni fa</span>
-                                        <span class="post-pinned">📌 Fissato</span>
-                                    </div>
+                                <div class="post-meta">
+                                    <span class="post-category">Esami</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">2 giorni fa</span>
+                                    <span class="post-pinned">📌 Fissato</span>
                                 </div>
                                 
                                 <h3 class="post-title">Guida Completa: Come Preparare al Meglio la Sessione Estiva 2024</h3>
@@ -1621,30 +1510,19 @@
                         <article class="forum-post" data-post-id="2">
                             <div class="post-votes">
                                 <button class="vote-btn upvote">
-                                    <i class="material-symbols-outlined">thumb_up</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
                                 </button>
                                 <span class="vote-count">23</span>
                                 <button class="vote-btn downvote">
-                                    <i class="material-symbols-outlined">thumb_down</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
                                 </button>
                             </div>
                             
                             <div class="post-content">
-                                <div class="post-header">
-                                    <div class="post-user">
-                                        <div class="user-avatar gradient-blue">
-                                            MB
-                                        </div>
-                                        <div class="user-info">
-                                            <span class="user-name">Marco Bianchi</span>
-                                            <span class="user-role">Studente Informatica</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-meta">
-                                        <span class="post-category">Tirocinio</span>
-                                        <span class="post-separator">•</span>
-                                        <span class="post-time">45 min fa</span>
-                                    </div>
+                                <div class="post-meta">
+                                    <span class="post-category">Tirocinio</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">45 min fa</span>
                                 </div>
                                 
                                 <h3 class="post-title">Qualcuno ha esperienza con tirocini in aziende tech? Consigli per CV</h3>
@@ -1673,31 +1551,20 @@
                         <article class="forum-post hot" data-post-id="3">
                             <div class="post-votes">
                                 <button class="vote-btn upvote">
-                                    <i class="material-symbols-outlined">thumb_up</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
                                 </button>
                                 <span class="vote-count">89</span>
                                 <button class="vote-btn downvote">
-                                    <i class="material-symbols-outlined">thumb_down</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
                                 </button>
                             </div>
                             
                             <div class="post-content">
-                                <div class="post-header">
-                                    <div class="post-user">
-                                        <div class="user-avatar gradient-green">
-                                            SC
-                                        </div>
-                                        <div class="user-info">
-                                            <span class="user-name">Sofia Chen</span>
-                                            <span class="user-role">Top Contributor</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-meta">
-                                        <span class="post-category">Vita Universitaria</span>
-                                        <span class="post-separator">•</span>
-                                        <span class="post-time">1 ora fa</span>
-                                        <span class="post-hot">🔥 Hot</span>
-                                    </div>
+                                <div class="post-meta">
+                                    <span class="post-category">Vita Universitaria</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">1 ora fa</span>
+                                    <span class="post-hot">🔥 Hot</span>
                                 </div>
                                 
                                 <h3 class="post-title">Megathread Alloggi Milano - Condivisioni, consigli e opportunità</h3>
@@ -1726,31 +1593,20 @@
                         <article class="forum-post solved" data-post-id="4">
                             <div class="post-votes">
                                 <button class="vote-btn upvote">
-                                    <i class="material-symbols-outlined">thumb_up</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
                                 </button>
                                 <span class="vote-count">45</span>
                                 <button class="vote-btn downvote">
-                                    <i class="material-symbols-outlined">thumb_down</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
                                 </button>
                             </div>
                             
                             <div class="post-content">
-                                <div class="post-header">
-                                    <div class="post-user">
-                                        <div class="user-avatar gradient-orange">
-                                            AF
-                                        </div>
-                                        <div class="user-info">
-                                            <span class="user-name">Alessandro Ferrari</span>
-                                            <span class="user-role">Studente Ingegneria</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-meta">
-                                        <span class="post-category">Corsi</span>
-                                        <span class="post-separator">•</span>
-                                        <span class="post-time">3 ore fa</span>
-                                        <span class="post-solved">✅ Risolto</span>
-                                    </div>
+                                <div class="post-meta">
+                                    <span class="post-category">Corsi</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">3 ore fa</span>
+                                    <span class="post-solved">✅ Risolto</span>
                                 </div>
                                 
                                 <h3 class="post-title">[RISOLTO] Problema con iscrizione esame Analisi Matematica II</h3>
@@ -1779,30 +1635,19 @@
                         <article class="forum-post" data-post-id="5">
                             <div class="post-votes">
                                 <button class="vote-btn upvote">
-                                    <i class="material-symbols-outlined">thumb_up</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
                                 </button>
                                 <span class="vote-count">18</span>
                                 <button class="vote-btn downvote">
-                                    <i class="material-symbols-outlined">thumb_down</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
                                 </button>
                             </div>
                             
                             <div class="post-content">
-                                <div class="post-header">
-                                    <div class="post-user">
-                                        <div class="user-avatar gradient-pink">
-                                            GR
-                                        </div>
-                                        <div class="user-info">
-                                            <span class="user-name">Giulia Romano</span>
-                                            <span class="user-role">Studente Economia</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-meta">
-                                        <span class="post-category">Esami</span>
-                                        <span class="post-separator">•</span>
-                                        <span class="post-time">5 ore fa</span>
-                                    </div>
+                                <div class="post-meta">
+                                    <span class="post-category">Esami</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">5 ore fa</span>
                                 </div>
                                 
                                 <h3 class="post-title">Gruppo di studio per Microeconomia - Cerchiamo 2-3 persone serie</h3>
@@ -1831,30 +1676,19 @@
                         <article class="forum-post" data-post-id="6">
                             <div class="post-votes">
                                 <button class="vote-btn upvote">
-                                    <i class="material-symbols-outlined">thumb_up</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
                                 </button>
                                 <span class="vote-count">67</span>
                                 <button class="vote-btn downvote">
-                                    <i class="material-symbols-outlined">thumb_down</i>
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
                                 </button>
                             </div>
                             
                             <div class="post-content">
-                                <div class="post-header">
-                                    <div class="post-user">
-                                        <div class="user-avatar gradient-teal">
-                                            LM
-                                        </div>
-                                        <div class="user-info">
-                                            <span class="user-name">Luca Moretti</span>
-                                            <span class="user-role">Verificato</span>
-                                        </div>
-                                    </div>
-                                    <div class="post-meta">
-                                        <span class="post-category">Vita Universitaria</span>
-                                        <span class="post-separator">•</span>
-                                        <span class="post-time">8 ore fa</span>
-                                    </div>
+                                <div class="post-meta">
+                                    <span class="post-category">Vita Universitaria</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">8 ore fa</span>
                                 </div>
                                 
                                 <h3 class="post-title">Esperienza Erasmus a Barcellona - AMA (Ask Me Anything)</h3>

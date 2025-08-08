@@ -462,262 +462,323 @@
            WORLD-CLASS FORUM DISCUSSIONS UI
            ======================================== */
         
-        /* Forum Content Grid - Ultra Premium Layout */
+        /* Forum Content Grid - Simple Layout */
         .forum-content-grid {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: var(--forum-space-8);
-            padding: var(--forum-space-8);
+            grid-template-columns: 1fr 320px;
+            gap: var(--forum-space-6);
+            padding: 0;
             margin: 0;
         }
         
-        /* Main Discussion Area - World-Class Design */
+        /* Main Discussion Area - Reddit Style */
         .forum-discussions {
-            background: var(--forum-bg-primary);
-            border-radius: var(--forum-radius-2xl);
-            box-shadow: var(--forum-shadow-xl);
+            background: white;
             border: 1px solid var(--forum-gray-200);
+            border-radius: var(--forum-radius-md);
             overflow: hidden;
-            position: relative;
-            backdrop-filter: blur(20px);
-        }
-        
-        .forum-discussions::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--forum-primary);
-            opacity: 0.6;
-        }
-        
-        .forum-discussions-header {
-            padding: var(--forum-space-8) var(--forum-space-8) var(--forum-space-6);
-            border-bottom: 1px solid var(--forum-gray-200);
-            background: linear-gradient(135deg, var(--forum-bg-primary) 0%, var(--forum-gray-50) 100%);
-            position: relative;
-        }
-        
-        .forum-discussions-header::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: var(--forum-space-8);
-            right: var(--forum-space-8);
-            height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--forum-primary-solid) 50%, transparent 100%);
-            opacity: 0.2;
-        }
-        
-        .forum-discussions-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--forum-text-primary);
-            margin: 0 0 var(--forum-space-3) 0;
-            display: flex;
-            align-items: center;
-            gap: var(--forum-space-3);
-            letter-spacing: -0.02em;
-        }
-        
-        .forum-discussions-meta {
-            font-size: 0.925rem;
-            color: var(--forum-text-tertiary);
-            display: flex;
-            align-items: center;
-            gap: var(--forum-space-6);
-            font-weight: 500;
-        }
-        
-        .forum-discussions-meta span:not(:last-child)::after {
-            content: '•';
-            margin-left: var(--forum-space-6);
-            color: var(--forum-gray-400);
         }
         
         /* ========================================
-           ULTRA-PREMIUM DISCUSSION CARDS
-           World-Class Design System
+           REDDIT-STYLE FORUM LAYOUT
+           Simple and Professional Design
            ======================================== */
-        
-        .forum-discussion-card {
-            padding: var(--forum-space-6) var(--forum-space-8);
+
+        /* Forum Header */
+        .forum-header {
+            background: white;
             border-bottom: 1px solid var(--forum-gray-200);
-            transition: all var(--forum-transition-smooth);
-            cursor: pointer;
-            position: relative;
-            background: transparent;
-            margin: 0;
-            overflow: hidden;
+            padding: var(--forum-space-4) var(--forum-space-6);
+            position: sticky;
+            top: 80px;
+            z-index: 10;
         }
-        
-        .forum-discussion-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 0;
-            background: var(--forum-primary);
-            transition: width var(--forum-transition-base);
-            opacity: 0.8;
-        }
-        
-        .forum-discussion-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, var(--forum-primary-light) 0%, transparent 50%);
-            opacity: 0;
-            transition: opacity var(--forum-transition-base);
-        }
-        
-        .forum-discussion-card:last-child {
-            border-bottom: none;
-        }
-        
-        .forum-discussion-card:hover {
-            background: var(--forum-gray-50);
-            transform: translateX(4px);
-            box-shadow: var(--forum-shadow-md);
-        }
-        
-        .forum-discussion-card:hover::before {
-            width: 4px;
-        }
-        
-        .forum-discussion-card:hover::after {
-            opacity: 0.4;
-        }
-        
-        .forum-discussion-card:active {
-            transform: translateX(2px) scale(0.998);
-        }
-        
-        .forum-discussion-header {
+
+        .forum-header-content {
             display: flex;
-            align-items: flex-start;
-            gap: var(--forum-space-4);
-            margin-bottom: var(--forum-space-4);
-            position: relative;
-            z-index: 2;
-        }
-        
-        .forum-user-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--forum-radius-full);
-            background: var(--forum-primary);
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 0.95rem;
-            flex-shrink: 0;
-            box-shadow: var(--forum-shadow-md);
-            border: 3px solid white;
-            position: relative;
-            overflow: hidden;
+            max-width: 100%;
         }
-        
-        .forum-user-avatar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
-            border-radius: inherit;
-        }
-        
-        .forum-discussion-meta {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .forum-discussion-title {
-            font-size: 1.125rem;
+
+        .forum-title {
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--forum-text-primary);
-            margin: 0 0 var(--forum-space-2) 0;
-            line-height: 1.4;
-            letter-spacing: -0.01em;
-            transition: color var(--forum-transition-base);
+            margin: 0;
         }
-        
-        .forum-discussion-card:hover .forum-discussion-title {
-            color: var(--forum-primary-solid);
-        }
-        
-        .forum-discussion-subtitle {
+
+        .sort-select {
+            padding: var(--forum-space-2) var(--forum-space-4);
+            border: 1px solid var(--forum-gray-200);
+            border-radius: var(--forum-radius-md);
+            background: white;
             font-size: 0.9rem;
-            color: var(--forum-text-tertiary);
-            margin: 0 0 var(--forum-space-3) 0;
-            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s ease;
         }
-        
-        .forum-discussion-stats {
+
+        .sort-select:hover,
+        .sort-select:focus {
+            border-color: var(--forum-primary-solid);
+        }
+
+        /* Posts Container */
+        .forum-posts {
+            background: white;
+        }
+
+        /* Individual Post Styling */
+        .forum-post {
             display: flex;
-            align-items: center;
-            gap: var(--forum-space-6);
-            font-size: 0.85rem;
-            color: var(--forum-text-muted);
-            margin-top: var(--forum-space-3);
+            border-bottom: 1px solid var(--forum-gray-200);
+            background: white;
+            transition: background-color 0.2s ease;
+            position: relative;
         }
-        
-        .forum-stat {
+
+        .forum-post:hover {
+            background-color: var(--forum-gray-50);
+        }
+
+        /* Special Post Types */
+        .forum-post.pinned {
+            border-top: 2px solid var(--forum-success);
+            background: linear-gradient(135deg, rgba(0, 208, 132, 0.03) 0%, transparent 100%);
+        }
+
+        .forum-post.hot {
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .forum-post.solved {
+            border-left: 3px solid var(--forum-success);
+        }
+
+        /* Vote Section (Left) */
+        .post-votes {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--forum-space-4);
+            min-width: 50px;
+            background: var(--forum-gray-50);
+            border-right: 1px solid var(--forum-gray-200);
+        }
+
+        .vote-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: var(--forum-space-1);
+            color: var(--forum-text-muted);
+            transition: color 0.2s ease;
+            border-radius: var(--forum-radius-sm);
+        }
+
+        .vote-btn:hover {
+            color: var(--forum-primary-solid);
+            background: var(--forum-primary-light);
+        }
+
+        .vote-btn.upvote.active {
+            color: #ff6b35;
+        }
+
+        .vote-btn.downvote.active {
+            color: #4a90e2;
+        }
+
+        .vote-count {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin: var(--forum-space-1) 0;
+            color: var(--forum-text-secondary);
+        }
+
+        /* Post Content (Right) */
+        .post-content {
+            flex: 1;
+            padding: var(--forum-space-4) var(--forum-space-6);
+        }
+
+        /* Post Meta */
+        .post-meta {
             display: flex;
             align-items: center;
             gap: var(--forum-space-2);
+            font-size: 0.8rem;
+            color: var(--forum-text-muted);
+            margin-bottom: var(--forum-space-3);
+        }
+
+        .post-category {
+            color: var(--forum-primary-solid);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .post-category:hover {
+            text-decoration: underline;
+        }
+
+        .post-separator {
+            color: var(--forum-gray-400);
+        }
+
+        .post-author {
+            font-weight: 500;
+            color: var(--forum-text-secondary);
+        }
+
+        .post-author:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* Special Meta Tags */
+        .post-pinned,
+        .post-hot,
+        .post-solved {
             padding: var(--forum-space-1) var(--forum-space-2);
             border-radius: var(--forum-radius-sm);
-            transition: all var(--forum-transition-base);
+            font-size: 0.7rem;
             font-weight: 600;
+            text-transform: uppercase;
         }
-        
-        .forum-stat:hover {
-            background: var(--forum-primary-light);
+
+        .post-pinned {
+            background: var(--forum-success-light);
+            color: var(--forum-success);
+        }
+
+        .post-hot {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+        }
+
+        .post-solved {
+            background: var(--forum-success-light);
+            color: var(--forum-success);
+        }
+
+        /* Post Title */
+        .post-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--forum-text-primary);
+            margin: 0 0 var(--forum-space-3) 0;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .post-title:hover {
             color: var(--forum-primary-solid);
         }
-        
-        .forum-stat .material-symbols-outlined {
+
+        /* Post Text Content */
+        .post-text {
+            margin-bottom: var(--forum-space-4);
+        }
+
+        .post-text p {
+            color: var(--forum-text-secondary);
+            line-height: 1.5;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Post Actions */
+        .post-actions {
+            display: flex;
+            gap: var(--forum-space-4);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--forum-space-2);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: var(--forum-space-2) var(--forum-space-3);
+            border-radius: var(--forum-radius-md);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--forum-text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--forum-gray-100);
+            color: var(--forum-text-secondary);
+        }
+
+        .action-btn.active {
+            color: var(--forum-primary-solid);
+            background: var(--forum-primary-light);
+        }
+
+        .action-btn .material-symbols-outlined {
             font-size: 16px;
         }
-        
-        .forum-discussion-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--forum-space-2);
-            margin-top: var(--forum-space-4);
-            position: relative;
-            z-index: 2;
+
+        /* Load More Section */
+        .load-more {
+            padding: var(--forum-space-8);
+            text-align: center;
+            background: white;
+            border-top: 1px solid var(--forum-gray-200);
         }
-        
-        .forum-tag {
-            padding: var(--forum-space-1) var(--forum-space-3);
-            background: var(--forum-primary-light);
-            color: var(--forum-primary-solid);
-            border-radius: var(--forum-radius-full);
-            font-size: 0.8rem;
-            font-weight: 600;
-            border: 1px solid var(--forum-primary-medium);
-            transition: all var(--forum-transition-base);
-            letter-spacing: -0.01em;
-        }
-        
-        .forum-tag:hover {
+
+        .load-more-btn {
+            padding: var(--forum-space-3) var(--forum-space-6);
             background: var(--forum-primary-solid);
             color: white;
-            transform: translateY(-1px);
-            box-shadow: var(--forum-shadow-sm);
+            border: none;
+            border-radius: var(--forum-radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
+
+        .load-more-btn:hover {
+            background: var(--forum-primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        /* Responsive Design for Reddit-style Layout */
+        @media (max-width: 768px) {
+            .post-votes {
+                min-width: 40px;
+                padding: var(--forum-space-3);
+            }
+            
+            .post-content {
+                padding: var(--forum-space-3) var(--forum-space-4);
+            }
+            
+            .post-meta {
+                flex-wrap: wrap;
+                gap: var(--forum-space-1);
+            }
+            
+            .post-title {
+                font-size: 1rem;
+            }
+            
+            .post-actions {
+                gap: var(--forum-space-2);
+            }
+            
+            .action-btn {
+                font-size: 0.75rem;
+                padding: var(--forum-space-1) var(--forum-space-2);
+            }
+        }
+        
         
         /* ========================================
            ULTRA-PREMIUM SIDEBAR WIDGETS
@@ -824,6 +885,86 @@
             background: var(--forum-primary-solid);
             color: white;
             transform: scale(1.05);
+        }
+        
+        /* ========================================
+           LOAD MORE SECTION - PROFESSIONAL CTA
+           ======================================== */
+        
+        .forum-load-more {
+            display: flex;
+            justify-content: center;
+            padding: var(--forum-space-8) 0;
+            margin-top: var(--forum-space-8);
+            border-top: 1px solid var(--forum-gray-200);
+            position: relative;
+        }
+        
+        .forum-load-more::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: var(--forum-space-8);
+            right: var(--forum-space-8);
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--forum-primary-solid) 50%, transparent 100%);
+            opacity: 0.2;
+        }
+        
+        .forum-load-more-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--forum-space-2);
+            padding: var(--forum-space-4) var(--forum-space-8);
+            background: var(--forum-bg-primary);
+            border: 2px solid var(--forum-gray-200);
+            border-radius: var(--forum-radius-xl);
+            cursor: pointer;
+            transition: all var(--forum-transition-base);
+            position: relative;
+            overflow: hidden;
+            font-weight: 600;
+            color: var(--forum-text-secondary);
+            min-width: 220px;
+        }
+        
+        .forum-load-more-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--forum-primary-light), transparent);
+            transition: left var(--forum-transition-slow);
+        }
+        
+        .forum-load-more-btn:hover {
+            border-color: var(--forum-primary-medium);
+            background: var(--forum-primary-light);
+            color: var(--forum-primary-solid);
+            transform: translateY(-2px);
+            box-shadow: var(--forum-shadow-lg);
+        }
+        
+        .forum-load-more-btn:hover::before {
+            left: 100%;
+        }
+        
+        .forum-load-more-btn .material-symbols-outlined {
+            font-size: 24px;
+            transition: transform var(--forum-transition-base);
+        }
+        
+        .forum-load-more-btn:hover .material-symbols-outlined {
+            transform: translateY(2px);
+        }
+        
+        .forum-load-count {
+            font-size: 0.8rem;
+            color: var(--forum-text-muted);
+            font-weight: 500;
         }
         
         /* Action Buttons */
@@ -1274,11 +1415,290 @@
             <div class="forum-content-grid">
                 <!-- Discussions Area -->
                 <div class="forum-discussions">
-                    <div class="forum-discussions-header">
-                        <!-- Empty header - ready for dynamic content -->
+                    <!-- Forum Header -->
+                    <div class="forum-header">
+                        <div class="forum-header-content">
+                            <h2 class="forum-title">Forum Discussioni</h2>
+                            <div class="forum-sort">
+                                <select class="sort-select">
+                                    <option value="recent">Più recenti</option>
+                                    <option value="popular">Più popolari</option>
+                                    <option value="answered">Con risposte</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- Empty discussion container - ready for dynamic content -->
+
+                    <!-- Posts Container -->
+                    <div class="forum-posts">
+                        <!-- Featured Post -->
+                        <article class="forum-post pinned">
+                            <div class="post-votes">
+                                <button class="vote-btn upvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
+                                </button>
+                                <span class="vote-count">245</span>
+                                <button class="vote-btn downvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
+                                </button>
+                            </div>
+                            
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-category">r/Esami</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-author">u/prof_elena_rossi</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">2 giorni fa</span>
+                                    <span class="post-pinned">📌 Fissato</span>
+                                </div>
+                                
+                                <h3 class="post-title">Guida Completa: Come Preparare al Meglio la Sessione Estiva 2024</h3>
+                                
+                                <div class="post-text">
+                                    <p>Una guida completa e aggiornata per affrontare al meglio la sessione estiva. Strategie di studio, pianificazione, gestione dello stress e molto altro. Include anche consigli specifici per ogni facoltà...</p>
+                                </div>
+                                
+                                <div class="post-actions">
+                                    <button class="action-btn comments">
+                                        <i class="material-symbols-outlined">comment</i>
+                                        67 commenti
+                                    </button>
+                                    <button class="action-btn share">
+                                        <i class="material-symbols-outlined">share</i>
+                                        Condividi
+                                    </button>
+                                    <button class="action-btn save">
+                                        <i class="material-symbols-outlined">bookmark</i>
+                                        Salva
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Regular Posts -->
+                        <article class="forum-post">
+                            <div class="post-votes">
+                                <button class="vote-btn upvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
+                                </button>
+                                <span class="vote-count">23</span>
+                                <button class="vote-btn downvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
+                                </button>
+                            </div>
+                            
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-category">r/Tirocinio</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-author">u/marco_tech</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">45 min fa</span>
+                                </div>
+                                
+                                <h3 class="post-title">Qualcuno ha esperienza con tirocini in aziende tech? Consigli per CV</h3>
+                                
+                                <div class="post-text">
+                                    <p>Ciao a tutti! Sto cercando un tirocinio curriculare in aziende tech (possibilmente startup o scale-up). Ho preparato il CV ma vorrei alcuni feedback dalla community. Qualcuno ha esperienza diretta? Quali competenze sono più richieste?</p>
+                                </div>
+                                
+                                <div class="post-actions">
+                                    <button class="action-btn comments">
+                                        <i class="material-symbols-outlined">comment</i>
+                                        8 commenti
+                                    </button>
+                                    <button class="action-btn share">
+                                        <i class="material-symbols-outlined">share</i>
+                                        Condividi
+                                    </button>
+                                    <button class="action-btn save">
+                                        <i class="material-symbols-outlined">bookmark</i>
+                                        Salva
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="forum-post hot">
+                            <div class="post-votes">
+                                <button class="vote-btn upvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
+                                </button>
+                                <span class="vote-count">89</span>
+                                <button class="vote-btn downvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
+                                </button>
+                            </div>
+                            
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-category">r/Vita-Universitaria</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-author">u/sofia_milano</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">1 ora fa</span>
+                                    <span class="post-hot">🔥 Hot</span>
+                                </div>
+                                
+                                <h3 class="post-title">Megathread Alloggi Milano - Condivisioni, consigli e opportunità</h3>
+                                
+                                <div class="post-text">
+                                    <p>Apriamo un thread dedicato per centralizzare tutte le info su alloggi a Milano! Condividi le tue esperienze, cerca coinquilini, segnala truffe e molto altro. Regole nel primo post!</p>
+                                </div>
+                                
+                                <div class="post-actions">
+                                    <button class="action-btn comments">
+                                        <i class="material-symbols-outlined">comment</i>
+                                        34 commenti
+                                    </button>
+                                    <button class="action-btn share">
+                                        <i class="material-symbols-outlined">share</i>
+                                        Condividi
+                                    </button>
+                                    <button class="action-btn save active">
+                                        <i class="material-symbols-outlined">bookmark</i>
+                                        Salvato
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="forum-post solved">
+                            <div class="post-votes">
+                                <button class="vote-btn upvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
+                                </button>
+                                <span class="vote-count">45</span>
+                                <button class="vote-btn downvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
+                                </button>
+                            </div>
+                            
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-category">r/Corsi</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-author">u/alessandro_ing</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">3 ore fa</span>
+                                    <span class="post-solved">✅ Risolto</span>
+                                </div>
+                                
+                                <h3 class="post-title">[RISOLTO] Problema con iscrizione esame Analisi Matematica II</h3>
+                                
+                                <div class="post-text">
+                                    <p><strong>AGGIORNAMENTO:</strong> Problema risolto grazie al supporto tecnico! Per chi ha lo stesso issue: controllate i prerequisiti nell'area personale prima di iscrivervi.</p>
+                                </div>
+                                
+                                <div class="post-actions">
+                                    <button class="action-btn comments">
+                                        <i class="material-symbols-outlined">comment</i>
+                                        12 commenti
+                                    </button>
+                                    <button class="action-btn share">
+                                        <i class="material-symbols-outlined">share</i>
+                                        Condividi
+                                    </button>
+                                    <button class="action-btn save">
+                                        <i class="material-symbols-outlined">bookmark</i>
+                                        Salva
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="forum-post">
+                            <div class="post-votes">
+                                <button class="vote-btn upvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
+                                </button>
+                                <span class="vote-count">18</span>
+                                <button class="vote-btn downvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
+                                </button>
+                            </div>
+                            
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-category">r/Esami</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-author">u/giulia_eco</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">5 ore fa</span>
+                                </div>
+                                
+                                <h3 class="post-title">Gruppo di studio per Microeconomia - Cerchiamo 2-3 persone serie</h3>
+                                
+                                <div class="post-text">
+                                    <p>Stiamo formando un gruppo di studio per Microeconomia (prof. Martelli). Ci incontriamo 2-3 volte a settimana in biblioteca o online. Cerchiamo persone motivate e puntuali!</p>
+                                </div>
+                                
+                                <div class="post-actions">
+                                    <button class="action-btn comments">
+                                        <i class="material-symbols-outlined">comment</i>
+                                        15 commenti
+                                    </button>
+                                    <button class="action-btn share">
+                                        <i class="material-symbols-outlined">share</i>
+                                        Condividi
+                                    </button>
+                                    <button class="action-btn save">
+                                        <i class="material-symbols-outlined">bookmark</i>
+                                        Salva
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="forum-post">
+                            <div class="post-votes">
+                                <button class="vote-btn upvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_up</i>
+                                </button>
+                                <span class="vote-count">67</span>
+                                <button class="vote-btn downvote">
+                                    <i class="material-symbols-outlined">keyboard_arrow_down</i>
+                                </button>
+                            </div>
+                            
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-category">r/Vita-Universitaria</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-author">u/luca_erasmus</span>
+                                    <span class="post-separator">•</span>
+                                    <span class="post-time">8 ore fa</span>
+                                </div>
+                                
+                                <h3 class="post-title">Esperienza Erasmus a Barcellona - AMA (Ask Me Anything)</h3>
+                                
+                                <div class="post-text">
+                                    <p>Appena tornato da 6 mesi di Erasmus a Barcellona (UPF). È stata un'esperienza incredibile! Chiedete pure tutto: università, città, costi, vita notturna, documenti... 🇪🇸</p>
+                                </div>
+                                
+                                <div class="post-actions">
+                                    <button class="action-btn comments">
+                                        <i class="material-symbols-outlined">comment</i>
+                                        28 commenti
+                                    </button>
+                                    <button class="action-btn share">
+                                        <i class="material-symbols-outlined">share</i>
+                                        Condividi
+                                    </button>
+                                    <button class="action-btn save">
+                                        <i class="material-symbols-outlined">bookmark</i>
+                                        Salva
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- Load More -->
+                        <div class="load-more">
+                            <button class="load-more-btn">Carica altri post</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Right Sidebar Widgets -->

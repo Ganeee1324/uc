@@ -598,9 +598,9 @@ html {
 }
 
 .documents-grid.loading .document-card {
-    /* Ensure cards maintain proper grid sizing */
+    /* Ensure cards maintain proper grid sizing with responsive minimum */
     width: 100%;
-    min-width: 300px;
+    min-width: clamp(280px, 25vw, 320px); /* Dynamic minimum width */
 }
 
 /* Responsive adjustments for empty state */
@@ -753,36 +753,52 @@ html {
 }
 
 .search-container-wrapper {
-    /* Professional responsive container with sticky behavior */
-    max-width: 800px; /* Prevent it from getting too wide */
+    /* PROFESSIONAL HEADER-AWARE STICKY POSITIONING */
+    max-width: clamp(300px, 90vw, 800px); /* Dynamic responsive width */
     margin: 0 auto; /* Center the wrapper horizontally */
     position: sticky; /* Restore sticky positioning */
-    top: 16px; /* Fixed absolute value - 16px from top of viewport */
+    /* SOLUTION: Dynamic top positioning that scales with header heights */
+    top: clamp(88px, 72px + 2.5vw, 88px); /* Desktop: 72px header + 16px margin */
     opacity: 1;
     visibility: visible;
+    /* Ensure search container never covers nav elements */
+    z-index: 9999; /* Below header (10100) but above content */
+    /* Professional transition for smooth scaling */
+    transition: top 0.3s var(--ease-2), max-width 0.3s var(--ease-2);
     /* No left padding - centered container */
     z-index: 10120; /* Above header (10100) but below filters overlay (10150) */
 
     /* The background and padding are only applied when it's stuck. */
     pointer-events: none; /* Make wrapper non-clickable */
     
-    /* Progressive enhancement for smaller screens */
+    /* PROFESSIONAL MOBILE-FIRST STICKY POSITIONING - No Header Overlap */
     @media (max-width: 1199px) {
-        max-width: 700px;
+        max-width: clamp(600px, 85vw, 700px);
+        top: clamp(88px, 72px + 2.5vw, 88px); /* Desktop header + margin */
     }
     
     @media (max-width: 1023px) {
-        max-width: 600px;
+        max-width: clamp(500px, 90vw, 600px);
+        top: clamp(88px, 70px + 3vw, 88px); /* Tablet header + margin */
     }
     
     @media (max-width: 767px) {
-        max-width: 500px;
-        padding: 0 var(--space-4);
+        max-width: clamp(400px, 90vw, 500px);
+        padding: 0 clamp(12px, 3vw, 16px);
+        /* Critical: Mobile header clearance - ensures nav buttons never overlap */
+        top: clamp(86px, 70px + 4vw, 96px);
     }
     
     @media (max-width: 479px) {
-        max-width: 100%;
-        padding: 0 var(--space-4);
+        max-width: calc(100vw - clamp(16px, 4vw, 32px));
+        padding: 0 clamp(12px, 3vw, 16px);
+        /* Ultra-safe mobile positioning - guarantees no nav button overlap */
+        top: clamp(88px, 64px + 6vw, 100px);
+    }
+    
+    @media (max-width: 360px) {
+        /* Extra small mobile screens - maximum clearance */
+        top: clamp(90px, 64px + 8vw, 104px);
     }
 }
 
@@ -1888,12 +1904,12 @@ body.filters-open .document-count-container {
     /* No changes - documents stay exactly as they are */
 }
 
-/* Document Cards - IMPROVED LAYOUT WITH FLEXIBLE HEIGHT */
+/* Document Cards - DYNAMIC RESPONSIVE SCALING */
 .document-card {
     position: relative;
     background: var(--white);
     border: 1px solid var(--gray-200);
-    border-radius: var(--radius-3xl);
+    border-radius: clamp(var(--radius-xl), 2.5vw, var(--radius-3xl)); /* Dynamic border radius */
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.2s ease-out, 
@@ -1904,7 +1920,9 @@ body.filters-open .document-count-container {
     transform-origin: center center;
     will-change: transform;
     backface-visibility: hidden;
-    height: 560px;
+    /* Dynamic height that scales with viewport */
+    height: clamp(320px, 35vh + 10vw, 580px);
+    min-height: clamp(280px, 30vh, 320px);
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -1939,12 +1957,13 @@ body.filters-open .document-count-container {
     opacity: 0.5;
 }
 
-/* Document Preview - STANDARDIZED ASPECT RATIO */
+/* Document Preview - DYNAMIC RESPONSIVE SCALING */
 .document-preview {
     position: relative;
-    height: 240px;
-    min-height: 240px;
-    max-height: 240px;
+    /* Dynamic height that scales with card size */
+    height: clamp(120px, 15vh + 5vw, 260px);
+    min-height: clamp(100px, 12vh, 140px);
+    max-height: clamp(200px, 20vh, 280px);
     overflow: hidden;
     background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
     border-bottom: 1px solid var(--gray-200);
@@ -2063,16 +2082,20 @@ body.filters-open .document-count-container {
     font-family: 'Inter', sans-serif;
 }
 
-/* Professional Favorite Button */
+/* Professional Responsive Favorite Button */
 .favorite-button {
     position: absolute;
-    top: var(--space-4);
-    left: var(--space-4);
+    /* Dynamic positioning that scales with card */
+    top: clamp(var(--space-3), 2vw, var(--space-4));
+    left: clamp(var(--space-3), 2vw, var(--space-4));
     background: transparent;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Dynamic size scaling */
+    width: clamp(32px, 4vw, 40px);
+    height: clamp(32px, 4vw, 40px);
     cursor: pointer;
     transition: transform 0.25s var(--ease-3);
     z-index: 10;
@@ -2087,7 +2110,8 @@ body.filters-open .document-count-container {
 }
 
 .favorite-button .material-symbols-outlined {
-    font-size: 28px;
+    /* Dynamic font size that scales with button */
+    font-size: clamp(20px, 3.5vw, 28px);
     color: rgba(0, 0, 0, 0.4);
     font-variation-settings: 'FILL' 1, 'wght' 400;
     -webkit-text-stroke: 2px rgba(255, 255, 255, 1);
@@ -2172,19 +2196,23 @@ body.filters-open .document-count-container {
     margin-left: 2px;
 }
 
-/* Rating Badge */
+/* Dynamic Responsive Rating Badge (Reviews Button) */
 .rating-badge {
     position: absolute;
-    bottom: var(--space-4);
-    right: var(--space-4);
+    /* Dynamic positioning that scales with card preview area */
+    bottom: clamp(var(--space-3), 2vw, var(--space-4));
+    right: clamp(var(--space-3), 2vw, var(--space-4));
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: 8px 12px;
+    gap: clamp(var(--space-1), 1vw, var(--space-2));
+    /* Dynamic padding that scales proportionally */
+    padding: clamp(6px, 1.5vw, 10px) clamp(8px, 2vw, 12px);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 254, 254, 0.95) 100%);
+    /* Dynamic border radius */
+    border-radius: clamp(var(--radius-sm), 1vw, var(--radius-md));
     color: #f59e0b;
-    border-radius: 16px;
-    font-size: 13px;
+    /* Dynamic font size that scales with card */
+    font-size: clamp(11px, 1.8vw, 13px);
     font-weight: 800;
     flex-shrink: 0;
     box-shadow: 
@@ -2199,8 +2227,9 @@ body.filters-open .document-count-container {
     opacity: 1;
     transform: scale(1);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 70px;
-    height: 36px;
+    /* Dynamic sizing that scales proportionally */
+    min-width: clamp(60px, 8vw, 70px);
+    height: clamp(28px, 4vw, 36px);
 }
 
 .rating-badge[data-action="open-reviews"]:hover {
@@ -2408,14 +2437,16 @@ body.filters-open .document-count-container {
     box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
 }
 
-/* Document Content - IMPROVED FLEXIBLE LAYOUT */
+/* Document Content - DYNAMIC RESPONSIVE LAYOUT */
  .document-content {
     position: relative;
-    padding: var(--space-5);
+    /* Dynamic padding that scales with card size */
+    padding: clamp(var(--space-3), 2vw, var(--space-5));
     background: var(--white);
     z-index: 2;
     
-    height: 320px;
+    /* Dynamic height that adapts to card scaling */
+    height: clamp(200px, 20vh + 5vw, 340px);
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -2423,8 +2454,9 @@ body.filters-open .document-count-container {
  }
  
  .document-header {
-    height: 80px;
-    margin-bottom: var(--space-3);
+    /* Dynamic height that scales with card */
+    height: clamp(60px, 8vh + 2vw, 90px);
+    margin-bottom: clamp(var(--space-2), 1vw, var(--space-3));
     flex-shrink: 0;
     overflow: hidden;
     display: flex;
@@ -2441,9 +2473,10 @@ body.filters-open .document-count-container {
     gap: 4px; /* Add gap between title and description */
  }
  
- /* Document Title - IMPROVED HEIGHT MANAGEMENT */
+ /* Document Title - DYNAMIC RESPONSIVE SCALING */
  .document-title {
-    font-size: 15px;
+    /* Dynamic font size that scales with card */
+    font-size: clamp(13px, 2.2vw, 15px);
     font-weight: 700;
     color: var(--gray-900);
     line-height: 1.3;
@@ -2470,16 +2503,18 @@ body.filters-open .document-count-container {
     letter-spacing: -0.01em;
  }
  
- /* Document Description - IMPROVED HEIGHT MANAGEMENT */
+ /* Document Description - DYNAMIC RESPONSIVE SCALING */
  .document-description {
-    font-size: 12px;
+    /* Dynamic font size that scales with card */
+    font-size: clamp(11px, 1.8vw, 12px);
     line-height: 1.4;
     color: var(--gray-600);
     font-weight: 400;
     font-family: 'Inter', sans-serif;
     
-    min-height: 17px; /* Minimum height for single line */
-    max-height: 34px; /* Maximum height for 2 lines */
+    /* Dynamic height scaling */
+    min-height: clamp(15px, 2.5vh, 17px); /* Minimum height for single line */
+    max-height: clamp(30px, 5vh, 34px); /* Maximum height for 2 lines */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -2526,18 +2561,19 @@ body.filters-open .document-count-container {
     color: var(--blue-800);
  }
  
- /* Document Info - PROFESSIONAL LAYOUT WITH PROPER SPACING */
+ /* Document Info - DYNAMIC RESPONSIVE LAYOUT */
 .document-info {
    position: absolute;
-   top: 100px;
-   left: var(--space-5);
-   right: var(--space-5);
-   min-height: 140px;
-   max-height: 160px;
+   /* Dynamic positioning that adapts to header scaling */
+   top: clamp(80px, 10vh + 3vw, 110px);
+   left: clamp(var(--space-3), 2vw, var(--space-5));
+   right: clamp(var(--space-3), 2vw, var(--space-5));
+   min-height: clamp(100px, 12vh + 2vw, 160px);
+   max-height: clamp(120px, 15vh + 3vw, 180px);
    
    display: flex;
    flex-direction: column;
-   gap: var(--space-2); /* Reduced gap to fit more items */
+   gap: clamp(var(--space-1), 1vw, var(--space-2)); /* Dynamic spacing */
    padding: var(--space-3) var(--space-4); /* Reduced padding */
    
    background: rgba(255, 255, 255, 0.6); /* Semi-transparent white for glassmorphism */
@@ -2555,8 +2591,9 @@ body.filters-open .document-count-container {
  .document-info-item {
    display: flex;
    align-items: center;
-   gap: var(--space-2); /* Reduced gap */
-   font-size: 11px; /* Slightly smaller font */
+   gap: clamp(var(--space-1), 1vw, var(--space-2)); /* Dynamic gap scaling */
+   /* Dynamic font size that scales with card */
+   font-size: clamp(10px, 1.6vw, 11px);
    color: var(--gray-800); /* Darker color for better contrast */
    font-weight: 500;
    line-height: 1.3; /* Tighter line height */
@@ -2629,17 +2666,17 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
  
 
  
- /* Document Footer - PROFESSIONAL LAYOUT WITH PROPER SPACING */
+ /* Document Footer - DYNAMIC RESPONSIVE LAYOUT */
  .document-footer {
     position: absolute;
-    bottom: var(--space-5);
-    left: var(--space-5);
-    right: var(--space-5);
+    bottom: clamp(var(--space-3), 2vw, var(--space-5));
+    left: clamp(var(--space-3), 2vw, var(--space-5));
+    right: clamp(var(--space-3), 2vw, var(--space-5));
     
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: var(--space-3);
+    padding-top: clamp(var(--space-2), 1vw, var(--space-3));
     border-top: 1px solid var(--gray-200);
     
     height: 50px;
@@ -4790,15 +4827,13 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-4);
    }
    
+   /* Text now uses dynamic base sizing - no overrides needed */
    .document-title {
-       font-size: 15px;
-       font-weight: 800;
        line-height: 1.25;
        -webkit-line-clamp: 2;
    }
    
    .document-description {
-       font-size: 12px;
        line-height: 1.4;
        -webkit-line-clamp: 3;
    }
@@ -5130,13 +5165,9 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
        padding: var(--space-4);
    }
    
+   /* Text now uses dynamic base sizing - no overrides needed */
    .document-title {
-       font-size: 14px;
        font-weight: 700;
-   }
-   
-   .document-description {
-       font-size: 12px;
    }
    
    /* Tablet filters panel already handled by main definition */
@@ -5607,16 +5638,18 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
     pointer-events: none;
 }
 
-/* View Files Button */
+/* Dynamic Responsive View Files Button */
 .view-files-button {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    /* Dynamic positioning that scales with card */
+    top: clamp(6px, 1.5vw, 8px);
+    right: clamp(6px, 1.5vw, 8px);
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
     border: none;
-    border-radius: var(--radius-md);
-    padding: 4px 8px;
+    border-radius: clamp(var(--radius-sm), 1vw, var(--radius-md));
+    /* Dynamic padding that scales proportionally */
+    padding: clamp(3px, 1vw, 4px) clamp(6px, 1.5vw, 8px);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -5639,7 +5672,8 @@ t /* Vetrina Owner Avatar - IMPROVED POSITIONING AND STYLING */
 }
 
 .view-files-button .material-symbols-outlined {
-    font-size: 14px;
+    /* Dynamic icon size that scales with button */
+    font-size: clamp(12px, 2vw, 14px);
 }
 
 

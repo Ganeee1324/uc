@@ -315,80 +315,145 @@
         .forum-dropdown {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: all var(--forum-transition-base);
             background: var(--forum-bg-primary);
-            border-left: 2px solid var(--forum-primary-light);
+            border-left: 3px solid var(--forum-primary-light);
             margin-left: var(--forum-space-6);
             text-align: right;
+            border-radius: 0 var(--forum-radius-lg) var(--forum-radius-lg) 0;
+            box-shadow: var(--forum-shadow-sm);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--forum-gray-200);
+            border-bottom: 1px solid var(--forum-gray-200);
+            border-right: 1px solid var(--forum-gray-200);
         }
         
         .forum-nav-item.expanded .forum-dropdown {
-            max-height: 500px;
+            max-height: 600px;
+            padding: var(--forum-space-2) 0;
+            opacity: 1;
+        }
+        
+        .forum-nav-item.expanded .forum-dropdown::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--forum-primary-solid) 50%, transparent 100%);
+            opacity: 0.3;
         }
         
         .forum-dropdown-item {
-            display: block;
-            padding: var(--forum-space-2) var(--forum-space-4);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--forum-space-3) var(--forum-space-4);
             color: var(--forum-text-secondary);
             text-decoration: none;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-            border-radius: var(--forum-radius-sm);
-            margin: 2px var(--forum-space-2);
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.4;
+            transition: all var(--forum-transition-base);
+            border-radius: var(--forum-radius-md);
+            margin: 1px var(--forum-space-2);
             text-align: right;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+        }
+        
+        .forum-dropdown-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: linear-gradient(135deg, var(--forum-primary-solid) 0%, var(--forum-accent-solid) 100%);
+            transition: width var(--forum-transition-base);
+            opacity: 0.1;
         }
         
         .forum-dropdown-item:hover {
             background: var(--forum-primary-light);
-            color: var(--forum-primary);
-            transform: translateX(2px);
+            color: var(--forum-primary-solid);
+            transform: translateX(3px);
+            border-color: var(--forum-primary-medium);
+            box-shadow: var(--forum-shadow-sm);
+        }
+        
+        .forum-dropdown-item:hover::before {
+            width: 4px;
+            opacity: 0.8;
         }
         
         .forum-dropdown-item.active {
-            background: var(--forum-primary);
+            background: linear-gradient(135deg, var(--forum-primary-solid) 0%, var(--forum-primary-hover) 100%);
             color: white;
-            font-weight: 500;
+            font-weight: 600;
+            border-color: var(--forum-primary-solid);
+            box-shadow: var(--forum-shadow-md);
+            transform: translateX(2px);
+        }
+        
+        .forum-dropdown-item.active::before {
+            width: 4px;
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.3);
         }
         
         /* Dropdown Search Component */
         .forum-dropdown-search {
             position: relative;
-            padding: var(--forum-space-2);
-            margin-bottom: var(--forum-space-2);
+            padding: var(--forum-space-3) var(--forum-space-3) var(--forum-space-2);
+            margin-bottom: var(--forum-space-3);
             border-bottom: 1px solid var(--forum-gray-200);
-            background: var(--forum-gray-50);
+            background: linear-gradient(135deg, var(--forum-gray-50) 0%, var(--forum-bg-primary) 100%);
+            border-radius: var(--forum-radius-md) var(--forum-radius-md) 0 0;
         }
         
         .forum-dropdown-search-input {
             width: 100%;
-            padding: var(--forum-space-2) var(--forum-space-8) var(--forum-space-2) var(--forum-space-3);
+            padding: var(--forum-space-3) var(--forum-space-10) var(--forum-space-3) var(--forum-space-4);
             border: 1px solid var(--forum-gray-300);
-            border-radius: var(--forum-radius-md);
-            font-size: 0.8rem;
+            border-radius: var(--forum-radius-lg);
+            font-size: 0.85rem;
+            font-weight: 500;
             background: white;
             color: var(--forum-text-primary);
             outline: none;
             transition: all var(--forum-transition-base);
+            box-shadow: var(--forum-shadow-xs);
         }
         
         .forum-dropdown-search-input:focus {
             border-color: var(--forum-primary-solid);
-            box-shadow: 0 0 0 2px var(--forum-primary-light);
+            box-shadow: var(--forum-focus-ring);
+            transform: translateY(-1px);
+            background: var(--forum-bg-primary);
         }
         
         .forum-dropdown-search-input::placeholder {
             color: var(--forum-text-muted);
             font-style: italic;
+            font-weight: 400;
         }
         
         .forum-dropdown-search .material-symbols-outlined {
             position: absolute;
-            right: var(--forum-space-3);
+            right: var(--forum-space-4);
             top: 50%;
             transform: translateY(-50%);
-            font-size: 16px;
+            font-size: 18px;
             color: var(--forum-text-muted);
             pointer-events: none;
+            transition: color var(--forum-transition-base);
+        }
+        
+        .forum-dropdown-search:has(.forum-dropdown-search-input:focus) .material-symbols-outlined {
+            color: var(--forum-primary-solid);
         }
         
         /* Hide items that don't match search */
@@ -1334,26 +1399,57 @@
                                 <input type="text" class="forum-dropdown-search-input" placeholder="Cerca corsi..." />
                                 <span class="material-symbols-outlined">search</span>
                             </div>
-                            <a href="#" class="forum-dropdown-item">Analisi Matematica</a>
-                            <a href="#" class="forum-dropdown-item">Fisica Generale</a>
-                            <a href="#" class="forum-dropdown-item">Programmazione</a>
-                            <a href="#" class="forum-dropdown-item">Chimica Organica</a>
-                            <a href="#" class="forum-dropdown-item">Diritto Civile</a>
-                            <a href="#" class="forum-dropdown-item">Microeconomia</a>
-                            <a href="#" class="forum-dropdown-item">Storia Moderna</a>
-                            <a href="#" class="forum-dropdown-item">Anatomia Umana</a>
+                            <a href="#" class="forum-dropdown-item">Analisi Matematica I</a>
+                            <a href="#" class="forum-dropdown-item">Analisi Matematica II</a>
                             <a href="#" class="forum-dropdown-item">Algebra Lineare</a>
-                            <a href="#" class="forum-dropdown-item">Geometria</a>
-                            <a href="#" class="forum-dropdown-item">Statistica</a>
+                            <a href="#" class="forum-dropdown-item">Geometria Analitica</a>
+                            <a href="#" class="forum-dropdown-item">Fisica Generale I</a>
+                            <a href="#" class="forum-dropdown-item">Fisica Generale II</a>
+                            <a href="#" class="forum-dropdown-item">Termodinamica</a>
+                            <a href="#" class="forum-dropdown-item">Meccanica Razionale</a>
+                            <a href="#" class="forum-dropdown-item">Elettromagnetismo</a>
+                            <a href="#" class="forum-dropdown-item">Programmazione I</a>
+                            <a href="#" class="forum-dropdown-item">Programmazione II</a>
+                            <a href="#" class="forum-dropdown-item">Algoritmi e Strutture Dati</a>
                             <a href="#" class="forum-dropdown-item">Basi di Dati</a>
                             <a href="#" class="forum-dropdown-item">Sistemi Operativi</a>
-                            <a href="#" class="forum-dropdown-item">Elettronica</a>
-                            <a href="#" class="forum-dropdown-item">Termodinamica</a>
-                            <a href="#" class="forum-dropdown-item">Meccanica</a>
+                            <a href="#" class="forum-dropdown-item">Reti di Calcolatori</a>
+                            <a href="#" class="forum-dropdown-item">Ingegneria del Software</a>
+                            <a href="#" class="forum-dropdown-item">Elettronica Digitale</a>
+                            <a href="#" class="forum-dropdown-item">Controlli Automatici</a>
                             <a href="#" class="forum-dropdown-item">Chimica Generale</a>
+                            <a href="#" class="forum-dropdown-item">Chimica Organica</a>
+                            <a href="#" class="forum-dropdown-item">Chimica Analitica</a>
+                            <a href="#" class="forum-dropdown-item">Biochimica</a>
                             <a href="#" class="forum-dropdown-item">Biologia Cellulare</a>
-                            <a href="#" class="forum-dropdown-item">Fisiologia</a>
-                            <a href="#" class="forum-dropdown-item">Patologia</a>
+                            <a href="#" class="forum-dropdown-item">Biologia Molecolare</a>
+                            <a href="#" class="forum-dropdown-item">Genetica</a>
+                            <a href="#" class="forum-dropdown-item">Microbiologia</a>
+                            <a href="#" class="forum-dropdown-item">Anatomia Umana</a>
+                            <a href="#" class="forum-dropdown-item">Fisiologia Umana</a>
+                            <a href="#" class="forum-dropdown-item">Patologia Generale</a>
+                            <a href="#" class="forum-dropdown-item">Farmacologia</a>
+                            <a href="#" class="forum-dropdown-item">Diritto Privato</a>
+                            <a href="#" class="forum-dropdown-item">Diritto Pubblico</a>
+                            <a href="#" class="forum-dropdown-item">Diritto Penale</a>
+                            <a href="#" class="forum-dropdown-item">Diritto Commerciale</a>
+                            <a href="#" class="forum-dropdown-item">Diritto del Lavoro</a>
+                            <a href="#" class="forum-dropdown-item">Microeconomia</a>
+                            <a href="#" class="forum-dropdown-item">Macroeconomia</a>
+                            <a href="#" class="forum-dropdown-item">Econometria</a>
+                            <a href="#" class="forum-dropdown-item">Finanza Aziendale</a>
+                            <a href="#" class="forum-dropdown-item">Marketing</a>
+                            <a href="#" class="forum-dropdown-item">Gestione delle Risorse Umane</a>
+                            <a href="#" class="forum-dropdown-item">Statistica</a>
+                            <a href="#" class="forum-dropdown-item">Statistica Inferenziale</a>
+                            <a href="#" class="forum-dropdown-item">Ricerca Operativa</a>
+                            <a href="#" class="forum-dropdown-item">Storia Contemporanea</a>
+                            <a href="#" class="forum-dropdown-item">Storia Moderna</a>
+                            <a href="#" class="forum-dropdown-item">Storia Medievale</a>
+                            <a href="#" class="forum-dropdown-item">Filosofia Teoretica</a>
+                            <a href="#" class="forum-dropdown-item">Letteratura Italiana</a>
+                            <a href="#" class="forum-dropdown-item">Lingua Inglese</a>
+                            <a href="#" class="forum-dropdown-item">Psicologia Generale</a>
                         </div>
                     </div>
                     

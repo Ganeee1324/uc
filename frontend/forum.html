@@ -296,7 +296,7 @@
         .forum-nav-link .nav-text {
             display: flex;
             align-items: center;
-            gap: var(--forum-spacing-sm);
+            gap: var(--forum-space-3);
         }
         
         .forum-nav-link .material-symbols-outlined {
@@ -316,9 +316,10 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
-            background: var(--forum-card-bg);
+            background: var(--forum-bg-primary);
             border-left: 2px solid var(--forum-primary-light);
-            margin-left: var(--forum-spacing-lg);
+            margin-left: var(--forum-space-6);
+            text-align: right;
         }
         
         .forum-nav-item.expanded .forum-dropdown {
@@ -327,13 +328,14 @@
         
         .forum-dropdown-item {
             display: block;
-            padding: var(--forum-spacing-xs) var(--forum-spacing-lg);
+            padding: var(--forum-space-2) var(--forum-space-4);
             color: var(--forum-text-secondary);
             text-decoration: none;
             font-size: 0.875rem;
             transition: all 0.2s ease;
             border-radius: var(--forum-radius-sm);
-            margin: 2px var(--forum-spacing-xs);
+            margin: 2px var(--forum-space-2);
+            text-align: right;
         }
         
         .forum-dropdown-item:hover {
@@ -476,7 +478,6 @@
             background: white;
             border: 1px solid var(--forum-gray-200);
             border-radius: var(--forum-radius-md);
-            overflow: hidden;
         }
         
         /* ========================================

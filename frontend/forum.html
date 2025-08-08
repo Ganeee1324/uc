@@ -420,7 +420,7 @@
             font-weight: 500;
         }
         
-        /* Sticky Search Container - Matches search.html behavior */
+        /* Sticky Search Container - Centered to right side */
         .forum-search-section {
             position: sticky;
             top: 80px;
@@ -428,9 +428,12 @@
             background: var(--forum-bg-glass);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--forum-gray-200);
-            padding: var(--forum-space-6) var(--forum-space-8);
+            padding: var(--forum-space-6) 0;
             margin: 0;
             box-shadow: var(--forum-shadow-sm);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         .forum-search-section::before {
@@ -442,6 +445,13 @@
             height: 1px;
             background: linear-gradient(90deg, transparent 0%, var(--forum-gray-300) 50%, transparent 100%);
             opacity: 0.6;
+        }
+        
+        .forum-search-section .search-container-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 var(--forum-space-6);
         }
         
         /* ========================================

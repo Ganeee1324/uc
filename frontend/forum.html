@@ -350,6 +350,52 @@
             font-weight: 500;
         }
         
+        /* Dropdown Search Component */
+        .forum-dropdown-search {
+            position: relative;
+            padding: var(--forum-space-2);
+            margin-bottom: var(--forum-space-2);
+            border-bottom: 1px solid var(--forum-gray-200);
+            background: var(--forum-gray-50);
+        }
+        
+        .forum-dropdown-search-input {
+            width: 100%;
+            padding: var(--forum-space-2) var(--forum-space-8) var(--forum-space-2) var(--forum-space-3);
+            border: 1px solid var(--forum-gray-300);
+            border-radius: var(--forum-radius-md);
+            font-size: 0.8rem;
+            background: white;
+            color: var(--forum-text-primary);
+            outline: none;
+            transition: all var(--forum-transition-base);
+        }
+        
+        .forum-dropdown-search-input:focus {
+            border-color: var(--forum-primary-solid);
+            box-shadow: 0 0 0 2px var(--forum-primary-light);
+        }
+        
+        .forum-dropdown-search-input::placeholder {
+            color: var(--forum-text-muted);
+            font-style: italic;
+        }
+        
+        .forum-dropdown-search .material-symbols-outlined {
+            position: absolute;
+            right: var(--forum-space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--forum-text-muted);
+            pointer-events: none;
+        }
+        
+        /* Hide items that don't match search */
+        .forum-dropdown-item.hidden {
+            display: none;
+        }
+        
         /* ========================================
            MAIN CONTENT AREA - ULTRA PREMIUM LAYOUT
            ======================================== */
@@ -1248,6 +1294,10 @@
                             <span class="material-symbols-outlined forum-nav-arrow">expand_more</span>
                         </div>
                         <div class="forum-dropdown">
+                            <div class="forum-dropdown-search">
+                                <input type="text" class="forum-dropdown-search-input" placeholder="Cerca facoltà..." />
+                                <span class="material-symbols-outlined">search</span>
+                            </div>
                             <a href="#" class="forum-dropdown-item">Ingegneria</a>
                             <a href="#" class="forum-dropdown-item">Medicina</a>
                             <a href="#" class="forum-dropdown-item">Giurisprudenza</a>
@@ -1256,6 +1306,18 @@
                             <a href="#" class="forum-dropdown-item">Scienze Matematiche</a>
                             <a href="#" class="forum-dropdown-item">Psicologia</a>
                             <a href="#" class="forum-dropdown-item">Architettura</a>
+                            <a href="#" class="forum-dropdown-item">Scienze della Comunicazione</a>
+                            <a href="#" class="forum-dropdown-item">Scienze Politiche</a>
+                            <a href="#" class="forum-dropdown-item">Sociologia</a>
+                            <a href="#" class="forum-dropdown-item">Farmacia</a>
+                            <a href="#" class="forum-dropdown-item">Veterinaria</a>
+                            <a href="#" class="forum-dropdown-item">Biotecnologie</a>
+                            <a href="#" class="forum-dropdown-item">Scienze Biologiche</a>
+                            <a href="#" class="forum-dropdown-item">Chimica</a>
+                            <a href="#" class="forum-dropdown-item">Fisica</a>
+                            <a href="#" class="forum-dropdown-item">Scienze Geologiche</a>
+                            <a href="#" class="forum-dropdown-item">Scienze Ambientali</a>
+                            <a href="#" class="forum-dropdown-item">Agraria</a>
                         </div>
                     </div>
                     
@@ -1268,6 +1330,10 @@
                             <span class="material-symbols-outlined forum-nav-arrow">expand_more</span>
                         </div>
                         <div class="forum-dropdown">
+                            <div class="forum-dropdown-search">
+                                <input type="text" class="forum-dropdown-search-input" placeholder="Cerca corsi..." />
+                                <span class="material-symbols-outlined">search</span>
+                            </div>
                             <a href="#" class="forum-dropdown-item">Analisi Matematica</a>
                             <a href="#" class="forum-dropdown-item">Fisica Generale</a>
                             <a href="#" class="forum-dropdown-item">Programmazione</a>
@@ -1276,6 +1342,18 @@
                             <a href="#" class="forum-dropdown-item">Microeconomia</a>
                             <a href="#" class="forum-dropdown-item">Storia Moderna</a>
                             <a href="#" class="forum-dropdown-item">Anatomia Umana</a>
+                            <a href="#" class="forum-dropdown-item">Algebra Lineare</a>
+                            <a href="#" class="forum-dropdown-item">Geometria</a>
+                            <a href="#" class="forum-dropdown-item">Statistica</a>
+                            <a href="#" class="forum-dropdown-item">Basi di Dati</a>
+                            <a href="#" class="forum-dropdown-item">Sistemi Operativi</a>
+                            <a href="#" class="forum-dropdown-item">Elettronica</a>
+                            <a href="#" class="forum-dropdown-item">Termodinamica</a>
+                            <a href="#" class="forum-dropdown-item">Meccanica</a>
+                            <a href="#" class="forum-dropdown-item">Chimica Generale</a>
+                            <a href="#" class="forum-dropdown-item">Biologia Cellulare</a>
+                            <a href="#" class="forum-dropdown-item">Fisiologia</a>
+                            <a href="#" class="forum-dropdown-item">Patologia</a>
                         </div>
                     </div>
                     
@@ -1988,6 +2066,41 @@
                     
                     console.log('Selected category:', item.textContent);
                     // Here you would filter discussions based on selected category
+                });
+            });
+            
+            // Dropdown search functionality
+            const dropdownSearchInputs = document.querySelectorAll('.forum-dropdown-search-input');
+            dropdownSearchInputs.forEach(searchInput => {
+                searchInput.addEventListener('input', function(e) {
+                    e.stopPropagation(); // Prevent dropdown from closing
+                    
+                    const searchTerm = this.value.toLowerCase().trim();
+                    const dropdown = this.closest('.forum-dropdown');
+                    const items = dropdown.querySelectorAll('.forum-dropdown-item');
+                    
+                    // Filter items based on search term
+                    items.forEach(item => {
+                        const itemText = item.textContent.toLowerCase();
+                        if (searchTerm === '' || itemText.includes(searchTerm)) {
+                            item.classList.remove('hidden');
+                        } else {
+                            item.classList.add('hidden');
+                        }
+                    });
+                });
+                
+                // Prevent dropdown from closing when clicking on search input
+                searchInput.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+            
+            // Handle search input focus to prevent dropdown from closing
+            const dropdownSearchContainers = document.querySelectorAll('.forum-dropdown-search');
+            dropdownSearchContainers.forEach(container => {
+                container.addEventListener('click', function(e) {
+                    e.stopPropagation();
                 });
             });
             

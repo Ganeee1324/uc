@@ -726,86 +726,142 @@
         }
         
         .forum-widget-header {
-            padding: var(--forum-spacing-md);
-            border-bottom: 1px solid var(--forum-border);
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: var(--forum-space-5) var(--forum-space-6);
+            border-bottom: 1px solid var(--forum-gray-200);
+            background: linear-gradient(135deg, var(--forum-bg-primary) 0%, var(--forum-gray-50) 100%);
+            position: relative;
+        }
+        
+        .forum-widget-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: var(--forum-space-6);
+            right: var(--forum-space-6);
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--forum-primary-solid) 50%, transparent 100%);
+            opacity: 0.15;
         }
         
         .forum-widget-title {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--forum-text-primary);
             margin: 0;
             display: flex;
             align-items: center;
-            gap: var(--forum-spacing-xs);
+            gap: var(--forum-space-2);
+            letter-spacing: -0.01em;
         }
         
         .forum-widget-content {
-            padding: var(--forum-spacing-md);
+            padding: var(--forum-space-5) var(--forum-space-6);
         }
         
         .forum-trending-item {
-            padding: var(--forum-spacing-xs) 0;
-            border-bottom: 1px solid #f1f5f9;
+            padding: var(--forum-space-3) 0;
+            border-bottom: 1px solid var(--forum-gray-200);
             display: flex;
             align-items: center;
-            justify-content: between;
-            gap: var(--forum-spacing-xs);
+            justify-content: space-between;
+            gap: var(--forum-space-3);
+            transition: all var(--forum-transition-base);
+            cursor: pointer;
+            border-radius: var(--forum-radius-sm);
+            margin: 0 calc(-1 * var(--forum-space-2));
+            padding-left: var(--forum-space-2);
+            padding-right: var(--forum-space-2);
         }
         
         .forum-trending-item:last-child {
             border-bottom: none;
         }
         
+        .forum-trending-item:hover {
+            background: var(--forum-primary-light);
+            transform: translateX(2px);
+        }
+        
         .forum-trending-title {
-            font-size: 0.875rem;
-            color: var(--forum-text-primary);
-            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--forum-text-secondary);
+            font-weight: 600;
             flex: 1;
-            line-height: 1.3;
+            line-height: 1.4;
+            transition: color var(--forum-transition-base);
+        }
+        
+        .forum-trending-item:hover .forum-trending-title {
+            color: var(--forum-primary-solid);
         }
         
         .forum-trending-count {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--forum-text-muted);
-            background: var(--forum-primary-light);
-            padding: 2px 6px;
-            border-radius: var(--forum-radius-sm);
+            background: var(--forum-gray-100);
+            padding: var(--forum-space-1) var(--forum-space-3);
+            border-radius: var(--forum-radius-full);
+            font-weight: 700;
+            transition: all var(--forum-transition-base);
+            border: 1px solid var(--forum-gray-200);
+        }
+        
+        .forum-trending-item:hover .forum-trending-count {
+            background: var(--forum-primary-solid);
+            color: white;
+            transform: scale(1.05);
         }
         
         /* Action Buttons */
         .forum-action-btn {
             display: inline-flex;
             align-items: center;
-            gap: var(--forum-spacing-xs);
-            padding: var(--forum-spacing-sm) var(--forum-spacing-lg);
+            gap: var(--forum-space-2);
+            padding: var(--forum-space-3) var(--forum-space-6);
             background: var(--forum-primary);
             color: white;
             border: none;
-            border-radius: var(--forum-radius-md);
-            font-weight: 600;
-            font-size: 0.875rem;
+            border-radius: var(--forum-radius-lg);
+            font-weight: 700;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--forum-transition-base);
             text-decoration: none;
-            box-shadow: var(--forum-shadow-sm);
+            box-shadow: var(--forum-shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .forum-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left var(--forum-transition-base);
         }
         
         .forum-action-btn:hover {
             background: var(--forum-primary-hover);
-            transform: translateY(-1px);
-            box-shadow: var(--forum-shadow-md);
+            transform: translateY(-2px);
+            box-shadow: var(--forum-shadow-lg);
+        }
+        
+        .forum-action-btn:hover::before {
+            left: 100%;
         }
         
         .forum-action-btn.secondary {
             background: white;
-            color: var(--forum-primary);
-            border: 1px solid var(--forum-border);
+            color: var(--forum-primary-solid);
+            border: 1px solid var(--forum-gray-300);
         }
         
         .forum-action-btn.secondary:hover {
             background: var(--forum-primary-light);
+            border-color: var(--forum-primary-medium);
         }
         
         /* Responsive Design */
@@ -1196,11 +1252,6 @@
                                 </label>
                             </div>
                         </div>
-                        <button class="filters-btn" id="filtersBtn">
-                            <i class="material-symbols-outlined">tune</i>
-                            <span class="filters-text">Filtri</span>
-                            <span class="filter-count" id="filterCount">0</span>
-                        </button>
                     </div>
                 </div>
             </div>
